@@ -43,16 +43,17 @@
                                 <?php if($product['stock_quantity'] > 0): ?>
                                     <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                        <div class="input-group input-group-sm mb-3">
-                                            <button type="button" class="btn btn-outline-secondary quantity-decrease px-2">-</button>
-                                            <input type="number" name="quantity" class="form-control text-center quantity-input" 
-                                                   value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
-                                                   aria-label="Quantity" readonly>
-                                            <button type="button" class="btn btn-outline-secondary quantity-increase px-2">+</button>
-                                        </div>
-                                        <button type="submit" class="btn btn-success w-100">
-                                            <i class="fas fa-cart-plus me-1"></i> Add to Cart
-                                        </button>
+                                        <div class="input-group input-group-sm mb-2" style="max-width: 180px;">
+                                        <button type="button" class="btn btn-outline-secondary quantity-decrease px-2 py-1" style="font-size: 0.875rem; width: 30px;">-</button>
+                                        <input type="number" name="quantity" class="form-control text-center quantity-input" 
+                                               value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
+                                               aria-label="Quantity" readonly
+                                               style="font-size: 0.875rem; height: auto; padding: 0.25rem;">
+                                        <button type="button" class="btn btn-outline-secondary quantity-increase px-2 py-1" style="font-size: 0.875rem; width: 30px;">+</button>
+                                    </div>
+                                    <button type="submit" class="btn btn-success w-100 py-1" style="font-size: 0.875rem;">
+                                        <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                    </button>
                                     </form>
                                 <?php else: ?>
                                     <div class="alert alert-warning text-center">

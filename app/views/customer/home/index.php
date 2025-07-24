@@ -148,29 +148,59 @@
                                 </a>
 
                                 <!-- 🛒 Add to Cart -->
-                                <?php if($product['stock_quantity'] > 0): ?>
-                                    <?php if(isLoggedIn()): ?>
-                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form mt-auto">
-                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="input-group input-group-sm mb-2">
-                                                <button type="button" class="btn btn-outline-secondary quantity-decrease px-2">-</button>
-                                                <input type="number" name="quantity" class="form-control text-center quantity-input" 
-                                                       value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
-                                                       aria-label="Quantity" readonly>
-                                                <button type="button" class="btn btn-outline-secondary quantity-increase px-2">+</button>
-                                            </div>
-                                            <button type="submit" class="btn btn-sm btn-primary w-100">
-                                                <i class="fas fa-cart-plus me-1"></i> Add to Cart
-                                            </button>
-                                        </form>
-                                    <?php else: ?>
-                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
-                                    <?php endif; ?>
-                                <?php else: ?>
-                                    <button class="btn btn-sm btn-outline-secondary w-100" disabled>
-                                        Out of Stock
-                                    </button>
-                                <?php endif; ?>
+                               <?php if($product['stock_quantity'] > 0): ?>
+  <?php if($product['stock_quantity'] > 0): ?>
+    <?php if(isLoggedIn()): ?>
+        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form mt-auto">
+            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+
+            <!-- Flex Row: Quantity and Button Side by Side -->
+            <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px;">
+
+                <!-- Quantity Box -->
+                <div class="input-group input-group-xs" style="width: 110px; height: 30px;">
+                    <button type="button" class="btn btn-outline-secondary quantity-decrease px-0" 
+                            style="font-size: 0.7rem; width: 20px; padding: 0; line-height: 1.5;">-</button>
+
+                    <input type="number" name="quantity" class="form-control text-center quantity-input" 
+                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
+                           aria-label="Quantity" readonly
+                           style="font-size: 0.7rem; height: 30px; padding: 0 2px; width: 30px; line-height: 1.5;">
+
+                    <button type="button" class="btn btn-outline-secondary quantity-increase px-0" 
+                            style="font-size: 0.7rem; width: 20px; padding: 0; line-height: 1.5;">+</button>
+                </div>
+
+                <!-- Add to Cart Button -->
+                <button type="submit" 
+                        class="btn btn-xs btn-primary py-1" 
+                        style="font-size: 0.7rem; padding: 0; height: 30px; line-height: 1.2; width: 110px;">
+                    <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                </button>
+
+            </div>
+        </form>
+    <?php else: ?>
+        <a href="<?php echo BASE_URL; ?>?controller=user&action=login" 
+           class="btn btn-xs btn-outline-primary w-100 py-0" 
+           style="font-size: 0.7rem; padding: 0.15rem 0.25rem;">
+            Login to Buy
+        </a>
+    <?php endif; ?>
+<?php else: ?>
+    <div class="text-danger text-center" style="font-size: 0.75rem;">Out of Stock</div>
+<?php endif; ?>
+
+        <!-- Login to Buy -->
+        
+    <?php endif; ?>
+
+    <!-- Out of Stock Message -->
+    
+
+
+                                   
+                               
                             </div>
                         </div>
                     </div>
@@ -358,7 +388,7 @@
 
 .splash-bg-1::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%23ffecec" d="M41.3,-52.9C54.4,-47.3,66.6,-35.6,71.5,-21.2C76.4,-6.8,74,10.3,65.7,23.5C57.4,36.7,43.3,46,28.7,51.7C14.1,57.4,-0.9,59.5,-17.4,57.3C-33.9,55.2,-51.8,48.8,-63.5,35.8C-75.2,22.8,-80.6,3.2,-76.2,-13.8C-71.8,-30.8,-57.6,-45.2,-42.3,-50.5C-27,-55.8,-10.7,-52,2.8,-55.9C16.3,-59.8,28.2,-58.5,41.3,-52.9Z" transform="translate(100 100)"/></svg>'); }
 .splash-bg-2::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%23ecffec" d="M42.3,-57.7C55.4,-49.4,66.9,-37.9,71.5,-24.1C76.1,-10.3,73.8,5.8,67.8,19.9C61.8,34,52.1,46.1,39.7,54.5C27.3,62.9,12.1,67.6,-2.9,71.1C-18,74.6,-36,76.9,-45.6,68.1C-55.2,59.3,-56.4,39.4,-61.8,21.9C-67.2,4.4,-76.8,-10.7,-74.8,-24.1C-72.8,-37.5,-59.2,-49.2,-44.6,-57.1C-30,-65,-15,-69.1,0.2,-69.4C15.4,-69.7,29.2,-66,42.3,-57.7Z" transform="translate(100 100)"/></svg>'); }
-.splash-bg-3::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%23ecedff" d="M44.3,-63.3C57.8,-56.2,69.2,-44.3,73.9,-30.1C78.6,-15.9,76.5,0.5,71.4,15.3C66.3,30.1,58.1,43.2,46.5,52.4C34.9,61.6,19.9,66.9,4.1,61.9C-11.7,56.9,-28.2,41.7,-39.7,32.2C-51.2,22.7,-57.7,9,-58.1,-5.2C-58.5,-19.4,-52.8,-34,-42.9,-41.8C-33,-49.6,-18.9,-50.6,-3.6,-45.8C11.7,-41,30.8,-70.4,44.3,-63.3Z" transform="translate(100 100)"/></svg>'); }
+.splash-bg-3::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%23ecedff" d="M44.3,-63.3C57.8,-56.2,70.2,-44.3,74.3,-28.9C78.4,-13,77.3,4,71.4,18.5C65.5,33,54.8,45,42.1,53.7C29.4,62.4,14.7,67.8,0.2,67.5C-14.3,67.2,-28.6,61.2,-41.5,52.5C-54.4,43.8,-65.9,32.4,-71.1,18.1C-76.3,3.8,-75.2,-13.4,-68.3,-27.7C-61.4,-42,-48.7,-53.4,-35.2,-61.4C-21.7,-69.4,-7.2,-74,7.3,-83.8C21.8,-93.6,34.5,-75.8,44.3,-63.3Z" transform="translate(100 100)"/></svg>'); }
 .splash-bg-4::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%23fff5ec" d="M39.5,-57.1C51.4,-50.8,61.4,-40.2,67.5,-27.3C73.6,-14.4,75.8,0.8,72.1,14.5C68.4,28.2,58.8,40.3,46.7,48.7C34.6,57.1,20,61.8,4.7,55.9C-10.6,50,-26.6,33.5,-39.7,25.2C-52.8,16.9,-63,16.8,-65.8,8.2C-68.6,-0.4,-64,-17.5,-55.3,-30.1C-46.6,-42.7,-33.8,-50.8,-20.8,-56.5C-7.8,-62.2,5.4,-65.5,18.1,-63.9C30.8,-62.3,27.6,-63.4,39.5,-57.1Z" transform="translate(100 100)"/></svg>'); }
 .splash-bg-5::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%23f5ecff" d="M47.7,-67.7C60.9,-59.6,70.2,-44.8,74.3,-28.9C78.4,-13,77.3,4,71.4,18.5C65.5,33,54.8,45,42.1,53.7C29.4,62.4,14.7,67.8,0.2,67.5C-14.3,67.2,-28.6,61.2,-41.5,52.5C-54.4,43.8,-65.9,32.4,-71.1,18.1C-76.3,3.8,-75.2,-13.4,-68.3,-27.7C-61.4,-42,-48.7,-53.4,-35.2,-61.4C-21.7,-69.4,-7.2,-74,7.3,-83.8C21.8,-93.6,34.5,-75.8,47.7,-67.7Z" transform="translate(100 100)"/></svg>'); }
 
