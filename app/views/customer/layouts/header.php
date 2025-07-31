@@ -364,7 +364,14 @@
                             Country of origin
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="countryDropdown">
-                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=index">All Countries</a></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=country&action=index">
+                                    <div class="me-2" style="width: 24px; height: 18px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-globe-americas"></i>
+                                    </div>
+                                    All Countries
+                                </a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
                             <?php 
                             // Get active countries
@@ -374,7 +381,21 @@
                             if(!empty($countries)) :
                                 foreach($countries as $country) :
                             ?>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=show&param=<?php echo $country['id']; ?>"><?php echo $country['name']; ?></a></li>
+                                <?php 
+                                    $countryCode = strtolower(substr($country['name'], 0, 2));
+                                    $flagImage = !empty($country['flag_image']) ? 
+                                        BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
+                                        'https://flagcdn.com/24x18/' . $countryCode . '.png';
+                                ?>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=country&action=show&param=<?php echo $country['id']; ?>">
+                                        <img src="<?php echo $flagImage; ?>" 
+                                             alt="<?php echo htmlspecialchars($country['name']); ?>" 
+                                             class="me-2" 
+                                             style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">
+                                        <?php echo htmlspecialchars($country['name']); ?>
+                                    </a>
+                                </li>
                             <?php 
                                 endforeach;
                             endif; 

@@ -38,7 +38,7 @@
                                 <!-- Country Selection -->
                                 <div class="mb-3">
                                     <label for="country_id" class="form-label">Country of Origin</label>
-                                    <select class="form-select <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required>
+                                    <select class="form-select select2 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required>
                                         <option value="">Select Country</option>
                                         <?php 
                                         // Get active countries
@@ -48,8 +48,16 @@
                                         if(!empty($countries)) :
                                             foreach($countries as $country) :
                                                 $selected = (isset($data['country_id']) && $data['country_id'] == $country['id']) ? 'selected' : '';
+                                                $countryCode = strtolower(substr($country['name'], 0, 2));
+                                                $flagImage = !empty($country['flag_image']) ? 
+                                                    BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
+                                                    'https://flagcdn.com/24x18/' . $countryCode . '.png';
                                         ?>
-                                            <option value="<?php echo $country['id']; ?>" <?php echo $selected; ?>><?php echo $country['name']; ?></option>
+                                            <option value="<?php echo $country['id']; ?>" 
+                                                data-flag-image="<?php echo $flagImage; ?>"
+                                                <?php echo $selected; ?>>
+                                                <?php echo $country['name']; ?>
+                                            </option>
                                         <?php 
                                             endforeach;
                                         endif; 
@@ -184,8 +192,67 @@
     </div>
 </div>
 
+<!-- Add Select2 CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+/* Style for flag images in dropdown */
+.select2-container--bootstrap-5 .select2-selection--single {
+    height: 38px;
+    padding: 0.375rem 0.75rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+    padding-left: 0;
+    line-height: 1.5;
+}
+
+.select2-container--bootstrap-5 .select2-results__option {
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-container--bootstrap-5 .select2-results__option img {
+    width: 24px;
+    height: 18px;
+    object-fit: cover;
+    border: 1px solid #dee2e6;
+    margin-right: 10px;
+    border-radius: 2px;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+    display: flex;
+    align-items: center;
+}
+</style>
+
 <script>
+// Format country with flag
+function formatCountry(country) {
+    if (!country.id) { return country.text; }
+    
+    var $country = $(
+        '<div class="d-flex align-items-center">' +
+        '<img src="' + $(country.element).data('flag-image') + '" class="me-2" style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">' +
+        '<span>' + country.text + '</span>' +
+        '</div>'
+    );
+    return $country;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 for country dropdown
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        templateResult: formatCountry,
+        templateSelection: formatCountry,
+        escapeMarkup: function(m) { return m; }
+    });
+    
     const form = document.getElementById('productForm');
     const submitBtn = document.getElementById('submitBtn');
     const addAnotherBtn = document.getElementById('addAnotherBtn');

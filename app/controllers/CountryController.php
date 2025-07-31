@@ -61,8 +61,8 @@ class CountryController extends Controller {
             redirect('?controller=home&action=admin');
         }
         
-        // Get all countries
-        $countries = $this->countryModel->getAllCountries();
+        // Get all countries with product counts
+        $countries = $this->countryModel->getAllCountriesWithProductCounts();
         
         // Get selected country (from URL parameter or default to first one)
         $selectedCountry = null;
@@ -70,7 +70,8 @@ class CountryController extends Controller {
             $selectedCountry = $this->countryModel->getCountryById($_GET['id']);
         }
         
-        if (!$selectedCountry && !empty($countries)) {
+        // If no country is selected or the selected country is not found, use the first one
+        if ((!$selectedCountry || !isset($selectedCountry['id'])) && !empty($countries)) {
             $selectedCountry = $countries[0];
         }
         
@@ -95,22 +96,89 @@ class CountryController extends Controller {
             // Sanitize POST data
             $data = [
                 'name' => trim($_POST['name']),
-                'code' => strtoupper(trim($_POST['code'])),
+                'code' => strtoupper(substr(trim($_POST['name']), 0, 2)),
                 'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s')
             ];
             
             // Validate input
             if (empty($data['name'])) {
-                flash('country_message', 'Please enter country name', 'alert alert-danger');
-                redirect('?controller=country&action=adminIndex');
+                $error = 'Please enter country name';
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    header('HTTP/1.1 400 Bad Request');
+                    echo json_encode(['success' => false, 'message' => $error]);
+                    exit;
+                } else {
+                    flash('country_message', $error, 'alert alert-danger');
+                    redirect('?controller=country&action=adminIndex');
+                }
+                return;
+            }
+            
+            // Handle file upload
+            if (!empty($_FILES['flag_image']['name'])) {
+                $uploadDir = UPLOAD_PATH . 'flags/';
+                
+                // Create directory if it doesn't exist
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $maxSize = 2 * 1024 * 1024; // 2MB
+                
+                if (in_array($_FILES['flag_image']['type'], $allowedTypes) && 
+                    $_FILES['flag_image']['size'] <= $maxSize) {
+                    
+                    $fileExt = pathinfo($_FILES['flag_image']['name'], PATHINFO_EXTENSION);
+                    $fileName = 'flag_' . time() . '_' . uniqid() . '.' . $fileExt;
+                    $targetPath = $uploadDir . $fileName;
+                    
+                    if (move_uploaded_file($_FILES['flag_image']['tmp_name'], $targetPath)) {
+                        $data['flag_image'] = $fileName;
+                    }
+                } else {
+                    $error = 'Invalid file type or file too large (max 2MB)';
+                    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                        header('HTTP/1.1 400 Bad Request');
+                        echo json_encode(['success' => false, 'message' => $error]);
+                        exit;
+                    } else {
+                        flash('country_message', $error, 'alert alert-danger');
+                        redirect('?controller=country&action=adminIndex');
+                    }
+                    return;
+                }
             }
             
             // Create country
-            if ($this->countryModel->addCountry($data)) {
-                flash('country_message', 'Country added successfully', 'alert alert-success');
+            $newCountryId = $this->countryModel->addCountry($data);
+            if ($newCountryId) {
+                $successMessage = 'Country added successfully';
+                $newCountry = $this->countryModel->getCountryById($newCountryId);
+                
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => $successMessage,
+                        'country' => $newCountry
+                    ]);
+                    exit;
+                } else {
+                    flash('country_message', $successMessage, 'alert alert-success');
+                    redirect('?controller=country&action=adminIndex&id=' . $newCountryId);
+                }
             } else {
-                flash('country_message', 'Something went wrong', 'alert alert-danger');
+                $error = 'Error adding country: ' . $this->countryModel->getLastError();
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    header('HTTP/1.1 500 Internal Server Error');
+                    echo json_encode(['success' => false, 'message' => $error]);
+                    exit;
+                } else {
+                    flash('country_message', $error, 'alert alert-danger');
+                    redirect('?controller=country&action=adminIndex');
+                }
             }
         }
         
@@ -129,16 +197,20 @@ class CountryController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Sanitize POST data
             $data = [
-                'id' => (int)$_POST['country_id'],
+                'id' => (int)$_POST['id'],
                 'name' => trim($_POST['name']),
-                'description' => trim($_POST['description'] ?? ''),
                 'status' => isset($_POST['status']) ? 'active' : 'inactive',
-                'updated_at' => date('Y-m-d H:i:s')
+                'code' => strtoupper(substr(trim($_POST['name']), 0, 2)) // Generate 2-letter country code
             ];
+            
+            // Add description if provided
+            if (isset($_POST['description']) && !empty(trim($_POST['description']))) {
+                $data['description'] = trim($_POST['description']);
+            }
             
             // Handle flag image upload
             if (!empty($_FILES['flag_image']['name'])) {
-                $uploadDir = ROOT . '/public/uploads/flags/';
+                $uploadDir = UPLOAD_PATH . 'flags/';
                 
                 // Create directory if it doesn't exist
                 if (!is_dir($uploadDir)) {
@@ -157,9 +229,13 @@ class CountryController extends Controller {
                     
                     if (move_uploaded_file($_FILES['flag_image']['tmp_name'], $targetPath)) {
                         // Delete old flag if exists
-                        $oldFlag = $this->countryModel->getCountryById($data['id'])->flag_image;
-                        if ($oldFlag && file_exists($uploadDir . $oldFlag)) {
-                            unlink($uploadDir . $oldFlag);
+                        // Get old flag filename and delete it if exists
+                        $oldCountry = $this->countryModel->getCountryById($data['id']);
+                        if ($oldCountry && !empty($oldCountry['flag_image'])) {
+                            $oldFlagPath = $uploadDir . $oldCountry['flag_image'];
+                            if (file_exists($oldFlagPath)) {
+                                @unlink($oldFlagPath);
+                            }
                         }
                         
                         $data['flag_image'] = $fileName;
@@ -179,6 +255,31 @@ class CountryController extends Controller {
             }
             
             redirect('?controller=country&action=adminIndex&id=' . $data['id']);
+        }
+        
+        redirect('?controller=country&action=adminIndex');
+    }
+    
+    /**
+     * Delete a country
+     */
+    public function delete() {
+        // Check if admin is logged in
+        if(!isAdmin()) {
+            redirect('?controller=home&action=admin');
+        }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            $countryId = (int)$_POST['id'];
+            
+            if ($this->countryModel->deleteCountry($countryId)) {
+                flash('country_message', 'Country deleted successfully', 'alert alert-success');
+            } else {
+                $error = $this->countryModel->getLastError() ?: 'Failed to delete country';
+                flash('country_message', $error, 'alert alert-danger');
+            }
+        } else {
+            flash('country_message', 'Invalid request', 'alert alert-danger');
         }
         
         redirect('?controller=country&action=adminIndex');
