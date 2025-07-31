@@ -123,29 +123,30 @@
                             </div>
 
                             <!-- 📝 Content -->
-                            <div class="card-body p-3 flex-grow-1 d-flex flex-column justify-content-between">
-                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
-                                    <h3 class="h6 card-title mb-2 text-truncate text-center small" style="font-size: 0.8rem;"><?php echo $product['name']; ?></h3>
-                                    <p class="small text-muted mb-1 d-none d-md-block" style="font-size: 0.7rem;"><?php echo truncateText($product['description'], 50); ?></p>
-                                    <div class="d-flex justify-content-between align-items-center w-100">
-                                        <?php if(isLoggedIn()): ?>
-                                            <div class="text-start">
-                                                <span class="fw-bold d-block"><?php echo formatCurrency($product['sale_price'] ?? $product['price']); ?></span>
-                                                <small class="text-muted d-block">Per Unit</small>
-                                            </div>
-                                        <?php else: ?>
-                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-decoration-none">
-                                                <span class="fw-bold">Login to see price</span>
-                                            </a>
-                                        <?php endif; ?>
-                                        <div class="text-end">
-                                            <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?> small mb-1 d-inline-block">
+                            <div class="card-body p-2 d-flex flex-column">
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark text-center">
+                                    <h3 class="h6 card-title mb-1 text-truncate" style="font-size: 0.85rem; min-height: 2.2rem; display: flex; align-items: center; justify-content: center;">
+                                        <?php echo $product['name']; ?>
+                                    </h3>
+                                    
+                                    <div class="price-stock-container mt-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <?php if(isLoggedIn()): ?>
+                                                <span class="fw-bold" style="font-size: 0.95rem;">
+                                                    <?php echo formatCurrency($product['sale_price'] ?? $product['price']); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                            
+                                            <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?>" style="font-size: 0.7rem; padding: 0.25em 0.5em;">
                                                 <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
                                             </span>
-                                            <?php if($product['stock_quantity'] > 0): ?>
-                                                <small class="text-muted d-block"><?php echo $product['stock_quantity']; ?> units</small>
-                                            <?php endif; ?>
                                         </div>
+                                        
+                                        <?php if($product['stock_quantity'] > 0): ?>
+                                            <div class="text-muted text-end" style="font-size: 0.75rem; margin: 3px 0; padding-right: 5px;">
+                                                Stock: <?php echo $product['stock_quantity']; ?> units
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </a>
 
