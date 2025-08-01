@@ -1,4 +1,7 @@
 <?php
+
+error_reporting(0);
+@ini_set('display_errors', 0);
 /**
  * Main entry point for the e-commerce application
  */
@@ -6,8 +9,9 @@
 // Load configuration
 require_once '../config/config.php';
 
-// Load database configuration first
+// Initialize database connection
 require_once CONFIG_PATH . 'database.php';
+$GLOBALS['db'] = new Database();
 
 // Load helpers
 require_once APP_PATH . 'helpers.php';

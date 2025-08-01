@@ -158,7 +158,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Function to get CSRF token
     function getCsrfToken() {
-        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
 
     // Event delegation for delete buttons
@@ -174,23 +174,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = deleteBtn.closest('tr');
         
         // Show confirmation dialog
-        if (confirm(`Are you sure you want to delete "${brandName}"?`)) {
-            deleteBrand(brandId, row);
+        if (confirm(`Are you sure you want to delete the brand "${brandName}"? This action cannot be undone.`)) {
+            deleteBrand(brandId, brandName, row);
         }
     });
     
-    function deleteBrand(brandId, row) {
-        if (!brandId || !row) {
-            console.error('Missing required parameters');
+    function deleteBrand(brandId, brandName, row) {
+        if (!brandId) {
+            console.error('Missing brand ID');
+            showAlert('Error: Missing brand information', 'danger');
             return;
         }
         
-        const deleteBtn = row.querySelector('.delete-brand');
-        const originalHtml = deleteBtn ? deleteBtn.innerHTML : '';
+        const deleteBtn = row?.querySelector('.delete-brand');
+        const originalHtml = deleteBtn?.innerHTML || '';
         
         // Show loading state
         if (deleteBtn) {
-            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
             deleteBtn.disabled = true;
         }
         
@@ -203,40 +204,41 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Create form data
-        const formData = new FormData();
-        formData.append('_method', 'DELETE');
-        formData.append('csrf_token', csrfToken);
-        
         // Make the request
         fetch(`?controller=brand&action=delete&id=${brandId}`, {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': csrfToken
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: formData
+            body: `_method=DELETE&csrf_token=${encodeURIComponent(csrfToken)}`
         })
-        .then(response => {
+        .then(async response => {
+            const data = await response.json().catch(() => ({}));
+            
             if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || 'Failed to delete brand');
-                }).catch(() => {
-                    throw new Error(`Server error: ${response.status}`);
-                });
+                const error = new Error(data.message || `HTTP error! status: ${response.status}`);
+                error.response = response;
+                error.data = data;
+                throw error;
             }
-            return response.json();
+            
+            return data;
         })
         .then(data => {
             if (data.success) {
                 // Fade out and remove row
-                row.style.transition = 'opacity 0.3s';
-                row.style.opacity = '0';
-                
-                setTimeout(() => {
-                    row.remove();
-                    checkIfTableEmpty();
-                }, 300);
+                if (row) {
+                    row.style.transition = 'opacity 0.3s';
+                    row.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        row.remove();
+                        checkIfTableEmpty();
+                    }, 300);
+                }
                 
                 showAlert(data.message || 'Brand deleted successfully', 'success');
             } else {
@@ -245,10 +247,18 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Delete error:', error);
-            showAlert(error.message || 'An error occurred while deleting the brand', 'danger');
+            const errorMessage = error.data?.message || error.message || 'An error occurred while deleting the brand';
+            showAlert(errorMessage, 'danger');
+            
+            // If it's an authentication error, redirect to login
+            if (error.response?.status === 401) {
+                setTimeout(() => {
+                    window.location.href = '?controller=user&action=login';
+                }, 2000);
+            }
         })
         .finally(() => {
-            if (deleteBtn) {
+            if (deleteBtn && originalHtml) {
                 resetButton(deleteBtn, originalHtml);
             }
         });
@@ -301,10 +311,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function resetButton(button, html) {
+    function resetButton(button, originalHtml) {
         if (button) {
-            button.innerHTML = html;
+            button.innerHTML = originalHtml;
             button.disabled = false;
+            
+            // Re-enable any form elements that might be disabled
+            const form = button.closest('form');
+            if (form) {
+                const formElements = form.elements;
+                for (let i = 0; i < formElements.length; i++) {
+                    formElements[i].disabled = false;
+                }
+            }
         }
     }
 });

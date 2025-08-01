@@ -8,6 +8,7 @@ class BrandController extends Controller {
     private $productModel;
     
     public function __construct() {
+        parent::__construct(); // Call parent constructor to initialize database connection
         $this->brandModel = $this->model('Brand');
         $this->productModel = $this->model('Product');
     }
@@ -381,48 +382,95 @@ class BrandController extends Controller {
  * * @param int $id Brand ID
  */
 public function delete($id = null) {
+    error_log('Delete request received. ID: ' . $id);
+    error_log('Request method: ' . $_SERVER['REQUEST_METHOD']);
+    error_log('POST data: ' . print_r($_POST, true));
+    error_log('GET data: ' . print_r($_GET, true));
+    
     try {
         // Check if admin
         if (!isAdmin()) {
-            throw new Exception('Unauthorized access. Please log in as admin.', 401);
+            $error = 'Unauthorized access. Please log in as admin.';
+            error_log($error);
+            throw new Exception($error, 401);
         }
 
         // Check if ID is provided and valid
         if (!$id || !is_numeric($id)) {
+            $error = 'Invalid brand ID provided: ' . $id;
+            error_log($error);
             throw new Exception('Invalid brand ID provided.', 400);
         }
         
         // Get brand first to check existence and get logo path
         $brand = $this->brandModel->getById($id);
+        error_log('Brand data: ' . print_r($brand, true));
         
         // Check if brand exists
         if (!$brand) {
+            $error = 'Brand not found with ID: ' . $id;
+            error_log($error);
             throw new Exception('Brand not found', 404);
-        }
-        
-        // If it's a GET request, show confirmation page
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            if ($this->isAjax()) {
-                throw new Exception('Invalid request method for this endpoint. Use DELETE or POST with _method=DELETE.', 405);
+        }      
+    // If it's a GET request, show confirmation page or JSON error for AJAX
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if ($this->isAjax() || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false)) {
+            $this->json([
+                'success' => false,
+                'message' => 'Invalid request method for this endpoint. Use DELETE or POST with _method=DELETE.'
+            ], 405);
+            return;
             }
             $this->view('admin/brands/delete', ['brand' => $brand]);
             return;
         }
         
-        // For POST/DELETE requests, verify CSRF token
+            // For POST/DELETE requests, verify CSRF token
+        error_log('Checking request method and CSRF token...');
         if ($this->isPost() || $this->isDeleteMethod()) {
             $requestToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf_token'] ?? '');
             $sessionToken = $_SESSION['csrf_token'] ?? '';
             
-            if (empty($requestToken) || $requestToken !== $sessionToken) {
-                throw new Exception('Invalid or missing CSRF token', 403);
+            error_log('Request token: ' . $requestToken);
+            error_log('Session token: ' . $sessionToken);
+            
+            if (empty($requestToken)) {
+                $error = 'CSRF token is missing in the request';
+                error_log($error);
+                $this->handleResponse([
+                    'success' => false,
+                    'message' => $error
+                ], 403);
+                return;
             }
+            
+            if ($requestToken !== $sessionToken) {
+                $error = 'CSRF token validation failed';
+                error_log($error);
+                error_log('Request token: ' . $requestToken);
+                error_log('Session token: ' . $sessionToken);
+                $this->handleResponse([
+                    'success' => false,
+                    'message' => 'Security error: Invalid CSRF token. Please refresh the page and try again.'
+                ], 403);
+                return;
+            }
+        } else {
+            $error = 'Invalid request method: ' . $_SERVER['REQUEST_METHOD'];
+            error_log($error);
+            $this->handleResponse([
+                'success' => false,
+                'message' => $error
+            ], 405);
+            return;
         }
         
-        // Check for associated products
+            // Check for associated products
+        error_log('Checking for associated products...');
         $this->db->query("SELECT COUNT(*) as count FROM products WHERE brand_id = :id");
         $this->db->bind(':id', $id);
         $result = $this->db->single();
+        error_log('Associated products check result: ' . print_r($result, true));
 
         if ($result && $result['count'] > 0) {
             $message = sprintf(
@@ -430,11 +478,9 @@ public function delete($id = null) {
                 'Please remove or reassign these products first.', 
                 $result['count']
             );
+            error_log($message);
             throw new Exception($message, 400);
         }
-
-        // Start transaction
-        $this->db->beginTransaction();
 
         // Delete logo file if it exists
         if (!empty($brand['logo'])) {
@@ -442,13 +488,15 @@ public function delete($id = null) {
         }
 
         // Delete the brand from database
+        error_log('Attempting to delete brand from database...');
         $deleted = $this->brandModel->delete($id);
+        error_log('Delete operation result: ' . ($deleted ? 'success' : 'failed'));
+        
         if (!$deleted) {
-            throw new Exception('Failed to delete brand from database');
+            $error = 'Failed to delete brand from database. Model returned false.';
+            error_log($error);
+            throw new Exception($error, 500);
         }
-
-        // Commit transaction
-        $this->db->commit();
         
         // Log the successful deletion
         error_log(sprintf("Brand deleted successfully - ID: %d, Name: %s", $id, $brand['name']));
@@ -464,22 +512,18 @@ public function delete($id = null) {
         ];
         
         $this->handleResponse($response, 200);
-        
     } catch (Exception $e) {
-        // Rollback transaction on error
-        if ($this->db->inTransaction()) {
-            $this->db->rollBack();
+        error_log('Error deleting brand: ' . $e->getMessage());
+        
+        if ($this->isAjax()) {
+            $this->json([
+                'success' => false,
+                'message' => 'Failed to delete brand: ' . $e->getMessage()
+            ], $e->getCode() >= 400 ? $e->getCode() : 500);
+        } else {
+            flash('brand_error', 'Failed to delete brand: ' . $e->getMessage(), 'danger');
+            redirect('admin/brands');
         }
-        
-        $errorCode = $e->getCode() ?: 500;
-        $response = [
-            'success' => false,
-            'message' => $e->getMessage(),
-            'data' => null
-        ];
-        error_log(sprintf('Brand deletion error (ID: %s): %s', $id ?? 'unknown', $e->getMessage()));
-        
-        $this->handleResponse($response, $errorCode);
     }
 }
 
@@ -487,7 +531,7 @@ public function delete($id = null) {
  * Handle response for both AJAX and regular requests
  */
 private function handleResponse($response, $statusCode = 200) {
-    if ($this->isAjax()) {
+    if ($this->isAjax() || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
         header('Content-Type: application/json', true, $statusCode);
         echo json_encode($response);
         exit;

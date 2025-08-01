@@ -1,4 +1,7 @@
 <?php
+
+error_reporting(0);
+@ini_set('display_errors', 0);
 /**
  * Configuration file for the e-commerce application
  */
@@ -7,7 +10,7 @@
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '1234');
-define('DB_NAME', 'ecommerce30');
+define('DB_NAME', 'ecommerce_db');
 
 // Application paths
 define('BASE_URL', 'http://localhost/ecommerce/');

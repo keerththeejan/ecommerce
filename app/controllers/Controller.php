@@ -5,6 +5,26 @@
  */
 class Controller {
     /**
+     * @var object Database connection
+     */
+    protected $db;
+    
+    /**
+     * Constructor - initialize database connection
+     */
+    public function __construct() {
+        // Use the global database connection if it exists
+        if (isset($GLOBALS['db'])) {
+            $this->db = $GLOBALS['db'];
+        } else {
+            // Fallback: Create a new database connection
+            require_once ROOT_PATH . '/config/database.php';
+            $this->db = new Database();
+            $GLOBALS['db'] = $this->db; // Store in global scope for other instances
+        }
+    }
+    
+    /**
      * Load model
      * 
      * @param string $model Model name
