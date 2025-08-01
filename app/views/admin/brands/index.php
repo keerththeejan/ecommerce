@@ -60,57 +60,18 @@
                             <?php foreach($brands['data'] as $brand): ?>
                                 <tr>
                                     <td><?php echo $brand['id']; ?></td>
-                                    <td>
-                                        <?php 
-                                        $imagePath = '';
-                                        $brandLogo = $brand['logo'] ?? '';
-                                        
-                                        if (!empty($brandLogo)) {
-                                            // Check different possible paths
-                                            $possiblePaths = [
-                                                'public/uploads/brands/' . $brandLogo,
-                                                'uploads/brands/' . $brandLogo,
-                                                $brandLogo,
-                                                'public/' . $brandLogo,
-                                                'uploads/' . $brandLogo
-                                            ];
-                                            
-                                            foreach ($possiblePaths as $path) {
-                                                $fullPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT'] . '/ecommerce/' . ltrim($path, '/\\'));
-                                                if (file_exists($fullPath)) {
-                                                    $imagePath = BASE_URL . ltrim($path, '/\\');
-                                                    break;
-                                                }
-                                            }
-                                            
-                                            // If still not found, try to find the file by name in the uploads directory
-                                            if (empty($imagePath)) {
-                                                $uploadsDir = $_SERVER['DOCUMENT_ROOT'] . '/ecommerce/public/uploads/brands/';
-                                                $files = glob($uploadsDir . '*' . $brandLogo . '*');
-                                                if (!empty($files[0])) {
-                                                    $imagePath = str_replace(
-                                                        $_SERVER['DOCUMENT_ROOT'] . '/ecommerce',
-                                                        '',
-                                                        $files[0]
-                                                    );
-                                                    $imagePath = BASE_URL . ltrim($imagePath, '/');
-                                                }
-                                            }
-                                        }
-                                        
-                                        if (!empty($imagePath)): 
-                                        ?>
-                                            <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                                                <img src="<?php echo $imagePath; ?>" 
-                                                     alt="<?php echo htmlspecialchars($brand['name']); ?>" 
-                                                     style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                                                     onerror="this.onerror=null; this.src='<?php echo BASE_URL; ?>assets/img/no-image.jpg';">
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                                <i class="fas fa-building text-muted fa-2x"></i>
-                                            </div>
-                                        <?php endif; ?>
+                                    <td class="align-middle">
+                                        <div class="brand-logo-container" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                            <?php 
+                                            $logoUrl = !empty($brand['logo']) ? $brand['logo'] : '';
+                                            $defaultLogo = BASE_URL . 'public/images/default-brand.png';
+                                            ?>
+                                            <img src="<?php echo htmlspecialchars($logoUrl); ?>" 
+                                                 alt="<?php echo htmlspecialchars($brand['name']); ?>" 
+                                                 class="img-fluid"
+                                                 style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                                 onerror="this.onerror=null; this.src='<?php echo $defaultLogo; ?>';">
+                                        </div>
                                     </td>
                                     <td><?php echo $brand['name']; ?></td>
                                     <td><?php echo $brand['slug']; ?></td>
@@ -192,224 +153,159 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBrand">Delete</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
+// Delete brand functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize variables
-    let brandIdToDelete = null;
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteBrandModal'));
-    
-    // Handle delete button click
-    document.querySelectorAll('.delete-brand').forEach(button => {
-        button.addEventListener('click', function() {
-            brandIdToDelete = this.getAttribute('data-id');
-            const brandName = this.getAttribute('data-name');
-            document.getElementById('brandNameToDelete').textContent = brandName;
-            deleteModal.show();
-        });
+    // Function to get CSRF token
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    }
+
+    // Event delegation for delete buttons
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.delete-brand');
+        if (!deleteBtn) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const brandId = deleteBtn.getAttribute('data-id');
+        const brandName = deleteBtn.getAttribute('data-name');
+        const row = deleteBtn.closest('tr');
+        
+        // Show confirmation dialog
+        if (confirm(`Are you sure you want to delete "${brandName}"?`)) {
+            deleteBrand(brandId, row);
+        }
     });
     
-    // Handle confirm delete
-    document.getElementById('confirmDeleteBrand').addEventListener('click', function() {
-        if (!brandIdToDelete) return;
+    function deleteBrand(brandId, row) {
+        if (!brandId || !row) {
+            console.error('Missing required parameters');
+            return;
+        }
         
-        const button = this;
-        const originalText = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+        const deleteBtn = row.querySelector('.delete-brand');
+        const originalHtml = deleteBtn ? deleteBtn.innerHTML : '';
         
-        // Get the row to be removed
-        const rowToRemove = document.querySelector(`button.delete-brand[data-id="${brandIdToDelete}"]`).closest('tr');
+        // Show loading state
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            deleteBtn.disabled = true;
+        }
         
-        // Send AJAX request to delete the brand
-        fetch(`?controller=brand&action=delete&id=${brandIdToDelete}`, {
+        // Get CSRF token
+        const csrfToken = getCsrfToken();
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            resetButton(deleteBtn, originalHtml);
+            showAlert('Security error: Please refresh the page and try again', 'danger');
+            return;
+        }
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('_method', 'DELETE');
+        formData.append('csrf_token', csrfToken);
+        
+        // Make the request
+        fetch(`?controller=brand&action=delete&id=${brandId}`, {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': csrfToken
             },
-            credentials: 'same-origin',
-            body: `_method=DELETE`
+            body: formData
         })
-        .then(async response => {
-            const data = await response.json().catch(() => ({}));
-            
+        .then(response => {
             if (!response.ok) {
-                const error = new Error(data.message || 'Network response was not ok');
-                error.response = data;
-                error.status = response.status;
-                throw error;
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Failed to delete brand');
+                }).catch(() => {
+                    throw new Error(`Server error: ${response.status}`);
+                });
             }
-            
-            return data;
+            return response.json();
         })
         .then(data => {
-            // Show success message
-            const successMessage = data.message || 'Brand deleted successfully';
-            
-            // Create success alert
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.role = 'alert';
-            alertDiv.innerHTML = `
-                <i class="fas fa-check-circle me-2"></i> ${successMessage}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            
-            const alertContainer = document.getElementById('alert-messages');
-            if (alertContainer) {
-                // Clear any existing alerts
-                alertContainer.innerHTML = '';
-                // Add the new alert
-                alertContainer.appendChild(alertDiv);
+            if (data.success) {
+                // Fade out and remove row
+                row.style.transition = 'opacity 0.3s';
+                row.style.opacity = '0';
                 
-                // Scroll to the top to show the alert
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                // Auto-dismiss the alert after 5 seconds
-                const alertTimeout = setTimeout(() => {
-                    const bsAlert = new bootstrap.Alert(alertDiv);
-                    bsAlert.close();
-                }, 5000);
-                
-                // Clean up the timeout if the alert is closed manually
-                alertDiv.addEventListener('closed.bs.alert', () => {
-                    clearTimeout(alertTimeout);
-                });
-            }
-            
-            // If we have a row to remove, do it
-            if (rowToRemove) {
-                rowToRemove.style.transition = 'opacity 0.3s';
-                rowToRemove.style.opacity = '0';
-                
-                // Remove the row after the transition
                 setTimeout(() => {
-                    rowToRemove.remove();
-                    
-                    // Check if there are no more rows in the table
-                    const tbody = document.querySelector('table tbody');
-                    if (tbody && tbody.children.length === 0) {
-                        // Create a new row with a message
-                        const noResults = document.createElement('tr');
-                        noResults.innerHTML = `
-                            <td colspan="7" class="text-center py-4">
-                                <div class="alert alert-info mb-0">No brands found.</div>
-                            </td>`;
-                        tbody.appendChild(noResults);
-                    }
+                    row.remove();
+                    checkIfTableEmpty();
                 }, 300);
+                
+                showAlert(data.message || 'Brand deleted successfully', 'success');
+            } else {
+                throw new Error(data.message || 'Failed to delete brand');
             }
-            
-            // Close the modal
-            deleteModal.hide();
         })
         .catch(error => {
-            console.error('Error:', error);
-            let errorMessage = 'An error occurred while deleting the brand';
-            
-            // Handle different types of errors
-            if (error.response && error.response.message) {
-                errorMessage = error.response.message;
-            } else if (error.message) {
-                errorMessage = error.message;
-            } else if (error.statusText) {
-                errorMessage = error.statusText;
-            }
-            
-            // Check for specific error status codes
-            if (error.status === 403) {
-                errorMessage = 'You do not have permission to delete this brand.';
-            } else if (error.status === 404) {
-                errorMessage = 'The brand you are trying to delete was not found.';
-            } else if (error.status === 409) {
-                errorMessage = 'Cannot delete brand because it is associated with one or more products.';
-            } else if (error.status === 500) {
-                errorMessage = 'A server error occurred. Please try again later.';
-            }
-            
-            // Show error alert
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-            alertDiv.role = 'alert';
-            alertDiv.innerHTML = `
-                <i class="fas fa-exclamation-circle me-2"></i> ${errorMessage}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            
-            const alertContainer = document.getElementById('alert-messages');
-            if (alertContainer) {
-                // Clear any existing alerts
-                alertContainer.innerHTML = '';
-                // Add the new alert
-                alertContainer.appendChild(alertDiv);
-                
-                // Scroll to the top to show the alert
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                // Auto-dismiss the alert after 10 seconds
-                const alertTimeout = setTimeout(() => {
-                    const bsAlert = new bootstrap.Alert(alertDiv);
-                    bsAlert.close();
-                }, 10000);
-                
-                // Clean up the timeout if the alert is closed manually
-                alertDiv.addEventListener('closed.bs.alert', () => {
-                    clearTimeout(alertTimeout);
-                });
-            } else {
-                // Fallback to simple alert if container not found
-                alert(errorMessage);
-            }
-            
-            // Re-enable the button
-            button.disabled = false;
-            button.innerHTML = originalText;
-            
-            // Close the modal
-            deleteModal.hide();
-            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteBrandModal'));
-            if (deleteModal) {
-                deleteModal.hide();
-            }
+            console.error('Delete error:', error);
+            showAlert(error.message || 'An error occurred while deleting the brand', 'danger');
         })
         .finally(() => {
-            brandIdToDelete = null;
+            if (deleteBtn) {
+                resetButton(deleteBtn, originalHtml);
+            }
         });
-    });
+    }
     
-    // Function to show alert messages
+    function checkIfTableEmpty() {
+        const tbody = document.querySelector('table tbody');
+        if (tbody && tbody.children.length === 0) {
+            const noResults = document.createElement('tr');
+            noResults.innerHTML = `
+                <td colspan="7" class="text-center py-4">
+                    <div class="alert alert-info mb-0">No brands found.</div>
+                </td>`;
+            tbody.appendChild(noResults);
+        }
+    }
+    
     function showAlert(message, type = 'success') {
-        const alertMessages = document.getElementById('alert-messages');
+        // Remove existing alerts
+        const existingAlerts = document.querySelectorAll('.alert-dismissible');
+        existingAlerts.forEach(alert => {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close();
+        });
         
-        if (!alertMessages) return;
-        
-        // Remove any existing alerts
-        const existingAlerts = alertMessages.querySelectorAll('.alert');
-        existingAlerts.forEach(alert => alert.remove());
-        
-        // Create new alert
+        // Create alert
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
         alertDiv.role = 'alert';
         alertDiv.innerHTML = `
-            <i class="${type === 'success' ? 'fas fa-check-circle' : type === 'danger' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle'} me-2"></i>
+            <i class="${type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'} me-2"></i>
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
         
-        // Add to container
-        alertMessages.insertBefore(alertDiv, alertMessages.firstChild);
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alertDiv);
-            bsAlert.close();
-        }, 5000);
+        // Add to page
+        const container = document.querySelector('.container-fluid > .row > .col-md-12');
+        if (container) {
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Auto-dismiss
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alertDiv);
+                    bsAlert.close();
+                }
+            }, 5000);
+        } else {
+            alert(message);
+        }
+    }
+    
+    function resetButton(button, html) {
+        if (button) {
+            button.innerHTML = html;
+            button.disabled = false;
+        }
     }
 });
 </script>

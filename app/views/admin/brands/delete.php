@@ -45,12 +45,34 @@
                 </div>
             </div>
             
-            <form action="<?php echo BASE_URL; ?>?controller=brand&action=delete&id=<?php echo $brand['id']; ?>" method="POST">
+            <form id="deleteBrandForm" action="<?php echo BASE_URL; ?>?controller=brand&action=delete&id=<?php echo $brand['id']; ?>" method="POST">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <div class="d-flex justify-content-end">
-                    <a href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex" class="btn btn-outline-secondary me-2">Cancel</a>
-                    <button type="submit" class="btn btn-danger">Delete Brand</button>
+                    <a href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-danger" id="deleteButton">
+                        <i class="fas fa-trash-alt me-1"></i> Delete Brand
+                    </button>
                 </div>
             </form>
+            
+            <script>
+            document.getElementById('deleteBrandForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const deleteButton = document.getElementById('deleteButton');
+                const originalText = deleteButton.innerHTML;
+                
+                // Show loading state
+                deleteButton.disabled = true;
+                deleteButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Deleting...';
+                
+                // Submit the form
+                this.submit();
+            });
+            </script>
         </div>
     </div>
 </div>

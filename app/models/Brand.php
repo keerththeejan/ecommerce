@@ -43,7 +43,16 @@ class Brand extends Model {
             return [];
         }
         
-        return $this->db->resultSet();
+        $brands = $this->db->resultSet();
+        
+        // Process image paths
+        foreach ($brands as &$brand) {
+            if (!empty($brand['logo'])) {
+                $brand['logo'] = $this->processImagePath($brand['logo']);
+            }
+        }
+        
+        return $brands;
     }
     
     /**
@@ -55,7 +64,13 @@ class Brand extends Model {
     public function getById($id) {
         $this->db->query("SELECT * FROM brands WHERE id = :id");
         $this->db->bind(':id', $id);
-        return $this->db->single();
+        $brand = $this->db->single();
+        
+        if ($brand && !empty($brand['logo'])) {
+            $brand['logo'] = $this->processImagePath($brand['logo']);
+        }
+        
+        return $brand;
     }
     
     /**
@@ -67,7 +82,13 @@ class Brand extends Model {
     public function getBySlug($slug) {
         $this->db->query("SELECT * FROM brands WHERE slug = :slug");
         $this->db->bind(':slug', $slug);
-        return $this->db->single();
+        $brand = $this->db->single();
+        
+        if ($brand && !empty($brand['logo'])) {
+            $brand['logo'] = $this->processImagePath($brand['logo']);
+        }
+        
+        return $brand;
     }
     
     /**
@@ -94,6 +115,55 @@ class Brand extends Model {
         } else {
             return false;
         }
+    }
+    
+    /**
+     * Update brand
+     * 
+     * @param int $id Brand ID
+     * @param array $data Brand data
+     * @return bool
+     */
+    /**
+     * Process image path to ensure it's a full URL
+     * 
+     * @param string $path The image path from database
+     * @return string The processed image URL
+     */
+    private function processImagePath($path) {
+        // If it's already a full URL, return as is
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+        
+        // If path doesn't start with 'uploads/', add it
+        if (strpos($path, 'uploads/') !== 0) {
+            $path = 'uploads/brands/' . ltrim($path, '/');
+        }
+        
+        // Remove any leading slashes to prevent double slashes
+        $path = ltrim($path, '/');
+        
+        // Check if file exists in public directory
+        $fullPath = ROOT_PATH . 'public/' . $path;
+        if (!file_exists($fullPath)) {
+            // Try with different possible paths
+            $possiblePaths = [
+                'public/' . $path,
+                'public/uploads/' . basename($path),
+                'public/images/' . basename($path)
+            ];
+            
+            foreach ($possiblePaths as $possiblePath) {
+                if (file_exists(ROOT_PATH . $possiblePath)) {
+                    $path = $possiblePath;
+                    break;
+                }
+            }
+        }
+        
+        // Return the full URL
+        return rtrim(BASE_URL, '/') . '/' . ltrim($path, '/');
     }
     
     /**

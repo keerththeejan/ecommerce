@@ -27,8 +27,7 @@ class BrandController extends Controller {
     
     /**
      * Display products by brand for customers
-     * 
-     * @param string $slug Brand slug
+     * * @param string $slug Brand slug
      */
     public function show($slug = null) {
         // Check if slug is provided
@@ -126,8 +125,8 @@ class BrandController extends Controller {
                     $logoUpload = uploadImage($_FILES['logo'], 'brands');
                     
                     if($logoUpload['success']) {
-                        // Ensure the path is relative to the public directory
-                        $logoPath = str_replace(BASE_URL, '/', $logoUpload['path']);
+                        // Store the relative path in the database
+                        $logoPath = $logoUpload['path'];
                         $data['logo'] = $logoPath;
                     } else {
                         $errors['logo'] = $logoUpload['error'];
@@ -214,8 +213,7 @@ class BrandController extends Controller {
 
     /**
      * Admin: Edit brand
-     * 
-     * @param int $id Brand ID
+     * * @param int $id Brand ID
      */
     public function edit($id = null) {
     // Check if admin
@@ -235,6 +233,7 @@ class BrandController extends Controller {
         }
         flash('brand_error', 'Brand ID is required', 'alert alert-danger');
         redirect('admin/brands');
+        return;
     }
 
     // Get brand
@@ -379,153 +378,213 @@ class BrandController extends Controller {
 
 /**
  * Admin: Delete brand
- * 
- * @param int $id Brand ID
+ * * @param int $id Brand ID
  */
 public function delete($id = null) {
-    // Check if admin
-    if(!isAdmin()) {
-        if($this->isAjax()) {
-            $this->json([
-                'success' => false, 
-                'message' => 'Unauthorized access. Please log in as admin.'
-            ], 401);
-            return;
-        }
-        redirect('user/login');
-        return;
-    }
-        
-    // Check if ID is provided
-    if(!$id) {
-        if($this->isAjax()) {
-            $this->json([
-                'success' => false, 
-                'message' => 'Brand ID is required'
-            ], 400);
-            return;
-        }
-        flash('brand_error', 'Brand ID is required', 'alert alert-danger');
-        redirect('admin/brands');
-        return;
-    }
-
     try {
-        // Get brand
+        // Check if admin
+        if (!isAdmin()) {
+            throw new Exception('Unauthorized access. Please log in as admin.', 401);
+        }
+
+        // Check if ID is provided and valid
+        if (!$id || !is_numeric($id)) {
+            throw new Exception('Invalid brand ID provided.', 400);
+        }
+        
+        // Get brand first to check existence and get logo path
         $brand = $this->brandModel->getById($id);
         
         // Check if brand exists
-        if(!$brand) {
+        if (!$brand) {
             throw new Exception('Brand not found', 404);
         }
         
-        // Check if this is a POST, DELETE, or POST with _method=DELETE
-        $isDeleteRequest = $_SERVER['REQUEST_METHOD'] === 'DELETE' || 
-                         ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_method']) && strtoupper($_POST['_method']) === 'DELETE');
-        
-        if(!$this->isPost() && !$isDeleteRequest) {
-            // For non-AJAX GET requests, show confirmation page
-            if($this->isAjax()) {
-                $this->json([
-                    'success' => false,
-                    'message' => 'Invalid request method'
-                ], 405);
-                return;
+        // If it's a GET request, show confirmation page
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            if ($this->isAjax()) {
+                throw new Exception('Invalid request method for this endpoint. Use DELETE or POST with _method=DELETE.', 405);
             }
-            $this->view('admin/brands/delete', [
-                'brand' => $brand
-            ]);
+            $this->view('admin/brands/delete', ['brand' => $brand]);
             return;
         }
         
-        // First, check if brand has associated products
+        // For POST/DELETE requests, verify CSRF token
+        if ($this->isPost() || $this->isDeleteMethod()) {
+            $requestToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf_token'] ?? '');
+            $sessionToken = $_SESSION['csrf_token'] ?? '';
+            
+            if (empty($requestToken) || $requestToken !== $sessionToken) {
+                throw new Exception('Invalid or missing CSRF token', 403);
+            }
+        }
+        
+        // Check for associated products
         $this->db->query("SELECT COUNT(*) as count FROM products WHERE brand_id = :id");
         $this->db->bind(':id', $id);
         $result = $this->db->single();
 
-        if($result && $result['count'] > 0) {
-            $message = 'Cannot delete brand because it is associated with ' . $result['count'] . ' product(s). Please remove or reassign these products first.';
-            if($this->isAjax()) {
-                $this->json(['success' => false, 'message' => $message], 400);
-                return;
-            }
-            flash('brand_error', $message, 'alert alert-danger');
-            redirect('admin/brands');
-            return;
+        if ($result && $result['count'] > 0) {
+            $message = sprintf(
+                'Cannot delete brand because it is associated with %d product(s). ' . 
+                'Please remove or reassign these products first.', 
+                $result['count']
+            );
+            throw new Exception($message, 400);
         }
 
         // Start transaction
         $this->db->beginTransaction();
 
-        try {
-            // First delete the brand's logo file if it exists
-            if(!empty($brand['logo']) && file_exists(ROOT_PATH . $brand['logo'])) {
-                @unlink(ROOT_PATH . $brand['logo']);
-            }
-
-            // Then delete the brand from database
-            $this->db->query("DELETE FROM brands WHERE id = :id");
-            $this->db->bind(':id', $id);
-            $deleted = $this->db->execute();
-
-            if(!$deleted) {
-                throw new Exception('Failed to delete brand from database');
-            }
-
-            // Commit transaction
-            $this->db->commit();
-
-            // Log the deletion
-            error_log("Brand deleted successfully - ID: " . $id);
-            
-            // Prepare success response
-            $response = [
-                'success' => true,
-                'message' => 'Brand deleted successfully',
-                'data' => [
-                    'id' => $id
-                ]
-            ];
-            
-            // Handle AJAX response
-            if($this->isAjax()) {
-                $this->json($response);
-                return;
-            }
-            
-            // For non-AJAX requests, redirect to brands list
-            flash('brand_success', $response['message']);
-            redirect('admin/brands');
-            return;
-            
-        } catch (Exception $e) {
-            // Rollback transaction on error
-            $this->db->rollBack();
-            throw $e;
+        // Delete logo file if it exists
+        if (!empty($brand['logo'])) {
+            $this->deleteBrandLogo($brand['logo']);
         }
 
-    } catch (Exception $e) {
-        $errorCode = $e->getCode() ?: 500;
-        $errorMessage = $e->getMessage();
+        // Delete the brand from database
+        $deleted = $this->brandModel->delete($id);
+        if (!$deleted) {
+            throw new Exception('Failed to delete brand from database');
+        }
+
+        // Commit transaction
+        $this->db->commit();
         
-        error_log('Brand deletion error: ' . $errorMessage);
+        // Log the successful deletion
+        error_log(sprintf("Brand deleted successfully - ID: %d, Name: %s", $id, $brand['name']));
         
-        // Prepare error response
+        // Clear cache
+        $this->clearBrandCache($id);
+        
+        // Prepare and handle success response
         $response = [
-            'success' => false,
-            'message' => $errorMessage
+            'success' => true,
+            'message' => 'Brand deleted successfully',
+            'data' => ['id' => $id]
         ];
         
-        // Handle AJAX response
-        if($this->isAjax()) {
-            $this->json($response, $errorCode);
+        $this->handleResponse($response, 200);
+        
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        if ($this->db->inTransaction()) {
+            $this->db->rollBack();
+        }
+        
+        $errorCode = $e->getCode() ?: 500;
+        $response = [
+            'success' => false,
+            'message' => $e->getMessage(),
+            'data' => null
+        ];
+        error_log(sprintf('Brand deletion error (ID: %s): %s', $id ?? 'unknown', $e->getMessage()));
+        
+        $this->handleResponse($response, $errorCode);
+    }
+}
+
+/**
+ * Handle response for both AJAX and regular requests
+ */
+private function handleResponse($response, $statusCode = 200) {
+    if ($this->isAjax()) {
+        header('Content-Type: application/json', true, $statusCode);
+        echo json_encode($response);
+        exit;
+    }
+    
+    // For non-AJAX requests
+    if ($response['success']) {
+        flash('brand_success', $response['message']);
+    } else {
+        flash('brand_error', $response['message'], 'alert alert-danger');
+    }
+    
+    redirect('admin/brands');
+}
+
+/**
+ * Check if the request method is DELETE
+ */
+private function isDeleteMethod() {
+    return $_SERVER['REQUEST_METHOD'] === 'DELETE' || 
+          ($_SERVER['REQUEST_METHOD'] === 'POST' && 
+           isset($_POST['_method']) && 
+           strtoupper($_POST['_method']) === 'DELETE');
+}
+
+/**
+ * Delete brand logo and its variations
+ */
+private function deleteBrandLogo($logoPath) {
+    if (empty($logoPath)) {
+        return;
+    }
+
+    // Normalize the path
+    $logoPath = ltrim($logoPath, '/\\');
+    $fullPath = rtrim(ROOT_PATH, '/\\') . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $logoPath);
+    
+    try {
+        // Delete main logo file
+        if (file_exists($fullPath) && is_file($fullPath) && is_writable($fullPath)) {
+            if (!@unlink($fullPath)) {
+                error_log("Failed to delete logo file: " . $fullPath);
+            }
+        }
+        
+        // Delete any resized versions
+        $pathInfo = pathinfo($fullPath);
+        $pattern = sprintf(
+            '%s%s%s_*%s',
+            $pathInfo['dirname'],
+            DIRECTORY_SEPARATOR,
+            $pathInfo['filename'],
+            isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : ''
+        );
+        
+        $matchingFiles = glob($pattern);
+        if ($matchingFiles === false) {
+            error_log("Failed to find matching files for pattern: " . $pattern);
             return;
         }
         
-        // For non-AJAX requests, show error message and redirect
-        flash('brand_error', $errorMessage, 'alert alert-danger');
-        redirect('admin/brands');
-        return;
+        foreach ($matchingFiles as $file) {
+            if (is_file($file) && is_writable($file)) {
+                if (!@unlink($file)) {
+                    error_log("Failed to delete resized logo file: " . $file);
+                }
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error deleting brand logo: " . $e->getMessage());
+    }
+}
+
+/**
+ * Clear cache related to the brand
+ */
+private function clearBrandCache($brandId) {
+    try {
+        // Clear opcache if enabled
+        if (function_exists('opcache_invalidate')) {
+            $modelPath = rtrim(ROOT_PATH, '/\\') . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'Brand.php';
+            if (file_exists($modelPath)) {
+                opcache_invalidate($modelPath, true);
+            }
+        }
+        
+        // Clear any cached queries if the method exists
+        if (method_exists($this->db, 'clearCache')) {
+            $this->db->clearCache('brand_' . $brandId);
+        }
+        
+        // Clear APCu cache if available
+        if (function_exists('apcu_clear_cache')) {
+            apcu_clear_cache();
+        }
+    } catch (Exception $e) {
+        error_log("Error clearing brand cache: " . $e->getMessage());
     }
 }
 }

@@ -298,21 +298,19 @@ function uploadImage($file, $subfolder = 'uploads') {
     
     // Generate unique filename
     $extension = $allowedMimes[$mime];
-    $filename = uniqid() . '.' . $extension;
-    $filepath = $uploadDir . $filename;
+    $filename = uniqid('brand_', true) . '.' . $extension;
+    $relativePath = 'uploads/' . trim($subfolder, '/') . '/' . $filename;
     
-    // Move uploaded file
-    if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        // Return the relative path from public directory
-        $relativePath = 'uploads/' . trim($subfolder, '/') . '/' . $filename;
+    // Move the uploaded file
+    if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
         return [
-            'success' => true, 
-            'path' => $relativePath,
-            'full_path' => $filepath
+            'success' => true,
+            'path' => $relativePath, // Return relative path for database storage
+            'full_url' => BASE_URL . $relativePath // Full URL for direct use
         ];
+    } else {
+        return ['success' => false, 'error' => 'Failed to move uploaded file'];
     }
-    
-    return ['success' => false, 'error' => 'Failed to move uploaded file'];
 }
 
 /**

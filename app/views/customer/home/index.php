@@ -4,14 +4,13 @@
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
 <!-- Featured Categories - Improved responsive grid -->
-<section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px;">
-
-    <div class="container-fluid" style="padding: 0; margin: 0 auto; max-width: 100%; position: relative; z-index: 1;">
+<section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px; margin: 0;">
+    <div class="container-fluid" style="padding: 0; margin: 0; width: 100%; position: relative; z-index: 1;">
         <h2 class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
 
         <!-- 🔹 Category Slider -->
         <div id="categorySlider"
-             style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 10px 30px; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
+             style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 0px 0px; margin: 0; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
              
             <style>
                 #categorySlider::-webkit-scrollbar {
@@ -30,7 +29,7 @@
                 }));
                 foreach($activeCategories as $index => $category): 
             ?>
-                <div style="flex: 0 0 auto; width: 200px;">
+                <div style="flex: 0 0 auto; width: 200px; margin: 0;">
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
                        style="text-decoration: none; color: inherit;">
                         <div style="text-align: center;">
@@ -54,7 +53,7 @@
             <?php endif; ?>
         </div>
 
-        <!-- 🔹 Dot Navigation (horizontal like loading gif) -->
+        <!-- 🔹 Dot Navigation -->
         <div style="text-align: center; margin-top: 30px;">
             <div style="display: flex; justify-content: center; gap: 20px;">
                 <span onclick="scrollSlider(1)" style="width: 20px; height: 20px; border-radius: 50%; background: #FFC107; animation: bounce 1.2s infinite ease-in-out; animation-delay: 0s; cursor: pointer;"></span>
@@ -72,8 +71,10 @@
                 slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
             }
         </script>
-    </div>
+    </div>   
 </section>
+
+
 
 
 
@@ -249,18 +250,16 @@
                             <a href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['slug']; ?>" class="text-decoration-none">
                                 <div class="brand-card card h-100 border-0 shadow-sm transition-all">
                                     <div class="card-body p-2 d-flex align-items-center justify-content-center">
-                                        <div class="brand-logo-container">
-                                            <?php if(!empty($brand['logo'])) : ?>
-                                                <img src="<?php echo BASE_URL . 'uploads/brands/' . $brand['logo']; ?>" 
-                                                     class="img-fluid" 
-                                                     alt="<?php echo htmlspecialchars($brand['name']); ?>" 
-                                                     loading="lazy"
-                                                     onerror="this.onerror=null; this.src='<?php echo BASE_URL; ?>assets/img/no-image.jpg';">
-                                            <?php else : ?>
-                                                <div class="text-center">
-                                                    <span class="fw-bold small text-muted"><?php echo htmlspecialchars($brand['name']); ?></span>
-                                                </div>
-                                            <?php endif; ?>
+                                        <div class="brand-logo-container" style="height: 60px; display: flex; align-items: center; justify-content: center;">
+                                            <?php 
+                                            $logoUrl = !empty($brand['logo']) ? $brand['logo'] : '';
+                                            $defaultLogo = BASE_URL . 'public/images/default-brand.png';
+                                            ?>
+                                            <img src="<?php echo htmlspecialchars($logoUrl); ?>" 
+                                                 alt="<?php echo htmlspecialchars($brand['name']); ?>" 
+                                                 class="img-fluid" 
+                                                 style="max-height: 100%; max-width: 100%; object-fit: contain;"
+                                                 onerror="this.onerror=null; this.src='<?php echo $defaultLogo; ?>';">
                                         </div>
                                     </div>
                                 </div>
