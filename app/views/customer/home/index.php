@@ -159,25 +159,26 @@
             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
 
             <!-- Flex Row: Quantity and Button Side by Side -->
-            <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 5px;">
 
-                <!-- Quantity Box -->
-                <div class="input-group input-group-xs" style="width: 110px; height: 30px;">
+                <!-- Quantity Box - Made responsive -->
+                <div class="input-group input-group-xs" style="width: 90px; height: 26px;">
                     <button type="button" class="btn btn-outline-secondary quantity-decrease px-0" 
-                            style="font-size: 0.7rem; width: 20px; padding: 0; line-height: 1.5;">-</button>
+                            style="font-size: 0.6rem; width: 18px; padding: 0; line-height: 1.2;">-</button>
 
                     <input type="number" name="quantity" class="form-control text-center quantity-input" 
                            value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
                            aria-label="Quantity" readonly
-                           style="font-size: 0.7rem; height: 30px; padding: 0 2px; width: 30px; line-height: 1.5;">
+                           style="font-size: 0.6rem; height: 26px; padding: 0 2px; width: 24px; line-height: 1.2;">
 
                     <button type="button" class="btn btn-outline-secondary quantity-increase px-0" 
-                            style="font-size: 0.7rem; width: 20px; padding: 0; line-height: 1.5;">+</button>
+                            style="font-size: 0.6rem; width: 18px; padding: 0; line-height: 1.2;">+</button>
                 </div>
 
-                <!-- Add to Cart Button -->
+                <!-- Add to Cart Button - Made smaller -->
                 <button type="submit" 
-                        class="btn btn-xs btn-primary py-1" 
+                        class="btn btn-xs btn-primary p-0" 
+                        style="font-size: 0.65rem; height: 26px; line-height: 1.2; padding: 0 8px !important;"
                         style="font-size: 0.7rem; padding: 0; height: 30px; line-height: 1.2; width: 110px;">
                     <i class="fas fa-cart-plus me-1"></i> Add to Cart
                 </button>
