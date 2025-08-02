@@ -86,9 +86,15 @@
                                 <i class="fas fa-users"></i> Users
                             </a>
                         </li>
+
                         <li>
                             <a href="<?php echo BASE_URL; ?>admin/settings" class="nav-link <?php echo $current_page == 'settings' ? 'active' : ''; ?>">
                                 <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo BASE_URL; ?>admin/tax" class="nav-link <?php echo $current_page == 'tax' ? 'active' : ''; ?>">
+                                <i class="fas fa-percentage"></i> Tax Management
                             </a>
                         </li>
                     </ul>

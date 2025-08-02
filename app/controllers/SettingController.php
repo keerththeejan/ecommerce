@@ -49,12 +49,26 @@ class SettingController extends Controller {
         $paymentSettings = $this->settingModel->getSettingsByGroup('payment');
         $emailSettings = $this->settingModel->getSettingsByGroup('email');
         
+        // Get tax settings with defaults
+        $taxSettings = [
+            'tax1_rate' => $this->settingModel->getSetting('tax1_rate', '0'),
+            'tax1_name' => $this->settingModel->getSetting('tax1_name', 'Tax 1'),
+            'tax2_rate' => $this->settingModel->getSetting('tax2_rate', '0'),
+            'tax2_name' => $this->settingModel->getSetting('tax2_name', 'Tax 2'),
+            'tax3_rate' => $this->settingModel->getSetting('tax3_rate', '0'),
+            'tax3_name' => $this->settingModel->getSetting('tax3_name', 'Tax 3'),
+            'tax4_rate' => $this->settingModel->getSetting('tax4_rate', '0'),
+            'tax4_name' => $this->settingModel->getSetting('tax4_name', 'Tax 4'),
+            'tax_inclusive' => $this->settingModel->getSetting('tax_inclusive', '0')
+        ];
+        
         // Load view
         $this->view('admin/settings/index', [
             'generalSettings' => $generalSettings,
             'storeSettings' => $storeSettings,
             'paymentSettings' => $paymentSettings,
-            'emailSettings' => $emailSettings
+            'emailSettings' => $emailSettings,
+            'taxSettings' => $taxSettings
         ]);
     }
     
@@ -280,6 +294,85 @@ class SettingController extends Controller {
                     'storeSettings' => $this->settingModel->getSettingsByGroup('store'),
                     'paymentSettings' => $data,
                     'emailSettings' => $this->settingModel->getSettingsByGroup('email')
+                ]);
+            }
+        } else {
+            redirect('setting/index');
+        }
+    }
+    
+    /**
+     * Update email settings
+     */
+    /**
+     * Update tax settings
+     */
+    public function updateTax() {
+        // Check for POST
+        if($this->isPost()) {
+            // Process form
+            $data = [
+                'tax1_rate' => floatval($this->post('tax1_rate')),
+                'tax1_name' => sanitize($this->post('tax1_name')),
+                'tax2_rate' => floatval($this->post('tax2_rate')),
+                'tax2_name' => sanitize($this->post('tax2_name')),
+                'tax3_rate' => floatval($this->post('tax3_rate')),
+                'tax3_name' => sanitize($this->post('tax3_name')),
+                'tax4_rate' => floatval($this->post('tax4_rate')),
+                'tax4_name' => sanitize($this->post('tax4_name')),
+                'tax_inclusive' => $this->post('tax_inclusive') ? 1 : 0
+            ];
+            
+            // Validate data
+            $errors = [];
+            
+            // Validate tax rates (0-100)
+            $taxRates = [
+                'tax1_rate' => $data['tax1_rate'],
+                'tax2_rate' => $data['tax2_rate'],
+                'tax3_rate' => $data['tax3_rate'],
+                'tax4_rate' => $data['tax4_rate']
+            ];
+            
+            foreach ($taxRates as $key => $rate) {
+                if ($rate < 0 || $rate > 100) {
+                    $errors[$key] = 'Tax rate must be between 0 and 100';
+                }
+            }
+            
+            // Make sure there are no errors
+            if(empty($errors)) {
+                $success = true;
+                $updateErrors = [];
+                
+                // Update settings
+                foreach($data as $key => $value) {
+                    if(!$this->settingModel->updateSetting($key, $value)) {
+                        $updateErrors[] = "Failed to update {$key}";
+                        $success = false;
+                    }
+                }
+                
+                if($success) {
+                    flash('setting_success', 'Tax settings updated successfully');
+                    // Redirect to the tax tab with success message
+                    header('Location: ' . BASE_URL . '?controller=setting&action=index&tab=tax');
+                    exit();
+                } else {
+                    flash('setting_error', 'Failed to update some tax settings: ' . implode(', ', $updateErrors), 'alert alert-danger');
+                    // Redirect back to the tax tab with errors
+                    header('Location: ' . BASE_URL . '?controller=setting&action=index&tab=tax');
+                    exit();
+                }
+            } else {
+                // Load view with errors
+                $this->view('admin/settings/index', [
+                    'errors' => $errors,
+                    'generalSettings' => $this->settingModel->getSettingsByGroup('general'),
+                    'storeSettings' => $this->settingModel->getSettingsByGroup('store'),
+                    'paymentSettings' => $this->settingModel->getSettingsByGroup('payment'),
+                    'emailSettings' => $this->settingModel->getSettingsByGroup('email'),
+                    'taxSettings' => $data
                 ]);
             }
         } else {

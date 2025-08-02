@@ -10,7 +10,7 @@ error_reporting(0);
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '1234');
-define('DB_NAME', 'ecommerce_db');
+define('DB_NAME', 'ecommerce30');
 
 // Application paths
 define('BASE_URL', 'http://localhost/ecommerce/');

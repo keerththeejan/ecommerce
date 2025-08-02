@@ -23,10 +23,7 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab" aria-controls="email" aria-selected="false">Email</button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tax-tab" data-bs-toggle="tab" data-bs-target="#Tex Rate" type="button" role="tab" aria-controls="Tex Rate" aria-selected="false">Tex Rate</button>
-                        </li>
-
+                       
                     </ul>
                 </div>
                 <div class="card-body">
@@ -251,8 +248,16 @@
                             </div>
 
                             <button type="submit" class="btn btn-primary">Save Email Settings</button>
+
+                            
                         </form>
+
+                        
                     </div>
+
+                   
+                    
+                    
                 </div>
             </div>
         </div>

@@ -94,6 +94,12 @@ if (!isset($_SESSION['csrf_token'])) {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=tax&action=index">
+                                <i class="fas fa-percentage me-2"></i>
+                                Tax Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>">
                                 <i class="fas fa-store me-2"></i>
                                 View Store
