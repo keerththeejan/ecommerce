@@ -17,63 +17,131 @@ class TaxController extends Controller {
         $this->taxModel->ensureTaxRatesExist();
     }
 
-    // Show tax settings form
+    // Show tax rates list
     public function index() {
-        // Get tax rates
-        $taxRates = $this->taxModel->getTaxRates();
-
+        // Get all active tax rates
         $data = [
-            'tax1' => $taxRates['tax1'] ?? 0,
-            'tax2' => $taxRates['tax2'] ?? 0,
-            'tax3' => $taxRates['tax3'] ?? 0,
-            'tax4' => $taxRates['tax4'] ?? 0
+            'taxRates' => $this->taxModel->getTaxRates()
         ];
 
         $this->view('admin/tax/index', $data);
     }
 
-    // Update tax rates
-    public function update() {
-        if($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Show add tax rate form
+    public function add() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Sanitize POST data
-            $tax1 = filter_input(INPUT_POST, 'tax1', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-            $tax2 = filter_input(INPUT_POST, 'tax2', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-            $tax3 = filter_input(INPUT_POST, 'tax3', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-            $tax4 = filter_input(INPUT_POST, 'tax4', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-            
             $data = [
-                'tax1' => $tax1,
-                'tax2' => $tax2,
-                'tax3' => $tax3,
-                'tax4' => $tax4
+                'name' => trim($_POST['name']),
+                'rate' => filter_var(trim($_POST['rate']), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
+                'is_active' => isset($_POST['is_active']) ? 1 : 0
             ];
 
-            // Validate tax rates
+            // Validate data
             $valid = true;
             
-            foreach (['tax1', 'tax2', 'tax3', 'tax4'] as $tax) {
-                if (!is_numeric($data[$tax]) || $data[$tax] < 0 || $data[$tax] > 100) {
-                    flash('tax_error', 'Please enter valid tax rates between 0 and 100', 'alert alert-danger');
-                    $valid = false;
-                    break;
-                }
+            if (empty($data['name'])) {
+                flash('tax_error', 'Please enter a tax name', 'alert alert-danger');
+                $valid = false;
+            }
+            
+            if (!is_numeric($data['rate']) || $data['rate'] < 0 || $data['rate'] > 100) {
+                flash('tax_error', 'Please enter a valid tax rate between 0 and 100', 'alert alert-danger');
+                $valid = false;
             }
 
             if ($valid) {
-                // Update tax rates
-                if($this->taxModel->updateTaxRates($data)) {
-                    flash('tax_message', 'Tax rates updated successfully');
+                // Add tax rate
+                if ($this->taxModel->addTaxRate($data)) {
+                    flash('tax_success', 'Tax rate added successfully!', 'alert alert-success');
+                    // Redirect to the same page to show the updated list
+                    header('Location: ' . $_SERVER['HTTP_REFERER']);
+                    exit();
                 } else {
-                    flash('tax_error', 'Failed to update tax rates', 'alert alert-danger');
+                    flash('tax_error', 'Failed to add tax rate. Please try again.', 'alert alert-danger');
+                    $this->view('admin/tax/add', $data);
                 }
+            } else {
+                // Reload view with errors and data
+                $this->view('admin/tax/add', $data);
+            }
+        }
+
+        $this->view('admin/tax/add');
+    }
+
+    // Show edit tax rate form
+    public function edit($id) {
+        // Get existing tax rate
+        $taxRate = $this->taxModel->getTaxRateById($id);
+        
+        if (!$taxRate) {
+            flash('tax_error', 'Tax rate not found', 'alert alert-danger');
+            redirect('tax');
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize POST data
+            $data = [
+                'id' => $id,
+                'name' => trim($_POST['name']),
+                'rate' => filter_var(trim($_POST['rate']), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION),
+                'is_active' => isset($_POST['is_active']) ? 1 : 0
+            ];
+
+            // Validate data
+            $valid = true;
+            
+            if (empty($data['name'])) {
+                flash('tax_error', 'Please enter a tax name', 'alert alert-danger');
+                $valid = false;
             }
             
-            // Redirect back to tax page
-            header('Location: ' . BASE_URL . '?controller=tax&action=index');
-            exit();
+            if (!is_numeric($data['rate']) || $data['rate'] < 0 || $data['rate'] > 100) {
+                flash('tax_error', 'Please enter a valid tax rate between 0 and 100', 'alert alert-danger');
+                $valid = false;
+            }
 
+            if ($valid) {
+                // Update tax rate
+                if ($this->taxModel->updateTaxRate($data)) {
+                    flash('tax_success', 'Tax rate updated successfully!', 'alert alert-success');
+                    // Redirect to the same page to show the updated list
+                    header('Location: ' . $_SERVER['HTTP_REFERER']);
+                    exit();
+                } else {
+                    flash('tax_error', 'Failed to update tax rate. Please try again.', 'alert alert-danger');
+                    $this->view('admin/tax/edit', $data);
+                }
+            } else {
+                // Reload view with errors and data
+                $this->view('admin/tax/edit', $data);
+            }
         } else {
-            // If not a POST request, redirect to tax
+            // Load existing data for the form
+            $data = [
+                'id' => $taxRate->id,
+                'name' => $taxRate->name,
+                'rate' => $taxRate->rate,
+                'is_active' => $taxRate->is_active
+            ];
+        }
+
+        $this->view('admin/tax/edit', $data);
+    }
+
+    // Delete tax rate
+    public function delete($id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if ($this->taxModel->deleteTaxRate($id)) {
+                flash('tax_success', 'Tax rate deleted successfully!', 'alert alert-success');
+            } else {
+                flash('tax_error', 'Failed to delete tax rate. Please try again.', 'alert alert-danger');
+            }
+            // Redirect back to the same page
+            header('Location: ' . $_SERVER['HTTP_REFERER']);
+            exit();
+        } else {
             redirect('tax');
         }
     }
