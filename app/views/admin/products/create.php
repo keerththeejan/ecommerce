@@ -98,7 +98,7 @@
                                         <div class="mb-3">
                                             <label for="price" class="form-label">Price</label>
                                             <div class="input-group">
-                                                <span class="input-group-text">₹</span>
+                                                <span class="input-group-text">CHF</span>
                                                 <input type="number" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $data['price'] ?? ''; ?>" step="0.01" min="0" required>
                                                 <?php if(isset($errors['price'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['price']; ?></div>
@@ -110,7 +110,7 @@
                                         <div class="mb-3">
                                             <label for="sale_price" class="form-label">Sale Price (Optional)</label>
                                             <div class="input-group">
-                                                <span class="input-group-text">₹</span>
+                                                <span class="input-group-text">CHF</span>
                                                 <input type="number" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" step="0.01" min="0">
                                                 <?php if(isset($errors['sale_price'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
