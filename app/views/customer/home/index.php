@@ -1,3 +1,4 @@
+
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
 <!-- Banner Section -->

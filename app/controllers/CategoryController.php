@@ -85,6 +85,10 @@ class CategoryController extends Controller {
         // Get parent categories for dropdown
         $parentCategories = $this->categoryModel->getParentCategories();
         
+        // Get all active tax rates
+        $taxModel = $this->model('TaxModel');
+        $taxRates = $taxModel->getTaxRates(true); // true for active only
+        
         // Check for POST
         if($this->isPost()) {
             // Process form
@@ -94,8 +98,12 @@ class CategoryController extends Controller {
                 'name' => sanitize($this->post('name')),
                 'description' => sanitize($this->post('description')),
                 'parent_id' => $this->post('parent_id') ? $this->post('parent_id') : null,
+                'tax_id' => $this->post('tax_id') ? $this->post('tax_id') : null,
                 'status' => $this->post('status') ? 1 : 0
             ];
+            
+            // Debug: Log the data being saved
+            error_log('Creating category with data: ' . print_r($data, true));
             
             // Handle file upload
             if(isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -139,9 +147,11 @@ class CategoryController extends Controller {
                                 'name' => '',
                                 'description' => '',
                                 'parent_id' => null,
+                                'tax_id' => null,
                                 'status' => 1
                             ],
                             'parentCategories' => $parentCategories,
+                            'taxRates' => $taxRates,
                             'errors' => []
                         ]);
                         return;
@@ -159,10 +169,11 @@ class CategoryController extends Controller {
             }
             
             // Load view with errors and existing data
-            $this->view('admin/categories/create', [
+$this->view('admin/categories/create', [
                 'errors' => $errors,
                 'data' => $data,
-                'parentCategories' => $parentCategories
+                'parentCategories' => $parentCategories,
+                'taxRates' => $taxRates
             ]);
         } else {
             // Init data
@@ -174,9 +185,10 @@ class CategoryController extends Controller {
             ];
             
             // Load view
-            $this->view('admin/categories/create', [
+$this->view('admin/categories/create', [
                 'data' => $data,
                 'parentCategories' => $parentCategories,
+                'taxRates' => $taxRates,
                 'errors' => []
             ]);
         }
@@ -200,11 +212,11 @@ class CategoryController extends Controller {
             redirect('category/adminIndex');
         }
         
-        // Get category
-        $category = $this->categoryModel->getById($id);
+        // Get category with tax information
+        $category = $this->categoryModel->getWithTax($id);
         
         // Debug: Log the category data
-        error_log('Category data: ' . print_r($category, true));
+        error_log('Category data with tax: ' . print_r($category, true));
         
         // Check if category exists
         if(!$category) {
@@ -231,6 +243,7 @@ class CategoryController extends Controller {
                 'name' => sanitize($this->post('name')),
                 'description' => sanitize($this->post('description')),
                 'parent_id' => $this->post('parent_id') ? $this->post('parent_id') : null,
+                'tax_id' => $this->post('tax_id') ? $this->post('tax_id') : null,
                 'status' => $this->post('status') ? 1 : 0,
                 'image' => $category['image'] // Keep existing image by default
             ];
@@ -289,13 +302,15 @@ class CategoryController extends Controller {
             $this->view('admin/categories/edit', [
                 'errors' => $errors,
                 'category' => array_merge($category, $data),
-                'parentCategories' => $parentCategories
+                'parentCategories' => $parentCategories,
+                'taxRates' => $taxRates
             ]);
         } else {
             // Load view
             $this->view('admin/categories/edit', [
                 'category' => $category,
                 'parentCategories' => $parentCategories,
+                'taxRates' => $taxRates,
                 'errors' => []
             ]);
         }

@@ -26,7 +26,7 @@ if (empty($banners)) {
 }
 ?>
 
-<!-- Full Width Banner Carousel Section -->
+<!-- Full Width Banner Carousel with Reduced Height and No Box -->
 <section class="banner-carousel">
     <div id="bannerCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-touch="true">
         <!-- Indicators -->
@@ -50,6 +50,10 @@ if (empty($banners)) {
                              class="d-block w-100 banner-image" 
                              alt="<?php echo htmlspecialchars($banner['title']); ?>" 
                              loading="lazy">
+                        <div class="carousel-caption">
+                            <h2><?php echo htmlspecialchars($banner['title']); ?></h2>
+                            <p><?php echo htmlspecialchars($banner['description']); ?></p>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -68,39 +72,27 @@ if (empty($banners)) {
 </section>
 
 <style>
-/* Full Width & Height Banner Carousel */
+/* Full Width Reduced Height Carousel */
 .banner-carousel {
     margin: 0;
     padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    height: auto;
     position: relative;
-    z-index: 1;
     left: 50%;
     right: 50%;
     margin-left: -50vw;
     margin-right: -50vw;
-}
-
-.carousel-inner, .carousel-item {
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-    overflow: hidden;
-}
-
-.banner-image-container {
-    position: relative;
+    margin-top: -30px; /* Even more reduced top margin */
     width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    max-width: none;
+}
+
+.carousel-item,
+.banner-image-container {
+    height: 600px; /* Adjust height here if needed */
 }
 
 .banner-image {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -112,56 +104,44 @@ if (empty($banners)) {
     transform: scale(1.05);
 }
 
+/* Remove background box behind caption */
 .carousel-caption {
     position: absolute;
-    bottom: 20%;
-    left: 10%;
-    right: 10%;
-    text-align: left;
-    padding: 2.5rem;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-    border-radius: 15px;
-    transition: all 0.3s ease;
-    z-index: 2;
+    bottom: 20px;
+    left: 20px;
+    background: none;
+    padding: 0;
+    border-radius: 0;
 }
 
-.carousel-caption:hover {
-    background: rgba(0, 0, 0, 0.7);
-}
-
+/* Caption Text Styling */
 .carousel-caption h2 {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    color: #fff;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* improve visibility */
 }
 
 .carousel-caption p {
-    font-size: 1.25rem;
-    margin-bottom: 1.5rem;
+    font-size: 1rem;
     color: #f8f9fa;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
 }
 
 .carousel-indicators {
-    bottom: 50px;
-    z-index: 3;
+    bottom: 15px;
 }
 
 .carousel-indicators button {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    margin: 0 5px;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255,255,255,0.6);
     border: none;
 }
 
 .carousel-indicators .active {
     background-color: #fff;
-    transform: scale(1.2);
 }
 
 .carousel-control-prev,
@@ -169,7 +149,6 @@ if (empty($banners)) {
     width: 5%;
     opacity: 0;
     transition: opacity 0.3s ease;
-    z-index: 4;
 }
 
 .banner-carousel:hover .carousel-control-prev,
@@ -177,66 +156,24 @@ if (empty($banners)) {
     opacity: 1;
 }
 
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    background-size: 1.5rem;
-}
-
-/* Responsive */
+/* Mobile adjustments */
 @media (max-width: 767.98px) {
-    .banner-carousel {
-        height: auto;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        width: 100vw;
-        max-width: none;
-    }
-
-    .carousel-inner, .carousel-item {
-        height: auto;
-    }
-
+    .carousel-inner,
+    .carousel-item,
     .banner-image-container {
-        position: relative;
-        width: 100vw;
-        height: 0;
-        padding-top: 56.25%;
-    }
-
-    .banner-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        height: 250px;
     }
 
     .carousel-caption {
-        padding: 10px;
-        bottom: 20%;
-        left: 15px;
-        right: 15px;
-        width: auto;
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 8px;
+        bottom: 10px;
     }
 
-    .carousel-caption h3 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+    .carousel-caption h2 {
+        font-size: 1.25rem;
     }
 
     .carousel-caption p {
-        margin-bottom: 1rem;
-        display: none;
+        font-size: 0.9rem;
     }
 
     .carousel-control-prev,
@@ -245,9 +182,6 @@ if (empty($banners)) {
     }
 }
 </style>
-
-<!-- Animate.css -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

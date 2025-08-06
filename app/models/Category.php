@@ -141,6 +141,51 @@ class Category extends Model {
     }
     
     /**
+     * Get category by ID with tax information
+     * 
+     * @param int $id Category ID
+     * @return array|bool The category data or false if not found
+     */
+    public function getWithTax($id) {
+        // First get the basic category data with parent info
+        $sql = "SELECT c.*, p.name as parent_name 
+                FROM {$this->table} c
+                LEFT JOIN {$this->table} p ON c.parent_id = p.id
+                WHERE c.id = :id";
+        
+        if(!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        
+        $this->db->bind(':id', $id);
+        $category = $this->db->single();
+        
+        if(!$category) {
+            $this->lastError = "Category with ID {$id} not found";
+            return false;
+        }
+        
+        // If tax_id exists, get the tax details
+        if (!empty($category['tax_id'])) {
+            $taxSql = "SELECT name as tax_name, rate as tax_rate 
+                      FROM tax_rates 
+                      WHERE id = :tax_id";
+            
+            if($this->db->query($taxSql)) {
+                $this->db->bind(':tax_id', $category['tax_id']);
+                $taxData = $this->db->single();
+                
+                if ($taxData) {
+                    $category = array_merge($category, $taxData);
+                }
+            }
+        }
+        
+        return $category;
+    }
+    
+    /**
      * Get category tree
      * 
      * @return array
@@ -256,10 +301,11 @@ class Category extends Model {
         $total = $totalResult['total'];
         $totalPages = ceil($total / $perPage);
         
-        // Get categories with parent info
-        $sql = "SELECT c.*, p.name as parent_name 
+        // Get categories with parent and tax info
+        $sql = "SELECT c.*, p.name as parent_name, t.name as tax_name, t.rate as tax_rate 
                 FROM {$this->table} c
                 LEFT JOIN {$this->table} p ON c.parent_id = p.id
+                LEFT JOIN tax_rates t ON c.tax_id = t.id
                 ORDER BY c.{$orderBy} {$order}
                 LIMIT :limit OFFSET :offset";
                 

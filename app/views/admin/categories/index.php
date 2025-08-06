@@ -24,6 +24,7 @@
                                         <th>ID</th>
                                         <th>Name</th>
                                         <th>Parent</th>
+                                        <th>Tax Rate</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -38,6 +39,13 @@
                                                     <?php echo htmlspecialchars($category['parent_name']); ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">None</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if(!empty($category['tax_name'])): ?>
+                                                    <?php echo htmlspecialchars($category['tax_name'] . ' (' . $category['tax_rate'] . '%)'); ?>
+                                                <?php else: ?>
+                                                    <span class="text-muted">Not set</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td>
