@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 01, 2025 at 01:56 PM
+-- Generation Time: Aug 04, 2025 at 12:27 PM
 -- Server version: 9.1.0
--- PHP Version: 8.3.14
+-- PHP Version: 8.4.0
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -58,10 +58,10 @@ CREATE TABLE IF NOT EXISTS `addresses` (
 DROP TABLE IF EXISTS `banners`;
 CREATE TABLE IF NOT EXISTS `banners` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
-  `description` text,
-  `image_url` varchar(255) NOT NULL,
-  `status` enum('active','inactive') DEFAULT 'active',
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `image_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `status` enum('active','inactive') COLLATE utf8mb4_general_ci DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -86,8 +86,8 @@ INSERT INTO `banners` (`id`, `title`, `description`, `image_url`, `status`, `cre
 DROP TABLE IF EXISTS `banner_settings`;
 CREATE TABLE IF NOT EXISTS `banner_settings` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `setting_name` varchar(50) NOT NULL,
-  `setting_value` varchar(10) NOT NULL DEFAULT 'show',
+  `setting_name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `setting_value` varchar(10) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'show',
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting_name` (`setting_name`)
@@ -122,7 +122,6 @@ INSERT INTO `brands` (`id`, `name`, `slug`, `description`, `logo`, `status`, `cr
 (13, 'Ameenah', 'ameenah', '', 'uploads/brands/brand_688cbf88449e78.51236649.png', 'active', '2025-05-22 15:27:25', '2025-08-01 13:22:16'),
 (14, 'cool', 'cool', '', 'uploads/brands/68832aed89e6b.jpg', 'active', '2025-07-25 06:57:49', '2025-07-25 06:57:49'),
 (15, 'drink', 'drink', '', 'uploads/brands/688340898ebd4.png', 'active', '2025-07-25 08:30:01', '2025-07-25 08:30:01'),
-(16, 'sweet', 'sweet', '', 'uploads/brands/68834097ee63f.png', 'active', '2025-07-25 08:30:15', '2025-07-25 08:30:15'),
 (17, 'food', 'food', '', 'uploads/brands/688340ab7ebb7.png', 'active', '2025-07-25 08:30:35', '2025-07-25 08:30:35');
 
 -- --------------------------------------------------------
@@ -370,15 +369,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `price`, `sale_price`, `sto
 (57, 'METHI SEEDS (ALIBABA) 20X100G', '', 1.00, 1.00, 10, '7895', 24, NULL, 'uploads/products/1748024057_aliababa_methi_seed_100g-600x600.png', 'active', '2025-05-23 18:14:17', '2025-05-23 18:14:17', '2025-05-24', NULL, 0, NULL),
 (58, 'SHAN CHAAT MASALA 6X100G', '', 1.00, 1.00, 10, '786', 24, NULL, 'uploads/products/1748024193_shan_chaat_masala.png', 'active', '2025-05-23 18:16:33', '2025-05-23 18:16:33', '2025-05-24', NULL, 0, NULL),
 (59, 'Slinmy Kräutertee', '', 1.00, 1.00, 10, '8561', 26, NULL, 'uploads/products/1748024618_21.jpg', 'active', '2025-05-23 18:23:39', '2025-05-23 18:23:39', '2025-05-24', NULL, 0, NULL),
-(60, 'FITN╘ TEA GREEN TEA 6X40 G', '', 1.00, 1.00, 10, '2556', 26, NULL, 'uploads/products/1750316940_1748025672_8-removebg-preview.png', 'active', '2025-05-23 18:28:11', '2025-06-19 07:09:00', '2025-05-24', NULL, 0, NULL),
-(61, 'FITN╘ TEA ORIGINAL 6X40 G', '', 1.00, 1.00, 10, '3425', 26, NULL, 'uploads/products/1750316922_1748025672_8-removebg-preview.png', 'active', '2025-05-23 18:29:56', '2025-06-19 07:08:42', '2025-05-24', NULL, 0, NULL),
-(62, 'GOLD KILI INSTANT GINGER DRINK 24X10x18 g', '', 1.00, 1.00, 10, '569', 26, NULL, 'uploads/products/1750840014_1748023140_chin_aloe_vera-removebg-preview.png', 'active', '2025-05-23 18:31:57', '2025-06-25 08:26:54', '2025-05-24', NULL, 0, NULL),
-(63, 'GOLD KILI INSTANT GINGER DRINK 24X20X18g', '', 1.00, 1.00, 10, '5826', 26, NULL, 'uploads/products/1750839540_1748024618_21-removebg-preview__1_.png', 'active', '2025-05-23 18:33:36', '2025-06-25 08:19:00', '2025-05-24', NULL, 0, NULL),
-(64, 'MAGGI BOUILLON CUBES 25X100X4 G', '', 1.00, 1.00, 10, '25456', 33, NULL, 'uploads/products/1750839089_1748023546_tang_orange_2.5kg-removebg-preview__1_.png', 'active', '2025-05-23 18:36:33', '2025-06-25 08:11:29', '2025-05-24', NULL, 0, NULL),
-(65, 'MAGGI BOUILLON TABLETS CHICKEN 24X60X10 G', '', 1.00, 1.00, 10, '5211', 33, NULL, 'uploads/products/1750839040_1748021992_60-removebg-preview.png', 'active', '2025-05-23 18:38:09', '2025-06-25 08:10:40', '2025-05-24', NULL, 0, NULL),
-(66, 'MAGGI BOUILLON TABLETS SHRIMP 24X60X10 G', '', 1.00, 1.00, 10, '7512', 33, NULL, 'uploads/products/1750839635_1748025107_3-removebg-preview.png', 'active', '2025-05-23 18:39:40', '2025-06-25 08:20:35', '2025-05-24', NULL, 0, NULL),
-(67, 'PRAISE PALM OIL 12X1l', '', 1.00, 1.00, 10, '6588', 33, NULL, 'uploads/products/1750837372_1748023320_tang_mango_2.5kg-removebg-preview.png', 'active', '2025-05-23 18:41:12', '2025-06-25 07:42:52', '2025-05-24', NULL, 0, NULL),
-(68, 'PRAISE PALM OIL 24X500 ml', '', 1.00, 2.00, 10, '8522', 33, NULL, 'uploads/products/1750836922_1750491057_1748024891_1-removebg-preview.png', 'active', '2025-05-23 18:42:44', '2025-06-25 07:35:22', '2025-05-24', NULL, 0, NULL);
+(60, 'FITN╘ TEA GREEN TEA 6X40 G', '', 1.00, 1.00, 10, '2556', 26, NULL, 'uploads/products/1750316940_1748025672_8-removebg-preview.png', 'active', '2025-05-23 18:28:11', '2025-06-19 07:09:00', '2025-05-24', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -487,6 +478,89 @@ INSERT INTO `shipping_methods` (`id`, `name`, `description`, `base_price`, `is_w
 (1, 'Standard Shipping', 'Standard delivery within 3-5 business days', 5.99, 1, 5.00, 1.00, 0.50, 50.00, '3-5 business days', 1, 1, '2025-05-18 07:45:23', '2025-05-18 07:45:23'),
 (2, 'Express Shipping', 'Faster delivery within 1-2 business days', 12.99, 1, 5.00, 1.00, 1.00, 100.00, '1-2 business days', 1, 2, '2025-05-18 07:45:23', '2025-05-18 07:45:23'),
 (3, 'Free Shipping', 'Free standard shipping', 0.00, 0, NULL, NULL, NULL, 50.00, '5-7 business days', 1, 3, '2025-05-18 07:45:23', '2025-05-18 07:45:23');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tax_rates`
+--
+
+DROP TABLE IF EXISTS `tax_rates`;
+CREATE TABLE IF NOT EXISTS `tax_rates` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `rate` decimal(10,2) NOT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `tax_rates`
+--
+
+INSERT INTO `tax_rates` (`id`, `name`, `rate`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Tax 1', 25.00, 1, '2025-08-04 08:50:58', '2025-08-04 08:50:58'),
+(2, 'kujinsha', 0.01, 0, '2025-08-04 08:57:34', '2025-08-04 09:11:50'),
+(3, 'bj', 0.01, 0, '2025-08-04 08:58:40', '2025-08-04 08:58:54'),
+(4, 'gfh', 0.02, 0, '2025-08-04 09:03:12', '2025-08-04 09:09:16'),
+(5, 'ffh', 0.00, 0, '2025-08-04 09:05:06', '2025-08-04 09:07:33'),
+(6, 'kujinsha', 0.01, 0, '2025-08-04 09:07:07', '2025-08-04 09:15:22'),
+(7, 'kujinsha', 0.01, 0, '2025-08-04 09:07:10', '2025-08-04 09:21:25'),
+(8, 'kujinsha', 0.01, 0, '2025-08-04 09:07:19', '2025-08-04 09:21:40'),
+(9, 'ram', 15.00, 1, '2025-08-04 09:09:06', '2025-08-04 09:09:06'),
+(10, 'hhhd', 0.01, 1, '2025-08-04 09:21:50', '2025-08-04 09:21:50'),
+(11, 'dbebd', 0.02, 1, '2025-08-04 09:21:58', '2025-08-04 09:21:58');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tax_rates_backup`
+--
+
+DROP TABLE IF EXISTS `tax_rates_backup`;
+CREATE TABLE IF NOT EXISTS `tax_rates_backup` (
+  `id` int NOT NULL DEFAULT '0',
+  `tax1` decimal(10,2) DEFAULT '0.00',
+  `tax2` decimal(10,2) DEFAULT '0.00',
+  `tax3` decimal(10,2) DEFAULT '0.00',
+  `tax4` decimal(10,2) DEFAULT '0.00',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `tax_rates_backup`
+--
+
+INSERT INTO `tax_rates_backup` (`id`, `tax1`, `tax2`, `tax3`, `tax4`, `created_at`, `updated_at`) VALUES
+(1, 25.00, 0.00, 0.00, 0.00, '2025-08-02 05:11:00', '2025-08-02 05:11:42');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tax_rates_old`
+--
+
+DROP TABLE IF EXISTS `tax_rates_old`;
+CREATE TABLE IF NOT EXISTS `tax_rates_old` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tax1` decimal(10,2) DEFAULT '0.00',
+  `tax2` decimal(10,2) DEFAULT '0.00',
+  `tax3` decimal(10,2) DEFAULT '0.00',
+  `tax4` decimal(10,2) DEFAULT '0.00',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `tax_rates_old`
+--
+
+INSERT INTO `tax_rates_old` (`id`, `tax1`, `tax2`, `tax3`, `tax4`, `created_at`, `updated_at`) VALUES
+(1, 25.00, 0.00, 0.00, 0.00, '2025-08-02 05:11:00', '2025-08-02 05:11:42');
 
 -- --------------------------------------------------------
 
