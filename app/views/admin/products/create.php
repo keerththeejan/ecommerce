@@ -96,7 +96,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="price" class="form-label">Price</label>
+                                            <label for="price" class="form-label">Buying Price</label>
                                             <div class="input-group">
                                                 <span class="input-group-text">CHF</span>
                                                 <input type="number" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $data['price'] ?? ''; ?>" step="0.01" min="0" required>
@@ -108,12 +108,36 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="sale_price" class="form-label">Sale Price (Optional)</label>
+                                            <label for="sale_price" class="form-label">Including Tax Price (Optional)</label>
                                             <div class="input-group">
                                                 <span class="input-group-text">CHF</span>
                                                 <input type="number" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" step="0.01" min="0">
                                                 <?php if(isset($errors['sale_price'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="price2" class="form-label">Sales Price (Optional)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">CHF</span>
+                                                <input type="number" class="form-control <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" step="0.01" min="0">
+                                                <?php if(isset($errors['price2'])): ?>
+                                                    <div class="invalid-feedback"><?php echo $errors['price2']; ?></div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="price3" class="form-label">Wholesale Price (SP) (Optional)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">CHF</span>
+                                                <input type="number" class="form-control <?php echo isset($errors['price3']) ? 'is-invalid' : ''; ?>" id="price3" name="price3" value="<?php echo $data['price3'] ?? ''; ?>" step="0.01" min="0">
+                                                <?php if(isset($errors['price3'])): ?>
+                                                    <div class="invalid-feedback"><?php echo $errors['price3']; ?></div>
                                                 <?php endif; ?>
                                             </div>
                                         </div>

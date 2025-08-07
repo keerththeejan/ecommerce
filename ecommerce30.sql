@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 07, 2025 at 04:14 AM
+-- Generation Time: Aug 07, 2025 at 09:25 AM
 -- Server version: 9.1.0
 -- PHP Version: 8.4.0
 
@@ -305,61 +305,26 @@ CREATE TABLE IF NOT EXISTS `products` (
   `expiry_date` date DEFAULT NULL,
   `is_new` tinyint(1) NOT NULL DEFAULT '0',
   `country_id` int DEFAULT NULL,
+  `price2` decimal(10,2) DEFAULT NULL,
+  `price3` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku` (`sku`),
   KEY `category_id` (`category_id`),
   KEY `fk_products_brands` (`brand_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `name`, `description`, `price`, `sale_price`, `stock_quantity`, `sku`, `category_id`, `brand_id`, `image`, `status`, `created_at`, `updated_at`, `add_date`, `expiry_date`, `is_new`, `country_id`) VALUES
-(12, 'Lion Lager – Erfrischendes Lager aus Sri Lanka mit 6 x 0,5 L 4,8% Vol', '', 1.00, 0.02, 2, '3044627', 12, NULL, 'uploads/products/1748002021_lion.jpg', 'active', '2025-05-22 15:45:12', '2025-05-23 12:07:01', '2025-05-24', NULL, 0, NULL),
-(14, 'Griechisches Bier Mythos Lagerbier 24x 0,33 Liter inkl. Pfand', '', 1.00, 1.00, 3, '5583371', 12, NULL, 'uploads/products/1748002394_2.jpg', 'active', '2025-05-23 12:12:48', '2025-05-23 12:13:14', '2025-05-24', NULL, 0, NULL),
-(15, '2,5 Original Radler Naturtrüb (24 x 0,5L)', '', 1.00, 1.00, 2, '1919592', 12, NULL, 'uploads/products/1748002668_3.jpg', 'active', '2025-05-23 12:17:48', '2025-05-23 12:17:48', '2025-05-24', NULL, 0, NULL),
-(16, '20 x 0,50L Schlenkerla Rauchbier Märzen - inkl Biergartendeckel', '', 1.00, 1.00, 2, '7907892', 12, NULL, 'uploads/products/1748002872_4.jpg', 'active', '2025-05-23 12:21:12', '2025-05-23 12:21:12', '2025-05-24', NULL, 0, NULL),
-(17, 'Gaffel Kölsch Bierfass (2 x 5,0L)', '', 1.00, 1.00, 2, '7602179', 12, NULL, 'uploads/products/1748003781_5.jpg', 'active', '2025-05-23 12:32:44', '2025-05-23 12:36:21', '2025-05-24', NULL, 0, NULL),
-(19, 'Pantio - Bunte Hülsenfrüchte-Mischung Linsen &amp; Bohnen - 500g', '', 1.00, 1.00, 2, '24455', 19, NULL, 'uploads/products/1748004833_7.jpg', 'active', '2025-05-23 12:40:24', '2025-05-23 12:53:53', '2025-05-24', NULL, 0, NULL),
-(20, 'EDEKA BIO LINSEN 400 g Dose 6er Pack (400g x 6)', '', 1.00, 1.00, 2, '24554', 19, NULL, 'uploads/products/1748004903_8.jpg', 'active', '2025-05-23 12:55:03', '2025-05-23 12:55:03', '2025-05-24', NULL, 0, NULL),
-(21, 'Hülsenfrucht Dünger für Erbsen Bohnen Linsen Erdnüsse NPK Volldünger', '', 1.00, 1.00, 2, '4887', 19, NULL, 'uploads/products/1748005392_9.jpg', 'active', '2025-05-23 13:03:12', '2025-05-23 13:03:12', '2025-05-24', NULL, 0, NULL),
-(22, 'Asian Home Gourmet Würzpaste für Indisches Butter Chicken 50g', '', 1.00, 1.00, 2, '5666', 29, NULL, 'uploads/products/1748005531_10.jpg', 'active', '2025-05-23 13:05:31', '2025-05-23 13:05:31', '2025-05-24', NULL, 0, NULL),
-(23, '10 x50g OSUPAN Ayurveda Gewürz Ceylon Tee 5 Kräuter Sri Lanka Versand aus Deutschland', '', 1.00, 1.00, 2, '5236', 29, NULL, 'uploads/products/1748005686_12.jpg', 'active', '2025-05-23 13:08:06', '2025-05-23 13:08:06', '2025-05-24', NULL, 0, NULL),
-(24, 'Kräuter der Provence Gewürz Kräuter Mischung - 100g - PEnandiTRA', '', 1.00, 1.00, 2, '24555', 29, NULL, 'uploads/products/1748005862_14.jpg', 'active', '2025-05-23 13:11:03', '2025-05-23 13:11:03', '2025-05-24', NULL, 0, NULL),
-(25, 'Campina Nr. - Mark Brandenburg - Milchprodukte - MAN - Sattelzug', '', 1.00, 1.00, 2, '5445', 31, NULL, 'uploads/products/1748006029_21.jpg', 'active', '2025-05-23 13:13:49', '2025-05-23 13:13:49', '2025-05-24', NULL, 0, NULL),
-(26, 'Looney Tunes Active! Bild Nr. 32 Milchprodukte PENNY: Die total verrückte Sportarena Startpreis', '', 1.00, 1.00, 2, '5897', 31, NULL, 'uploads/products/1748006179_22.jpg', 'active', '2025-05-23 13:16:19', '2025-05-23 13:16:19', '2025-05-24', NULL, 0, NULL),
-(27, 'Landana 1000 Tage Käse Gouda uralt Bröckelkäse mit Salzkristallen 1kg', '', 1.00, 1.00, 2, '5558', 31, NULL, 'uploads/products/1748006311_23.jpg', 'active', '2025-05-23 13:18:31', '2025-05-23 13:18:31', '2025-05-24', NULL, 0, NULL),
-(28, '20x 7 Days Double Croissant Kakao-Vanille a 60g', '', 1.00, 1.00, 5, '265', 31, NULL, 'uploads/products/1748006485_24.jpg', 'active', '2025-05-23 13:21:25', '2025-05-23 13:21:25', '2025-05-24', NULL, 0, NULL),
-(29, 'Arla Gräddost Natur 1KG Butterkäse', '', 1.00, 1.00, 2, '5988', 31, NULL, 'uploads/products/1748006601_25.jpg', 'active', '2025-05-23 13:23:21', '2025-05-23 13:23:21', '2025-05-24', NULL, 0, NULL),
-(30, 'Noodle - Instant', '', 1.00, 1.00, 5, '6526', 32, NULL, 'uploads/products/1748006799_31.jpg', 'active', '2025-05-23 13:26:39', '2025-05-23 13:26:39', '2025-05-24', NULL, 0, NULL),
-(31, 'Nissin Bag Noodles Soba Teriyaki Wok Style Instant Nudelgericht 110g', '', 1.00, 1.00, 5, '5456', 32, NULL, 'uploads/products/1748006902_32.jpg', 'active', '2025-05-23 13:28:23', '2025-05-23 13:28:23', '2025-05-24', NULL, 0, NULL),
-(32, 'Nissin Bag Noodles Soba Classic Wok Style Instant Nudelgericht 109g', '', 1.00, 1.00, 2, '54878', 32, NULL, 'uploads/products/1748007229_33.jpg', 'active', '2025-05-23 13:32:57', '2025-05-23 13:33:49', '2025-05-24', NULL, 0, NULL),
-(33, 'MAGGI Magic Asia Noodle Cup Duck Instant-Nudeln Fertiggericht Becher 8 x 63g', '', 1.00, 1.00, 2, '5458', 32, NULL, 'uploads/products/1748007364_34.jpg', 'active', '2025-05-23 13:36:04', '2025-05-23 13:36:04', '2025-05-24', NULL, 0, NULL),
-(34, 'Knorr Instant Nudeln Asia Noodles Nudelgericht Rind Huhn Ente 24er Pack 24 x 65g', '', 1.00, 1.00, 5, '454', 32, NULL, 'uploads/products/1748007542_35.jpg', 'active', '2025-05-23 13:39:02', '2025-05-23 13:39:02', '2025-05-24', NULL, 0, NULL),
-(35, 'Naturkornmühle Werz Reis Vollkorn Mehl, glutenfrei 1000g', '', 1.00, 1.00, 5, '6656', 34, NULL, 'uploads/products/1748007693_46.jpg', 'active', '2025-05-23 13:41:33', '2025-05-23 13:41:33', '2025-05-24', NULL, 0, NULL),
-(36, 'Müllers Mühle Reis Mehl zum Kochen Backen und Verfeinern 500g', '', 1.00, 1.00, 2, '456', 34, NULL, 'uploads/products/1748007832_47.jpg', 'active', '2025-05-23 13:43:53', '2025-05-23 13:43:53', '2025-05-24', NULL, 0, NULL),
-(37, 'Naturkornmühle Werz 3x Reis Vollkorn Mehl, glutenfrei 1000g', '', 1.00, 1.00, 5, '2466', 34, NULL, 'uploads/products/1748007958_48.jpg', 'active', '2025-05-23 13:45:58', '2025-05-23 13:45:58', '2025-05-24', NULL, 0, NULL),
-(38, 'Naturkornmühle Werz 6x Reis Vollkorn Mehl, glutenfrei 1000g', '', 1.00, 1.00, 5, '45455', 34, NULL, 'uploads/products/1748008073_49.jpg', 'active', '2025-05-23 13:47:53', '2025-05-23 13:47:53', '2025-05-24', NULL, 0, NULL),
-(39, 'Sauce / Paste - Adjika traditionell, pastöse Würzsauce - 220 gr. - Georgien', '', 1.00, 1.00, 2, '244544', 35, NULL, 'uploads/products/1748008251_50.jpg', 'active', '2025-05-23 13:49:25', '2025-05-23 13:50:51', '2025-05-24', NULL, 0, NULL),
-(40, 'WELA - Sauce Hollandaise Paste 810 g', '', 1.00, 1.00, 5, '2553', 35, NULL, 'uploads/products/1748021445_51.jpg', 'active', '2025-05-23 17:30:45', '2025-05-23 17:30:45', '2025-05-24', NULL, 0, NULL),
-(41, 'Jürgen Langbein Krebs Paste für Suppen und Saucen 50g 10er Pack', '', 1.00, 1.00, 3, '656', 35, NULL, 'uploads/products/1748021559_52.jpg', 'active', '2025-05-23 17:32:39', '2025-05-23 17:32:39', '2025-05-24', NULL, 0, NULL),
-(42, 'Jürgen Langbein Gourmet Hummer Paste Suppen und Saucen 500g 3er Pack', '', 1.00, 1.00, 2, '323', 35, NULL, 'uploads/products/1748021691_53.jpg', 'active', '2025-05-23 17:34:51', '2025-05-23 17:34:51', '2025-05-24', NULL, 0, NULL),
-(43, 'Ungarn - Paprikapaste süß - 210 gr. Glas', '', 1.00, 1.00, 1, '5866', 35, NULL, 'uploads/products/1748021838_54.jpg', 'active', '2025-05-23 17:37:18', '2025-05-23 17:37:18', '2025-05-24', NULL, 0, NULL),
-(44, 'Vaya Sweet Potato Rosemary Snack Vegan, 75 Gramm Beute 5 Varianten', '', 1.00, 1.00, 5, '6556', 36, NULL, 'uploads/products/1748021992_60.jpg', 'active', '2025-05-23 17:39:57', '2025-05-23 17:39:57', '2025-05-24', NULL, 0, NULL),
-(45, 'Doritos Tortilla Chips Sweet Chili Pepper - Mais Snack - 12x110 g', '', 1.00, 1.00, 6, '5986', 36, NULL, 'uploads/products/1748022141_61.jpg', 'active', '2025-05-23 17:42:21', '2025-05-23 17:42:21', '2025-05-24', NULL, 0, NULL),
-(46, 'Rob&#039;s Sweet BBQ 120g', '', 1.00, 1.00, 2, '2442', 36, NULL, 'uploads/products/1748022238_62.jpg', 'active', '2025-05-23 17:43:58', '2025-05-23 17:43:58', '2025-05-24', NULL, 0, NULL),
-(47, 'Marshmallows BBQ Vanilla Flavour 300g zum Grillen, Snacken, Süssigkeit', '', 1.00, 1.00, 6, '6530', 36, NULL, 'uploads/products/1748022354_63.jpg', 'active', '2025-05-23 17:45:54', '2025-05-23 17:45:54', '2025-05-24', NULL, 0, NULL),
-(48, 'Tyrrells Handcooked Sweet Chilli Chips glutenfrei vegan 150g', '', 1.00, 1.00, 5, '3565', 36, NULL, 'uploads/products/1748022534_64.jpg', 'active', '2025-05-23 17:48:54', '2025-05-23 17:48:54', '2025-05-24', NULL, 0, NULL),
-(49, 'ALOE VERA DRINK (ALIBABA) 6X1.5L', '', 1.00, 1.00, 10, '635', 22, NULL, 'uploads/products/1748022927_alovera_drink_1.5l.png', 'active', '2025-05-23 17:55:27', '2025-05-23 17:59:41', '2025-05-24', NULL, 0, NULL),
-(50, 'ALOE VERA JUICE (CHIN CHIN) 24X500ML', '', 1.00, 1.00, 10, '5564', 22, NULL, 'uploads/products/1748023140_chin_aloe_vera.png', 'active', '2025-05-23 17:59:00', '2025-05-23 17:59:00', '2025-05-24', NULL, 0, NULL),
-(51, 'ALOE VERA WITH HONEY (CHIN CHIN) 12X1.5L', '', 1.00, 1.00, 10, '6652', 22, NULL, 'uploads/products/1748023252_chin_aloe_vera_1.5l.png', 'active', '2025-05-23 18:00:52', '2025-05-23 18:00:52', '2025-05-24', NULL, 0, NULL),
-(52, 'TANG MANGO JAR 6X2500G', '', 1.00, 1.00, 10, '5466', 22, NULL, 'uploads/products/1748023320_tang_mango_2.5kg.png', 'active', '2025-05-23 18:02:00', '2025-05-23 18:02:00', '2025-05-24', NULL, 0, NULL),
-(53, 'TANG ORANGE JAR 6X2500G', '', 1.00, 1.00, 10, '2564', 22, NULL, 'uploads/products/1748023546_tang_orange_2.5kg.png', 'active', '2025-05-23 18:05:46', '2025-05-23 18:05:46', '2025-05-24', NULL, 0, NULL),
-(54, 'GINGER POWDER (ALIBABA) 10X400G', '', 1.00, 1.00, 10, '5982', 24, NULL, 'uploads/products/1748023687_alibaba_ginger_powder_400g.png', 'active', '2025-05-23 18:08:07', '2025-05-23 18:08:07', '2025-05-24', NULL, 0, NULL),
-(55, 'HALDI POWDER (ALIBABA) 6X1KG', '', 1.00, 1.00, 10, '325', 24, NULL, 'uploads/products/1748023759_alibaba_haldi_powder_1kg.png', 'active', '2025-05-23 18:09:19', '2025-05-23 18:09:19', '2025-05-24', NULL, 0, NULL),
-(56, 'PAPRIKA POWDER (ALIBABA) 20X100G', '', 1.00, 1.00, 10, '3566', 24, NULL, 'uploads/products/1748023973_alibaba_parika_powder_100g-600x600.png', 'active', '2025-05-23 18:12:53', '2025-05-23 18:12:53', '2025-05-24', NULL, 0, NULL),
-(57, 'METHI SEEDS (ALIBABA) 20X100G', '', 1.00, 1.00, 10, '7895', 24, NULL, 'uploads/products/1748024057_aliababa_methi_seed_100g-600x600.png', 'active', '2025-05-23 18:14:17', '2025-05-23 18:14:17', '2025-05-24', NULL, 0, NULL);
+INSERT INTO `products` (`id`, `name`, `description`, `price`, `sale_price`, `stock_quantity`, `sku`, `category_id`, `brand_id`, `image`, `status`, `created_at`, `updated_at`, `add_date`, `expiry_date`, `is_new`, `country_id`, `price2`, `price3`) VALUES
+(79, 'kujinsha', '1kg', 1.00, 2.00, 2, '1', 60, NULL, 'uploads/products/1754558583_download.png', 'active', '2025-08-07 09:23:03', '2025-08-07 09:23:03', '2025-08-07', NULL, 0, NULL, 3.00, 5.00),
+(72, 'MAGGI BOUILLON TABLETS SHRIMP 24X60X10 G', '22', 88.00, 33.00, 4, '6588', 55, NULL, 'uploads/products/1754545622_1748024618_21-removebg-preview (1).png', 'active', '2025-08-07 05:47:02', '2025-08-07 08:03:25', '2025-08-07', NULL, 0, NULL, 88.00, 88.00),
+(73, 'PRAISE PALM OIL 24X500 ml', '25', 98.00, 35.00, 2, '5211', 56, NULL, 'uploads/products/1754546096_1748025107_3-removebg-preview.png', 'active', '2025-08-07 05:54:56', '2025-08-07 08:03:25', '2025-08-07', NULL, 0, NULL, 98.00, 98.00),
+(74, 'GOLD KILI INSTANT GINGER DRINK 24X20X18g', '98', 87.00, 57.00, 2, '8522', 55, NULL, 'uploads/products/1754547924_1748023140_chin_aloe_vera-removebg-preview.png', 'active', '2025-08-07 06:25:24', '2025-08-07 09:18:25', '2025-08-07', NULL, 0, NULL, 87.00, 100.00),
+(76, 'kujinsha', '', 2.00, 5.00, 1, '1230', 60, NULL, 'uploads/products/1754554352_download.png', 'active', '2025-08-07 08:12:32', '2025-08-07 08:12:32', '2025-08-07', NULL, 0, NULL, 22.00, 222.00),
+(77, 'Ashwiny', '85', 100.00, 103.00, 2, '12', 59, NULL, 'uploads/products/1754558417_1748023320_tang_mango_2.5kg-removebg-preview1.png', 'active', '2025-08-07 09:19:49', '2025-08-07 09:20:17', '2025-08-07', NULL, 0, NULL, 102.00, 104.00),
+(78, 'keethan', '5', 54.00, 69.00, 2, '684', 55, NULL, 'uploads/products/1754558505_1748024618_21-removebg-preview (1).png', 'active', '2025-08-07 09:21:45', '2025-08-07 09:21:45', '2025-08-07', NULL, 0, NULL, 58.00, 57.00);
 
 -- --------------------------------------------------------
 

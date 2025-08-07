@@ -178,12 +178,28 @@ class ProductController extends Controller {
                 'name' => sanitize($this->post('name')),
                 'description' => sanitize($this->post('description')),
                 'price' => $this->post('price'),
-                'sale_price' => $this->post('sale_price'),
+                'sale_price' => $this->post('sale_price') ?: null,
+                'price2' => $this->post('price2') ?: $this->post('price'),
+                'price3' => $this->post('price3') ?: $this->post('price'),
                 'stock_quantity' => $this->post('stock_quantity'),
-                'sku' => sanitize($this->post('sku')),
                 'category_id' => $this->post('category_id'),
                 'status' => $this->post('status')
             ];
+            
+            // Handle SKU - generate if empty or check for uniqueness
+            $sku = trim($this->post('sku'));
+            if (empty($sku)) {
+                // Generate a unique SKU based on product name and timestamp
+                $baseSku = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($data['name'], 0, 10)));
+                $sku = $baseSku . time() % 10000; // Add some randomness with timestamp
+            } else {
+                // Check if SKU already exists
+                $existingProduct = $this->productModel->getSingleBy('sku', $sku);
+                if ($existingProduct) {
+                    $errors['sku'] = 'This SKU is already in use. Please choose a different one.';
+                }
+            }
+            $data['sku'] = $sku;
             
             // Handle image upload
             $image = $_FILES['image'] ?? null;
@@ -202,13 +218,18 @@ class ProductController extends Controller {
             }
             
             // Validate data
-            $errors = $this->validate($data, [
+            $validationRules = [
                 'name' => 'required|max:255',
                 'price' => 'required|numeric',
-                'stock_quantity' => 'required|numeric',
-                'sku' => 'required|max:50',
-                'category_id' => 'required'
-            ]);
+                'stock_quantity' => 'required|numeric|min:0',
+                'category_id' => 'required|numeric',
+                'price2' => 'nullable|numeric',
+                'price3' => 'nullable|numeric',
+                'sale_price' => 'nullable|numeric'
+            ];
+            
+            $validationErrors = $this->validate($data, $validationRules);
+            $errors = array_merge($errors ?? [], $validationErrors);
             
             // Make sure there are no errors
             if(empty($errors)) {
@@ -228,28 +249,9 @@ class ProductController extends Controller {
                         
                         flash('product_success', 'Product created successfully', 'alert alert-success');
                         
-                        // Reset form data for new entry
-                        $data = [
-                            'name' => '',
-                            'description' => '',
-                            'price' => '',
-                            'sale_price' => '',
-                            'stock_quantity' => '',
-                            'sku' => '',
-                            'category_id' => '',
-                            'status' => 'active',
-                            'image' => ''
-                        ];
-                        
-                        // Clear any file inputs
-                        echo "<script>if(window.jQuery) { $('input[type=file]').val(''); }</script>";
-                        
-                        // Reload the view with success message and empty form
-                        $this->view('admin/products/create', [
-                            'data' => $data,
-                            'categories' => $categories,
-                            'errors' => []
-                        ]);
+                        // Redirect to product list on success
+                        redirect('product/adminIndex');
+                        return;
                         return;
                     } else {
                         throw new Exception('Failed to create product');
@@ -338,6 +340,8 @@ class ProductController extends Controller {
                     'description' => sanitize($this->post('description')),
                     'price' => $this->post('price'),
                     'sale_price' => $this->post('sale_price') ?: null,
+                    'price2' => $this->post('price2') ?: $this->post('price'),
+                    'price3' => $this->post('price3') ?: $this->post('price'),
                     'stock_quantity' => $this->post('stock_quantity'),
                     'sku' => sanitize($this->post('sku')),
                     'category_id' => $this->post('category_id'),

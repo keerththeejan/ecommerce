@@ -91,8 +91,10 @@
                                         <th>Image</th>
                                         <th>Name</th>
                                         <th>SKU</th>
-                                        <th>Price</th>
-                                        <th>Sale Price</th>
+                                        <th>Buying Price</th>
+                                        <th>Including Tax Price</th>
+                                        <th>Sales Price</th>
+                                        <th>Wholesale Price (SP)</th>
                                         <th>Stock</th>
                                         <th>Stock Value</th>
                                         <th>Status</th>
@@ -116,6 +118,20 @@
                                             <td>
                                                 <?php if(!empty($product['sale_price'])): ?>
                                                     <?php echo formatPrice($product['sale_price']); ?>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if(!empty($product['price2'])): ?>
+                                                    <?php echo formatPrice($product['price2']); ?>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if(!empty($product['price3'])): ?>
+                                                    <?php echo formatPrice($product['price3']); ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
