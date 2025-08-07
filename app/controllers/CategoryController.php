@@ -234,6 +234,10 @@ $this->view('admin/categories/create', [
         // Get parent categories for dropdown
         $parentCategories = $this->categoryModel->getParentCategories();
         
+        // Get tax rates for dropdown
+        $taxModel = new TaxModel();
+        $taxRates = $taxModel->getTaxRates(true);
+        
         // Check for POST
         if($this->isPost()) {
             // Process form
@@ -291,8 +295,22 @@ $this->view('admin/categories/create', [
             if(empty($errors)) {
                 // Update category
                 if($this->categoryModel->update($id, $data)) {
-                    flash('category_success', 'Category updated successfully');
-                    redirect('category/adminIndex');
+                    // Reload the category with updated data
+                    $category = $this->categoryModel->getWithTax($id);
+                    if (is_object($category)) {
+                        $category = (array)$category;
+                    }
+                    
+                    flash('category_success', 'Category updated successfully!', 'alert alert-success');
+                    
+                    // Reload view with updated category data
+                    $this->view('admin/categories/edit', [
+                        'category' => $category,
+                        'parentCategories' => $parentCategories,
+                        'taxRates' => $taxRates,
+                        'errors' => []
+                    ]);
+                    return;
                 } else {
                     $errors['db_error'] = 'Failed to update category: ' . $this->categoryModel->getLastError();
                 }

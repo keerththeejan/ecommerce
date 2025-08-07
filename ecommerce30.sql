@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 04, 2025 at 12:27 PM
+-- Generation Time: Aug 07, 2025 at 04:14 AM
 -- Server version: 9.1.0
 -- PHP Version: 8.4.0
 
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `banners` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `banners`
@@ -75,7 +75,8 @@ INSERT INTO `banners` (`id`, `title`, `description`, `image_url`, `status`, `cre
 (3, 'k', '02', 'uploads/banners/1751346690_11.jpeg', 'active', '2025-07-01 05:11:30', '2025-07-01 05:11:30'),
 (4, 'vv', '30', 'uploads/banners/1751430837_25.jpg', 'active', '2025-07-02 04:33:57', '2025-07-02 04:33:57'),
 (5, 'pi', '02', 'uploads/banners/1751430890_55.jpeg', 'active', '2025-07-02 04:34:50', '2025-07-02 04:34:50'),
-(6, 'th', '05', 'uploads/banners/1751430906_33.jpeg', 'active', '2025-07-02 04:35:06', '2025-07-02 04:35:06');
+(6, 'th', '05', 'uploads/banners/1751430906_33.jpeg', 'active', '2025-07-02 04:35:06', '2025-07-02 04:35:06'),
+(8, 'WELCOME', '98', 'uploads/banners/1754539697_shopping-bag-cart_23-2148879372.avif', 'active', '2025-08-07 04:08:17', '2025-08-07 04:08:17');
 
 -- --------------------------------------------------------
 
@@ -160,33 +161,25 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `status` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `tax_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `parent_id` (`parent_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `parent_id` (`parent_id`),
+  KEY `fk_categories_tax` (`tax_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`id`, `name`, `description`, `icon`, `image`, `parent_id`, `status`, `created_at`, `updated_at`) VALUES
-(12, 'Alkohol Getränke', '', NULL, 'uploads/categories/683c206958639.webp', NULL, 1, '2025-05-17 14:34:35', '2025-06-01 09:42:01'),
-(19, 'Bohnen - Linsen', '', NULL, 'uploads/categories/683c208fd6240.webp', NULL, 1, '2025-05-22 12:59:58', '2025-06-01 09:42:39'),
-(20, 'Fleisch and Fisch', '', NULL, 'uploads/categories/687f46786118d.webp', NULL, 1, '2025-05-22 13:16:08', '2025-07-22 08:06:16'),
-(21, 'Früchte and Gemüse', '', NULL, 'uploads/categories/687f53bc28002.webp', NULL, 1, '2025-05-22 13:26:09', '2025-07-22 09:02:52'),
-(22, 'Getränke', '', NULL, 'uploads/categories/687f53dfbd527.webp', NULL, 1, '2025-05-22 13:30:48', '2025-07-22 09:03:27'),
-(24, 'Gewürze', '', NULL, 'uploads/categories/687f53f24111c.webp', NULL, 1, '2025-05-22 13:43:46', '2025-07-22 09:03:46'),
-(26, 'Kaffee and Tee', '', NULL, 'uploads/categories/687f540f45483.webp', NULL, 1, '2025-05-22 13:51:13', '2025-07-22 09:04:15'),
-(27, 'Kokosnuss Produkten', '', NULL, 'uploads/categories/687f543fead0b.webp', NULL, 1, '2025-05-22 13:54:24', '2025-07-22 09:05:03'),
-(28, 'Kosmetik', '', NULL, 'uploads/categories/687f54708d3c8.webp', NULL, 1, '2025-05-22 13:58:48', '2025-07-22 09:05:52'),
-(29, 'Kräuter - Gewürze', '', NULL, 'uploads/categories/687f548e719e9.webp', NULL, 1, '2025-05-22 14:01:38', '2025-07-22 09:06:22'),
-(30, 'Linsen', '', NULL, 'uploads/categories/687f54cc13c50.webp', NULL, 1, '2025-05-22 14:04:36', '2025-07-22 09:07:24'),
-(31, 'Milchprodukte', '', NULL, 'uploads/categories/687f5549b4325.png', NULL, 1, '2025-05-22 14:06:16', '2025-07-22 09:09:29'),
-(32, 'Noodle - Instant', '', NULL, 'uploads/categories/687f5561107f1.png', NULL, 1, '2025-05-22 14:08:25', '2025-07-22 09:09:53'),
-(33, 'Öle - Butter', '', NULL, 'uploads/categories/687f5584ce47e.png', NULL, 1, '2025-05-22 14:10:21', '2025-07-22 09:10:28'),
-(34, 'Reis - Mehl', '', NULL, 'uploads/categories/687f55ac53074.png', NULL, 1, '2025-05-22 14:14:51', '2025-07-22 09:11:08'),
-(35, 'Sause - Paste', '', NULL, 'uploads/categories/688078abc8424.webp', NULL, 1, '2025-05-22 14:16:50', '2025-07-23 05:52:43'),
-(36, 'Süssigkeiten', '', NULL, 'uploads/categories/688078f132e3a.webp', NULL, 1, '2025-05-22 14:19:19', '2025-07-23 05:53:53'),
-(37, 'Tiefkühlprodukte', '', NULL, 'uploads/categories/6880790b3cc50.webp', NULL, 1, '2025-05-22 14:21:56', '2025-07-23 05:54:19');
+INSERT INTO `categories` (`id`, `name`, `description`, `icon`, `image`, `parent_id`, `status`, `created_at`, `updated_at`, `tax_id`) VALUES
+(62, 'keerthtikan', '32', NULL, 'uploads/categories/689419c75482f.webp', NULL, 1, '2025-08-07 03:13:11', '2025-08-07 03:13:11', 12),
+(61, 'yathu', '84', NULL, 'uploads/categories/689419294962c.webp', 55, 1, '2025-08-07 03:10:33', '2025-08-07 03:46:39', 12),
+(60, 'Ashwiny', '35', NULL, 'uploads/categories/68941904d73aa.webp', 55, 1, '2025-08-07 03:09:56', '2025-08-07 03:09:56', 13),
+(59, 'thilu', '32', NULL, 'uploads/categories/689418ee45fc7.webp', 55, 1, '2025-08-07 03:09:34', '2025-08-07 03:09:34', 1),
+(56, 'keethan', '98', NULL, 'uploads/categories/6894186d1e32a.webp', 55, 1, '2025-08-07 03:01:31', '2025-08-07 03:17:57', 1),
+(57, 'pirathi', '64', NULL, 'uploads/categories/689418aabeed0.webp', 55, 1, '2025-08-07 03:02:35', '2025-08-07 03:18:44', 1),
+(58, 'vanu', '95', NULL, 'uploads/categories/689418d371488.webp', 55, 1, '2025-08-07 03:09:07', '2025-08-07 03:43:35', 19),
+(55, 'kujinsha', '', NULL, 'uploads/categories/6894188ef0fb6.webp', NULL, 1, '2025-08-06 09:25:18', '2025-08-07 03:19:01', 13);
 
 -- --------------------------------------------------------
 
@@ -366,10 +359,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `price`, `sale_price`, `sto
 (54, 'GINGER POWDER (ALIBABA) 10X400G', '', 1.00, 1.00, 10, '5982', 24, NULL, 'uploads/products/1748023687_alibaba_ginger_powder_400g.png', 'active', '2025-05-23 18:08:07', '2025-05-23 18:08:07', '2025-05-24', NULL, 0, NULL),
 (55, 'HALDI POWDER (ALIBABA) 6X1KG', '', 1.00, 1.00, 10, '325', 24, NULL, 'uploads/products/1748023759_alibaba_haldi_powder_1kg.png', 'active', '2025-05-23 18:09:19', '2025-05-23 18:09:19', '2025-05-24', NULL, 0, NULL),
 (56, 'PAPRIKA POWDER (ALIBABA) 20X100G', '', 1.00, 1.00, 10, '3566', 24, NULL, 'uploads/products/1748023973_alibaba_parika_powder_100g-600x600.png', 'active', '2025-05-23 18:12:53', '2025-05-23 18:12:53', '2025-05-24', NULL, 0, NULL),
-(57, 'METHI SEEDS (ALIBABA) 20X100G', '', 1.00, 1.00, 10, '7895', 24, NULL, 'uploads/products/1748024057_aliababa_methi_seed_100g-600x600.png', 'active', '2025-05-23 18:14:17', '2025-05-23 18:14:17', '2025-05-24', NULL, 0, NULL),
-(58, 'SHAN CHAAT MASALA 6X100G', '', 1.00, 1.00, 10, '786', 24, NULL, 'uploads/products/1748024193_shan_chaat_masala.png', 'active', '2025-05-23 18:16:33', '2025-05-23 18:16:33', '2025-05-24', NULL, 0, NULL),
-(59, 'Slinmy Kräutertee', '', 1.00, 1.00, 10, '8561', 26, NULL, 'uploads/products/1748024618_21.jpg', 'active', '2025-05-23 18:23:39', '2025-05-23 18:23:39', '2025-05-24', NULL, 0, NULL),
-(60, 'FITN╘ TEA GREEN TEA 6X40 G', '', 1.00, 1.00, 10, '2556', 26, NULL, 'uploads/products/1750316940_1748025672_8-removebg-preview.png', 'active', '2025-05-23 18:28:11', '2025-06-19 07:09:00', '2025-05-24', NULL, 0, NULL);
+(57, 'METHI SEEDS (ALIBABA) 20X100G', '', 1.00, 1.00, 10, '7895', 24, NULL, 'uploads/products/1748024057_aliababa_methi_seed_100g-600x600.png', 'active', '2025-05-23 18:14:17', '2025-05-23 18:14:17', '2025-05-24', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -494,7 +484,7 @@ CREATE TABLE IF NOT EXISTS `tax_rates` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `tax_rates`
@@ -509,9 +499,17 @@ INSERT INTO `tax_rates` (`id`, `name`, `rate`, `is_active`, `created_at`, `updat
 (6, 'kujinsha', 0.01, 0, '2025-08-04 09:07:07', '2025-08-04 09:15:22'),
 (7, 'kujinsha', 0.01, 0, '2025-08-04 09:07:10', '2025-08-04 09:21:25'),
 (8, 'kujinsha', 0.01, 0, '2025-08-04 09:07:19', '2025-08-04 09:21:40'),
-(9, 'ram', 15.00, 1, '2025-08-04 09:09:06', '2025-08-04 09:09:06'),
-(10, 'hhhd', 0.01, 1, '2025-08-04 09:21:50', '2025-08-04 09:21:50'),
-(11, 'dbebd', 0.02, 1, '2025-08-04 09:21:58', '2025-08-04 09:21:58');
+(9, 'ram', 15.00, 0, '2025-08-04 09:09:06', '2025-08-06 06:11:34'),
+(10, 'hhhd', 0.01, 0, '2025-08-04 09:21:50', '2025-08-04 12:45:49'),
+(11, 'dbebd', 0.02, 0, '2025-08-04 09:21:58', '2025-08-04 12:28:37'),
+(12, 'ff', 0.02, 1, '2025-08-04 12:28:51', '2025-08-04 12:28:51'),
+(13, 'ggg', 0.01, 1, '2025-08-04 12:39:00', '2025-08-04 12:39:00'),
+(14, 'hhiuyy', 0.01, 0, '2025-08-04 12:39:16', '2025-08-06 09:00:39'),
+(15, 'ash', 0.01, 0, '2025-08-04 12:41:42', '2025-08-04 12:44:57'),
+(16, 'keethan', 0.02, 0, '2025-08-04 12:44:48', '2025-08-04 12:46:25'),
+(17, 'Ashwiny', 0.02, 0, '2025-08-04 12:45:11', '2025-08-06 06:11:26'),
+(18, 'Ashwiny111', 0.03, 0, '2025-08-04 12:46:17', '2025-08-06 06:11:30'),
+(19, 'tax 2', 0.05, 1, '2025-08-06 09:00:48', '2025-08-06 09:00:48');
 
 -- --------------------------------------------------------
 
@@ -528,7 +526,7 @@ CREATE TABLE IF NOT EXISTS `tax_rates_backup` (
   `tax4` decimal(10,2) DEFAULT '0.00',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `tax_rates_backup`
@@ -553,7 +551,7 @@ CREATE TABLE IF NOT EXISTS `tax_rates_old` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `tax_rates_old`
