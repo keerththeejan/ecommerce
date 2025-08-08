@@ -8,10 +8,11 @@
                     <div class="col-md-6">
                         <div class="product-image-container position-relative">
                             <?php if(!empty($product['image'])) : ?>
-                                <img src="<?php echo BASE_URL . $product['image']; ?>" 
+                                <img src="<?php echo BASE_URL . 'public/uploads/' . basename($product['image']); ?>" 
                                      class="card-img-top img-fluid" 
                                      alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                     loading="lazy">
+                                     loading="lazy"
+                                     onerror="this.onerror=null; this.src='<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg';">
                             <?php else : ?>
                                 <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" 
                                      class="card-img-top img-fluid" 

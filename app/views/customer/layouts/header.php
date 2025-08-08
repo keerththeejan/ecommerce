@@ -142,13 +142,59 @@
                 <ul class="navbar-nav">
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=product&action=index">
-                            <span><i class="fas fa-box me-2 text-primary"></i> All Products</span>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-box me-2 text-primary" style="width: 24px; text-align: center;"></i>
+                                <span>All Products</span>
+                            </div>
                             <i class="fas fa-chevron-right text-muted small"></i>
                         </a>
                     </li>
+                    <!-- Categories Dropdown for Mobile -->
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" data-bs-toggle="collapse" href="#categoriesCollapse" role="button" aria-expanded="false" aria-controls="categoriesCollapse">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-list me-2 text-info" style="width: 24px; text-align: center;"></i>
+                                <span>Categories</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                        <div class="collapse" id="categoriesCollapse">
+                            <ul class="nav flex-column ps-5">
+                                <?php 
+                                // Get active categories
+                                $categoryModel = new Category();
+                                $categories = $categoryModel->getActiveCategories();
+                                
+                                if(!empty($categories)) :
+                                    foreach($categories as $category) :
+                                        $categoryImage = !empty($category['image']) ? 
+                                            (strpos($category['image'], 'uploads/') === 0 ? 
+                                                BASE_URL . $category['image'] : 
+                                                BASE_URL . 'uploads/categories/' . $category['image']) : 
+                                            BASE_URL . 'assets/img/no-image.png';
+                                ?>
+                                    <li class="nav-item border-bottom">
+                                        <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['id']; ?>">
+                                            <img src="<?php echo $categoryImage; ?>" 
+                                                 alt="<?php echo htmlspecialchars($category['name']); ?>" 
+                                                 class="me-2" 
+                                                 style="width: 20px; height: 20px; object-fit: cover; border-radius: 2px; border: 1px solid #dee2e6;">
+                                            <span style="font-size: 0.9rem;"><?php echo htmlspecialchars($category['name']); ?></span>
+                                        </a>
+                                    </li>
+                                <?php 
+                                    endforeach;
+                                endif; 
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" href="#">
-                            <span><i class="fas fa-flag me-2 text-info"></i> Country of Origin</span>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-flag me-2 text-info" style="width: 24px; text-align: center;"></i>
+                                <span>Country of Origin</span>
+                            </div>
                             <i class="fas fa-chevron-right text-muted small"></i>
                         </a>
                     </li>
@@ -351,8 +397,21 @@
                             
                             if(!empty($categories)) :
                                 foreach($categories as $category) :
+                                    $categoryImage = !empty($category['image']) ? 
+                                        (strpos($category['image'], 'uploads/') === 0 ? 
+                                            BASE_URL . $category['image'] : 
+                                            BASE_URL . 'uploads/categories/' . $category['image']) : 
+                                        BASE_URL . 'assets/img/no-image.png';
                             ?>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['id']; ?>"><?php echo $category['name']; ?></a></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['id']; ?>">
+                                        <img src="<?php echo $categoryImage; ?>" 
+                                             alt="<?php echo htmlspecialchars($category['name']); ?>" 
+                                             class="me-2" 
+                                             style="width: 24px; height: 24px; object-fit: cover; border-radius: 2px; border: 1px solid #dee2e6;">
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </a>
+                                </li>
                             <?php 
                                 endforeach;
                             endif; 
