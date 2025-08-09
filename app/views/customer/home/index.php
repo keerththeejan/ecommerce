@@ -48,7 +48,10 @@
                         </div>
                     </a>
                 </div>
-            <?php endforeach; ?>
+            <?php 
+                endforeach;
+            endif; 
+            ?>
             <?php if (empty($activeCategories)): ?>
                 <div style="padding: 20px;">No categories available</div>
             <?php endif; ?>
@@ -234,7 +237,7 @@
 
 
 
-<!-- Brand Showcase - Enhanced with responsive grid -->
+<!-- Brand Showcase - Horizontal Scroll -->
 <section class="brands-showcase py-4 py-md-5 bg-white">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
@@ -244,64 +247,157 @@
             </a>
         </div>
         
-        <div class="row g-2 g-md-3 justify-content-center">
-            <?php if(!empty($brands)) : ?>
-                <?php foreach(array_slice($brands, 0, 12) as $brand) : ?>
-                    <?php if($brand['status'] == 'active') : ?>
-                        <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1">
-                            <a href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['slug']; ?>" class="text-decoration-none">
-                                <div class="brand-card card h-100 border-0 shadow-sm transition-all">
-                                    <div class="card-body p-2 d-flex align-items-center justify-content-center">
-                                        <div class="brand-logo-container" style="height: 60px; display: flex; align-items: center; justify-content: center;">
-                                            <?php 
-                                            $logoUrl = !empty($brand['logo']) ? $brand['logo'] : '';
-                                            $defaultLogo = BASE_URL . 'public/images/default-brand.png';
-                                            ?>
-                                            <img src="<?php echo htmlspecialchars($logoUrl); ?>" 
-                                                 alt="<?php echo htmlspecialchars($brand['name']); ?>" 
-                                                 class="img-fluid" 
-                                                 style="max-height: 100%; max-width: 100%; object-fit: contain;"
-                                                 onerror="this.onerror=null; this.src='<?php echo $defaultLogo; ?>';">
-                                        </div>
-                                    </div>
+        <?php if(!empty($brands)) : ?>
+            <div class="brands-scroll-container">
+                <div class="brands-scroll-wrapper">
+                    <?php foreach(array_slice($brands, 0, 12) as $brand) : ?>
+                        <?php if($brand['status'] == 'active') : ?>
+                            <a href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['slug']; ?>" class="brand-item">
+                                <div class="brand-logo-container">
+                                    <?php 
+                                    $logoUrl = !empty($brand['logo']) ? $brand['logo'] : '';
+                                    $defaultLogo = BASE_URL . 'public/images/default-brand.png';
+                                    ?>
+                                    <img src="<?php echo htmlspecialchars($logoUrl); ?>" 
+                                         alt="<?php echo htmlspecialchars($brand['name']); ?>" 
+                                         class="brand-logo"
+                                         onerror="this.onerror=null; this.src='<?php echo $defaultLogo; ?>';">
                                 </div>
                             </a>
-                        </div>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-                
-                <?php if(count($brands) > 12): ?>
-                    <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1 d-md-none">
-                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="text-decoration-none">
-                            <div class="brand-card card h-100 border-0 shadow-sm transition-all bg-light">
-                                <div class="card-body p-2 d-flex align-items-center justify-content-center">
-                                    <div class="text-center">
-                                        <i class="fas fa-ellipsis-h text-muted mb-1"></i>
-                                        <p class="small mb-0">View All</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                <?php endif; ?>
-            <?php else : ?>
-                <div class="col-12">
-                    <div class="alert alert-info mb-0">No brands available</div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            
+            <?php if(count($brands) > 12): ?>
+                <div class="text-center mt-3">
+                    <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="btn btn-outline-primary px-4">
+                        View All Brands <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
                 </div>
             <?php endif; ?>
-        </div>
-        
-        <?php endif; ?>
-        
-        <?php if(!empty($brands) && count($brands) > 12): ?>
-        <div class="text-center mt-3 d-md-none">
-            <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="btn btn-outline-primary px-4">
-                View All Brands <i class="fas fa-arrow-right ms-2"></i>
-            </a>
-        </div>
+            
+        <?php else : ?>
+            <div class="alert alert-info mb-0">No brands available</div>
         <?php endif; ?>
     </div>
 </section>
+
+<style>
+/* Brands Section Styles */
+/* Desktop styles */
+.brands-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    padding: 20px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.brands-scroll-wrapper {
+    display: flex;
+    gap: 20px;
+    padding: 10px 40px;
+    margin: 0 auto;
+    max-width: 1400px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.brand-item {
+    flex: 0 0 auto;
+    width: 120px;
+    height: 80px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    transition: all 0.3s ease;
+}
+
+.brand-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.brand-logo-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
+
+.brand-logo {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.brand-item:hover .brand-logo {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+
+/* Hide scrollbar for cleaner look but keep functionality */
+.brands-scroll-container::-webkit-scrollbar {
+    height: 5px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    /* Mobile styles */
+    .brands-scroll-container {
+        padding: 15px 0;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .brands-scroll-wrapper {
+        display: inline-flex;
+        padding: 10px 15px;
+        gap: 12px;
+        justify-content: flex-start;
+        min-width: 100%;
+    }
+    
+    .brand-item {
+        width: 110px !important;
+        height: 70px !important;
+        flex-shrink: 0;
+    }
+    
+    .brands-scroll-wrapper {
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .brand-item {
+        width: 90px;
+        height: 60px;
+    }
+    
+    .brands-scroll-container {
+        padding: 5px 0;
+    }
+}
+</style>
 
 <!-- Responsive Styles -->
 <style>

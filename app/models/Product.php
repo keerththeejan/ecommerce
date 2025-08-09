@@ -26,25 +26,96 @@ class Product extends Model {
     protected $lastError = '';
     
     /**
+     * Get all products with optional pagination
+     * 
+     * @param int $page Page number (0 for no pagination)
+     * @param int $perPage Number of items per page
+     * @param bool $includeInactive Whether to include inactive products
+     * @return array Array of products with pagination info if paginated, or just products array
+     */
+    public function getAllProducts($page = 0, $perPage = 12, $includeInactive = false) {
+        try {
+            $sql = "SELECT p.*, c.name as category_name 
+                   FROM {$this->table} p
+                   LEFT JOIN categories c ON p.category_id = c.id";
+            
+            $where = [];
+            if (!$includeInactive) {
+                $where[] = "p.status = 'active'";
+            }
+            // Only show products with a sale price
+            $where[] = "p.sale_price IS NOT NULL AND p.sale_price > 0";
+            
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(' AND ', $where);
+            }
+            
+            // If page is 0, return all results without pagination
+            if ($page === 0) {
+                $sql .= " ORDER BY p.name ASC";
+                $this->db->query($sql);
+                return $this->db->resultSet();
+            }
+            
+            // Otherwise, handle pagination
+            $offset = ($page - 1) * $perPage;
+            
+            // Get total count for pagination
+            $countSql = "SELECT COUNT(*) as total FROM {$this->table} p";
+            if (!empty($where)) {
+                $countSql .= " WHERE " . implode(' AND ', $where);
+            }
+            
+            $this->db->query($countSql);
+            $result = $this->db->single();
+            $total = is_object($result) ? $result->total : 0;
+            $totalPages = ceil($total / $perPage);
+            
+            // Add pagination to main query
+            $sql .= " ORDER BY p.created_at DESC LIMIT :limit OFFSET :offset";
+            $this->db->query($sql);
+            $this->db->bind(':limit', $perPage);
+            $this->db->bind(':offset', $offset);
+            
+            $products = $this->db->resultSet();
+            
+            return [
+                'data' => $products,
+                'current_page' => (int)$page,
+                'per_page' => (int)$perPage,
+                'total' => (int)$total,
+                'last_page' => $totalPages,
+                'from' => $offset + 1,
+                'to' => min($offset + $perPage, $total)
+            ];
+            
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log('Error in Product::getAllProducts - ' . $this->lastError);
+            
+            if ($page === 0) {
+                return [];
+            }
+            
+            return [
+                'data' => [],
+                'current_page' => 1,
+                'per_page' => $perPage,
+                'total' => 0,
+                'last_page' => 1,
+                'from' => 0,
+                'to' => 0
+            ];
+        }
+    }
+    
+    /**
      * Get all products with stock information
      * 
      * @return array Array of products with stock data
      */
     public function getAllProductsWithStock() {
-        try {
-            $sql = "SELECT p.*, c.name as category_name 
-                   FROM {$this->table} p
-                   LEFT JOIN categories c ON p.category_id = c.id
-                   ORDER BY p.name ASC";
-            
-            $this->db->query($sql);
-            return $this->db->resultSet();
-            
-        } catch (Exception $e) {
-            $this->lastError = $e->getMessage();
-            error_log('Error in Product::getAllProductsWithStock - ' . $this->lastError);
-            return [];
-        }
+        return $this->getAllProducts(0, 0, true);
     }
     
     /**
@@ -89,6 +160,32 @@ class Product extends Model {
         } catch (Exception $e) {
             $this->lastError = $e->getMessage();
             error_log('Error in Product::getProductWithCategory - ' . $this->lastError);
+            return false;
+        }
+    }
+    
+    /**
+     * Get product by name
+     * 
+     * @param string $name Product name
+     * @return array|bool Product data or false if not found
+     */
+    public function getProductByName($name) {
+        try {
+            $sql = "SELECT p.*, c.name as category_name 
+                   FROM {$this->table} p
+                   LEFT JOIN categories c ON p.category_id = c.id
+                   WHERE p.name = :name";
+            
+            $this->db->query($sql);
+            $this->db->bind(':name', $name);
+            
+            $result = $this->db->single();
+            return $result ? (array)$result : false;
+            
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log('Error in Product::getProductByName - ' . $this->lastError);
             return false;
         }
     }
@@ -173,35 +270,7 @@ class Product extends Model {
         $this->db = $db;
     }
     
-    /**
-     * Get all products
-     * 
-     * @return array Array of product objects
-     */
-    public function getAllProducts($includeInactive = false) {
-        try {
-            $sql = "SELECT p.*, c.name as category_name 
-                   FROM {$this->table} p
-                   LEFT JOIN categories c ON p.category_id = c.id";
-            
-            if (!$includeInactive) {
-                $sql .= " WHERE p.status = 'active'";
-            }
-            
-            $sql .= " ORDER BY p.name ASC";
-            
-            if(!$this->db->query($sql)) {
-                $this->lastError = $this->db->getError();
-                return [];
-            }
-            
-            return $this->db->resultSet();
-            
-        } catch (Exception $e) {
-            error_log('Error in Product::getAllProducts - ' . $e->getMessage());
-            return [];
-        }
-    }
+
     
     /**
      * Get all active products

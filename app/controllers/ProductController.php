@@ -19,15 +19,28 @@ class ProductController extends Controller {
         // Get page number
         $page = $this->get('page', 1);
         
-        // Get products that are on sale with pagination
-        $products = $this->productModel->getProductsOnSale($page, 12);
+        // Get all products with pagination
+        $products = $this->productModel->getAllProducts($page, 12);
+        
+        // Get specific products in the requested order
+        $specificProductNames = ['Ashwiny', 'keerthtikan', 'keethan', 'kujinsha', 'pirathi', 'thilu', 'vanu', 'yathu'];
+        $specificProducts = [];
+        
+        // Fetch each specific product by name
+        foreach ($specificProductNames as $name) {
+            $product = $this->productModel->getProductByName($name);
+            if ($product) {
+                $specificProducts[] = $product;
+            }
+        }
         
         // Get categories for filter
         $categories = $this->categoryModel->getActiveCategories();
         
-        // Load view
+        // Load view with both regular and specific products
         $this->view('customer/products/index', [
             'products' => $products,
+            'specificProducts' => $specificProducts,
             'categories' => $categories
         ]);
     }
