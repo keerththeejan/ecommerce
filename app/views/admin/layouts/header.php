@@ -76,6 +76,12 @@ if (!isset($_SESSION['csrf_token'])) {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=supplier&action=index" id="suppliersLink">
+                                <i class="fas fa-truck me-2"></i>
+                                Suppliers
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=adminIndex">
                                 <i class="fas fa-users me-2"></i>
                                 Users

@@ -475,8 +475,19 @@
                             
                             if(!empty($brands)) :
                                 foreach($brands as $brand) :
+                                    $brandImage = !empty($brand['logo']) ? 
+                                        $brand['logo'] : 
+                                        BASE_URL . 'assets/img/no-image.png';
                             ?>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['id']; ?>"><?php echo $brand['name']; ?></a></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['id']; ?>">
+                                        <img src="<?php echo $brandImage; ?>" 
+                                             alt="<?php echo htmlspecialchars($brand['name']); ?>" 
+                                             class="me-2" 
+                                             style="width: 24px; height: 24px; object-fit: cover; border-radius: 2px; border: 1px solid #dee2e6;">
+                                        <?php echo htmlspecialchars($brand['name']); ?>
+                                    </a>
+                                </li>
                             <?php 
                                 endforeach;
                             endif; 

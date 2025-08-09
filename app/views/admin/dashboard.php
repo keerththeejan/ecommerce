@@ -1,8 +1,52 @@
-<?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
+<?php 
+require_once APP_PATH . 'views/admin/layouts/header.php'; 
+require_once APP_PATH . 'models/Supplier.php';
+?>
+<style>
+    /* Ensure consistent sidebar behavior */
+    #supplierSidebar {
+        transition: all 0.3s ease;
+    }
+    @media (max-width: 767.98px) {
+        #supplierSidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            height: 100%;
+            z-index: 1040;
+            overflow-y: auto;
+        }
+        #supplierSidebar.show {
+            right: 0;
+        }
+    }
+</style>
 
 <div class="container-fluid">
     <!-- Dashboard Stats -->
     <div class="row mb-4">
+        <div class="col-md-3 mb-4">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase">Total Suppliers</h6>
+                            <h2 class="mb-0">
+                                <?php 
+                                    $supplierModel = new Supplier();
+                                    echo count($supplierModel->getAllSuppliers()); 
+                                ?>
+                            </h2>
+                        </div>
+                        <i class="fas fa-truck fa-2x"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="text-white" id="suppliersCardLink">View Details</a>
+                    <i class="fas fa-angle-right text-white"></i>
+                </div>
+            </div>
+        </div>
         <div class="col-md-3 mb-4">
             <div class="card bg-primary text-white h-100">
                 <div class="card-body">
