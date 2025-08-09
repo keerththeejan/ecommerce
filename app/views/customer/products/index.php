@@ -123,7 +123,20 @@
                     }
                     @media (max-width: 480px) {
                         .products-grid {
-                            grid-template-columns: 1fr;
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 0.75rem;
+                            padding: 0 8px;
+                        }
+                        .product-image-container {
+                            height: 140px;
+                            padding: 10px;
+                        }
+                        .card-body {
+                            padding: 0.75rem;
+                        }
+                        .card-title {
+                            font-size: 0.9rem;
+                            height: 2.6em;
                         }
                     }
                 </style>

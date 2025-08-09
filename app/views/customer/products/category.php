@@ -57,15 +57,40 @@
             <?php if(empty($products)): ?>
                 <div class="alert alert-info">No products found in this category.</div>
             <?php else: ?>
+                <style>
+                    .fixed-height-img {
+                        height: 200px;
+                        width: 100%;
+                        object-fit: contain;
+                        padding: 15px;
+                        background: #f8f9fa;
+                    }
+                    .card {
+                        transition: transform 0.2s;
+                    }
+                    .card:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    }
+                    .card-body {
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .card-text {
+                        flex-grow: 1;
+                    }
+                </style>
                 <div class="row row-cols-1 row-cols-md-3 g-4">
                     <?php foreach($products as $product): ?>
                         <div class="col">
                             <div class="card h-100">
-                                <?php if(!empty($product['image'])): ?>
-                                    <img src="<?php echo BASE_URL . $product['image']; ?>" class="card-img-top" alt="<?php echo $product['name']; ?>">
-                                <?php else: ?>
-                                    <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" class="card-img-top" alt="No Image">
-                                <?php endif; ?>
+                                <div class="d-flex justify-content-center align-items-center" style="height: 200px; overflow: hidden;">
+                                    <?php if(!empty($product['image'])): ?>
+                                        <img src="<?php echo BASE_URL . $product['image']; ?>" class="fixed-height-img" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                    <?php else: ?>
+                                        <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" class="fixed-height-img" alt="No Image">
+                                    <?php endif; ?>
+                                </div>
                                 
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo $product['name']; ?></h5>
