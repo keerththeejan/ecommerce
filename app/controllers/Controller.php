@@ -45,40 +45,9 @@ class Controller {
      * @param array $data Data to pass to the view
      * @return void
      */
-    /**
-     * Check if the request is an AJAX request
-     * 
-     * @return bool
-     */
-    protected function isAjaxRequest() {
-        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-    }
-    
-    /**
-     * Send JSON response
-     * 
-     * @param array $data Data to encode as JSON
-     * @param int $statusCode HTTP status code
-     * @return void
-     */
-    protected function sendJsonResponse($data, $statusCode = 200) {
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
-        echo json_encode($data);
-        exit;
-    }
-    
-    /**
-     * Load view
-     * 
-     * @param string $view View name
-     * @param array $data Data to pass to the view
-     * @return void
-     */
     public function view($view, $data = []) {
         // Check for view file
-        if (file_exists(APP_PATH . 'views/' . $view . '.php')) {
+        if(file_exists(APP_PATH . 'views/' . $view . '.php')) {
             // Extract data to make variables available in the view
             extract($data);
             

@@ -8,172 +8,130 @@ class SupplierController extends Controller {
         if (!isLoggedIn() || !isAdmin()) {
             redirect('user/login');
         }
-        
+
         $this->supplierModel = $this->model('Supplier');
     }
-    
-    public function index() {
-        // Handle form submission
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Sanitize POST data
+
+    /**
+     * Update an existing supplier
+     */
+    public function update() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+
             $data = [
-                'name' => isset($_POST['name']) ? trim(htmlspecialchars($_POST['name'])) : '',
-                'email' => isset($_POST['email']) ? trim(filter_var($_POST['email'], FILTER_SANITIZE_EMAIL)) : '',
-                'phone' => isset($_POST['phone']) ? trim(htmlspecialchars($_POST['phone'])) : '',
-                'address' => isset($_POST['address']) ? trim(htmlspecialchars($_POST['address'])) : '',
-                'product_name' => isset($_POST['product_name']) ? trim(htmlspecialchars($_POST['product_name'])) : '',
+                'id' => isset($_POST['id']) ? (int) $_POST['id'] : 0,
+                'name' => trim($_POST['name'] ?? ''),
+                'product_name' => trim($_POST['product_name'] ?? ''),
+                'email' => trim($_POST['email'] ?? ''),
+                'phone' => trim($_POST['phone'] ?? ''),
+                'address' => trim($_POST['address'] ?? ''),
                 'name_err' => '',
-                'email_err' => '',
-                'phone_err' => ''
+                'email_err' => ''
             ];
-            
-            // Validate data
+
+            if (empty($data['id'])) {
+                header('HTTP/1.1 400 Bad Request');
+                echo json_encode(['success' => false, 'message' => 'Invalid supplier ID']);
+                exit;
+            }
+
             if (empty($data['name'])) {
                 $data['name_err'] = 'Please enter supplier name';
             }
-            
-            if (empty($data['email'])) {
-                $data['email_err'] = 'Please enter email';
-            } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $data['email_err'] = 'Please enter a valid email';
             }
-            
-            if (empty($data['phone'])) {
-                $data['phone_err'] = 'Please enter phone number';
-            }
-            
-            // Make sure no errors
-            if (empty($data['name_err']) && empty($data['email_err']) && empty($data['phone_err'])) {
-                try {
-                    // Add supplier to database
-                    $result = $this->supplierModel->addSupplier($data);
-                    
-                    if ($result) {
-                        // Get the newly added supplier with products
-                        $newSupplier = $this->supplierModel->getSupplierById($result);
-                        
-                        if ($this->isAjaxRequest()) {
-                            // Get all suppliers to ensure we have the latest data
-                            $suppliers = $this->supplierModel->getAllSuppliersWithProducts();
-                            
-                            // Format the response data
-                            $response = [
-                                'success' => true,
-                                'message' => 'Supplier added successfully',
-                                'supplier' => [
-                                    'id' => $newSupplier->id,
-                                    'name' => $newSupplier->name,
-                                    'supplier_name' => $newSupplier->supplier_name,
-                                    'email' => $newSupplier->email,
-                                    'phone' => $newSupplier->phone,
-                                    'address' => $newSupplier->address,
-                                    'product_name' => $newSupplier->product_name,
-                                    'products' => $newSupplier->products
-                                ],
-                                'suppliers' => array_map(function($supplier) {
-                                    return [
-                                        'id' => $supplier->id,
-                                        'name' => $supplier->name,
-                                        'supplier_name' => $supplier->supplier_name,
-                                        'email' => $supplier->email,
-                                        'phone' => $supplier->phone,
-                                        'address' => $supplier->address,
-                                        'product_name' => $supplier->product_name,
-                                        'products' => $supplier->products
-                                    ];
-                                }, $suppliers)
-                            ];
-                            
-                            $this->sendJsonResponse($response);
-                            return;
-                        } else {
-                            flash('supplier_success', 'Supplier added successfully');
-                            redirect('supplier');
-                            return;
-                        }
-                    } else {
-                        throw new Exception('Failed to add supplier to database. Please check the error logs for more details.');
-                    }
-                } catch (PDOException $e) {
-                    error_log('Database Error: ' . $e->getMessage());
-                    error_log('SQL State: ' . $e->getCode());
-                    error_log('Query: ' . ($e->getTrace()[0]['args'][0] ?? 'N/A'));
-                    
-                    $errorMessage = 'Database error: ' . $e->getMessage();
-                    if ($this->isAjaxRequest()) {
-                        $this->sendJsonResponse([
-                            'success' => false,
-                            'message' => $errorMessage,
-                            'errors' => $data,
-                            'debug' => [
-                                'code' => $e->getCode(),
-                                'file' => $e->getFile(),
-                                'line' => $e->getLine()
-                            ]
-                        ]);
-                    } else {
-                        flash('supplier_error', $errorMessage, 'alert alert-danger');
-                        $data['suppliers'] = $this->supplierModel->getAllSuppliersWithProducts();
-                        $this->view('admin/suppliers/index', $data);
-                    }
-                } catch (Exception $e) {
-                    error_log('General Error adding supplier: ' . $e->getMessage());
-                    error_log('Stack trace: ' . $e->getTraceAsString());
-                    
-                    $errorMessage = 'Failed to add supplier. ' . $e->getMessage();
-                    if ($this->isAjaxRequest()) {
-                        $this->sendJsonResponse([
-                            'success' => false,
-                            'message' => $errorMessage,
-                            'errors' => $data,
-                            'debug' => [
-                                'file' => $e->getFile(),
-                                'line' => $e->getLine()
-                            ]
-                        ]);
-                    } else {
-                        flash('supplier_error', $errorMessage, 'alert alert-danger');
-                        $data['suppliers'] = $this->supplierModel->getAllSuppliersWithProducts();
-                        $this->view('admin/suppliers/index', $data);
-                    }
+
+            if (empty($data['name_err']) && empty($data['email_err'])) {
+                if ($this->supplierModel->update($data)) {
+                    $supplier = $this->supplierModel->getSupplierById($data['id']);
+                    while (ob_get_level()) { ob_end_clean(); }
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Supplier updated successfully',
+                        'supplier' => [
+                            'id' => $supplier['id'],
+                            'name' => $supplier['name'],
+                            'product_name' => $supplier['product_name'] ?? null,
+                            'email' => $supplier['email'] ?? null,
+                            'phone' => $supplier['phone'] ?? null,
+                            'address' => $supplier['address'] ?? null
+                        ]
+                    ]);
+                    exit;
+                } else {
+                    while (ob_get_level()) { ob_end_clean(); }
+                    header('HTTP/1.1 500 Internal Server Error');
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode(['success' => false, 'message' => 'Failed to update supplier']);
+                    exit;
                 }
             } else {
-                // Load view with errors
-                $this->view('admin/suppliers/index', $data);
+                while (ob_get_level()) { ob_end_clean(); }
+                header('HTTP/1.1 422 Unprocessable Entity');
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode([
+                    'success' => false,
+                    'errors' => [
+                        'name' => $data['name_err'],
+                        'email' => $data['email_err']
+                    ]
+                ]);
+                exit;
             }
         } else {
-            // Get all suppliers with their products
-            $suppliers = $this->supplierModel->getAllSuppliersWithProducts();
-            
-            // Check if this is an AJAX request
-            if ($this->isAjaxRequest() && isset($_GET['ajax'])) {
-                $this->sendJsonResponse([
-                    'success' => true,
-                    'suppliers' => $suppliers
-                ]);
-                return;
-            }
-            
-            $data = [
-                'title' => 'Manage Suppliers',
-                'suppliers' => $suppliers,
-                'name' => '',
-                'email' => '',
-                'phone' => '',
-                'address' => '',
-                'product_name' => '',
-                'name_err' => '',
-                'email_err' => '',
-                'phone_err' => ''
-            ];
-            
-            $this->view('admin/suppliers/index', $data);
+            redirect('?controller=supplier&action=index');
         }
+    }
+
+    /**
+     * Delete a supplier
+     */
+    public function delete() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+
+            if (!$id) {
+                header('HTTP/1.1 400 Bad Request');
+                echo json_encode(['success' => false, 'message' => 'Invalid supplier ID']);
+                exit;
+            }
+
+            if ($this->supplierModel->delete($id)) {
+                while (ob_get_level()) { ob_end_clean(); }
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => true, 'message' => 'Supplier deleted successfully']);
+                exit;
+            } else {
+                while (ob_get_level()) { ob_end_clean(); }
+                header('HTTP/1.1 500 Internal Server Error');
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'Failed to delete supplier']);
+                exit;
+            }
+        } else {
+            redirect('?controller=supplier&action=index');
+        }
+    }
+    
+    public function index() {
+        // Get all suppliers
+        $suppliers = $this->supplierModel->getAllSuppliers();
+        
+        $data = [
+            'title' => 'Manage Suppliers',
+            'suppliers' => $suppliers
+        ];
+        
+        $this->view('admin/suppliers/index', $data);
     }
     
     public function details($id = null) {
         if (!$id) {
-            redirect('supplier');
+            redirect('?controller=supplier&action=index');
         }
         
         // Get supplier details
@@ -181,7 +139,7 @@ class SupplierController extends Controller {
         
         if (!$supplier) {
             flash('supplier_error', 'Supplier not found', 'alert alert-danger');
-            redirect('supplier');
+            redirect('?controller=supplier&action=index');
         }
         
         $data = [
@@ -191,12 +149,14 @@ class SupplierController extends Controller {
         
         // Check if it's an AJAX request for sidebar
         if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
-            header('Content-Type: application/json');
+            while (ob_get_level()) { ob_end_clean(); }
+            header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'success' => true,
                 'supplier' => [
                     'id' => $supplier['id'],
                     'name' => htmlspecialchars($supplier['name']),
+                    'product_name' => !empty($supplier['product_name']) ? htmlspecialchars($supplier['product_name']) : null,
                     'email' => $supplier['email'] ? htmlspecialchars($supplier['email']) : null,
                     'phone' => $supplier['phone'] ? htmlspecialchars($supplier['phone']) : null,
                     'address' => $supplier['address'] ? nl2br(htmlspecialchars($supplier['address'])) : null
@@ -206,5 +166,105 @@ class SupplierController extends Controller {
         }
         
         $this->view('admin/suppliers/details', $data);
+    }
+    
+    /**
+     * Create a new supplier
+     */
+    public function create() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            
+            // Initialize data
+            $data = [
+                'name' => trim($_POST['name']),
+                'product_name' => trim($_POST['product_name'] ?? ''),
+                'email' => trim($_POST['email']),
+                'phone' => trim($_POST['phone']),
+                'address' => trim($_POST['address']),
+                'name_err' => '',
+                'email_err' => ''
+            ];
+            
+            // Validate name
+            if (empty($data['name'])) {
+                $data['name_err'] = 'Please enter supplier name';
+            }
+            
+            // Validate email if provided
+            if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $data['email_err'] = 'Please enter a valid email';
+            }
+            
+            // Make sure there are no errors
+            if (empty($data['name_err']) && empty($data['email_err'])) {
+                // Save supplier
+                $supplierId = $this->supplierModel->create($data);
+                if ($supplierId) {
+                    // Get the newly created supplier
+                    $supplier = $this->supplierModel->getSupplierById($supplierId);
+                    
+                    // Return JSON response for AJAX requests
+                    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                        while (ob_get_level()) { ob_end_clean(); }
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Supplier added successfully',
+                            'supplier' => [
+                                'id' => $supplier['id'],
+                                'name' => $supplier['name'],
+                                'product_name' => $supplier['product_name'] ?? null,
+                                'email' => $supplier['email'] ?? null,
+                                'phone' => $supplier['phone'] ?? null,
+                                'address' => $supplier['address'] ?? null
+                            ]
+                        ]);
+                        exit;
+                    } else {
+                        flash('supplier_success', 'Supplier added successfully');
+                        redirect('?controller=supplier&action=index');
+                    }
+                } else {
+                    $error = 'Something went wrong. Please try again.';
+                    
+                    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                        while (ob_get_level()) { ob_end_clean(); }
+                        header('HTTP/1.1 500 Internal Server Error');
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode([
+                            'success' => false,
+                            'message' => $error
+                        ]);
+                        exit;
+                    } else {
+                        flash('supplier_error', $error, 'alert alert-danger');
+                        $this->view('admin/suppliers/index', $data);
+                    }
+                }
+            } else {
+                // Return validation errors for AJAX
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    while (ob_get_level()) { ob_end_clean(); }
+                    header('HTTP/1.1 422 Unprocessable Entity');
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode([
+                        'success' => false,
+                        'errors' => [
+                            'name' => $data['name_err'],
+                            'email' => $data['email_err']
+                        ]
+                    ]);
+                    exit;
+                } else {
+                    // Load view with errors for non-AJAX requests
+                    $this->view('admin/suppliers/index', $data);
+                }
+            }
+        } else {
+            // If not a POST request, redirect to suppliers
+            redirect('?controller=supplier&action=index');
+        }
     }
 }

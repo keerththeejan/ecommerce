@@ -7,6 +7,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
         'supplier' => [
             'id' => $data['supplier']['id'],
             'name' => htmlspecialchars($data['supplier']['name']),
+            'product_name' => $data['supplier']['product_name'] ? htmlspecialchars($data['supplier']['product_name']) : null,
             'email' => $data['supplier']['email'] ? htmlspecialchars($data['supplier']['email']) : null,
             'phone' => $data['supplier']['phone'] ? htmlspecialchars($data['supplier']['phone']) : null,
             'address' => $data['supplier']['address'] ? nl2br(htmlspecialchars($data['supplier']['address'])) : null
@@ -58,9 +59,15 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                             
                             <?php if (!empty($data['supplier']['address'])): ?>
                             <div class="mb-3">
-                                <h6>Address</h6>
-                                <p class="mb-0"><?php echo nl2br(htmlspecialchars($data['supplier']['address'])); ?></p>
-                            </div>
+                            <h6 class="text-muted mb-1">Supplier Name</h6>
+                            <p class="h5"><?php echo htmlspecialchars($data['supplier']['name']); ?></p>
+                        </div>
+                        <?php if (!empty($data['supplier']['product_name'])): ?>
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-1">Product Name</h6>
+                            <p class="h5"><?php echo htmlspecialchars($data['supplier']['product_name']); ?></p>
+                        </div>
+                        <?php endif; ?>
                             <?php endif; ?>
                         </div>
                         <div class="col-md-6">
