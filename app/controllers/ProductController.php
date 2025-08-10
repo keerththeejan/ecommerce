@@ -22,17 +22,7 @@ class ProductController extends Controller {
         // Get all products with pagination
         $products = $this->productModel->getAllProducts($page, 12);
         
-        // Get specific products in the requested order
-        $specificProductNames = ['Ashwiny', 'keerthtikan', 'keethan', 'kujinsha', 'pirathi', 'thilu', 'vanu', 'yathu'];
-        $specificProducts = [];
-        
-        // Fetch each specific product by name
-        foreach ($specificProductNames as $name) {
-            $product = $this->productModel->getProductByName($name);
-            if ($product) {
-                $specificProducts[] = $product;
-            }
-        }
+
         
         // Get categories for filter
         $categories = $this->categoryModel->getActiveCategories();
@@ -40,7 +30,7 @@ class ProductController extends Controller {
         // Load view with both regular and specific products
         $this->view('customer/products/index', [
             'products' => $products,
-            'specificProducts' => $specificProducts,
+            'specificProducts' => [], // Initialize as empty array
             'categories' => $categories
         ]);
     }

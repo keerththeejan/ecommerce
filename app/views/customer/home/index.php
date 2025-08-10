@@ -92,18 +92,18 @@
             <h2 class="h4 mb-3 mb-md-0">Featured Products</h2>
         </div>
 
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-4">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
             <?php if(!empty($featuredProducts)) : ?>
                 <?php foreach($featuredProducts as $product) : ?>
                     <div class="col">
                         <div class="card h-100 border-0 shadow-sm product-card transition-all d-flex flex-column">
 
                             <!-- 🖼️ Image Section - Responsive Box and Auto Image Resize -->
-                            <div class="position-relative d-flex justify-content-center align-items-center" style="padding: 15px 0;">
+                            <div class="position-relative d-flex justify-content-center align-items-center" style="padding: 50px 0;">
                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none">
                                     
                                     <!-- 👇 Change this box size if needed -->
-                                    <div style="width: 100%; height: 120px; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                    <div style=" width: 200px; height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
                                         <?php if(!empty($product['image'])) : ?>
                                             <img src="<?php echo BASE_URL . $product['image']; ?>" 
                                                  alt="<?php echo htmlspecialchars($product['name']); ?>"
@@ -130,84 +130,54 @@
                             </div>
 
                             <!-- 📝 Content -->
-                            <div class="card-body p-2 d-flex flex-column">
-                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark text-center">
-                                    <h3 class="h6 card-title mb-1 text-truncate" style="font-size: 0.85rem; min-height: 2.2rem; display: flex; align-items: center; justify-content: center;">
-                                        <?php echo $product['name']; ?>
-                                    </h3>
-                                    
-                                    <div class="price-stock-container mt-2">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <?php if(isLoggedIn()): ?>
-                                                <span class="fw-bold" style="font-size: 0.95rem;">
-                                                    <?php echo formatCurrency($product['sale_price'] ?? $product['price']); ?>
-                                                </span>
-                                            <?php endif; ?>
-                                            
-                                            <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?>" style="font-size: 0.7rem; padding: 0.25em 0.5em;">
+                            <div class="card-body p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
+                                    <h3 class="h6 card-title mb-1 text-truncate"><?php echo $product['name']; ?></h3>
+                                    <p class="small text-muted mb-2 d-none d-md-block"><?php echo truncateText($product['description'], 50); ?></p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <?php if(isLoggedIn()): ?>
+                                            <span class="fw-bold"><?php echo formatCurrency($product['price2']); ?></span>
+                                        <?php else: ?>
+                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
+                                        <?php endif; ?>
+                                        <div class="d-flex flex-column align-items-end">
+                                            <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?> small mb-1">
                                                 <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
                                             </span>
+                                            <?php if($product['stock_quantity'] > 0): ?>
+                                                <small class="text-muted">Stock: <?php echo $product['stock_quantity']; ?> units</small>
+                                                <?php if(isLoggedIn()): ?>
+                                                    <small class="text-muted">Value: <?php echo formatCurrency($product['stock_quantity'] * ($product['sale_price'] ?? $product['price'])); ?></small>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         </div>
-                                        
-                                        <?php if($product['stock_quantity'] > 0): ?>
-                                            <div class="text-muted text-end" style="font-size: 0.75rem; margin: 3px 0; padding-right: 5px;">
-                                                Stock: <?php echo $product['stock_quantity']; ?> units
-                                            </div>
-                                        <?php endif; ?>
                                     </div>
                                 </a>
 
                                 <!-- 🛒 Add to Cart -->
-                               <?php if($product['stock_quantity'] > 0): ?>
-  <?php if($product['stock_quantity'] > 0): ?>
-    <?php if(isLoggedIn()): ?>
-        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form mt-auto">
-            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-
-            <!-- Flex Row: Quantity and Button Side by Side -->
-            <div style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 5px;">
-
-                <!-- Quantity Box - Made responsive -->
-                <div class="input-group input-group-xs" style="width: 90px; height: 26px;">
-                    <button type="button" class="btn btn-outline-secondary quantity-decrease px-0" 
-                            style="font-size: 0.6rem; width: 18px; padding: 0; line-height: 1.2;">-</button>
-
-                    <input type="number" name="quantity" class="form-control text-center quantity-input" 
-                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
-                           aria-label="Quantity" readonly
-                           style="font-size: 0.6rem; height: 26px; padding: 0 2px; width: 24px; line-height: 1.2;">
-
-                    <button type="button" class="btn btn-outline-secondary quantity-increase px-0" 
-                            style="font-size: 0.6rem; width: 18px; padding: 0; line-height: 1.2;">+</button>
-                </div>
-
-                <!-- Add to Cart Button - Made smaller -->
-                <button type="submit" 
-                        class="btn btn-xs btn-primary p-0" 
-                        style="font-size: 0.65rem; height: 26px; line-height: 1.2; padding: 0 8px !important;"
-                        style="font-size: 0.7rem; padding: 0; height: 30px; line-height: 1.2; width: 110px;">
-                    <i class="fas fa-cart-plus me-1"></i> Add to Cart
-                </button>
-
-            </div>
-        </form>
-    <?php else: ?>
-        
-    <?php endif; ?>
-<?php else: ?>
-    <div class="text-danger text-center" style="font-size: 0.75rem;">Out of Stock</div>
-<?php endif; ?>
-
-        <!-- Login to Buy -->
-        
-    <?php endif; ?>
-
-    <!-- Out of Stock Message -->
-    
-
-
-                                   
-                               
+                                <?php if($product['stock_quantity'] > 0): ?>
+                                    <?php if(isLoggedIn()): ?>
+                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form mt-auto">
+                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                            <div class="input-group input-group-sm mb-2">
+                                                <button type="button" class="btn btn-outline-secondary quantity-decrease px-2">-</button>
+                                                <input type="number" name="quantity" class="form-control text-center quantity-input" 
+                                                       value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
+                                                       aria-label="Quantity" readonly>
+                                                <button type="button" class="btn btn-outline-secondary quantity-increase px-2">+</button>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">
+                                                <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <button class="btn btn-sm btn-outline-secondary w-100" disabled>
+                                        Out of Stock
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -228,15 +198,6 @@
         <?php endif; ?>
     </div>
 </section>
-
-
-
-
-
-
-
-
-
 
 
 <!-- Brand Showcase - Horizontal Scroll -->

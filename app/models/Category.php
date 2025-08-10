@@ -301,11 +301,10 @@ class Category extends Model {
         $total = $totalResult['total'];
         $totalPages = ceil($total / $perPage);
         
-        // Get categories with parent and tax info
-        $sql = "SELECT c.*, p.name as parent_name, t.name as tax_name, t.rate as tax_rate 
+        // Get categories with parent info
+        $sql = "SELECT c.*, p.name as parent_name 
                 FROM {$this->table} c
                 LEFT JOIN {$this->table} p ON c.parent_id = p.id
-                LEFT JOIN tax_rates t ON c.tax_id = t.id
                 ORDER BY c.{$orderBy} {$order}
                 LIMIT :limit OFFSET :offset";
                 
