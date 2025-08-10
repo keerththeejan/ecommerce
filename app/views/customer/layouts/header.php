@@ -503,9 +503,7 @@
                             ?>
                         </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>?controller=about&action=index">About Our Store</a>
-                    </li>
+                   
                     <li class="nav-item ms-2">
                         <a href="#" class="btn btn-success px-3 fw-medium" style="background-color: #28a745; border-color: #28a745;">New </a>
                     </li>

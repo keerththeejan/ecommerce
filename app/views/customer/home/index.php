@@ -4,22 +4,7 @@
 <!-- Banner Section -->
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
-<!-- About Our Store (homepage-only): show title + content -->
-<?php if (!empty($aboutLatest)) : ?>
-<section class="py-5 bg-white">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <h2 class="h3 mb-3"><?php echo htmlspecialchars($aboutLatest['title']); ?></h2>
-                <div class="content lead" style="max-width: 900px;">
-                    <?php echo $aboutLatest['content']; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr class="mt-5 mb-0" />
-</section>
-<?php endif; ?>
+
 
 <!-- Featured Categories - Improved responsive grid -->
 <section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px; margin: 0;">
