@@ -366,8 +366,41 @@
                 <!-- About Store Widget -->
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
-                        <h4>About Our Store</h4>
-                        <p>Your one-stop shop for quality products. We offer the best deals and fast delivery to your doorstep with a satisfaction guarantee on all purchases.</p>
+                        <?php
+                        // Get the latest About Store entry
+                        $aboutTitle = 'About Our Store';
+                        $aboutContent = 'Your one-stop shop for quality products. We offer the best deals and fast delivery to your doorstep with a satisfaction guarantee on all purchases.';
+                        
+                        // Check if global DB connection exists
+                        if (isset($GLOBALS['db'])) {
+                            try {
+                                // Include the model
+                                require_once APP_PATH . 'models/AboutStore.php';
+                                
+                                // Create model instance with global DB connection
+                                $aboutStore = new AboutStore($GLOBALS['db']);
+                                $aboutEntries = $aboutStore->getAll();
+                                
+                                if (!empty($aboutEntries[0])) {
+                                    $aboutTitle = htmlspecialchars($aboutEntries[0]['title']);
+                                    $aboutContent = $aboutEntries[0]['content'];
+                                }
+                            } catch (Exception $e) {
+                                // Log error but don't break the page
+                                error_log('Error loading about store content: ' . $e->getMessage());
+                            }
+                        }
+                        ?>
+                        <h4><a href="<?php echo BASE_URL; ?>?controller=about&action=index" style="color: inherit; text-decoration: none;"><?php echo $aboutTitle; ?></a></h4>
+                        <div class="about-content">
+                            <?php 
+                            // Display first 150 characters of content with proper HTML formatting
+                            $shortContent = strip_tags($aboutContent);
+                            $shortContent = strlen($shortContent) > 150 ? substr($shortContent, 0, 150) . '...' : $shortContent;
+                            echo $shortContent; 
+                            ?>
+                        </div>
+                      
                         <div class="social-links">
                             <a href="#"><i class="fab fa-facebook-f"></i></a>
                             <a href="#"><i class="fab fa-twitter"></i></a>
@@ -386,7 +419,7 @@
                             <li><a href="<?php echo BASE_URL; ?>?controller=product&action=featured">Featured Products</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=product&action=sale">Special Offers</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=category&action=all">All Categories</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=about">About Us</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">About Store</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=page&action=contact">Contact Us</a></li>
                         </ul>
                     </div>

@@ -4,12 +4,29 @@
 <!-- Banner Section -->
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
+<!-- About Our Store (homepage-only): show title + content -->
+<?php if (!empty($aboutLatest)) : ?>
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="h3 mb-3"><?php echo htmlspecialchars($aboutLatest['title']); ?></h2>
+                <div class="content lead" style="max-width: 900px;">
+                    <?php echo $aboutLatest['content']; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr class="mt-5 mb-0" />
+</section>
+<?php endif; ?>
+
 <!-- Featured Categories - Improved responsive grid -->
 <section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px; margin: 0;">
     <div class="container-fluid" style="padding: 0; margin: 0; width: 100%; position: relative; z-index: 1;">
         <h2 class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
 
-        <!-- 🔹 Category Slider -->
+        <!-- Category Slider -->
         <div id="categorySlider"
              style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 0px 0px; margin: 0; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
              
