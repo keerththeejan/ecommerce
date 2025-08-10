@@ -58,33 +58,92 @@
                 <div class="alert alert-info">No products found in this category.</div>
             <?php else: ?>
                 <style>
-                    .fixed-height-img {
-                        height: 200px;
-                        width: 100%;
-                        object-fit: contain;
-                        padding: 15px;
+                    .product-image-container {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                         background: #f8f9fa;
+                        padding: 10px;
                     }
-                    .card {
-                        transition: transform 0.2s;
-                    }
-                    .card:hover {
-                        transform: translateY(-5px);
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    .fixed-height-img {
+                        max-width: 100%;
+                        max-height: 100%;
+                        object-fit: contain;
                     }
                     .card-body {
                         display: flex;
                         flex-direction: column;
+                        padding: 0.75rem;
+                    }
+                    .card-title {
+                        font-size: 0.9rem;
+                        margin-bottom: 0.4rem;
+                        line-height: 1.3;
+                        height: 2.2em;
+                        overflow: hidden;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
                     }
                     .card-text {
                         flex-grow: 1;
+                        margin-bottom: 0.5rem;
+                        color: #6c757d;
+                        font-size: 0.8rem;
+                        line-height: 1.3;
+                        overflow: hidden;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
                     }
                 </style>
-                <div class="row row-cols-1 row-cols-md-3 g-4">
+                <style>
+                    .products-grid {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 1.5rem;
+                        padding: 0 15px;
+                    }
+                    @media (max-width: 1200px) {
+                        .products-grid {
+                            grid-template-columns: repeat(3, 1fr);
+                        }
+                    }
+                    @media (max-width: 992px) {
+                        .products-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                    }
+                    @media (max-width: 768px) {
+                        .products-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 0.75rem;
+                            padding: 0 10px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .products-grid {
+                            grid-template-columns: 1fr;
+                            gap: 1rem;
+                        }
+                    }
+                    .product-card {
+                        height: 100%;
+                        border: 1px solid #e9ecef;
+                        border-radius: 0.5rem;
+                        overflow: hidden;
+                        transition: transform 0.2s, box-shadow 0.2s;
+                    }
+                    .product-card:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                    }
+                </style>
+                <div class="products-grid">
                     <?php foreach($products as $product): ?>
                         <div class="col">
-                            <div class="card h-100">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 200px; overflow: hidden;">
+                            <div class="product-card card h-100">
+                                <div class="product-image-container" style="height: 160px;">
                                     <?php if(!empty($product['image'])): ?>
                                         <img src="<?php echo BASE_URL . $product['image']; ?>" class="fixed-height-img" alt="<?php echo htmlspecialchars($product['name']); ?>">
                                     <?php else: ?>
@@ -96,36 +155,39 @@
                                     <h5 class="card-title"><?php echo $product['name']; ?></h5>
                                     <p class="card-text"><?php echo truncateText($product['description'], 100); ?></p>
                                     
-                                    <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex justify-content-between align-items-center" style="font-size: 0.9rem; min-height: 24px;">
                                         <?php if(isLoggedIn()): ?>
                                             <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                                                <div>
-                                                    <span class="text-decoration-line-through text-muted"><?php echo formatCurrency($product['price']); ?></span>
-                                                    <span class="text-danger fw-bold"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                                </div>
-                                                <span class="badge bg-danger">
-                                                    <?php echo calculateDiscountPercentage($product['price'], $product['sale_price']); ?>% OFF
-                                                </span>
+                                                <span class="text-danger fw-bold"><?php echo formatCurrency($product['sale_price']); ?></span>
+                                                <span></span> <!-- Empty span for alignment -->
                                             <?php else: ?>
-                                                <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
+                                                <span class="text-danger fw-bold"><?php echo formatCurrency($product['price']); ?></span>
+                                                <span></span> <!-- Empty span for alignment -->
                                             <?php endif; ?>
                                         <?php else: ?>
-                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-primary">Login to view price</a>
+                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-primary" style="font-size: 0.8rem;">Login to view price</a>
+                                            <span></span> <!-- Empty span for alignment -->
                                         <?php endif; ?>
                                     </div>
                                 </div>
                                 
-                                <div class="card-footer d-flex justify-content-between">
-                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=show&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-primary">View Details</a>
+                                <div class="card-footer d-flex justify-content-between p-2" style="background-color: #f8f9fa;">
+                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=show&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary py-1" style="font-size: 0.7rem; padding-left: 0.5rem; padding-right: 0.5rem;">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
                                     
                                     <?php if($product['stock_quantity'] > 0): ?>
-                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST">
+                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mb-0">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                             <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="btn btn-sm btn-success">Add to Cart</button>
+                                            <button type="submit" class="btn btn-sm btn-success py-1" style="font-size: 0.7rem; padding-left: 0.5rem; padding-right: 0.5rem;">
+                                                <i class="fas fa-cart-plus me-1"></i>Add
+                                            </button>
                                         </form>
                                     <?php else: ?>
-                                        <button class="btn btn-sm btn-secondary" disabled>Out of Stock</button>
+                                        <button class="btn btn-sm btn-outline-secondary py-1" style="font-size: 0.7rem;" disabled>
+                                            <i class="fas fa-times-circle me-1"></i>Out of Stock
+                                        </button>
                                     <?php endif; ?>
                                 </div>
                             </div>
