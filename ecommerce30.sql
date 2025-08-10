@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 07, 2025 at 09:25 AM
+-- Generation Time: Aug 10, 2025 at 08:03 AM
 -- Server version: 9.1.0
--- PHP Version: 8.4.0
+-- PHP Version: 8.3.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,6 +20,31 @@ SET time_zone = "+00:00";
 --
 -- Database: `ecommerce30`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `about_store`
+--
+
+DROP TABLE IF EXISTS `about_store`;
+CREATE TABLE IF NOT EXISTS `about_store` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `image_path` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `about_store`
+--
+
+INSERT INTO `about_store` (`id`, `title`, `content`, `image_path`, `created_at`, `updated_at`) VALUES
+(3, 'About store', 'Subscribe to our newsletter to get exclusive updates about our latest products, special offers, and seasonal discounts.', NULL, '2025-08-10 07:55:48', '2025-08-10 07:55:48'),
+(4, 'about', 'jfejherhthtiuite hreheherehi kr,gknfkeih', NULL, '2025-08-10 08:00:41', '2025-08-10 08:00:41');
 
 -- --------------------------------------------------------
 
@@ -58,10 +83,10 @@ CREATE TABLE IF NOT EXISTS `addresses` (
 DROP TABLE IF EXISTS `banners`;
 CREATE TABLE IF NOT EXISTS `banners` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `image_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `status` enum('active','inactive') COLLATE utf8mb4_general_ci DEFAULT 'active',
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `status` enum('active','inactive') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -87,8 +112,8 @@ INSERT INTO `banners` (`id`, `title`, `description`, `image_url`, `status`, `cre
 DROP TABLE IF EXISTS `banner_settings`;
 CREATE TABLE IF NOT EXISTS `banner_settings` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `setting_name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `setting_value` varchar(10) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'show',
+  `setting_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `setting_value` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'show',
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting_name` (`setting_name`)
@@ -312,19 +337,6 @@ CREATE TABLE IF NOT EXISTS `products` (
   KEY `category_id` (`category_id`),
   KEY `fk_products_brands` (`brand_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `products`
---
-
-INSERT INTO `products` (`id`, `name`, `description`, `price`, `sale_price`, `stock_quantity`, `sku`, `category_id`, `brand_id`, `image`, `status`, `created_at`, `updated_at`, `add_date`, `expiry_date`, `is_new`, `country_id`, `price2`, `price3`) VALUES
-(79, 'kujinsha', '1kg', 1.00, 2.00, 2, '1', 60, NULL, 'uploads/products/1754558583_download.png', 'active', '2025-08-07 09:23:03', '2025-08-07 09:23:03', '2025-08-07', NULL, 0, NULL, 3.00, 5.00),
-(72, 'MAGGI BOUILLON TABLETS SHRIMP 24X60X10 G', '22', 88.00, 33.00, 4, '6588', 55, NULL, 'uploads/products/1754545622_1748024618_21-removebg-preview (1).png', 'active', '2025-08-07 05:47:02', '2025-08-07 08:03:25', '2025-08-07', NULL, 0, NULL, 88.00, 88.00),
-(73, 'PRAISE PALM OIL 24X500 ml', '25', 98.00, 35.00, 2, '5211', 56, NULL, 'uploads/products/1754546096_1748025107_3-removebg-preview.png', 'active', '2025-08-07 05:54:56', '2025-08-07 08:03:25', '2025-08-07', NULL, 0, NULL, 98.00, 98.00),
-(74, 'GOLD KILI INSTANT GINGER DRINK 24X20X18g', '98', 87.00, 57.00, 2, '8522', 55, NULL, 'uploads/products/1754547924_1748023140_chin_aloe_vera-removebg-preview.png', 'active', '2025-08-07 06:25:24', '2025-08-07 09:18:25', '2025-08-07', NULL, 0, NULL, 87.00, 100.00),
-(76, 'kujinsha', '', 2.00, 5.00, 1, '1230', 60, NULL, 'uploads/products/1754554352_download.png', 'active', '2025-08-07 08:12:32', '2025-08-07 08:12:32', '2025-08-07', NULL, 0, NULL, 22.00, 222.00),
-(77, 'Ashwiny', '85', 100.00, 103.00, 2, '12', 59, NULL, 'uploads/products/1754558417_1748023320_tang_mango_2.5kg-removebg-preview1.png', 'active', '2025-08-07 09:19:49', '2025-08-07 09:20:17', '2025-08-07', NULL, 0, NULL, 102.00, 104.00),
-(78, 'keethan', '5', 54.00, 69.00, 2, '684', 55, NULL, 'uploads/products/1754558505_1748024618_21-removebg-preview (1).png', 'active', '2025-08-07 09:21:45', '2025-08-07 09:21:45', '2025-08-07', NULL, 0, NULL, 58.00, 57.00);
 
 -- --------------------------------------------------------
 

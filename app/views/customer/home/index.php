@@ -4,12 +4,14 @@
 <!-- Banner Section -->
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
+
+
 <!-- Featured Categories - Improved responsive grid -->
 <section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px; margin: 0;">
     <div class="container-fluid" style="padding: 0; margin: 0; width: 100%; position: relative; z-index: 1;">
         <h2 class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
 
-        <!-- 🔹 Category Slider -->
+        <!-- Category Slider -->
         <div id="categorySlider"
              style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 0px 0px; margin: 0; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
              

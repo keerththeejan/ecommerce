@@ -229,7 +229,6 @@
                                     <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
                                         <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.7rem;">
                                             <span class="text-muted">Stock: <?php echo $product['stock_quantity']; ?></span>
-                                            <span class="text-muted">Value: <?php echo formatCurrency($product['stock_quantity'] * ($product['sale_price'] ?? $product['price'])); ?></span>
                                         </div>
                                     <?php endif; ?>
                                     

@@ -149,6 +149,15 @@
                             <i class="fas fa-chevron-right text-muted small"></i>
                         </a>
                     </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=about&action=index">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2 text-secondary" style="width: 24px; text-align: center;"></i>
+                                <span>About Our Store</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
                     <!-- Categories Dropdown for Mobile -->
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" data-bs-toggle="collapse" href="#categoriesCollapse" role="button" aria-expanded="false" aria-controls="categoriesCollapse">
@@ -494,6 +503,7 @@
                             ?>
                         </ul>
                     </li>
+                   
                     <li class="nav-item ms-2">
                         <a href="#" class="btn btn-success px-3 fw-medium" style="background-color: #28a745; border-color: #28a745;">New </a>
                     </li>

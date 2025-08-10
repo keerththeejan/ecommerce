@@ -8,6 +8,7 @@ class HomeController extends Controller {
     private $categoryModel;
     
     public function __construct() {
+        parent::__construct();
         $this->productModel = $this->model('Product');
         $this->categoryModel = $this->model('Category');
     }
@@ -32,6 +33,12 @@ class HomeController extends Controller {
             // Get brands
             $brandModel = $this->model('Brand');
             $brands = $brandModel->getAll('name', 'ASC');
+
+            // Get latest About Store entry (for homepage intro)
+            require_once APP_PATH . 'models/AboutStore.php';
+            $aboutModel = new AboutStore($this->db);
+            $aboutEntries = $aboutModel->getAll();
+            $aboutLatest = !empty($aboutEntries) ? $aboutEntries[0] : null;
             
             // Load view
             $this->view('customer/home/index', [
@@ -39,7 +46,8 @@ class HomeController extends Controller {
                 'saleProducts' => $saleProducts,
                 'newProducts' => $newProducts,
                 'categories' => $categories,
-                'brands' => $brands
+                'brands' => $brands,
+                'aboutLatest' => $aboutLatest
             ]);
         } catch (Exception $e) {
             // Log error
