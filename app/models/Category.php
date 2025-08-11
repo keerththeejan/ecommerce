@@ -301,7 +301,6 @@ class Category extends Model {
         $total = $totalResult['total'];
         $totalPages = ceil($total / $perPage);
         
-<<<<<<< HEAD
         // Build base query with parent info, and conditionally include tax info if available
         $select = "SELECT c.*, p.name as parent_name";
         $joins = " FROM {$this->table} c\n                LEFT JOIN {$this->table} p ON c.parent_id = p.id";
@@ -310,14 +309,6 @@ class Category extends Model {
             $joins  .= "\n                LEFT JOIN tax_rates t ON c.tax_id = t.id";
         }
         $sql = $select . $joins . "\n                ORDER BY c.{$orderBy} {$order}\n                LIMIT :limit OFFSET :offset";
-=======
-        // Get categories with parent info
-        $sql = "SELECT c.*, p.name as parent_name 
-                FROM {$this->table} c
-                LEFT JOIN {$this->table} p ON c.parent_id = p.id
-                ORDER BY c.{$orderBy} {$order}
-                LIMIT :limit OFFSET :offset";
->>>>>>> 6333699da53683159efbe2f44d2566c9dce9cbec
                 
         if(!$this->db->query($sql)) {
             $this->lastError = $this->db->getError();
