@@ -166,8 +166,8 @@ class Category extends Model {
             return false;
         }
         
-        // If tax_id exists, get the tax details
-        if (!empty($category['tax_id'])) {
+        // If tax feature is available and tax_id is present, get the tax details
+        if ($this->db->columnExists($this->table, 'tax_id') && !empty($category['tax_id']) && $this->db->tableExists('tax_rates')) {
             $taxSql = "SELECT name as tax_name, rate as tax_rate 
                       FROM tax_rates 
                       WHERE id = :tax_id";
@@ -301,13 +301,14 @@ class Category extends Model {
         $total = $totalResult['total'];
         $totalPages = ceil($total / $perPage);
         
-        // Get categories with parent and tax info
-        $sql = "SELECT c.*, p.name as parent_name, t.name as tax_name, t.rate as tax_rate 
-                FROM {$this->table} c
-                LEFT JOIN {$this->table} p ON c.parent_id = p.id
-                LEFT JOIN tax_rates t ON c.tax_id = t.id
-                ORDER BY c.{$orderBy} {$order}
-                LIMIT :limit OFFSET :offset";
+        // Build base query with parent info, and conditionally include tax info if available
+        $select = "SELECT c.*, p.name as parent_name";
+        $joins = " FROM {$this->table} c\n                LEFT JOIN {$this->table} p ON c.parent_id = p.id";
+        if ($this->db->columnExists($this->table, 'tax_id') && $this->db->tableExists('tax_rates')) {
+            $select .= ", t.name as tax_name, t.rate as tax_rate";
+            $joins  .= "\n                LEFT JOIN tax_rates t ON c.tax_id = t.id";
+        }
+        $sql = $select . $joins . "\n                ORDER BY c.{$orderBy} {$order}\n                LIMIT :limit OFFSET :offset";
                 
         if(!$this->db->query($sql)) {
             $this->lastError = $this->db->getError();

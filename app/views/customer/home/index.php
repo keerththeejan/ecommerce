@@ -13,7 +13,7 @@
 
         <!-- Category Slider -->
         <div id="categorySlider"
-             style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 0px 0px; margin: 0; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
+             style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 6px; padding: 0px 0px; margin: 0; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
              
             <style>
                 #categorySlider::-webkit-scrollbar {
@@ -36,7 +36,7 @@
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
                        style="text-decoration: none; color: inherit;">
                         <div style="text-align: center;">
-                            <div style="padding: 0; width: 150px; height: 150px; margin: 0 auto;">
+                            <div style="padding: 0; width: 180px; height: 180px; margin: 0 auto;">
                                 <?php if (!empty($category['image'])) : ?>
                                     <img src="<?php echo BASE_URL . $category['image']; ?>" 
                                          alt="<?php echo htmlspecialchars($category['name']); ?>" 
@@ -46,7 +46,7 @@
                                     <div><i class="fas fa-box fa-3x"></i></div>
                                 <?php endif; ?>
                             </div>
-                            <h3 style="font-size: 16px; margin-top: 10px;"><?php echo $category['name']; ?></h3>
+                            <h3 style="font-size: 18px; margin-top: 6px;">&nbsp;<?php echo $category['name']; ?></h3>
                         </div>
                     </a>
                 </div>

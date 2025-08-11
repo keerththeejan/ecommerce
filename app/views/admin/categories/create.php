@@ -21,47 +21,7 @@
                             <?php endif; ?>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control <?php echo isset($errors['description']) ? 'is-invalid' : ''; ?>" id="description" name="description" rows="3"><?php echo $data['description']; ?></textarea>
-                            <?php if(isset($errors['description'])): ?>
-                                <div class="invalid-feedback"><?php echo $errors['description']; ?></div>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="parent_id" class="form-label">Parent Category</label>
-                            <select class="form-select <?php echo isset($errors['parent_id']) ? 'is-invalid' : ''; ?>" id="parent_id" name="parent_id">
-                                <option value="">None (Top Level Category)</option>
-                                <?php foreach($parentCategories as $parentCategory): ?>
-                                    <option value="<?php echo $parentCategory['id']; ?>" <?php echo ($data['parent_id'] == $parentCategory['id']) ? 'selected' : ''; ?>>
-                                        <?php echo $parentCategory['name']; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <?php if(isset($errors['parent_id'])): ?>
-                                <div class="invalid-feedback"><?php echo $errors['parent_id']; ?></div>
-                            <?php endif; ?>
-                            <div class="form-text">Select a parent category or leave empty for top level category.</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="tax_id" class="form-label">Tax Rate</label>
-                            <select class="form-select <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>" id="tax_id" name="tax_id">
-                                <option value="">Select Tax Rate</option>
-                                <?php if (!empty($taxRates)): ?>
-                                    <?php foreach($taxRates as $tax): ?>
-                                        <option value="<?php echo $tax->id; ?>" <?php echo (isset($data['tax_id']) && $data['tax_id'] == $tax->id) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($tax->name . ' (' . $tax->rate . '%)'); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                            <?php if(isset($errors['tax_id'])): ?>
-                                <div class="invalid-feedback"><?php echo $errors['tax_id']; ?></div>
-                            <?php endif; ?>
-                            <div class="form-text">Select the tax rate to apply to products in this category.</div>
-                        </div>
+                        <!-- Simplified form: only Name, Image, Status -->
                         
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="status" name="status" value="1" <?php echo $data['status'] ? 'checked' : ''; ?>>
@@ -83,7 +43,7 @@
                                 <i class="fas fa-arrow-left me-1"></i> Back to Categories
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-plus me-1"></i> Create Category
+                                <i class="fas fa-plus me-1"></i> Add
                             </button>
                         </div>
                     </form>

@@ -22,6 +22,7 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
+                                        <th>Image</th>
                                         <th>Name</th>
                                         <th>Parent</th>
                                         <th>Tax Rate</th>
@@ -33,6 +34,16 @@
                                     <?php foreach($categories['data'] as $category): ?>
                                         <tr id="category-row-<?php echo $category['id']; ?>">
                                             <td><?php echo $category['id']; ?></td>
+                                            <td>
+                                                <?php 
+                                                    $thumb = !empty($category['image']) 
+                                                        ? (strpos($category['image'], 'uploads/') === 0 
+                                                            ? BASE_URL . $category['image'] 
+                                                            : BASE_URL . 'uploads/categories/' . $category['image']) 
+                                                        : BASE_URL . 'assets/img/no-image.png';
+                                                ?>
+                                                <img src="<?php echo $thumb; ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" style="width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #dee2e6;">
+                                            </td>
                                             <td><?php echo htmlspecialchars($category['name']); ?></td>
                                             <td>
                                                 <?php if(!empty($category['parent_name'])): ?>

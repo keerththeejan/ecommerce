@@ -237,4 +237,18 @@ class Database {
             return false;
         }
     }
+
+    // Check if a column exists in a table
+    public function columnExists($table, $column) {
+        try {
+            $stmt = $this->conn->prepare("SHOW COLUMNS FROM `{$table}` LIKE :column");
+            $stmt->bindValue(':column', $column, PDO::PARAM_STR);
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            $this->error = $e->getMessage();
+            error_log('ColumnExists Error: ' . $this->error);
+            return false;
+        }
+    }
 }

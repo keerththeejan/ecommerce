@@ -81,13 +81,7 @@ class CategoryController extends Controller {
         if(!isAdmin()) {
             redirect('user/login');
         }
-        
-        // Get parent categories for dropdown
-        $parentCategories = $this->categoryModel->getParentCategories();
-        
-        // Get all active tax rates
-        $taxModel = $this->model('TaxModel');
-        $taxRates = $taxModel->getTaxRates(true); // true for active only
+        // For simplified form, no parent or tax selection is needed
         
         // Check for POST
         if($this->isPost()) {
@@ -96,9 +90,7 @@ class CategoryController extends Controller {
             // Sanitize POST data
             $data = [
                 'name' => sanitize($this->post('name')),
-                'description' => sanitize($this->post('description')),
-                'parent_id' => $this->post('parent_id') ? $this->post('parent_id') : null,
-                'tax_id' => $this->post('tax_id') ? $this->post('tax_id') : null,
+                // simplified: only name, image, status
                 'status' => $this->post('status') ? 1 : 0
             ];
             
@@ -141,19 +133,7 @@ class CategoryController extends Controller {
                     // Create category
                     if($this->categoryModel->create($data)) {
                         flash('category_success', 'Category created successfully!', 'alert alert-success');
-                        // Redirect back to create form to add another category
-                        $this->view('admin/categories/create', [
-                            'data' => [
-                                'name' => '',
-                                'description' => '',
-                                'parent_id' => null,
-                                'tax_id' => null,
-                                'status' => 1
-                            ],
-                            'parentCategories' => $parentCategories,
-                            'taxRates' => $taxRates,
-                            'errors' => []
-                        ]);
+                        redirect('?controller=category&action=adminIndex');
                         return;
                     } else {
                         throw new Exception('Failed to create category: ' . $this->categoryModel->getLastError());
@@ -169,26 +149,24 @@ class CategoryController extends Controller {
             }
             
             // Load view with errors and existing data
-$this->view('admin/categories/create', [
+            $this->view('admin/categories/create', [
                 'errors' => $errors,
                 'data' => $data,
-                'parentCategories' => $parentCategories,
-                'taxRates' => $taxRates
+                'parentCategories' => [],
+                'taxRates' => []
             ]);
         } else {
             // Init data
             $data = [
                 'name' => '',
-                'description' => '',
-                'parent_id' => null,
                 'status' => 1
             ];
             
             // Load view
-$this->view('admin/categories/create', [
+            $this->view('admin/categories/create', [
                 'data' => $data,
-                'parentCategories' => $parentCategories,
-                'taxRates' => $taxRates,
+                'parentCategories' => [],
+                'taxRates' => [],
                 'errors' => []
             ]);
         }
@@ -209,7 +187,7 @@ $this->view('admin/categories/create', [
         // Check if ID is provided
         if(!$id) {
             flash('category_error', 'Category ID is required', 'alert alert-danger');
-            redirect('category/adminIndex');
+            redirect('?controller=category&action=adminIndex');
         }
         
         // Get category with tax information
@@ -223,7 +201,7 @@ $this->view('admin/categories/create', [
             $errorMsg = 'Category with ID ' . $id . ' not found';
             error_log($errorMsg);
             flash('category_error', $errorMsg, 'alert alert-danger');
-            redirect('category/adminIndex');
+            redirect('?controller=category&action=adminIndex');
         }
         
         // Ensure category is an array (some database layers return objects)
@@ -394,9 +372,22 @@ $this->view('admin/categories/create', [
         
         // Check for POST
         if($this->isPost() || $this->isDelete()) {
-            // Delete category image if exists
-            if(!empty($category['image']) && file_exists(PUBLIC_PATH . $category['image'])) {
-                @unlink(PUBLIC_PATH . $category['image']);
+            // Delete category image if exists (support different storage roots)
+            if(!empty($category['image'])) {
+                $possiblePaths = [
+                    // Project root relative path
+                    (defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../') . $category['image'],
+                    // Public path variant
+                    (defined('PUBLIC_PATH') ? PUBLIC_PATH : ((defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../') . 'public/')) . $category['image'],
+                    // As-is (relative to current working dir)
+                    $category['image']
+                ];
+                foreach ($possiblePaths as $path) {
+                    if (@file_exists($path)) {
+                        @unlink($path);
+                        break;
+                    }
+                }
             }
             
             // Delete category
@@ -422,7 +413,7 @@ $this->view('admin/categories/create', [
             // For non-AJAX requests, redirect
             if(!$this->isAjax()) {
                 $page = $this->get('page', 1);
-                redirect('category/adminIndex' . ($page > 1 ? '?page=' . $page : ''));
+                redirect('?controller=category&action=adminIndex' . ($page > 1 ? '&page=' . $page : ''));
             }
         } else {
             // Load view
