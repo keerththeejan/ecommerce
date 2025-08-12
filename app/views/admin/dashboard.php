@@ -7,17 +7,85 @@ require_once APP_PATH . 'models/Supplier.php';
     #supplierSidebar {
         transition: all 0.3s ease;
     }
+    
+    /* Main content area adjustments */
+    main {
+        width: 100%;
+        padding: 15px;
+    }
+    
     @media (max-width: 767.98px) {
-        #supplierSidebar {
+        /* Sidebar styles */
+        #sidebar {
             position: fixed;
             top: 0;
-            right: -100%;
+            left: 0;
             height: 100%;
             z-index: 1040;
             overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            width: 280px;
         }
-        #supplierSidebar.show {
-            right: 0;
+        
+        #sidebar.show {
+            transform: translateX(0);
+        }
+        
+        /* Main content when sidebar is open */
+        body.sidebar-open main {
+            transform: translateX(280px);
+            overflow: hidden;
+        }
+        
+        /* Main content adjustments */
+        main {
+            margin-top: 0;
+            padding: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Dashboard cards */
+        .card {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+        }
+        
+        .card h2 {
+            font-size: 1.5rem;
+        }
+        
+        /* Grid adjustments */
+        .row {
+            margin-left: -8px;
+            margin-right: -8px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .col-md-3, .col-md-6, .col-md-8, .col-md-12 {
+            padding-left: 8px;
+            padding-right: 8px;
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        /* Sidebar toggle button */
+        #sidebarToggleBtn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1050;
+            background: #fff;
+            border: 1px solid #dee2e6;
         }
     }
 </style>
@@ -555,8 +623,40 @@ require_once APP_PATH . 'models/Supplier.php';
 </div>
 
 <script>
-    // Sales Chart
+    // Mobile sidebar toggle
     document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        const body = document.body;
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('show');
+            body.classList.toggle('sidebar-open');
+            if (sidebarBackdrop) {
+                sidebarBackdrop.classList.toggle('active');
+            }
+        }
+        
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.addEventListener('click', toggleSidebar);
+        }
+        
+        if (sidebarBackdrop) {
+            sidebarBackdrop.addEventListener('click', toggleSidebar);
+        }
+        
+        // Close sidebar when clicking on navigation links on mobile
+        const navLinks = document.querySelectorAll('#sidebar .nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 767.98) {
+                    toggleSidebar();
+                }
+            });
+        });
+        
+        // Sales Chart
         <?php if(!empty($salesStats)) : ?>
             var ctx = document.getElementById('salesChart').getContext('2d');
             var salesChart = new Chart(ctx, {

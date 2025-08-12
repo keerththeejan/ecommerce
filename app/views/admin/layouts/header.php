@@ -22,6 +22,39 @@ if (!isset($_SESSION['csrf_token'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css">
+    <style>
+        /* Mobile sidebar behavior */
+        @media (max-width: 767.98px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 260px;
+                z-index: 1050;
+                overflow-y: auto;
+                background-color: #212529; /* match bg-dark */
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            #sidebar.show {
+                transform: translateX(0);
+            }
+            /* Prevent body from shifting when sidebar opens */
+            body.sidebar-open {
+                overflow: hidden;
+            }
+            /* Add a simple backdrop */
+            .sidebar-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1049;
+                display: none;
+            }
+            .sidebar-backdrop.active { display: block; }
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -128,10 +161,18 @@ if (!isset($_SESSION['csrf_token'])) {
                 </div>
             </nav>
 
+            <!-- Backdrop for mobile -->
+            <div class="sidebar-backdrop d-md-none" id="sidebarBackdrop"></div>
+
             <!-- Main Content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Admin Dashboard</h1>
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-outline-secondary me-3 d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" id="sidebarToggleBtn">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="h2 mb-0">Admin Dashboard</h1>
+                    </div>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -161,3 +202,38 @@ if (!isset($_SESSION['csrf_token'])) {
                 <?php flash('brand_error'); ?>
                 <?php flash('banner_success'); ?>
                 <?php flash('banner_error'); ?>
+
+                <script>
+                // Enhance mobile sidebar UX: manage backdrop and body scroll
+                (function() {
+                    const sidebar = document.getElementById('sidebar');
+                    const backdrop = document.getElementById('sidebarBackdrop');
+                    const toggleBtn = document.getElementById('sidebarToggleBtn');
+
+                    function updateState() {
+                        const isOpen = sidebar.classList.contains('show');
+                        document.body.classList.toggle('sidebar-open', isOpen);
+                        if (backdrop) backdrop.classList.toggle('active', isOpen);
+                    }
+
+                    document.addEventListener('shown.bs.collapse', function(e) {
+                        if (e.target === sidebar) updateState();
+                    });
+                    document.addEventListener('hidden.bs.collapse', function(e) {
+                        if (e.target === sidebar) updateState();
+                    });
+                    if (backdrop) {
+                        backdrop.addEventListener('click', function() {
+                            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
+                            bsCollapse.hide();
+                        });
+                    }
+                    // Close sidebar after clicking a link on mobile
+                    sidebar.addEventListener('click', function(e) {
+                        if (window.innerWidth < 768 && e.target.closest('a.nav-link')) {
+                            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
+                            bsCollapse.hide();
+                        }
+                    });
+                })();
+                </script>
