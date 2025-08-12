@@ -112,6 +112,43 @@
                                 </div>
                                 
                                 <div class="mb-3">
+                                    <label for="expiry_date" class="form-label">Expiry Date</label>
+                                    <input type="date" class="form-control <?php echo isset($errors['expiry_date']) ? 'is-invalid' : ''; ?>" id="expiry_date" name="expiry_date" value="<?php echo isset($product['expiry_date']) ? htmlspecialchars($product['expiry_date']) : ''; ?>">
+                                    <?php if(isset($errors['expiry_date'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['expiry_date']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="supplier" class="form-label">Supplier</label>
+                                    <select class="form-select <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier">
+                                        <option value="">Select Supplier</option>
+                                        <?php if(!empty($suppliers)): ?>
+                                            <?php foreach($suppliers as $supplier): ?>
+                                                <?php 
+                                                    $value = htmlspecialchars($supplier['name']);
+                                                    $selected = (isset($product['supplier']) && $product['supplier'] === $supplier['name']) ? 'selected' : '';
+                                                ?>
+                                                <option value="<?php echo $value; ?>" <?php echo $selected; ?>>
+                                                    <?php echo htmlspecialchars($supplier['name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+                                    <?php if(isset($errors['supplier'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['supplier']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="batch_number" class="form-label">Batch Number</label>
+                                    <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo isset($product['batch_number']) ? htmlspecialchars($product['batch_number']) : ''; ?>" maxlength="100">
+                                    <?php if(isset($errors['batch_number'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="mb-3">
                                     <label for="stock_quantity" class="form-label">Stock Quantity</label>
                                     <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo $product['stock_quantity']; ?>" min="0" required>
                                     <?php if(isset($errors['stock_quantity'])): ?>
@@ -240,6 +277,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+
+
+
+    
     // Handle form submission
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -264,11 +305,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+            .then(async (response) => {
+                const clone = response.clone();
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (_) {
+                    // Try to get text body for debugging
+                    try {
+                        const text = await clone.text();
+                        if (!response.ok) {
+                            const snippet = text ? ` | Body: ${text.substring(0, 200)}` : '';
+                            throw new Error(`Request failed (${response.status})${snippet}`);
+                        }
+                    } catch (_) {
+                        // ignore
+                    }
                 }
-                return response.json();
+                if (!response.ok) {
+                    const message = data && data.message ? data.message : `Request failed (${response.status})`;
+                    throw new Error(message);
+                }
+                return data;
             })
             .then(data => {
                 if (data.success) {
@@ -282,13 +340,34 @@ document.addEventListener('DOMContentLoaded', function() {
                             `<?php echo BASE_URL; ?>${data.data.image}`;
                     }
                     
-                    // Update form data
-                    document.getElementById('name').value = data.data.name;
-                    document.getElementById('description').value = '<?php echo addslashes($product['description']); ?>';
-                    document.getElementById('price').value = data.data.price;
-                    document.getElementById('sale_price').value = data.data.sale_price || '';
-                    document.getElementById('stock_quantity').value = data.data.stock_quantity;
-                    document.getElementById('sku').value = '<?php echo $product['sku']; ?>';
+                    // Update form data from API response
+                    const nameEl = document.getElementById('name');
+                    const descEl = document.getElementById('description');
+                    const priceEl = document.getElementById('price');
+                    const saleEl = document.getElementById('sale_price');
+                    const price2El = document.getElementById('price2');
+                    const price3El = document.getElementById('price3');
+                    const stockEl = document.getElementById('stock_quantity');
+                    const skuEl = document.getElementById('sku');
+                    const categoryEl = document.getElementById('category_id');
+
+                    if (nameEl) nameEl.value = data.data.name ?? nameEl.value;
+                    if (descEl) descEl.value = data.data.description ?? descEl.value;
+                    if (priceEl) priceEl.value = data.data.price ?? priceEl.value;
+                    if (saleEl) saleEl.value = data.data.sale_price ?? '';
+                    if (price2El) price2El.value = (data.data.price2 ?? data.data.price) ?? price2El.value;
+                    if (price3El) price3El.value = (data.data.price3 ?? data.data.price) ?? price3El.value;
+                    if (stockEl) stockEl.value = data.data.stock_quantity ?? stockEl.value;
+                    if (skuEl && data.data.sku) skuEl.value = data.data.sku;
+                    if (categoryEl && data.data.category_id) categoryEl.value = data.data.category_id;
+
+                    // New fields
+                    const expiryEl = document.getElementById('expiry_date');
+                    const supplierEl = document.getElementById('supplier');
+                    const batchEl = document.getElementById('batch_number');
+                    if (expiryEl) expiryEl.value = data.data.expiry_date || '';
+                    if (supplierEl) supplierEl.value = data.data.supplier || '';
+                    if (batchEl) batchEl.value = data.data.batch_number || '';
                     
                     // Update status toggle
                     if (statusToggle) {

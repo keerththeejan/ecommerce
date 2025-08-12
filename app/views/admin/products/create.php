@@ -12,8 +12,18 @@
                 </div>
                 <div class="card-body">
                     <div id="alert-messages">
-                        <?php flash('product_success', '', 'alert alert-success'); ?>
-                        <?php flash('product_error', '', 'alert alert-danger'); ?>
+                        <?php if(isset($success)): ?>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-2"></i> <?php echo $success; ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        <?php endif; ?>
+                        <?php if(isset($errors['db_error'])): ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i> <?php echo $errors['db_error']; ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     
                     <form id="productForm" action="<?php echo BASE_URL; ?>?controller=product&action=create" method="POST" enctype="multipart/form-data" novalidate>
@@ -108,24 +118,24 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="sale_price" class="form-label">Including Tax Price (Optional)</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" step="0.01" min="0">
-                                                <?php if(isset($errors['sale_price'])): ?>
-                                                    <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
                                             <label for="price2" class="form-label">Sales Price (Optional)</label>
                                             <div class="input-group">
                                                 <span class="input-group-text">CHF</span>
                                                 <input type="number" class="form-control <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" step="0.01" min="0">
                                                 <?php if(isset($errors['price2'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['price2']; ?></div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="sale_price" class="form-label">Including Tax Price (Optional)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">CHF</span>
+                                                <input type="number" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" step="0.01" min="0">
+                                                <?php if(isset($errors['sale_price'])): ?>
+                                                    <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -162,7 +172,44 @@
                                         <div class="invalid-feedback"><?php echo $errors['sku']; ?></div>
                                     <?php endif; ?>
                                 </div>
-                                
+
+                                <div class="mb-3">
+                                    <label for="expiry_date" class="form-label">Expiry Date</label>
+                                    <input type="date" class="form-control <?php echo isset($errors['expiry_date']) ? 'is-invalid' : ''; ?>" id="expiry_date" name="expiry_date" value="<?php echo $data['expiry_date'] ?? ''; ?>">
+                                    <?php if(isset($errors['expiry_date'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['expiry_date']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="supplier" class="form-label">Supplier</label>
+                                    <select class="form-select <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier">
+                                        <option value="">Select Supplier</option>
+                                        <?php if(!empty($suppliers)): ?>
+                                            <?php foreach($suppliers as $supplier): ?>
+                                                <?php 
+                                                    $value = htmlspecialchars($supplier['name']);
+                                                    $selected = (isset($data['supplier']) && $data['supplier'] === $supplier['name']) ? 'selected' : '';
+                                                ?>
+                                                <option value="<?php echo $value; ?>" <?php echo $selected; ?>>
+                                                    <?php echo htmlspecialchars($supplier['name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+                                    <?php if(isset($errors['supplier'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['supplier']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="batch_number" class="form-label">Batch Number</label>
+                                    <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo $data['batch_number'] ?? ''; ?>" maxlength="100">
+                                    <?php if(isset($errors['batch_number'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+
                                 <div class="mb-3">
                                     <label for="stock_quantity" class="form-label">Stock Quantity</label>
                                     <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo $data['stock_quantity'] ?? ''; ?>" min="0" required>

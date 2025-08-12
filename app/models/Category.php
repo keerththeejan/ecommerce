@@ -6,6 +6,40 @@ class Category extends Model {
     protected $table = 'categories';
     
     /**
+     * Ensure the categories table has a tax_id column with optional FK to tax_rates
+     * This is safe to call before insert/update when we need to save tax_id.
+     */
+    public function ensureTaxIdColumn() {
+        try {
+            // Ensure base table exists
+            if (!$this->db->tableExists($this->table)) {
+                return false;
+            }
+            // Add tax_id column if missing
+            if (!$this->db->columnExists($this->table, 'tax_id')) {
+                $sql = "ALTER TABLE {$this->table} ADD COLUMN tax_id INT NULL AFTER parent_id";
+                if ($this->db->query($sql)) {
+                    $this->db->execute();
+                }
+            }
+            // Add foreign key if tax_rates table exists and column now exists
+            if ($this->db->columnExists($this->table, 'tax_id') && $this->db->tableExists('tax_rates')) {
+                // Try to add FK constraint if not already present. Constraint name may vary; attempt guarded add.
+                // Some MySQL versions don't support IF NOT EXISTS for FK; we'll catch errors silently.
+                $fkSql = "ALTER TABLE {$this->table} ADD CONSTRAINT fk_categories_tax FOREIGN KEY (tax_id) REFERENCES tax_rates(id) ON DELETE SET NULL";
+                if ($this->db->query($fkSql)) {
+                    try { $this->db->execute(); } catch (Exception $e) { /* ignore if already exists */ }
+                }
+            }
+            return true;
+        } catch (Exception $e) {
+            // Log but don't block the flow
+            error_log('ensureTaxIdColumn error: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * Get all categories including inactive ones
      * 
      * @return array

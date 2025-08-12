@@ -20,9 +20,51 @@
                                 <div class="invalid-feedback"><?php echo $errors['name']; ?></div>
                             <?php endif; ?>
                         </div>
-                        
-                        <!-- Simplified form: only Name, Image, Status -->
-                        
+
+                        <!-- Parent Category -->
+                        <div class="mb-3">
+                            <label for="parent_id" class="form-label">Parent Category</label>
+                            <select id="parent_id" name="parent_id" class="form-select <?php echo isset($errors['parent_id']) ? 'is-invalid' : ''; ?>">
+                                <option value="">None</option>
+                                <?php if (!empty($parentCategories)): ?>
+                                    <?php foreach ($parentCategories as $p): ?>
+                                        <?php 
+                                            $pid = is_object($p) ? $p->id : (isset($p['id']) ? $p['id'] : null);
+                                            $pname = is_object($p) ? $p->name : (isset($p['name']) ? $p['name'] : '');
+                                            $selected = isset($data['parent_id']) && (string)$data['parent_id'] === (string)$pid ? 'selected' : '';
+                                        ?>
+                                        <option value="<?php echo htmlspecialchars($pid); ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($pname); ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <?php if(isset($errors['parent_id'])): ?>
+                                <div class="invalid-feedback"><?php echo $errors['parent_id']; ?></div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Tax Rate -->
+                        <div class="mb-3">
+                            <label for="tax_id" class="form-label">Tax Rate</label>
+                            <select id="tax_id" name="tax_id" class="form-select <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>">
+                                <option value="">None</option>
+                                <?php if (!empty($taxRates)): ?>
+                                    <?php foreach ($taxRates as $t): ?>
+                                        <?php 
+                                            $tid = is_object($t) ? $t->id : (isset($t['id']) ? $t['id'] : null);
+                                            $tname = is_object($t) ? $t->name : (isset($t['name']) ? $t['name'] : '');
+                                            $trate = is_object($t) ? $t->rate : (isset($t['rate']) ? $t['rate'] : '');
+                                            $label = trim($tname . ' (' . $trate . '%)');
+                                            $selected = isset($data['tax_id']) && (string)$data['tax_id'] === (string)$tid ? 'selected' : '';
+                                        ?>
+                                        <option value="<?php echo htmlspecialchars($tid); ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($label); ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <?php if(isset($errors['tax_id'])): ?>
+                                <div class="invalid-feedback"><?php echo $errors['tax_id']; ?></div>
+                            <?php endif; ?>
+                        </div>
+
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="status" name="status" value="1" <?php echo $data['status'] ? 'checked' : ''; ?>>
                             <label class="form-check-label" for="status">Active</label>

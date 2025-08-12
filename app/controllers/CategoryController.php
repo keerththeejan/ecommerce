@@ -67,6 +67,45 @@ class CategoryController extends Controller {
         // Get categories with pagination
         $categories = $this->categoryModel->paginate($page, 20, 'name', 'ASC');
         
+        // Ensure tax info is present for listing (fallback enrichment)
+        if (!empty($categories['data'])) {
+            try {
+                $taxModel = new TaxModel();
+                $rates = $taxModel->getTaxRates(false);
+                // Build a quick lookup map id => [name, rate]
+                $rateMap = [];
+                foreach ($rates as $r) {
+                    $rid = is_object($r) ? $r->id : (isset($r['id']) ? $r['id'] : null);
+                    if ($rid !== null) {
+                        $rateMap[(string)$rid] = [
+                            'name' => is_object($r) ? $r->name : ($r['name'] ?? ''),
+                            'rate' => is_object($r) ? $r->rate : ($r["rate"] ?? ''),
+                        ];
+                    }
+                }
+                // Attach tax_name and tax_rate where missing
+                foreach ($categories['data'] as &$cat) {
+                    $tid = null;
+                    if (is_array($cat) && array_key_exists('tax_id', $cat)) {
+                        $tid = $cat['tax_id'];
+                    }
+                    if ($tid !== null && $tid !== '' && isset($rateMap[(string)$tid])) {
+                        // Only set if not already provided by model
+                        if (!isset($cat['tax_name'])) {
+                            $cat['tax_name'] = $rateMap[(string)$tid]['name'];
+                        }
+                        if (!isset($cat['tax_rate'])) {
+                            $cat['tax_rate'] = $rateMap[(string)$tid]['rate'];
+                        }
+                    }
+                }
+                unset($cat);
+            } catch (Exception $e) {
+                // Log and proceed without enrichment
+                error_log('adminIndex tax enrichment error: ' . $e->getMessage());
+            }
+        }
+        
         // Load view
         $this->view('admin/categories/index', [
             'categories' => $categories
@@ -81,7 +120,14 @@ class CategoryController extends Controller {
         if(!isAdmin()) {
             redirect('user/login');
         }
-        // For simplified form, no parent or tax selection is needed
+        // Load lists for parent categories and tax rates
+        $parentCategories = $this->categoryModel->getParentCategories();
+        $taxModel = new TaxModel();
+        $taxRates = $taxModel->getTaxRates(true);
+        // Ensure schema supports saving tax_id if provided
+        if (method_exists($this->categoryModel, 'ensureTaxIdColumn')) {
+            $this->categoryModel->ensureTaxIdColumn();
+        }
         
         // Check for POST
         if($this->isPost()) {
@@ -90,7 +136,8 @@ class CategoryController extends Controller {
             // Sanitize POST data
             $data = [
                 'name' => sanitize($this->post('name')),
-                // simplified: only name, image, status
+                'parent_id' => $this->post('parent_id') ? $this->post('parent_id') : null,
+                'tax_id' => $this->post('tax_id') ? $this->post('tax_id') : null,
                 'status' => $this->post('status') ? 1 : 0
             ];
             
@@ -152,21 +199,23 @@ class CategoryController extends Controller {
             $this->view('admin/categories/create', [
                 'errors' => $errors,
                 'data' => $data,
-                'parentCategories' => [],
-                'taxRates' => []
+                'parentCategories' => $parentCategories,
+                'taxRates' => $taxRates
             ]);
         } else {
             // Init data
             $data = [
                 'name' => '',
+                'parent_id' => null,
+                'tax_id' => null,
                 'status' => 1
             ];
             
             // Load view
             $this->view('admin/categories/create', [
                 'data' => $data,
-                'parentCategories' => [],
-                'taxRates' => [],
+                'parentCategories' => $parentCategories,
+                'taxRates' => $taxRates,
                 'errors' => []
             ]);
         }
