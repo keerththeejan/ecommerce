@@ -1,19 +1,17 @@
-
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
 <!-- Banner Section -->
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
-
-
 <!-- Featured Categories - Improved responsive grid -->
-<section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px; margin: 0;">
-    <div class="container-fluid" style="padding: 0; margin: 0; width: 100%; position: relative; z-index: 1;">
+<section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px;">
+
+    <div class="container-fluid" style="padding: 0; margin: 0 auto; max-width: 100%; position: relative; z-index: 1;">
         <h2 class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
 
-        <!-- Category Slider -->
+        <!-- 🔹 Category Slider -->
         <div id="categorySlider"
-             style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 6px; padding: 0px 0px; margin: 0; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
+             style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 10px 30px; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
              
             <style>
                 #categorySlider::-webkit-scrollbar {
@@ -32,11 +30,11 @@
                 }));
                 foreach($activeCategories as $index => $category): 
             ?>
-                <div style="flex: 0 0 auto; width: 200px; margin: 0;">
+                <div style="flex: 0 0 auto; width: 200px;">
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
                        style="text-decoration: none; color: inherit;">
                         <div style="text-align: center;">
-                            <div style="padding: 0; width: 180px; height: 180px; margin: 0 auto;">
+                            <div style="padding: 0; width: 150px; height: 150px; margin: 0 auto;">
                                 <?php if (!empty($category['image'])) : ?>
                                     <img src="<?php echo BASE_URL . $category['image']; ?>" 
                                          alt="<?php echo htmlspecialchars($category['name']); ?>" 
@@ -46,20 +44,17 @@
                                     <div><i class="fas fa-box fa-3x"></i></div>
                                 <?php endif; ?>
                             </div>
-                            <h3 style="font-size: 18px; margin-top: 6px;">&nbsp;<?php echo $category['name']; ?></h3>
+                            <h3 style="font-size: 16px; margin-top: 10px;"><?php echo $category['name']; ?></h3>
                         </div>
                     </a>
                 </div>
-            <?php 
-                endforeach;
-            endif; 
-            ?>
+            <?php endforeach; ?>
             <?php if (empty($activeCategories)): ?>
                 <div style="padding: 20px;">No categories available</div>
             <?php endif; ?>
         </div>
 
-        <!-- 🔹 Dot Navigation -->
+        <!-- 🔹 Dot Navigation (horizontal like loading gif) -->
         <div style="text-align: center; margin-top: 30px;">
             <div style="display: flex; justify-content: center; gap: 20px;">
                 <span onclick="scrollSlider(1)" style="width: 20px; height: 20px; border-radius: 50%; background: #FFC107; animation: bounce 1.2s infinite ease-in-out; animation-delay: 0s; cursor: pointer;"></span>
@@ -77,10 +72,8 @@
                 slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
             }
         </script>
-    </div>   
+    </div>
 </section>
-
-
 
 
 
@@ -92,27 +85,25 @@
             <h2 class="h4 mb-3 mb-md-0">Featured Products</h2>
         </div>
 
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-4">
             <?php if(!empty($featuredProducts)) : ?>
                 <?php foreach($featuredProducts as $product) : ?>
                     <div class="col">
                         <div class="card h-100 border-0 shadow-sm product-card transition-all d-flex flex-column">
 
                             <!-- 🖼️ Image Section - Responsive Box and Auto Image Resize -->
-                            <div class="position-relative d-flex justify-content-center align-items-center" style="padding: 50px 0;">
+                            <div class="product-media position-relative d-flex justify-content-center align-items-center">
                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none">
                                     
                                     <!-- 👇 Change this box size if needed -->
-                                    <div style=" width: 200px; height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                                    <div class="product-image-box">
                                         <?php if(!empty($product['image'])) : ?>
                                             <img src="<?php echo BASE_URL . $product['image']; ?>" 
                                                  alt="<?php echo htmlspecialchars($product['name']); ?>"
                                                  loading="lazy"
-                                                 style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px; transition: transform 0.3s ease;"
-                                                 onmouseover="this.style.transform='scale(1.06)';"
-                                                 onmouseout="this.style.transform='scale(1)';">
+                                                 class="product-image">
                                         <?php else : ?>
-                                            <div class="d-flex align-items-center justify-content-center" style="width: 10 0%; height: 100%; background-color: rgba(240,240,240,0.9); border-radius: 12px;">
+                                            <div class="no-image-box d-flex align-items-center justify-content-center">
                                                 <i class="fas fa-box-open fa-2x text-muted"></i>
                                             </div>
                                         <?php endif; ?>
@@ -129,14 +120,14 @@
                                 <?php endif; ?>
                             </div>
 
-                            <!-- 📝 Content -->
+                            <!-- Content -->
                             <div class="card-body p-3 flex-grow-1 d-flex flex-column justify-content-between">
                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
-                                    <h3 class="h6 card-title mb-1 text-truncate"><?php echo $product['name']; ?></h3>
-                                    <p class="small text-muted mb-2 d-none d-md-block"><?php echo truncateText($product['description'], 50); ?></p>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h3 class="h6 card-title mb-0 text-truncate product-title"><?php echo $product['name']; ?></h3>
+                                    <p class="product-desc small text-muted mb-1 d-none d-md-block"><?php echo truncateText($product['description'], 50); ?></p>
+                                    <div class="d-flex justify-content-between align-items-center mb-1 gap-0">
                                         <?php if(isLoggedIn()): ?>
-                                            <span class="fw-bold"><?php echo formatCurrency($product['price2']); ?></span>
+                                            <span class="fw-bold"><?php echo formatCurrency($product['sale_price'] ?? $product['price']); ?></span>
                                         <?php else: ?>
                                             <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
                                         <?php endif; ?>
@@ -155,29 +146,39 @@
                                 </a>
 
                                 <!-- 🛒 Add to Cart -->
-                                <?php if($product['stock_quantity'] > 0): ?>
-                                    <?php if(isLoggedIn()): ?>
-                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form mt-auto">
-                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="input-group input-group-sm mb-2">
-                                                <button type="button" class="btn btn-outline-secondary quantity-decrease px-2">-</button>
+                                <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
+                                    <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form mt-2">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <div class="d-flex align-items-stretch gap-2">
+                                            <!-- Quantity Box -->
+                                            <div class="input-group input-group-sm cart-quantity" style="width: 100px;">
+                                                <button type="button" class="btn btn-outline-secondary quantity-decrease px-2">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
                                                 <input type="number" name="quantity" class="form-control text-center quantity-input" 
                                                        value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
                                                        aria-label="Quantity" readonly>
-                                                <button type="button" class="btn btn-outline-secondary quantity-increase px-2">+</button>
+                                                <button type="button" class="btn btn-outline-secondary quantity-increase px-2">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
                                             </div>
-                                            <button type="submit" class="btn btn-sm btn-primary w-100">
-                                                <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                            <!-- Add to Cart Button -->
+                                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                                                <i class="fas fa-cart-plus me-1"></i> Add
                                             </button>
-                                        </form>
-                                    <?php else: ?>
-                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
-                                    <?php endif; ?>
+                                        </div>
+                                    </form>
+                                <?php elseif($product['stock_quantity'] > 0): ?>
+                                    <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-primary btn-sm w-100">
+                                        Login to Buy
+                                    </a>
                                 <?php else: ?>
-                                    <button class="btn btn-sm btn-outline-secondary w-100" disabled>
-                                        Out of Stock
-                                    </button>
+                                    <div class="alert alert-danger py-1 mb-0 text-center">Out of Stock</div>
                                 <?php endif; ?>
+
+
+                                   
+                               
                             </div>
                         </div>
                     </div>
@@ -200,7 +201,16 @@
 </section>
 
 
-<!-- Brand Showcase - Horizontal Scroll -->
+
+
+
+
+
+
+
+
+
+<!-- Brand Showcase - Enhanced with responsive grid -->
 <section class="brands-showcase py-4 py-md-5 bg-white">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
@@ -210,157 +220,66 @@
             </a>
         </div>
         
-        <?php if(!empty($brands)) : ?>
-            <div class="brands-scroll-container">
-                <div class="brands-scroll-wrapper">
-                    <?php foreach(array_slice($brands, 0, 12) as $brand) : ?>
-                        <?php if($brand['status'] == 'active') : ?>
-                            <a href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['slug']; ?>" class="brand-item">
-                                <div class="brand-logo-container">
-                                    <?php 
-                                    $logoUrl = !empty($brand['logo']) ? $brand['logo'] : '';
-                                    $defaultLogo = BASE_URL . 'public/images/default-brand.png';
-                                    ?>
-                                    <img src="<?php echo htmlspecialchars($logoUrl); ?>" 
-                                         alt="<?php echo htmlspecialchars($brand['name']); ?>" 
-                                         class="brand-logo"
-                                         onerror="this.onerror=null; this.src='<?php echo $defaultLogo; ?>';">
+        <div class="row g-2 g-md-3 justify-content-center">
+            <?php if(!empty($brands)) : ?>
+                <?php foreach(array_slice($brands, 0, 12) as $brand) : ?>
+                    <?php if($brand['status'] == 'active') : ?>
+                        <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1">
+                            <a href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['slug']; ?>" class="text-decoration-none">
+                                <div class="brand-card card h-100 border-0 shadow-sm transition-all">
+                                    <div class="card-body p-2 d-flex align-items-center justify-content-center">
+                                        <div class="brand-logo-container">
+                                            <?php if(!empty($brand['logo'])) : ?>
+                                                <img src="<?php echo BASE_URL . 'uploads/brands/' . $brand['logo']; ?>" 
+                                                     class="img-fluid" 
+                                                     alt="<?php echo htmlspecialchars($brand['name']); ?>" 
+                                                     loading="lazy"
+                                                     onerror="this.onerror=null; this.src='<?php echo BASE_URL; ?>assets/img/no-image.jpg';">
+                                            <?php else : ?>
+                                                <div class="text-center">
+                                                    <span class="fw-bold small text-muted"><?php echo htmlspecialchars($brand['name']); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </div>
                             </a>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            
-            <?php if(count($brands) > 12): ?>
-                <div class="text-center mt-3">
-                    <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="btn btn-outline-primary px-4">
-                        View All Brands <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                
+                <?php if(count($brands) > 12): ?>
+                    <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1 d-md-none">
+                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="text-decoration-none">
+                            <div class="brand-card card h-100 border-0 shadow-sm transition-all bg-light">
+                                <div class="card-body p-2 d-flex align-items-center justify-content-center">
+                                    <div class="text-center">
+                                        <i class="fas fa-ellipsis-h text-muted mb-1"></i>
+                                        <p class="small mb-0">View All</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <?php endif; ?>
+            <?php else : ?>
+                <div class="col-12">
+                    <div class="alert alert-info mb-0">No brands available</div>
                 </div>
             <?php endif; ?>
-            
-        <?php else : ?>
-            <div class="alert alert-info mb-0">No brands available</div>
+        </div>
+        
+        <?php endif; ?>
+        
+        <?php if(!empty($brands) && count($brands) > 12): ?>
+        <div class="text-center mt-3 d-md-none">
+            <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="btn btn-outline-primary px-4">
+                View All Brands <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
         <?php endif; ?>
     </div>
 </section>
-
-<style>
-/* Brands Section Styles */
-/* Desktop styles */
-.brands-scroll-container {
-    width: 100%;
-    overflow-x: auto;
-    padding: 20px 0;
-    -webkit-overflow-scrolling: touch;
-}
-
-.brands-scroll-wrapper {
-    display: flex;
-    gap: 20px;
-    padding: 10px 40px;
-    margin: 0 auto;
-    max-width: 1400px;
-    justify-content: center;
-    flex-wrap: nowrap;
-}
-
-.brand-item {
-    flex: 0 0 auto;
-    width: 120px;
-    height: 80px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    transition: all 0.3s ease;
-}
-
-.brand-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.brand-logo-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-}
-
-.brand-logo {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: grayscale(100%);
-    opacity: 0.7;
-    transition: all 0.3s ease;
-}
-
-.brand-item:hover .brand-logo {
-    filter: grayscale(0%);
-    opacity: 1;
-}
-
-/* Hide scrollbar for cleaner look but keep functionality */
-.brands-scroll-container::-webkit-scrollbar {
-    height: 5px;
-}
-
-.brands-scroll-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.brands-scroll-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 991.98px) {
-    /* Mobile styles */
-    .brands-scroll-container {
-        padding: 15px 0;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .brands-scroll-wrapper {
-        display: inline-flex;
-        padding: 10px 15px;
-        gap: 12px;
-        justify-content: flex-start;
-        min-width: 100%;
-    }
-    
-    .brand-item {
-        width: 110px !important;
-        height: 70px !important;
-        flex-shrink: 0;
-    }
-    
-    .brands-scroll-wrapper {
-        gap: 8px;
-    }
-}
-
-@media (max-width: 480px) {
-    .brand-item {
-        width: 90px;
-        height: 60px;
-    }
-    
-    .brands-scroll-container {
-        padding: 5px 0;
-    }
-}
-</style>
 
 <!-- Responsive Styles -->
 <style>
@@ -398,6 +317,136 @@
     text-transform: uppercase;
     margin-bottom: 50px;
     
+}
+
+/* Product Card - Mobile-first responsive styles */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.product-media {
+    padding: 12px 0;
+    flex: 0 0 auto;
+}
+.product-image-box {
+    width: 100%;
+    height: 120px;
+    min-height: 120px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background-color: transparent;
+    margin-bottom: 10px;
+}
+.product-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.25s ease;
+}
+.product-image:hover { transform: scale(1.04); }
+.no-image-box {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(240,240,240,0.9);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.product-title {
+    font-size: 0.8rem;
+    text-align: left;
+    margin-bottom: 0.25rem;
+    min-height: 1.6rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.product-desc {
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 0.75rem !important;
+}
+.add-to-cart-form {
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+@media (min-width: 576px) {
+    .product-image-box { height: 140px; }
+}
+@media (min-width: 768px) {
+    .product-image-box { height: 180px; }
+    .product-title { font-size: 0.9rem; }
+    .product-desc { font-size: 0.8rem; }
+    .add-to-cart-form .btn { 
+        height: 28px; 
+        font-size: 0.75rem; 
+        padding: 0.15rem 0.5rem;
+    }
+    .add-to-cart-form .btn i { 
+        font-size: 0.7em; 
+        margin-right: 2px;
+    }
+}
+
+/* Cart Quantity Controls */
+.cart-quantity {
+    max-width: 120px;
+}
+.cart-quantity .form-control {
+    font-size: 0.85rem;
+    padding: 0.15rem;
+    text-align: center;
+    height: 30px;
+}
+.cart-quantity .btn {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.7rem;
+    height: 30px;
+}
+.add-to-cart-form .btn i {
+    font-size: 0.8em;
+}
+
+/* Ensure buttons are properly sized on mobile */
+@media (max-width: 767px) {
+    .add-to-cart-form .btn {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+        height: 32px;
+    }
+    .add-to-cart-form .btn i {
+        font-size: 0.7em;
+        margin-right: 2px;
+    }
+    .cart-quantity {
+        width: 80px !important;
+    }
+    .cart-quantity .form-control {
+        font-size: 0.75rem;
+        padding: 0.15rem;
+        height: 32px;
+    }
+    .cart-quantity .btn {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.7rem;
+        height: 32px;
+    }
 }
 
 .categories-slider {
