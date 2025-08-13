@@ -435,7 +435,7 @@
         margin-right: 2px;
     }
     .cart-quantity {
-        width: 80px !important;
+        width: 90px !important;
     }
     .cart-quantity .form-control {
         font-size: 0.75rem;
