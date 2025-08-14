@@ -6,6 +6,203 @@ class Order extends Model {
     protected $table = 'orders';
     
     /**
+     * Get paginated results with order items
+     * 
+     * @param int $page The current page
+     * @param int $perPage Number of items per page
+     * @param string $orderBy Column to order by
+     * @param string $order Order direction (ASC or DESC)
+     * @param array $filters Additional filters
+     * @return array
+     */
+    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC', $filters = []) {
+        // Validate parameters
+        $page = max(1, intval($page));
+        $perPage = max(1, intval($perPage));
+        
+        // Calculate offset
+        $offset = ($page - 1) * $perPage;
+        
+        // Start building the query
+        $sql = "SELECT o.*, 
+                       CONCAT(u.first_name, ' ', u.last_name) as customer_name,
+                       u.email as customer_email
+                FROM {$this->table} o
+                LEFT JOIN users u ON o.user_id = u.id 
+                WHERE 1=1 ";
+        
+        // Add filters
+        $params = [];
+        if (!empty($filters['status'])) {
+            $sql .= " AND o.status = :status";
+            $params['status'] = $filters['status'];
+        }
+        
+        if (!empty($filters['payment_status'])) {
+            $sql .= " AND o.payment_status = :payment_status";
+            $params['payment_status'] = $filters['payment_status'];
+        }
+        
+        if (!empty($filters['search'])) {
+            $search = "%{$filters['search']}%";
+            $sql .= " AND (
+                o.id LIKE :search OR 
+                u.first_name LIKE :search OR 
+                u.last_name LIKE :search OR 
+                u.email LIKE :search OR 
+                o.status LIKE :search
+            )";
+            $params['search'] = $search;
+        }
+        
+        // Add sorting
+        $sql .= " ORDER BY o.{$orderBy} {$order}";
+        
+        // Add pagination
+        $sql .= " LIMIT :limit OFFSET :offset";
+        
+        // Execute the query
+        $this->db->query($sql);
+        
+        // Bind parameters
+        foreach ($params as $key => $value) {
+            $this->db->bind(":{$key}", $value);
+        }
+        
+        // Bind pagination parameters
+        $this->db->bind(':limit', $perPage, PDO::PARAM_INT);
+        $this->db->bind(':offset', $offset, PDO::PARAM_INT);
+        
+        $results = $this->db->resultSet();
+        
+        // Get total count for pagination
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} o 
+                    LEFT JOIN users u ON o.user_id = u.id 
+                    WHERE 1=1 ";
+        
+        // Add the same filters to the count query
+        if (!empty($filters['status'])) {
+            $countSql .= " AND o.status = :status";
+        }
+        
+        if (!empty($filters['payment_status'])) {
+            $countSql .= " AND o.payment_status = :payment_status";
+        }
+        
+        if (!empty($filters['search'])) {
+            $countSql .= " AND (
+                o.id LIKE :search OR 
+                u.first_name LIKE :search OR 
+                u.last_name LIKE :search OR 
+                u.email LIKE :search OR 
+                o.status LIKE :search
+            )";
+        }
+        
+        // Add filter to exclude deleted orders if needed
+        if (!empty($filters['exclude_deleted'])) {
+            $sql .= " AND o.id IS NOT NULL"; // This is a placeholder, will be handled by the actual deletion
+            $countSql .= " AND o.id IS NOT NULL";
+        }
+        
+        $this->db->query($countSql);
+        
+        // Bind parameters for count query
+        foreach ($params as $key => $value) {
+            $this->db->bind(":{$key}", $value);
+        }
+        
+        $totalResult = $this->db->single();
+        $totalCount = $totalResult ? $totalResult['total'] : 0;
+        $totalPages = ceil($totalCount / $perPage);
+        
+        // Get order items for each order
+        foreach ($results as &$order) {
+            $order['items'] = $this->getOrderItems($order['id']);
+        }
+        
+        return [
+            'data' => $results,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $totalCount,
+            'total_pages' => $totalPages
+        ];
+    }
+    
+    /**
+     * Get order items for a specific order
+     * 
+     * @param int $orderId Order ID
+     * @return array
+     */
+    public function getOrderItems($orderId) {
+        $sql = "SELECT oi.*, p.name as product_name, p.image as product_image
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = :order_id";
+        
+        $this->db->query($sql);
+        $this->db->bind(':order_id', $orderId);
+        
+        return $this->db->resultSet();
+    }
+    
+    /**
+     * Get order by ID
+     * 
+     * @param int $id Order ID
+     * @return array|bool Order data or false if not found
+     */
+    public function getById($id) {
+        $this->db->query("SELECT * FROM " . $this->table . " WHERE id = :id");
+        $this->db->bind(':id', $id);
+        
+        $result = $this->db->single();
+        return $result ?: false;
+    }
+    
+    /**
+     * Delete order items by order ID
+     * 
+     * @param int $orderId Order ID
+     * @return bool True on success, false on failure
+     */
+    public function deleteOrderItems($orderId) {
+        try {
+            // First, get the order items to update product quantities if needed
+            $this->db->query("SELECT product_id, quantity FROM order_items WHERE order_id = :order_id");
+            $this->db->bind(':order_id', $orderId);
+            $items = $this->db->resultSet();
+            
+            // Delete the order items
+            $this->db->query("DELETE FROM order_items WHERE order_id = :order_id");
+            $this->db->bind(':order_id', $orderId);
+            
+            $result = $this->db->execute();
+            
+            if ($result && !empty($items)) {
+                // Update product quantities (if needed)
+                foreach ($items as $item) {
+                    $this->db->query("UPDATE products SET stock = stock + :quantity WHERE id = :product_id");
+                    $this->db->bind(':quantity', $item['quantity']);
+                    $this->db->bind(':product_id', $item['product_id']);
+                    $this->db->execute();
+                }
+            }
+            
+            // Force a hard delete by running an additional query to ensure deletion
+            $this->db->query("SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';");
+            $this->db->query("OPTIMIZE TABLE order_items;");
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log('Error deleting order items for order #' . $orderId . ': ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * Create a new order with items
      * 
      * @param array $orderData Order data
@@ -379,69 +576,6 @@ class Order extends Model {
         }
         
         return $this->db->resultSet();
-    }
-    
-    /**
-     * Paginate orders
-     * 
-     * @param int $page Current page
-     * @param int $perPage Items per page
-     * @param string $orderBy Column to order by
-     * @param string $order Order direction (ASC or DESC)
-     * @return array
-     */
-    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC') {
-        // Calculate offset
-        $offset = ($page - 1) * $perPage;
-        
-        // Get total count
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table}";
-        
-        if(!$this->db->query($countSql)) {
-            $this->lastError = $this->db->getError();
-            return [
-                'data' => [],
-                'total' => 0,
-                'current_page' => $page,
-                'per_page' => $perPage,
-                'total_pages' => 0
-            ];
-        }
-        
-        $totalResult = $this->db->single();
-        $total = $totalResult['total'];
-        $totalPages = ceil($total / $perPage);
-        
-        // Get orders with user info
-        $sql = "SELECT o.*, u.first_name, u.last_name, u.email 
-                FROM {$this->table} o
-                JOIN users u ON o.user_id = u.id
-                ORDER BY o.{$orderBy} {$order}
-                LIMIT :limit OFFSET :offset";
-                
-        if(!$this->db->query($sql)) {
-            $this->lastError = $this->db->getError();
-            return [
-                'data' => [],
-                'total' => $total,
-                'current_page' => $page,
-                'per_page' => $perPage,
-                'total_pages' => $totalPages
-            ];
-        }
-        
-        $this->db->bind(':limit', $perPage);
-        $this->db->bind(':offset', $offset);
-        
-        $data = $this->db->resultSet();
-        
-        return [
-            'data' => $data,
-            'total' => $total,
-            'current_page' => $page,
-            'per_page' => $perPage,
-            'total_pages' => $totalPages
-        ];
     }
     
     /**

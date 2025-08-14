@@ -301,63 +301,161 @@ class OrderController extends Controller {
      * @param int $id Order ID
      */
     public function delete($id = null) {
+        // For URL like ?controller=order&action=delete&id=123
+        if ($id === null) {
+            $id = $this->get('id');
+        }
+        
         // Check if admin
         if(!isAdmin()) {
-            if($this->isAjax()) {
+            if($this->isAjax() || $this->isPost()) {
                 $this->jsonResponse(['success' => false, 'message' => 'Unauthorized access'], 403);
                 return;
             }
             redirect('user/login');
+            return;
         }
-        
-        // Check if ID is provided
-        if(!$id) {
-            if($this->isAjax()) {
-                $this->jsonResponse(['success' => false, 'message' => 'Order ID is required'], 400);
+
+        // Verify CSRF token for POST/DELETE requests
+        $csrfToken = $this->post('csrf_token') ?? $this->getHeader('X-CSRF-TOKEN');
+        if (!verifyCsrfToken($csrfToken)) {
+            if($this->isAjax() || $this->isPost()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid CSRF token'], 403);
                 return;
             }
-            flash('order_error', 'Order ID is required', 'alert alert-danger');
+            flash('order_error', 'Invalid CSRF token', 'alert alert-danger');
             redirect('order/adminIndex');
+            return;
+        }
+        
+        // Check if ID is provided and valid
+        if(!$id || !is_numeric($id)) {
+            if($this->isAjax() || $this->isPost()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid order ID'], 400);
+                return;
+            }
+            flash('order_error', 'Invalid order ID', 'alert alert-danger');
+            redirect('order/adminIndex');
+            return;
         }
         
         // Check if order exists
         $order = $this->orderModel->getById($id);
         if(!$order) {
-            if($this->isAjax()) {
+            if($this->isAjax() || $this->isPost()) {
                 $this->jsonResponse(['success' => false, 'message' => 'Order not found'], 404);
                 return;
             }
             flash('order_error', 'Order not found', 'alert alert-danger');
             redirect('order/adminIndex');
-        }
-        
-        // Check if it's a POST request (for confirmation)
-        if($this->isPost()) {
-            // Delete the order
-            if($this->orderModel->deleteOrder($id)) {
-                if($this->isAjax()) {
-                    $this->jsonResponse(['success' => true, 'message' => 'Order deleted successfully']);
-                    return;
-                }
-                flash('order_success', 'Order deleted successfully');
-            } else {
-                if($this->isAjax()) {
-                    $this->jsonResponse(['success' => false, 'message' => 'Failed to delete order: ' . $this->orderModel->getLastError()], 500);
-                    return;
-                }
-                flash('order_error', 'Failed to delete order: ' . $this->orderModel->getLastError(), 'alert alert-danger');
-            }
-            
-            if(!$this->isAjax()) {
-                redirect('order/adminIndex');
-            }
             return;
         }
         
-        // If it's not a POST request, show confirmation page
-        $this->view('admin/orders/delete', [
-            'order' => $order
-        ]);
+        try {
+            error_log("Starting to delete order #$id and its items");
+            
+            // First, delete order items using the model method
+            $itemsDeleted = $this->orderModel->deleteOrderItems($id);
+            error_log("Deleted order items for order #$id. Result: " . ($itemsDeleted ? 'success' : 'failed'));
+            
+            if(!$itemsDeleted) {
+                $error = $this->db->getError();
+                error_log("Error deleting order items: " . $error);
+                throw new Exception('Failed to delete order items: ' . $error);
+            }
+            
+            // Then delete the order
+            $this->db->query("DELETE FROM " . $this->orderModel->getTableName() . " WHERE id = :id");
+            $this->db->bind(':id', $id);
+            
+            $orderDeleted = $this->db->execute();
+            error_log("Deleted order #$id. Result: " . ($orderDeleted ? 'success' : 'failed'));
+            
+            if(!$orderDeleted) {
+                $error = $this->db->getError();
+                error_log("Error deleting order: " . $error);
+                throw new Exception('Failed to delete order: ' . $error);
+            }
+            
+            // Clear any cached data
+            if (function_exists('apc_clear_cache')) {
+                apc_clear_cache();
+            }
+            
+            // Force a hard delete by running an additional query to ensure deletion
+            $this->db->query("SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';");
+            $this->db->query("OPTIMIZE TABLE " . $this->orderModel->getTableName() . ";");
+            
+            error_log("Successfully deleted order #$id and its items");
+            
+            // Check if this is an AJAX request or regular form submission
+            $isAjax = $this->isAjax() || $this->isPost() || !empty($_SERVER['HTTP_X_REQUESTED_WITH']);
+            
+            if($isAjax) {
+                $this->jsonResponse([
+                    'success' => true, 
+                    'message' => 'Order deleted successfully',
+                    'order_id' => $id
+                ]);
+                return;
+            }
+            
+            // For non-AJAX requests
+            flash('order_success', 'Order deleted successfully', 'alert alert-success');
+            redirect('order/adminIndex');
+            
+        } catch (Exception $e) {
+            // Rollback the transaction on error
+            $this->db->rollBack();
+            error_log('Error deleting order #' . $id . ': ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
+            // Check if this is an AJAX request or regular form submission
+            $isAjax = $this->isAjax() || $this->isPost() || !empty($_SERVER['HTTP_X_REQUESTED_WITH']);
+            
+            if($isAjax) {
+                $this->jsonResponse([
+                    'success' => false, 
+                    'message' => 'Failed to delete order: ' . $e->getMessage(),
+                    'order_id' => $id
+                ], 500);
+                return;
+            }
+            
+            // For non-AJAX requests
+            flash('order_error', 'Failed to delete order: ' . $e->getMessage(), 'alert alert-danger');
+            redirect('order/adminIndex');
+            
+            // Log database error if available
+            if (method_exists($this->db, 'getError')) {
+                $dbError = $this->db->getError();
+                if ($dbError) {
+                    error_log('Database error: ' . $dbError);
+                }
+            }
+            
+            $errorMessage = 'Failed to delete order. Please try again.';
+            
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => false, 
+                    'message' => $errorMessage,
+                    'debug' => [
+                        'error' => $e->getMessage(),
+                        'order_id' => $id,
+                        'time' => date('Y-m-d H:i:s')
+                    ]
+                ], 500);
+                return;
+            }
+            
+            flash('order_error', $errorMessage, 'alert alert-danger');
+        }
+        
+        // Redirect for non-AJAX requests
+        if(!$this->isAjax()) {
+            redirect('order/adminIndex');
+        }
     }
     
     /**
@@ -366,19 +464,81 @@ class OrderController extends Controller {
     public function adminIndex() {
         // Check if admin
         if(!isAdmin()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Unauthorized access'], 403);
+                return;
+            }
             redirect('user/login');
+            return;
         }
         
-        // Get page number
-        $page = $this->get('page', 1);
-        
-        // Get orders with pagination
-        $orders = $this->orderModel->paginate($page, 20, 'id', 'DESC');
-        
-        // Load view
-        $this->view('admin/orders/index', [
-            'orders' => $orders
-        ]);
+        try {
+            // Get page number and filter parameters
+            $page = (int)$this->get('page', 1);
+            $status = $this->get('status', '');
+            $paymentStatus = $this->get('payment_status', '');
+            $search = $this->get('search', '');
+            
+            // Prepare filters
+            $filters = [];
+            if (!empty($status)) {
+                $filters['status'] = $status;
+            }
+            if (!empty($paymentStatus)) {
+                $filters['payment_status'] = $paymentStatus;
+            }
+            if (!empty($search)) {
+                $filters['search'] = $search;
+            }
+            
+            // Add a filter to ensure we don't show deleted orders
+            $filters['exclude_deleted'] = true;
+            
+            // Get orders with pagination and filters
+            $orders = $this->orderModel->paginate($page, 20, 'id', 'DESC', $filters);
+            
+            // Debug: Log the SQL query being executed
+            error_log("Fetching orders with filters: " . print_r($filters, true));
+            error_log("Total orders found: " . (isset($orders['total']) ? $orders['total'] : 'unknown'));
+            
+            // For AJAX requests, return JSON
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => true,
+                    'data' => $orders['data'],
+                    'pagination' => [
+                        'current_page' => $orders['current_page'],
+                        'total_pages' => $orders['total_pages'],
+                        'total_items' => $orders['total']
+                    ]
+                ]);
+                return;
+            }
+            
+            // For regular requests, load the view
+            $this->view('admin/orders/index', [
+                'orders' => $orders,
+                'filters' => [
+                    'status' => $status,
+                    'payment_status' => $paymentStatus,
+                    'search' => $search
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Error in adminIndex: ' . $e->getMessage());
+            
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'An error occurred while fetching orders'
+                ], 500);
+                return;
+            }
+            
+            flash('order_error', 'An error occurred while fetching orders', 'alert alert-danger');
+            $this->view('admin/orders/index', ['orders' => []]);
+        }
     }
     
     /**
@@ -389,22 +549,51 @@ class OrderController extends Controller {
     public function adminShow($orderId) {
         // Check if admin
         if(!isAdmin()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Unauthorized access'], 403);
+                return;
+            }
             redirect('user/login');
+            return;
         }
         
-        // Get order with items
-        $order = $this->orderModel->getOrderWithItems($orderId);
-        
-        // Check if order exists
-        if(!$order) {
+        try {
+            // Get order with items
+            $order = $this->orderModel->getOrderWithItems($orderId);
+            
+            // Check if order exists
+            if(!$order) {
+                throw new Exception('Order not found');
+            }
+            
+            // For AJAX requests, return JSON
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => true,
+                    'data' => $order
+                ]);
+                return;
+            }
+            
+            // For regular requests, load the view
+            $this->view('admin/orders/show', [
+                'order' => $order
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Error in adminShow: ' . $e->getMessage());
+            
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+                return;
+            }
+            
             flash('order_error', 'Order not found', 'alert alert-danger');
-            redirect('admin/orders');
+            redirect('order/adminIndex');
         }
-        
-        // Load view
-        $this->view('admin/orders/show', [
-            'order' => $order
-        ]);
     }
     
     /**
@@ -415,36 +604,69 @@ class OrderController extends Controller {
     public function updateStatus($orderId) {
         // Check if admin
         if(!isAdmin()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Unauthorized access'], 403);
+                return;
+            }
             redirect('user/login');
+            return;
         }
         
-        // Get order
-        $order = $this->orderModel->getById($orderId);
-        
-        // Check if order exists
-        if(!$order) {
-            flash('order_error', 'Order not found', 'alert alert-danger');
-            redirect('admin/orders');
+        // Check if it's a POST request
+        if(!$this->isPost()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid request method'], 405);
+                return;
+            }
+            flash('order_error', 'Invalid request method', 'alert alert-danger');
+            redirect('order/adminIndex');
+            return;
         }
         
-        // Check for POST
-        if($this->isPost()) {
-            // Get new status
-            $status = $this->post('status');
-            
+        // Get and validate status
+        $status = $this->post('status');
+        if(empty($status)) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Status is required'], 400);
+                return;
+            }
+            flash('order_error', 'Status is required', 'alert alert-danger');
+            redirect('order/adminShow/' . $orderId);
+            return;
+        }
+        
+        try {
             // Update order status
             if($this->orderModel->updateOrderStatus($orderId, $status)) {
+                if($this->isAjax()) {
+                    $this->jsonResponse([
+                        'success' => true,
+                        'message' => 'Order status updated successfully',
+                        'status' => $status
+                    ]);
+                    return;
+                }
                 flash('order_success', 'Order status updated successfully');
             } else {
-                flash('order_error', 'Failed to update order status', 'alert alert-danger');
+                throw new Exception($this->orderModel->getLastError() ?? 'Failed to update order status');
+            }
+        } catch (Exception $e) {
+            error_log('Error updating order status: ' . $e->getMessage());
+            
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+                return;
             }
             
-            redirect('admin/orders/show/' . $orderId);
-        } else {
-            // Load view
-            $this->view('admin/orders/update_status', [
-                'order' => $order
-            ]);
+            flash('order_error', $e->getMessage(), 'alert alert-danger');
+        }
+        
+        // Redirect for non-AJAX requests
+        if(!$this->isAjax()) {
+            redirect('order/adminShow/' . $orderId);
         }
     }
     
@@ -456,36 +678,69 @@ class OrderController extends Controller {
     public function updatePaymentStatus($orderId) {
         // Check if admin
         if(!isAdmin()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Unauthorized access'], 403);
+                return;
+            }
             redirect('user/login');
+            return;
         }
         
-        // Get order
-        $order = $this->orderModel->getById($orderId);
-        
-        // Check if order exists
-        if(!$order) {
-            flash('order_error', 'Order not found', 'alert alert-danger');
-            redirect('admin/orders');
+        // Check if it's a POST request
+        if(!$this->isPost()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid request method'], 405);
+                return;
+            }
+            flash('order_error', 'Invalid request method', 'alert alert-danger');
+            redirect('order/adminIndex');
+            return;
         }
         
-        // Check for POST
-        if($this->isPost()) {
-            // Get new payment status
-            $status = $this->post('payment_status');
-            
+        // Get and validate payment status
+        $status = $this->post('status');
+        if(empty($status)) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Payment status is required'], 400);
+                return;
+            }
+            flash('order_error', 'Payment status is required', 'alert alert-danger');
+            redirect('order/adminShow/' . $orderId);
+            return;
+        }
+        
+        try {
             // Update payment status
             if($this->orderModel->updatePaymentStatus($orderId, $status)) {
+                if($this->isAjax()) {
+                    $this->jsonResponse([
+                        'success' => true,
+                        'message' => 'Payment status updated successfully',
+                        'payment_status' => $status
+                    ]);
+                    return;
+                }
                 flash('order_success', 'Payment status updated successfully');
             } else {
-                flash('order_error', 'Failed to update payment status', 'alert alert-danger');
+                throw new Exception($this->orderModel->getLastError() ?? 'Failed to update payment status');
+            }
+        } catch (Exception $e) {
+            error_log('Error updating payment status: ' . $e->getMessage());
+            
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+                return;
             }
             
-            redirect('admin/orders/show/' . $orderId);
-        } else {
-            // Load view
-            $this->view('admin/orders/update_payment_status', [
-                'order' => $order
-            ]);
+            flash('order_error', $e->getMessage(), 'alert alert-danger');
+        }
+        
+        // Redirect for non-AJAX requests
+        if(!$this->isAjax()) {
+            redirect('order/adminShow/' . $orderId);
         }
     }
     

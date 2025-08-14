@@ -146,6 +146,23 @@
                                 </a>
 
                                 <!-- 🛒 Add to Cart -->
+<<<<<<< HEAD
+                                <?php if($product['stock_quantity'] > 0): ?>
+                                    <?php if(isLoggedIn()): ?>
+                                        <div class="mt-auto">
+                                            <button type="button" class="btn btn-primary w-100 add-to-cart-btn" 
+                                                    data-bs-toggle="modal" data-bs-target="#productModal"
+                                                    data-product-id="<?php echo $product['id']; ?>"
+                                                    data-product-name="<?php echo htmlspecialchars($product['name'], ENT_QUOTES); ?>"
+                                                    data-product-price="<?php echo isset($product['sale_price']) ? $product['sale_price'] : $product['price']; ?>"
+                                                    data-product-stock="<?php echo $product['stock_quantity']; ?>">
+                                                <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                            </button>
+                                        </div>
+                                    <?php else: ?>
+                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
+                                    <?php endif; ?>
+=======
                                 <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
                                     <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form mt-2">
                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
@@ -169,7 +186,14 @@
                                         </div>
                                     </form>
                                 <?php elseif($product['stock_quantity'] > 0): ?>
+<<<<<<< HEAD
                                     
+=======
+                                    <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-primary btn-sm w-100">
+                                        Login to Buy
+                                    </a>
+>>>>>>> 1348f790bc390b2151bb017443092d0feb37385e
+>>>>>>> 530e7476867149b5be89f46c2ff7eb0d3aae2148
                                 <?php else: ?>
                                     <div class="alert alert-danger py-1 mb-0 text-center">Out of Stock</div>
                                 <?php endif; ?>
@@ -920,6 +944,115 @@ function updateSlider() {
 // Initialize slider
 document.addEventListener('DOMContentLoaded', () => {
     updateSlider();
+});
+</script>
+
+<!-- Product Details Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">Add to Cart</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
+                <input type="hidden" name="product_id" id="modalProductId" value="">
+                <div class="modal-body">
+                    <h6 id="modalProductName" class="mb-3"></h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">Price:</span>
+                            <span class="h5 mb-0 text-primary" id="modalProductPrice"></span>
+                        </div>
+                        <div class="input-group input-group-sm" style="width: 140px;">
+                            <button type="button" class="btn btn-outline-secondary quantity-decrease px-2">-</button>
+                            <input type="number" name="quantity" class="form-control text-center quantity-input" 
+                                   value="1" min="1" max="1" aria-label="Quantity">
+                            <button type="button" class="btn btn-outline-secondary quantity-increase px-2">+</button>
+                        </div>
+                    </div>
+                    <div class="small text-muted mb-3">
+                        <span id="stockInfo"></span> available
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle modal show event
+    var productModal = document.getElementById('productModal');
+    if (productModal) {
+        productModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var productId = button.getAttribute('data-product-id');
+            var productName = button.getAttribute('data-product-name');
+            var productPrice = parseFloat(button.getAttribute('data-product-price'));
+            var stockQuantity = parseInt(button.getAttribute('data-product-stock'));
+            
+            // Update modal content
+            document.getElementById('modalProductId').value = productId;
+            document.getElementById('modalProductName').textContent = productName;
+            document.getElementById('modalProductPrice').textContent = '₹' + productPrice.toFixed(2);
+            document.getElementById('stockInfo').textContent = stockQuantity + ' units';
+            
+            // Update quantity input max value
+            var quantityInput = productModal.querySelector('.quantity-input');
+            quantityInput.max = stockQuantity;
+            quantityInput.value = 1;
+        });
+    }
+    
+    // Quantity controls
+    function setupQuantityControls(container) {
+        container.querySelectorAll('.quantity-increase').forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentNode.querySelector('.quantity-input');
+                const max = parseInt(input.max);
+                let value = parseInt(input.value);
+                if (value < max) {
+                    input.value = value + 1;
+                }
+            });
+        });
+
+        container.querySelectorAll('.quantity-decrease').forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentNode.querySelector('.quantity-input');
+                const min = parseInt(input.min);
+                let value = parseInt(input.value);
+                if (value > min) {
+                    input.value = value - 1;
+                }
+            });
+        });
+    }
+    
+    // Setup quantity controls for both the main page and modal
+    setupQuantityControls(document);
+    
+    // Handle form submission
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const quantityInput = this.querySelector('.quantity-input');
+            const maxQuantity = parseInt(quantityInput.max);
+            const quantity = parseInt(quantityInput.value);
+            
+            if (quantity > maxQuantity) {
+                e.preventDefault();
+                alert('The requested quantity is not available in stock.');
+                quantityInput.value = maxQuantity;
+            }
+        });
+    });
 });
 </script>
 
