@@ -3,9 +3,14 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Manage Brands</h1>
-        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i> Add New Brand
-        </a>
+        <div class="d-flex gap-2">
+            <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Product
+            </a>
+            <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Add New Brand
+            </a>
+        </div>
     </div>
     
     <!-- Alert Messages -->

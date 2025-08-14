@@ -4,8 +4,11 @@
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h3 class="card-title mb-0">Add New Category</h3>
+                    <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Product
+                    </a>
                 </div>
                 <div class="card-body">
                     <?php if(isset($errors['db_error'])): ?>

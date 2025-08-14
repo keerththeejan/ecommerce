@@ -6,7 +6,14 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h3 class="card-title mb-0">Categories</h3>
-                    <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-light">Add New Category</a>
+                    <div class="d-flex gap-2">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Product
+                        </a>
+                        <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-light">
+                            <i class="fas fa-plus me-1"></i> Add New Category
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div id="alert-messages">

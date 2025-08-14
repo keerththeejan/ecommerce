@@ -49,7 +49,8 @@
                                 <div class="mb-3">
                                     <label for="country_id" class="form-label">Country of Origin</label>
                                     <div class="input-group">
-                                        <select class="form-select select2 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="width: 200px;">
+                                        <select class="form-select select2 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required>
+                                            <option value="">Select Country</option>
                                             <option value="">Select Country</option>
                                             <?php 
                                             // Get active countries
@@ -74,12 +75,12 @@
                                             endif; 
                                             ?>
                                         </select>
-                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCountryModal">
-                                            <i class="fas fa-plus me-1"></i> Add New
-                                        </button>
                                         <?php if(isset($errors['country_id'])): ?>
                                             <div class="invalid-feedback d-block"><?php echo $errors['country_id']; ?></div>
                                         <?php endif; ?>
+                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button">
+                                            <i class="fas fa-plus me-1"></i> Add New
+                                        </a>
                                     </div>
                                 </div>
 
@@ -104,9 +105,9 @@
                                             endif; 
                                             ?>
                                         </select>
-                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addBrandModal">
+                                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button">
                                             <i class="fas fa-plus me-1"></i> Add New
-                                        </button>
+                                        </a>
                                         <?php if(isset($errors['brand_id'])): ?>
                                             <div class="invalid-feedback d-block"><?php echo $errors['brand_id']; ?></div>
                                         <?php endif; ?>
@@ -208,9 +209,9 @@
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
                                         </select>
-                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                                        <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="btn btn-outline-primary" type="button">
                                             <i class="fas fa-plus me-1"></i> Add New
-                                        </button>
+                                        </a>
                                         <?php if(isset($errors['supplier'])): ?>
                                             <div class="invalid-feedback d-block"><?php echo $errors['supplier']; ?></div>
                                         <?php endif; ?>
@@ -238,9 +239,9 @@
                                             endif; 
                                             ?>
                                         </select>
-                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                        <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-outline-primary" type="button">
                                             <i class="fas fa-plus me-1"></i> Add New
-                                        </button>
+                                        </a>
                                         <?php if(isset($errors['category_id'])): ?>
                                             <div class="invalid-feedback d-block"><?php echo $errors['category_id']; ?></div>
                                         <?php endif; ?>

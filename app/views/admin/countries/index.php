@@ -9,7 +9,10 @@
                     <h5 class="mb-0">
                         <?php echo isset($data['selectedCountry']) ? 'Edit Country: ' . htmlspecialchars($data['selectedCountry']['name']) : 'Add New Country'; ?>
                     </h5>
-                    <div>
+                    <div class="d-flex gap-2">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Product
+                        </a>
                         <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addCountryModal">
                             <i class="fas fa-plus"></i> Add New Country
                         </button>
