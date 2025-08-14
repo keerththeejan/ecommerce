@@ -18,6 +18,32 @@ class Model {
             throw new Exception('Failed to connect to database. Please check your configuration.');
         }
     }
+
+    /**
+     * Get list of column names for the current table
+     *
+     * @return array
+     */
+    protected function getTableColumns() {
+        $cols = [];
+        try {
+            $pdo = $this->db->getConnection();
+            if ($pdo) {
+                $stmt = $pdo->query("SHOW COLUMNS FROM `{$this->table}`");
+                if ($stmt) {
+                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        if (isset($row['Field'])) {
+                            $cols[] = $row['Field'];
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // ignore, will fallback later
+        }
+        return $cols;
+    }
+    
     
     /**
      * Get all records from the table
@@ -116,9 +142,27 @@ class Model {
             return false;
         }
         
+        // Filter out non-existent columns to avoid SQL errors
+        $filtered = [];
+        foreach ($data as $key => $value) {
+            try {
+                if ($this->db->columnExists($this->table, $key)) {
+                    $filtered[$key] = $value;
+                }
+            } catch (Exception $e) {
+                // If columnExists is not available for some reason, fall back to original behavior
+                $filtered[$key] = $value;
+            }
+        }
+        
+        if (empty($filtered)) {
+            // Fall back to original data to avoid blocking inserts when column detection fails
+            $filtered = $data;
+        }
+        
         // Prepare column names and placeholders
-        $columns = implode(', ', array_keys($data));
-        $placeholders = ':' . implode(', :', array_keys($data));
+        $columns = implode(', ', array_keys($filtered));
+        $placeholders = ':' . implode(', :', array_keys($filtered));
         
         $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
         
@@ -128,7 +172,7 @@ class Model {
         }
         
         // Bind values
-        foreach($data as $key => $value) {
+        foreach($filtered as $key => $value) {
             if(!$this->db->bind(':' . $key, $value)) {
                 $this->lastError = $this->db->getError();
                 return false;
@@ -164,9 +208,38 @@ class Model {
             return false;
         }
         
+        // Filter out non-existent columns to avoid SQL errors (mirror create())
+        $filtered = [];
+        foreach ($data as $key => $value) {
+            try {
+                if ($this->db->columnExists($this->table, $key)) {
+                    $filtered[$key] = $value;
+                }
+            } catch (Exception $e) {
+                // If columnExists fails unexpectedly, fall back to including the key
+                $filtered[$key] = $value;
+            }
+        }
+        
+        if (empty($filtered)) {
+            // Attempt a secondary filter using table schema introspection
+            $columns = $this->getTableColumns();
+            if (!empty($columns)) {
+                foreach ($data as $key => $value) {
+                    if (in_array($key, $columns, true)) {
+                        $filtered[$key] = $value;
+                    }
+                }
+            }
+            // As a last resort, avoid blocking updates entirely
+            if (empty($filtered)) {
+                $filtered = $data;
+            }
+        }
+        
         // Prepare SET clause
         $setClause = '';
-        foreach(array_keys($data) as $key) {
+        foreach(array_keys($filtered) as $key) {
             $setClause .= "{$key} = :{$key}, ";
         }
         $setClause = rtrim($setClause, ', ');
@@ -184,7 +257,7 @@ class Model {
             return false;
         }
         
-        foreach($data as $key => $value) {
+        foreach($filtered as $key => $value) {
             if(!$this->db->bind(':' . $key, $value)) {
                 $this->lastError = $this->db->getError();
                 return false;

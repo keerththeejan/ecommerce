@@ -91,6 +91,9 @@
                                         <th>Image</th>
                                         <th>Name</th>
                                         <th>SKU</th>
+                                        <th>Batch No.</th>
+                                        <th>Supplier</th>
+                                        <th>Expiry</th>
                                         <th>Buying Price</th>
                                         <th>Including Tax Price</th>
                                         <th>Sales Price</th>
@@ -114,6 +117,31 @@
                                             </td>
                                             <td><?php echo htmlspecialchars($product['name']); ?></td>
                                             <td><?php echo htmlspecialchars($product['sku']); ?></td>
+                                            <td><?php echo !empty($product['batch_number']) ? htmlspecialchars($product['batch_number']) : '<span class="text-muted">-</span>'; ?></td>
+                                            <td>
+                                                <?php 
+                                                    $supplierName = '';
+                                                    if (!empty($product['supplier'])) {
+                                                        $supplierName = $product['supplier'];
+                                                    } elseif (!empty($product['supplier_id']) && !empty($supplierMap) && isset($supplierMap[$product['supplier_id']])) {
+                                                        $supplierName = $supplierMap[$product['supplier_id']];
+                                                    }
+                                                ?>
+                                                <?php echo $supplierName !== '' ? htmlspecialchars($supplierName) : '<span class="text-muted">-</span>'; ?>
+                                            </td>
+                                            <td>
+                                                <?php if(!empty($product['expiry_date'])): ?>
+                                                    <?php echo htmlspecialchars($product['expiry_date']); ?>
+                                                    <?php 
+                                                    // Highlight expired products
+                                                    $isExpired = false;
+                                                    try { $isExpired = (strtotime($product['expiry_date']) < time()); } catch (Exception $e) { $isExpired = false; }
+                                                    ?>
+                                                    <?php if($isExpired): ?><span class="badge bg-danger ms-1">Expired</span><?php endif; ?>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </td>
                                             <td><?php echo formatPrice($product['price']); ?></td>
                                             <td>
                                                 <?php if(!empty($product['sale_price'])): ?>

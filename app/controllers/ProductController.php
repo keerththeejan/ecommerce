@@ -6,10 +6,12 @@
 class ProductController extends Controller {
     private $productModel;
     private $categoryModel;
+    private $supplierModel;
     
     public function __construct() {
         $this->productModel = $this->model('Product');
         $this->categoryModel = $this->model('Category');
+        $this->supplierModel = $this->model('Supplier');
     }
     
     /**
@@ -22,7 +24,17 @@ class ProductController extends Controller {
         // Get all products with pagination
         $products = $this->productModel->getAllProducts($page, 12);
         
-
+        // Get specific products in the requested order
+        $specificProductNames = ['Ashwiny', 'keerthtikan', 'keethan', 'kujinsha', 'pirathi', 'thilu', 'vanu', 'yathu'];
+        $specificProducts = [];
+        
+        // Fetch each specific product by name
+        foreach ($specificProductNames as $name) {
+            $product = $this->productModel->getProductByName($name);
+            if ($product) {
+                $specificProducts[] = $product;
+            }
+        }
         
         // Get categories for filter
         $categories = $this->categoryModel->getActiveCategories();
@@ -30,7 +42,7 @@ class ProductController extends Controller {
         // Load view with both regular and specific products
         $this->view('customer/products/index', [
             'products' => $products,
-            'specificProducts' => [], // Initialize as empty array
+            'specificProducts' => $specificProducts,
             'categories' => $categories
         ]);
     }
@@ -154,9 +166,36 @@ class ProductController extends Controller {
         // Get products with pagination
         $products = $this->productModel->paginate($page, 20, 'id', 'DESC');
         
+        // Normalize rows to associative arrays to avoid blank fields in view
+        if (isset($products['data']) && is_array($products['data'])) {
+            foreach ($products['data'] as $idx => $row) {
+                if (is_object($row)) {
+                    $products['data'][$idx] = (array)$row;
+                }
+            }
+        }
+        
+        // Preload suppliers map for display fallback
+        $supplierMap = [];
+        if (property_exists($this, 'supplierModel') && $this->supplierModel) {
+            try {
+                $suppliers = $this->supplierModel->getAllSuppliers();
+                if (is_array($suppliers)) {
+                    foreach ($suppliers as $s) {
+                        if (isset($s['id']) && isset($s['name'])) {
+                            $supplierMap[$s['id']] = $s['name'];
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // ignore supplier preload errors in admin list
+            }
+        }
+        
         // Load view
         $this->view('admin/products/index', [
-            'products' => $products
+            'products' => $products,
+            'supplierMap' => $supplierMap
         ]);
     }
     
@@ -171,6 +210,8 @@ class ProductController extends Controller {
         
         // Get categories for dropdown
         $categories = $this->categoryModel->getActiveCategories();
+        // Get suppliers for dropdown
+        $suppliers = method_exists($this->supplierModel, 'getAllSuppliers') ? $this->supplierModel->getAllSuppliers() : [];
         
         // Check for POST
         if($this->isPost()) {
@@ -186,7 +227,10 @@ class ProductController extends Controller {
                 'price3' => $this->post('price3') ?: $this->post('price'),
                 'stock_quantity' => $this->post('stock_quantity'),
                 'category_id' => $this->post('category_id'),
-                'status' => $this->post('status')
+                'status' => $this->post('status'),
+                'expiry_date' => $this->post('expiry_date') ?: null,
+                'supplier' => sanitize($this->post('supplier')),
+                'batch_number' => sanitize($this->post('batch_number'))
             ];
             
             // Handle SKU - generate if empty or check for uniqueness
@@ -228,7 +272,10 @@ class ProductController extends Controller {
                 'category_id' => 'required|numeric',
                 'price2' => 'nullable|numeric',
                 'price3' => 'nullable|numeric',
-                'sale_price' => 'nullable|numeric'
+                'sale_price' => 'nullable|numeric',
+                'supplier' => 'nullable|max:255',
+                'batch_number' => 'nullable|max:100',
+                'expiry_date' => 'nullable'
             ];
             
             $validationErrors = $this->validate($data, $validationRules);
@@ -250,11 +297,40 @@ class ProductController extends Controller {
                             return;
                         }
                         
-                        flash('product_success', 'Product created successfully', 'alert alert-success');
+                        // Set success message
+                        $success = 'Product created successfully';
                         
-                        // Redirect to product list on success
-                        redirect('product/adminIndex');
-                        return;
+                        // If it's an AJAX request, return success
+                        if($this->isAjax()) {
+                            $this->json([
+                                'success' => true, 
+                                'message' => $success,
+                                'productId' => $productId
+                            ]);
+                            return;
+                        }
+                        
+                        // For regular form submission, stay on the same page with success message
+                        $data = [
+                            'name' => '',
+                            'description' => '',
+                            'price' => '',
+                            'sale_price' => '',
+                            'stock_quantity' => '',
+                            'sku' => '',
+                            'category_id' => '',
+                            'status' => 'active',
+                            'expiry_date' => '',
+                            'supplier' => '',
+                            'batch_number' => ''
+                        ];
+                        
+                        $this->view('admin/products/create', [
+                            'data' => $data,
+                            'categories' => $categories,
+                            'success' => $success,
+                            'errors' => []
+                        ]);
                         return;
                     } else {
                         throw new Exception('Failed to create product');
@@ -279,7 +355,8 @@ class ProductController extends Controller {
             $this->view('admin/products/create', [
                 'errors' => $errors,
                 'data' => $data,
-                'categories' => $categories
+                'categories' => $categories,
+                'suppliers' => $suppliers
             ]);
         } else {
             // Init data
@@ -291,13 +368,17 @@ class ProductController extends Controller {
                 'stock_quantity' => '',
                 'sku' => '',
                 'category_id' => '',
-                'status' => 'active'
+                'status' => 'active',
+                'expiry_date' => '',
+                'supplier' => '',
+                'batch_number' => ''
             ];
             
             // Load view
             $this->view('admin/products/create', [
                 'data' => $data,
                 'categories' => $categories,
+                'suppliers' => $suppliers,
                 'errors' => []
             ]);
         }
@@ -333,6 +414,8 @@ class ProductController extends Controller {
         
         // Get categories for dropdown
         $categories = $this->categoryModel->getActiveCategories();
+        // Get suppliers for dropdown
+        $suppliers = method_exists($this->supplierModel, 'getAllSuppliers') ? $this->supplierModel->getAllSuppliers() : [];
         
         // Check for POST request
         if($this->isPost()) {
@@ -348,7 +431,10 @@ class ProductController extends Controller {
                     'stock_quantity' => $this->post('stock_quantity'),
                     'sku' => sanitize($this->post('sku')),
                     'category_id' => $this->post('category_id'),
-                    'status' => $this->post('status') ?: 'active'
+                    'status' => $this->post('status') ?: 'active',
+                    'expiry_date' => $this->post('expiry_date') ?: null,
+                    'supplier' => sanitize($this->post('supplier')),
+                    'batch_number' => sanitize($this->post('batch_number'))
                 ];
                 
                 // Validate data before processing
@@ -358,7 +444,10 @@ class ProductController extends Controller {
                     'stock_quantity' => 'required|numeric',
                     'sku' => 'required|max:50',
                     'category_id' => 'required',
-                    'status' => 'required|in:active,inactive'
+                    'status' => 'required|in:active,inactive',
+                    'supplier' => 'nullable|max:255',
+                    'batch_number' => 'nullable|max:100',
+                    'expiry_date' => 'nullable'
                 ]);
                 
                 if(!empty($errors)) {
@@ -415,24 +504,35 @@ class ProductController extends Controller {
                 
                 // Update product in database
                 if(!$this->productModel->update($id, $data)) {
-                    throw new Exception('Failed to update product in database');
+                    $lastError = method_exists($this->productModel, 'getLastError') ? $this->productModel->getLastError() : '';
+                    $detail = $lastError ? (': ' . $lastError) : '';
+                    throw new Exception('Failed to update product in database' . $detail);
                 }
                 
                 // Get updated product data
                 $updatedProduct = $this->productModel->getById($id);
                 
-                // Prepare response
+                // Prepare response using updated product data
+                $payload = is_array($updatedProduct) ? $updatedProduct : $data;
                 $response = [
                     'success' => true,
                     'message' => 'Product updated successfully',
                     'data' => [
                         'id' => $id,
-                        'name' => $data['name'],
-                        'price' => number_format($data['price'], 2),
-                        'sale_price' => $data['sale_price'] ? number_format($data['sale_price'], 2) : null,
-                        'stock_quantity' => (int)$data['stock_quantity'],
-                        'image' => $data['image'] ?? $product['image'] ?? null,
-                        'status' => $data['status']
+                        'name' => $payload['name'] ?? $data['name'] ?? $product['name'],
+                        'description' => $payload['description'] ?? $data['description'] ?? $product['description'] ?? '',
+                        'price' => isset($payload['price']) ? $payload['price'] : ($data['price'] ?? $product['price']),
+                        'sale_price' => $payload['sale_price'] ?? ($data['sale_price'] ?? null),
+                        'price2' => $payload['price2'] ?? ($data['price2'] ?? null),
+                        'price3' => $payload['price3'] ?? ($data['price3'] ?? null),
+                        'stock_quantity' => isset($payload['stock_quantity']) ? $payload['stock_quantity'] : ($data['stock_quantity'] ?? $product['stock_quantity']),
+                        'image' => $payload['image'] ?? ($data['image'] ?? ($product['image'] ?? null)),
+                        'sku' => $payload['sku'] ?? ($data['sku'] ?? $product['sku'] ?? ''),
+                        'category_id' => $payload['category_id'] ?? ($data['category_id'] ?? $product['category_id'] ?? null),
+                        'status' => $payload['status'] ?? ($data['status'] ?? $product['status'] ?? 'active'),
+                        'expiry_date' => $payload['expiry_date'] ?? ($data['expiry_date'] ?? null),
+                        'supplier' => $payload['supplier'] ?? ($data['supplier'] ?? null),
+                        'batch_number' => $payload['batch_number'] ?? ($data['batch_number'] ?? null),
                     ]
                 ];
                 
@@ -459,7 +559,8 @@ class ProductController extends Controller {
                 $this->view('admin/products/edit', [
                     'errors' => ['form' => $errorMsg],
                     'product' => array_merge($product, $data ?? []),
-                    'categories' => $categories
+                    'categories' => $categories,
+                    'suppliers' => $suppliers
                 ]);
                 return;
             }
@@ -469,17 +570,18 @@ class ProductController extends Controller {
                 redirect('admin/products');
             }
         } else {
-            // Load view
+            // Load view on initial GET
             $this->view('admin/products/edit', [
                 'product' => $product,
                 'categories' => $categories,
+                'suppliers' => $suppliers,
                 'errors' => []
             ]);
+            return;
         }
     }
     
     /**
-     * Admin: Delete product
      * 
      * @param int $id Product ID
      */
