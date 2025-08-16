@@ -72,6 +72,134 @@ class PurchaseController {
         }
     }
 
+    // Get products by supplier
+    public function getProductsBySupplier() {
+        // Start output buffering to catch any unexpected output
+        ob_start();
+        
+        // Set JSON header first to ensure consistent output
+        header('Content-Type: application/json');
+        
+        // Initialize response array
+        $response = [
+            'success' => false,
+            'message' => '',
+            'products' => [],
+            'debug' => []
+        ];
+        
+        try {
+            // Get supplier ID from request
+            $supplierId = isset($_GET['supplier_id']) ? (int)$_GET['supplier_id'] : 0;
+            $response['debug']['supplier_id'] = $supplierId;
+            $response['debug']['request_data'] = $_GET;
+            
+            if (empty($supplierId)) {
+                throw new Exception('Please select a supplier');
+            }
+            
+            // First, let's see what suppliers we have
+            $this->db->query("SELECT * FROM suppliers");
+            $allSuppliers = $this->db->resultSet();
+            $response['debug']['all_suppliers'] = $allSuppliers;
+            
+            // Get the selected supplier
+            $this->db->query("SELECT * FROM suppliers WHERE id = :id");
+            $this->db->bind(':id', $supplierId);
+            $supplier = $this->db->single();
+            
+            // Debug the supplier data
+            $response['debug']['supplier_raw'] = $supplier;
+            
+            if (empty($supplier)) {
+                throw new Exception('Supplier not found in database for ID: ' . $supplierId);
+            }
+            
+            // Convert to object if it's an array
+            if (is_array($supplier)) {
+                $supplier = (object)$supplier;
+            }
+            
+            if (!property_exists($supplier, 'name')) {
+                throw new Exception('Supplier name not found for ID: ' . $supplierId);
+            }
+            
+            $supplierName = trim($supplier->name);
+            
+            // Get all products to see what we're working with
+            $this->db->query("SELECT * FROM products WHERE status = 'active'");
+            $allProducts = $this->db->resultSet();
+            $response['debug']['all_products_sample'] = array_slice($allProducts, 0, 5);
+            
+            // Get products for this supplier - using only the supplier name
+            $this->db->query("SELECT * FROM products 
+                             WHERE status = 'active' 
+                             AND supplier = :supplier_name
+                             ORDER BY name ASC");
+            $this->db->bind(':supplier_name', $supplierName);
+            $products = $this->db->resultSet();
+            
+            // Debug: Show the actual SQL query being executed
+            $response['debug']['sql_query'] = "SELECT * FROM products WHERE status = 'active' AND supplier = '" . $supplierName . "' ORDER BY name ASC";
+            
+            // If no products found, try case-insensitive and partial match
+            if (empty($products)) {
+                $this->db->query("SELECT * FROM products 
+                                 WHERE status = 'active' 
+                                 AND LOWER(supplier) LIKE LOWER(CONCAT('%', :supplier_name, '%'))
+                                 ORDER BY name ASC");
+                $this->db->bind(':supplier_name', $supplierName);
+                $products = $this->db->resultSet();
+                
+                $response['debug']['fallback_query_used'] = true;
+                $response['debug']['fallback_query'] = "SELECT * FROM products WHERE status = 'active' AND LOWER(supplier) LIKE LOWER('%" . $supplierName . "%') ORDER BY name ASC";
+            }
+            
+            // Debug information
+            $response['debug']['query'] = [
+                'supplier_id' => $supplierId,
+                'supplier_name' => $supplierName,
+                'products_found' => count($products)
+            ];
+            
+            $response['success'] = true;
+            $response['products'] = $products;
+            $response['message'] = 'Showing products for ' . $supplier->name;
+            $response['debug']['supplier'] = $supplier->name;
+            $response['debug']['products_count'] = count($products);
+            
+            if (empty($products)) {
+                $response['message'] = 'No products found for ' . $supplier->name;
+                $response['products'] = [];
+            }
+            
+        } catch (Exception $e) {
+            $response['success'] = false;
+            $response['message'] = $e->getMessage();
+            $response['debug']['error'] = $e->getMessage();
+            
+            // Log the error
+            error_log('Error in getProductsBySupplier: ' . $e->getMessage());
+            error_log('Trace: ' . $e->getTraceAsString());
+        }
+        
+        // Get any output that might have been generated
+        $output = ob_get_clean();
+        if (!empty($output)) {
+            $response['debug']['unexpected_output'] = $output;
+            error_log('Unexpected output detected: ' . $output);
+        }
+        
+        // Ensure we have clean output
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        
+        // Send the JSON response
+        echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // Store a new purchase
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -101,18 +229,29 @@ class PurchaseController {
                 $purchaseId = $this->purchaseModel->create($purchaseData);
 
                 if ($purchaseId) {
-                    flash('success', 'Purchase created successfully!');
-                    redirect('purchase/index');
+                    if ($this->isAjaxRequest()) {
+                        echo json_encode(['success' => true, 'message' => 'Purchase created successfully!']);
+                        exit;
+                    } else {
+                        flash('success', 'Purchase created successfully!');
+                        redirect('purchase/index');
+                    }
                 } else {
                     throw new Exception('Failed to create purchase.');
                 }
             } catch (Exception $e) {
                 error_log('Error in PurchaseController::store - ' . $e->getMessage());
-                flash('error', $e->getMessage());
                 
-                // Repopulate form data
-                $_SESSION['form_data'] = $_POST;
-                redirect('purchase/create');
+                if ($this->isAjaxRequest()) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                    exit;
+                } else {
+                    flash('error', $e->getMessage());
+                    // Repopulate form data
+                    $_SESSION['form_data'] = $_POST;
+                    redirect('purchase/create');
+                }
             }
         } else {
             redirect('purchase/create');

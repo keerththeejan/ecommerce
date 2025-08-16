@@ -5,17 +5,14 @@ unset($_SESSION['form_data']);
 
 // Default values
 $supplierId = $formData['supplier_id'] ?? '';
-$purchaseDate = $formData['purchase_date'] ?? date('Y-m-d');
-$status = $formData['status'] ?? 'pending';
-$notes = $formData['notes'] ?? '';
 $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_price' => '']];
 ?>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800"><?php echo $title; ?></h1>
-        <a href="<?php echo BASE_URL; ?>?controller=purchase&action=index" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to List
+        <a href="<?php echo BASE_URL; ?>?controller=home&action=admin" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Admin
         </a>
     </div>
 
@@ -23,7 +20,7 @@ $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_pric
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="<?php echo BASE_URL; ?>?controller=purchase&action=store" method="POST" id="purchaseForm">
+            <form id="purchaseForm" onsubmit="submitForm(event)">
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
@@ -39,141 +36,25 @@ $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_pric
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <div class="form-group mb-3">
                             <label for="purchase_date" class="form-label">Purchase Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="purchase_date" name="purchase_date" 
-                                   value="<?php echo $purchaseDate; ?>" required>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
-                                <option value="pending" <?php echo ($status === 'pending') ? 'selected' : ''; ?>>Pending</option>
-                                <option value="ordered" <?php echo ($status === 'ordered') ? 'selected' : ''; ?>>Ordered</option>
-                                <option value="received" <?php echo ($status === 'received') ? 'selected' : ''; ?>>Received</option>
-                                <option value="cancelled" <?php echo ($status === 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-                            </select>
+                            <input type="date" class="form-control" id="purchase_date" name="purchase_date" required 
+                                   value="<?php echo date('Y-m-d'); ?>">
                         </div>
                     </div>
                 </div>
 
-                <div class="row mb-3">
+                <!-- Products Section -->
+                <div class="row mb-4">
                     <div class="col-12">
-                        <div class="form-group">
-                            <label for="notes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="2"><?php echo htmlspecialchars($notes); ?></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Purchase Items</h5>
-                        <button type="button" class="btn btn-sm btn-primary" id="addItemBtn">
-                            <i class="fas fa-plus me-1"></i> Add Item
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <style>
-                            .item-row {
-                                margin-bottom: 1rem;
-                            }
-                            
-                            .product-select-container {
-                                position: relative;
-                                display: flex;
-                                align-items: center;
-                                gap: 10px;
-                            }
-                            
-                            .product-image-preview {
-                                flex-shrink: 0;
-                            }
-                            
-                            .product-select {
-                                flex-grow: 1;
-                            }
-                        </style>
-                        <div id="purchaseItems">
-                            <?php foreach ($items as $index => $item): ?>
-                                <div class="row mb-3 item-row" data-index="<?php echo $index; ?>">
-                                    <div class="col-md-5">
-                                        <div class="product-select-container">
-                                            <select class="form-select product-select" name="items[<?php echo $index; ?>][product_id]" required>
-                                                <option value="">Select Product</option>
-                                                <?php foreach ($products as $product): 
-                                                    // Get product image path
-                                                    $imagePath = BASE_URL . 'assets/img/no-image.jpg';
-                                                    if (!empty($product['image'])) {
-                                                        $possiblePaths = [
-                                                            'uploads/products/' . $product['image'],
-                                                            $product['image'],
-                                                            'public/uploads/products/' . $product['image']
-                                                        ];
-                                                        
-                                                        foreach ($possiblePaths as $path) {
-                                                            $fullPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT'] . '/ecommerce/' . ltrim($path, '/\\'));
-                                                            if (file_exists($fullPath)) {
-                                                                $imagePath = BASE_URL . ltrim($path, '/\\');
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                ?>
-                                                <option 
-                                                    value="<?php echo $product['id']; ?>" 
-                                                    data-price="<?php echo $product['purchase_price']; ?>"
-                                                    data-image="<?php echo $imagePath; ?>"
-                                                    data-sku="<?php echo htmlspecialchars($product['sku']); ?>"
-                                                    <?php echo (isset($item['product_id']) && $item['product_id'] == $product['id']) ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($product['name'] . ' (' . $product['sku'] . ')'); ?>
-                                                </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <div class="product-image-preview">
-                                                <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" alt="Product Image" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: cover;" id="preview-<?php echo $index; ?>">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <input type="number" class="form-control quantity" name="items[<?php echo $index; ?>][quantity]" 
-                                               min="1" value="<?php echo $item['quantity'] ?? 1; ?>" required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="input-group">
-                                            <span class="input-group-text"><?php echo CURRENCY_SYMBOL; ?></span>
-                                            <input type="number" class="form-control unit-price" name="items[<?php echo $index; ?>][unit_price]" 
-                                                   min="0" step="0.01" value="<?php echo format_currency($item['unit_price'] ?? ''); ?>" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-sm btn-danger remove-item" <?php echo ($index === 0) ? 'disabled' : ''; ?>>
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-8"></div>
-                            <div class="col-md-4">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <strong>Subtotal:</strong>
-                                    <span id="subtotal"><?php echo CURRENCY_SYMBOL; ?>0.00</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <strong>Tax (0%):</strong>
-                                    <span id="tax"><?php echo CURRENCY_SYMBOL; ?>0.00</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <strong>Shipping:</strong>
-                                    <span id="shipping"><?php echo CURRENCY_SYMBOL; ?>0.00</span>
-                                </div>
-                                <div class="d-flex justify-content-between border-top pt-2">
-                                    <strong>Total:</strong>
-                                    <strong id="total"><?php echo CURRENCY_SYMBOL; ?>0.00</strong>
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Products</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="products-container">
+                                    <p class="text-muted">Please select a supplier to view available products.</p>
                                 </div>
                             </div>
                         </div>
@@ -189,249 +70,239 @@ $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_pric
     </div>
 </div>
 
-<!-- Template for new item row -->
-<template id="itemTemplate">
-    <div class="row mb-3 item-row" data-index="{{index}}">
-        <div class="col-md-5">
-            <div class="product-select-container">
-            <select class="form-select product-select" name="items[{{index}}][product_id]" required>
-                <option value="">Select Product</option>
-                <?php foreach ($products as $product): 
-                    // Get product image path for template
-                    $imagePath = BASE_URL . 'assets/img/no-image.jpg';
-                    if (!empty($product['image'])) {
-                        $possiblePaths = [
-                            'uploads/products/' . $product['image'],
-                            $product['image'],
-                            'public/uploads/products/' . $product['image']
-                        ];
-                        
-                        foreach ($possiblePaths as $path) {
-                            $fullPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT'] . '/ecommerce/' . ltrim($path, '/\\'));
-                            if (file_exists($fullPath)) {
-                                $imagePath = BASE_URL . ltrim($path, '/\\');
-                                break;
-                            }
-                        }
-                    }
-                ?>
-                <option 
-                    value="<?php echo $product['id']; ?>" 
-                    data-price="<?php echo $product['purchase_price']; ?>"
-                    data-image="<?php echo $imagePath; ?>"
-                    data-sku="<?php echo htmlspecialchars($product['sku']); ?>"
-                    <?php echo (isset($item['product_id']) && $item['product_id'] == $product['id']) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($product['name'] . ' (' . $product['sku'] . ')'); ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-            <div class="product-image-preview">
-                <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" alt="Product Image" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: cover;" id="preview-{{index}}">
-            </div>
-        </div>
-        </div>
-        <div class="col-md-2">
-            <input type="number" class="form-control quantity" name="items[{{index}}][quantity]" min="1" value="1" required>
-        </div>
-        <div class="col-md-3">
-            <div class="input-group">
-                <span class="input-group-text"><?php echo CURRENCY_SYMBOL; ?></span>
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control unit-price" name="items[{{index}}][unit_price]" 
-                       min="0" step="0.01" required>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-sm btn-danger remove-item">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-</template>
-
 <script>
 // Get currency symbol from PHP
 const CURRENCY_SYMBOL = '<?php echo CURRENCY_SYMBOL; ?>';
+const BASE_URL = '<?php echo BASE_URL; ?>';
+
+// Function to load products by supplier
+async function loadProducts(supplierId) {
+    if (!supplierId) {
+        $('#products-container').html('<p class="text-muted">Please select a supplier to view products.</p>');
+        return;
+    }
+
+    try {
+        $('#products-container').html('<div class="text-center py-3"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div> <span class="ms-2">Loading products...</span></div>');
+        
+        // Get products for the selected supplier
+        const response = await fetch(`${BASE_URL}?controller=purchase&action=getProductsBySupplier&supplier_id=${supplierId}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server response:', errorText);
+            throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Products response:', result);
+        
+        if (result && result.success) {
+            if (result.products && result.products.length > 0) {
+                let html = `
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-rows">`;
+                
+                // Add all active products
+                result.products.forEach(product => {
+                    html += `
+                            <tr data-product-id="${product.id}">
+                                <td>
+                                    <strong>${product.name}</strong>`;
+                    
+                    if (product.status && product.status !== 'active') {
+                        html += `
+                                    <span class="badge bg-warning text-dark ms-2">${product.status}</span>`;
+                    }
+                    
+                    html += `
+                                    <input type="hidden" name="items[${product.id}][product_id]" value="${product.id}">
+                                </td>
+                                <td>${product.code || 'N/A'}</td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">${CURRENCY_SYMBOL}</span>
+                                        <input type="number" class="form-control price-input" 
+                                               name="items[${product.id}][unit_price]" 
+                                               value="${parseFloat(product.price || 0).toFixed(2)}" 
+                                               min="0" step="0.01" required>
+                                    </div>
+                                </td>
+                                <td style="width: 120px;">
+                                    <input type="number" class="form-control form-control-sm quantity-input" 
+                                           name="items[${product.id}][quantity]" 
+                                           value="1" min="1" required>
+                                </td>
+                                <td class="total-price" style="width: 120px;">
+                                    ${CURRENCY_SYMBOL}${parseFloat(product.price || 0).toFixed(2)}
+                                </td>
+                            </tr>`;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                </div>`;
+                
+                $('#products-container').html(html);
+                updateTotals();
+            } else {
+                // No products found
+                let message = '<div class="alert alert-info">';
+                message += '<i class="fas fa-info-circle me-2"></i>';
+                message += result.message || 'No products found for the selected supplier. ';
+                message += 'Please add products to this supplier first.';
+                message += '</div>';
+                
+                if (result.debug) {
+                    message += '<div class="mt-3 p-3 bg-light rounded">';
+                    message += '<h6>Debug Info:</h6>';
+                    message += '<pre class="mb-0">' + JSON.stringify(result.debug, null, 2) + '</pre>';
+                    message += '</div>';
+                }
+                
+                $('#products-container').html(message);
+            }
+        } else {
+            const errorMsg = result.message || 'No products found for this supplier';
+            console.error('Error from server:', errorMsg, result);
+            
+            let message = '<div class="alert alert-warning">';
+            message += '<i class="fas fa-exclamation-triangle me-2"></i>';
+            message += errorMsg;
+            message += '</div>';
+            
+            // Add debug info if available
+            if (result.debug) {
+                message += '<div class="mt-3 small text-muted">';
+                message += '<strong>Debug Info:</strong><br>';
+                message += `Supplier ID: ${result.debug.supplier_id || 'N/A'}<br>`;
+                message += `Products Count: ${result.debug.products_count || 0}<br>`;
+                if (result.debug.error) {
+                    message += `Error: ${result.debug.error}<br>`;
+                }
+                message += '</div>';
+            }
+            
+            $('#products-container').html(message);
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        
+        let errorMessage = '<div class="alert alert-danger">';
+        errorMessage += '<i class="fas fa-exclamation-circle me-2"></i>';
+        errorMessage += 'Error loading products. ';
+        errorMessage += error.message || 'Please try again later.';
+        errorMessage += '</div>';
+        
+        // Add more detailed error information in development
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+            errorMessage += '<div class="mt-3 small">';
+            errorMessage += '<strong>Error Details:</strong><br>';
+            errorMessage += error.stack || error.toString();
+            errorMessage += '</div>';
+        }
+        
+        $('#products-container').html(errorMessage);
+    }
+}
+
+
+
+// Function to update totals
+function updateTotals() {
+    let grandTotal = 0;
+    
+    $('tr[data-product-id]').each(function() {
+        const $row = $(this);
+        const price = parseFloat($row.find('.price-input').val()) || 0;
+        const quantity = parseInt($row.find('.quantity-input').val()) || 0;
+        const total = price * quantity;
+        
+        $row.find('.total-price').text(`${CURRENCY_SYMBOL}${total.toFixed(2)}`);
+        grandTotal += total;
+    });
+    
+    // Update grand total row if it exists, otherwise create it
+    if ($('#grand-total-row').length) {
+        $('#grand-total-amount').text(`${CURRENCY_SYMBOL}${grandTotal.toFixed(2)}`);
+    } else if (grandTotal > 0) {
+        $('table tbody').append(`
+            <tr id="grand-total-row" class="table-active">
+                <td colspan="4" class="text-end"><strong>Grand Total:</strong></td>
+                <td id="grand-total-amount"><strong>${CURRENCY_SYMBOL}${grandTotal.toFixed(2)}</strong></td>
+            </tr>
+        `);
+    }
+}
+
+
+
+// Function to handle form submission
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    try {
+        const response = await fetch(BASE_URL + '?controller=purchase&action=store', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            alert('Purchase saved successfully!');
+            // Optionally reset the form
+            form.reset();
+        } else {
+            // Show error message
+            alert(result.message || 'Error saving purchase');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while saving the purchase');
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    const itemTemplate = document.getElementById('itemTemplate');
-    const purchaseItems = document.getElementById('purchaseItems');
-    const addItemBtn = document.getElementById('addItemBtn');
-    let itemCount = <?php echo !empty($items) ? count($items) : 0; ?>;
-
-    // Format number as currency
-    function formatCurrency(amount) {
-        return CURRENCY_SYMBOL + parseFloat(amount || 0).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    }
-
-    // Add new item row
-    function addItemRow() {
-        try {
-            const newRow = itemTemplate.innerHTML.replace(/\{\{index\}\}/g, itemCount);
-            const temp = document.createElement('div');
-            temp.innerHTML = newRow.trim();
-            
-            // Ensure we're adding a proper DOM element
-            const newElement = temp.firstElementChild;
-            if (newElement) {
-                purchaseItems.appendChild(newElement);
-                itemCount++;
-                updateRemoveButtons();
-                calculateTotals();
-                
-                // Initialize any new select2 elements if needed
-                if (typeof $.fn.select2 !== 'undefined') {
-                    $(newElement).find('select').select2({
-                        theme: 'bootstrap-5',
-                        width: '100%'
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error adding item row:', error);
-        }
-    }
-
-    // Update remove buttons state
-    function updateRemoveButtons() {
-        const removeButtons = document.querySelectorAll('.remove-item');
-        removeButtons.forEach((btn) => {
-            btn.disabled = removeButtons.length <= 1;
-        });
-    }
-
-    // Calculate totals
-    function calculateTotals() {
-        try {
-            let subtotal = 0;
-            
-            document.querySelectorAll('.item-row').forEach(row => {
-                const quantityInput = row.querySelector('.quantity');
-                const unitPriceInput = row.querySelector('.unit-price');
-                
-                if (quantityInput && unitPriceInput) {
-                    const quantity = parseFloat(quantityInput.value) || 0;
-                    const unitPrice = parseFloat(unitPriceInput.value) || 0;
-                    subtotal += quantity * unitPrice;
-                    
-                    // Update row total if there's a display element for it
-                    const rowTotal = row.querySelector('.row-total');
-                    if (rowTotal) {
-                        rowTotal.textContent = formatCurrency(quantity * unitPrice);
-                    }
-                }
-            });
-            
-            const tax = 0; // You can add tax calculation here
-            const shipping = 0; // You can add shipping calculation here
-            const total = subtotal + tax + shipping;
-            
-            // Update summary
-            document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-            document.getElementById('tax').textContent = formatCurrency(tax);
-            document.getElementById('shipping').textContent = formatCurrency(shipping);
-            document.getElementById('total').textContent = formatCurrency(total);
-        } catch (error) {
-            console.error('Error calculating totals:', error);
-        }
-    }
-
-    // Initialize event delegation for dynamic elements
-    // Function to update product image preview
-    function updateProductPreview(selectElement) {
-        const row = selectElement.closest('.item-row');
-        const index = row ? row.getAttribute('data-index') : null;
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const imageUrl = selectedOption ? selectedOption.getAttribute('data-image') : '';
-        
-        if (index !== null) {
-            const previewImg = document.getElementById(`preview-${index}`);
-            if (previewImg) {
-                previewImg.src = imageUrl || '<?php echo BASE_URL; ?>assets/img/no-image.jpg';
-            }
-        }
-    }
-    
-    // Initialize product previews for existing items
-    function initProductPreviews() {
-        document.querySelectorAll('.product-select').forEach(select => {
-            updateProductPreview(select);
+    // Initialize date picker if flatpickr is available
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#purchase_date", {
+            dateFormat: "Y-m-d",
+            defaultDate: "<?php echo date('Y-m-d'); ?>"
         });
     }
     
-    function initEventDelegation() {
-        // Handle product selection
-        purchaseItems.addEventListener('change', function(e) {
-            if (e.target.classList.contains('product-select')) {
-                try {
-                    // Update the product image preview
-                    updateProductPreview(e.target);
-                    const selectedOption = e.target.options[e.target.selectedIndex];
-                    const unitPrice = selectedOption ? parseFloat(selectedOption.dataset.price) || 0 : 0;
-                    const row = e.target.closest('.item-row');
-                    if (row) {
-                        const unitPriceInput = row.querySelector('.unit-price');
-                        if (unitPriceInput) {
-                            unitPriceInput.value = unitPrice.toFixed(2);
-                            calculateTotals();
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error handling product selection:', error);
-                }
-            }
-        });
+    // Handle supplier change
+    $('#supplier_id').on('change', function() {
+        const supplierId = $(this).val();
+        loadProducts(supplierId);
+    });
+    
 
-        // Handle quantity/price changes
-        purchaseItems.addEventListener('input', function(e) {
-            if (e.target.classList.contains('quantity') || e.target.classList.contains('unit-price')) {
-                calculateTotals();
-            }
-        });
-
-        // Handle remove item
-        purchaseItems.addEventListener('click', function(e) {
-            const removeBtn = e.target.closest('.remove-item');
-            if (removeBtn && !removeBtn.disabled) {
-                const row = removeBtn.closest('.item-row');
-                if (row && document.querySelectorAll('.item-row').length > 1) {
-                    row.remove();
-                    updateRemoveButtons();
-                    calculateTotals();
-                }
-            }
-        });
+    
+    // Handle price/quantity changes
+    $(document).on('input', '.price-input, .quantity-input', function() {
+        updateTotals();
+    });
+    
+    // Initialize with current supplier if any
+    const currentSupplierId = $('#supplier_id').val();
+    if (currentSupplierId) {
+        loadProducts(currentSupplierId);
     }
-
-    // Initialize the page
-    function init() {
-        // Initialize event delegation
-        initEventDelegation();
-        
-        // Add event listener for the add item button
-        if (addItemBtn) {
-            addItemBtn.addEventListener('click', addItemRow);
-        }
-        
-        // Initialize product previews
-        initProductPreviews();
-        
-        // Initialize remove buttons
-        updateRemoveButtons();
-        
-        // Calculate totals
-        calculateTotals();
-        
-        // Initialize date picker if flatpickr is available
-        if (typeof flatpickr !== 'undefined') {
-            flatpickr("#purchase_date", {
-                dateFormat: "Y-m-d",
-                defaultDate: "<?php echo $purchaseDate; ?>"
-            });
-        }
-    }
-
-    // Start the initialization
-    init();
 });
 </script>

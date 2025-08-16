@@ -26,6 +26,59 @@ class Product extends Model {
     protected $lastError = '';
     
     /**
+     * Get products by supplier ID
+     * 
+     * @param int $supplierId The ID of the supplier
+     * @return array Array of products for the given supplier
+     */
+    public function getProductsBySupplierId($supplierId) {
+        try {
+            error_log("Fetching products for supplier ID: " . $supplierId);
+            
+            // First, verify the supplier exists
+            $this->db->query("SELECT id FROM suppliers WHERE id = :supplier_id");
+            $this->db->bind(':supplier_id', $supplierId);
+            $supplier = $this->db->single();
+            
+            if (!$supplier) {
+                error_log("Supplier with ID {$supplierId} not found");
+                return [];
+            }
+            
+            // Get all products for this supplier, including inactive ones
+            $sql = "SELECT p.id, p.name, p.code, p.price, p.status, p.supplier_id 
+                   FROM {$this->table} p 
+                   WHERE p.supplier_id = :supplier_id 
+                   ORDER BY p.name ASC";
+            
+            $this->db->query($sql);
+            $this->db->bind(':supplier_id', $supplierId);
+            
+            $products = $this->db->resultSet();
+            
+            error_log("Found " . count($products) . " products for supplier ID: " . $supplierId);
+            
+            // If no products found, try to get any product to see if the table has data
+            if (empty($products)) {
+                $this->db->query("SELECT COUNT(*) as count FROM {$this->table}");
+                $result = $this->db->single();
+                error_log("Total products in database: " . ($result ? $result->count : 0));
+                
+                $this->db->query("SELECT * FROM {$this->table} LIMIT 5");
+                $sampleProducts = $this->db->resultSet();
+                error_log("Sample products: " . print_r($sampleProducts, true));
+            }
+            
+            return $products;
+            
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log('Error in Product::getProductsBySupplierId - ' . $this->lastError);
+            return [];
+        }
+    }
+
+    /**
      * Get all products with optional pagination
      * 
      * @param int $page Page number (0 for no pagination)
