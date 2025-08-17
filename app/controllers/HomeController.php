@@ -230,4 +230,33 @@ class HomeController extends Controller {
             'salesStats' => $salesStats
         ]);
     }
+    
+    /**
+     * Clear all cookies
+     */
+    public function clearCookies() {
+        // Check if admin
+        if(!isAdmin()) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+        
+        // Clear all cookies by setting expiration to the past
+        if (isset($_SERVER['HTTP_COOKIE'])) {
+            $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
+            foreach($cookies as $cookie) {
+                $parts = explode('=', $cookie);
+                $name = trim($parts[0]);
+                // Skip the PHPSESSID to maintain the current admin session
+                if ($name !== 'PHPSESSID') {
+                    setcookie($name, '', time() - 1000);
+                    setcookie($name, '', time() - 1000, '/');
+                }
+            }
+        }
+        
+        // Return success response
+        echo json_encode(['success' => true, 'message' => 'All cookies have been cleared successfully!']);
+        exit;
+    }
 }

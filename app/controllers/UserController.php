@@ -640,4 +640,28 @@ class UserController extends Controller {
             ]);
         }
     }
+    
+    /**
+     * Admin: Show active users
+     */
+    public function active() {
+        if(!isAdmin()) {
+            redirect('user/login');
+        }
+        
+        $activeUsers = [];
+        $error = null;
+        
+        try {
+            $activeUsers = $this->userModel->getActiveUsers();
+            $error = $this->userModel->getError();
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+        
+        $this->view('admin/users/active', [
+            'activeUsers' => $activeUsers,
+            'error' => $error
+        ]);
+    }
 }

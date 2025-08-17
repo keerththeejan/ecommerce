@@ -8,6 +8,27 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
+
+// Track user activity
+if (isset($_SESSION['user_id'])) {
+    // Get user's IP address
+    $ip = $_SERVER['REMOTE_ADDR'];
+    
+    // Get user agent
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    
+    // Update last activity time in session
+    $_SESSION['last_activity'] = date('Y-m-d H:i:s');
+    
+    // Update last activity in database
+    try {
+        $userModel = new User();
+        $userModel->updateActivity($_SESSION['user_id'], $ip, $userAgent);
+    } catch (Exception $e) {
+        // Log error but don't show to user
+        error_log('Error updating user activity: ' . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -127,6 +148,12 @@ if (!isset($_SESSION['csrf_token'])) {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=active">
+                                <i class="fas fa-user-check me-2"></i>
+                                Active Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=setting&action=index">
                                 <i class="fas fa-cog me-2"></i>
                                 Settings
@@ -150,6 +177,56 @@ if (!isset($_SESSION['csrf_token'])) {
                                 <i class="fas fa-globe-americas me-2"></i>
                                 Manage About Store
                             </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#" id="clearCookiesBtn">
+                                <i class="fas fa-cookie-bite me-2"></i>
+                                Clear Cookies
+                            </a>
+                            <script>
+                            document.getElementById('clearCookiesBtn').addEventListener('click', function(e) {
+                                e.preventDefault();
+                                if (confirm('Are you sure you want to clear all cookies? This will log out all users.')) {
+                                    fetch('<?php echo BASE_URL; ?>?controller=home&action=clearCookies', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-Requested-With': 'XMLHttpRequest'
+                                        },
+                                        credentials: 'same-origin'
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // Show success message
+                                            const alertDiv = document.createElement('div');
+                                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                                            alertDiv.role = 'alert';
+                                            alertDiv.innerHTML = `
+                                                ${data.message}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            `;
+                                            
+                                            // Insert the alert at the top of the main content
+                                            const mainContent = document.querySelector('main');
+                                            if (mainContent) {
+                                                mainContent.insertBefore(alertDiv, mainContent.firstChild);
+                                                
+                                                // Auto-dismiss after 5 seconds
+                                                setTimeout(() => {
+                                                    const bsAlert = new bootstrap.Alert(alertDiv);
+                                                    bsAlert.close();
+                                                }, 5000);
+                                            }
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('An error occurred while clearing cookies.');
+                                    });
+                                }
+                            });
+                            </script>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=logout">

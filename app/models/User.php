@@ -315,4 +315,77 @@ class User extends Model {
         
         return $this->db->resultSet();
     }
+    
+    /**
+     * Get active users (users active in the last 15 minutes)
+     * 
+     * @return array Array of active users
+     */
+    public function getActiveUsers() {
+        try {
+            // First, check if the last_activity column exists
+            $checkColumn = "SHOW COLUMNS FROM {$this->table} LIKE 'last_activity'";
+            
+            if(!$this->db->query($checkColumn)) {
+                throw new Exception('Could not check for required columns');
+            }
+            
+            $columnExists = (bool)$this->db->single();
+            
+            if (!$columnExists) {
+                throw new Exception('Activity tracking columns not found');
+            }
+            
+            // Now query for active users
+            $sql = "SELECT * FROM {$this->table} 
+                    WHERE last_activity >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+                    ORDER BY last_activity DESC";
+                    
+            if(!$this->db->query($sql)) {
+                throw new Exception($this->db->getError());
+            }
+            
+            return $this->db->resultSet();
+            
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            return [];
+        }
+    }
+    
+    /**
+     * Update user's last activity timestamp and IP address
+     * 
+     * @param int $userId User ID
+     * @param string $ipAddress User's IP address
+     * @param string $userAgent User's browser user agent
+     * @return bool
+     */
+    public function updateActivity($userId, $ipAddress, $userAgent = '') {
+        $data = [
+            'last_activity' => date('Y-m-d H:i:s'),
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent
+        ];
+        
+        return $this->update($userId, $data);
+    }
+    
+    /**
+     * Get the last error message
+     * 
+     * @return string Last error message or empty string if no error
+     */
+    public function getError() {
+        return $this->lastError ?? '';
+    }
+    
+    /**
+     * Get the last error that occurred
+     * 
+     * @return string Last error message or empty string if no error
+     */
+    public function getLastError() {
+        return $this->lastError ?? '';
+    }
 }
