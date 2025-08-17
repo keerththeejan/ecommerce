@@ -117,14 +117,15 @@ class Purchase {
             
             // Insert purchase
             $this->db->query("INSERT INTO {$this->table} 
-                             (supplier_id, reference_no, purchase_date, status, notes, created_at)
-                             VALUES (:supplier_id, :reference_no, :purchase_date, :status, :notes, NOW())");
+                             (supplier_id, reference_no, purchase_date, status, notes, document_path, created_at)
+                             VALUES (:supplier_id, :reference_no, :purchase_date, :status, :notes, :document_path, NOW())");
             
             $this->db->bind(':supplier_id', $data['supplier_id']);
             $this->db->bind(':reference_no', $data['reference_no']);
             $this->db->bind(':purchase_date', $data['purchase_date']);
             $this->db->bind(':status', $data['status']);
             $this->db->bind(':notes', $data['notes']);
+            $this->db->bind(':document_path', $data['document_path'] ?? null);
             
             if (!$this->db->execute()) {
                 throw new Exception('Failed to create purchase');

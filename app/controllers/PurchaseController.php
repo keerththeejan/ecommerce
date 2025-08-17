@@ -216,12 +216,17 @@ class PurchaseController {
                     throw new Exception('Please fill in all required fields.');
                 }
 
+                // Generate reference number
+                $referenceNo = 'PO-' . date('Ymd') . '-' . strtoupper(uniqid());
+                
                 // Prepare purchase data
                 $purchaseData = [
                     'supplier_id' => $supplierId,
                     'purchase_date' => $purchaseDate,
                     'status' => $status,
                     'notes' => $notes,
+                    'reference_no' => $referenceNo,
+                    'document_path' => $documentPath,
                     'items' => $items
                 ];
 

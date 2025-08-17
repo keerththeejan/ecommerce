@@ -20,7 +20,7 @@ $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_pric
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form id="purchaseForm" onsubmit="submitForm(event)">
+            <form id="purchaseForm" onsubmit="submitForm(event)" enctype="multipart/form-data">
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
@@ -36,11 +36,33 @@ $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_pric
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <div class="form-group mb-3">
                             <label for="purchase_date" class="form-label">Purchase Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="purchase_date" name="purchase_date" required 
                                    value="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="pending">Please select</option>
+                                <option value="received">Received</option>
+                                <option value="pending">Pending</option>
+                                <option value="ordered">Ordered</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Upload -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="document" class="form-label">Attach Document</label>
+                            <input type="file" class="form-control" id="document" name="document" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                            <small class="form-text text-muted">Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG</small>
                         </div>
                     </div>
                 </div>
@@ -61,19 +83,127 @@ $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_pric
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-end mb-4">
                     <button type="button" class="btn btn-secondary me-2" onclick="history.back()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Purchase</button>
                 </div>
+
+                <!-- Payment Form Section -->
+                
             </form>
+
+<form >
+<div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Add Payment</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Advance Balance:</label>
+                                    <div class="form-control-plaintext">CHF 0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-3">
+                                    <label for="payment_amount" class="form-label">Amount <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">CHF</span>
+                                        <input type="number" class="form-control" id="payment_amount" name="payment[amount]" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-3">
+                                    <label for="payment_method" class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="payment_method" name="payment[method]" required>
+                                        <option value="">Select Method</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="credit_card">Credit Card</option>
+                                        <option value="debit_card">Debit Card</option>
+                                        <option value="upi">UPI</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-3">
+                                    <label for="payment_date" class="form-label">Paid on <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="payment_date" name="payment[date]" value="<?php echo date('Y-m-d'); ?>" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="payment_notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="payment_notes" name="payment[notes]" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-primary" id="add-payment-btn">
+                                <i class="fas fa-plus me-1"></i> Add Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+</form>
+
+
         </div>
+
+
+        
     </div>
+
+    
 </div>
+
+
+
 
 <script>
 // Get currency symbol from PHP
 const CURRENCY_SYMBOL = '<?php echo CURRENCY_SYMBOL; ?>';
 const BASE_URL = '<?php echo BASE_URL; ?>';
+
+// Format currency
+function formatCurrency(amount) {
+    return CURRENCY_SYMBOL + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+}
+
+// Handle payment form submission
+document.getElementById('add-payment-btn').addEventListener('click', function() {
+    const amount = document.getElementById('payment_amount').value;
+    const method = document.getElementById('payment_method').value;
+    const date = document.getElementById('payment_date').value;
+    const notes = document.getElementById('payment_notes').value;
+    
+    // Basic validation
+    if (!amount || !method || !date) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    // Here you would typically make an AJAX call to save the payment
+    // For now, we'll just show a success message
+    alert('Payment added successfully!');
+    
+    // Reset the form
+    document.getElementById('payment_amount').value = '';
+    document.getElementById('payment_method').selectedIndex = 0;
+    document.getElementById('payment_date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('payment_notes').value = '';
+    
+    // Update the advance balance (in a real app, this would come from the server)
+    const advanceBalance = document.querySelector('.form-control-plaintext');
+    const currentBalance = parseFloat(advanceBalance.textContent.replace(/[^0-9.-]+/g,"")) || 0;
+    const newBalance = currentBalance + parseFloat(amount);
+    advanceBalance.textContent = formatCurrency(newBalance);
+});
 
 // Function to load products by supplier
 async function loadProducts(supplierId) {
