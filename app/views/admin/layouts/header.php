@@ -13,13 +13,13 @@ if (!isset($_SESSION['csrf_token'])) {
 if (isset($_SESSION['user_id'])) {
     // Get user's IP address
     $ip = $_SERVER['REMOTE_ADDR'];
-    
+
     // Get user agent
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    
+
     // Update last activity time in session
     $_SESSION['last_activity'] = date('Y-m-d H:i:s');
-    
+
     // Update last activity in database
     try {
         $userModel = new User();
@@ -32,6 +32,7 @@ if (isset($_SESSION['user_id'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,29 +55,37 @@ if (isset($_SESSION['user_id'])) {
                 width: 260px;
                 z-index: 1050;
                 overflow-y: auto;
-                background-color: #212529; /* match bg-dark */
+                background-color: #212529;
+                /* match bg-dark */
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
             }
+
             #sidebar.show {
                 transform: translateX(0);
             }
+
             /* Prevent body from shifting when sidebar opens */
             body.sidebar-open {
                 overflow: hidden;
             }
+
             /* Add a simple backdrop */
             .sidebar-backdrop {
                 position: fixed;
                 inset: 0;
-                background: rgba(0,0,0,0.5);
+                background: rgba(0, 0, 0, 0.5);
                 z-index: 1049;
                 display: none;
             }
-            .sidebar-backdrop.active { display: block; }
+
+            .sidebar-backdrop.active {
+                display: block;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
@@ -165,7 +174,7 @@ if (isset($_SESSION['user_id'])) {
                                 Tax Management
                             </a>
                         </li>
-                        
+
                         <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>">
                                 <i class="fas fa-store me-2"></i>
@@ -178,54 +187,62 @@ if (isset($_SESSION['user_id'])) {
                                 Manage About Store
                             </a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="?controller=PaymentDue&action=index">
+                                <i class="fas fa-money-bill-wave me-2"></i>
+                                Payment Dues
+                            </a>
+                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-white" href="#" id="clearCookiesBtn">
                                 <i class="fas fa-cookie-bite me-2"></i>
                                 Clear Cookies
                             </a>
                             <script>
-                            document.getElementById('clearCookiesBtn').addEventListener('click', function(e) {
-                                e.preventDefault();
-                                if (confirm('Are you sure you want to clear all cookies? This will log out all users.')) {
-                                    fetch('<?php echo BASE_URL; ?>?controller=home&action=clearCookies', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-Requested-With': 'XMLHttpRequest'
-                                        },
-                                        credentials: 'same-origin'
-                                    })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            // Show success message
-                                            const alertDiv = document.createElement('div');
-                                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-                                            alertDiv.role = 'alert';
-                                            alertDiv.innerHTML = `
+                                document.getElementById('clearCookiesBtn').addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    if (confirm('Are you sure you want to clear all cookies? This will log out all users.')) {
+                                        fetch('<?php echo BASE_URL; ?>?controller=home&action=clearCookies', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'X-Requested-With': 'XMLHttpRequest'
+                                                },
+                                                credentials: 'same-origin'
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data.success) {
+                                                    // Show success message
+                                                    const alertDiv = document.createElement('div');
+                                                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                                                    alertDiv.role = 'alert';
+                                                    alertDiv.innerHTML = `
                                                 ${data.message}
                                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                             `;
-                                            
-                                            // Insert the alert at the top of the main content
-                                            const mainContent = document.querySelector('main');
-                                            if (mainContent) {
-                                                mainContent.insertBefore(alertDiv, mainContent.firstChild);
-                                                
-                                                // Auto-dismiss after 5 seconds
-                                                setTimeout(() => {
-                                                    const bsAlert = new bootstrap.Alert(alertDiv);
-                                                    bsAlert.close();
-                                                }, 5000);
-                                            }
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error:', error);
-                                        alert('An error occurred while clearing cookies.');
-                                    });
-                                }
-                            });
+
+                                                    // Insert the alert at the top of the main content
+                                                    const mainContent = document.querySelector('main');
+                                                    if (mainContent) {
+                                                        mainContent.insertBefore(alertDiv, mainContent.firstChild);
+
+                                                        // Auto-dismiss after 5 seconds
+                                                        setTimeout(() => {
+                                                            const bsAlert = new bootstrap.Alert(alertDiv);
+                                                            bsAlert.close();
+                                                        }, 5000);
+                                                    }
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                alert('An error occurred while clearing cookies.');
+                                            });
+                                    }
+                                });
                             </script>
                         </li>
                         <li class="nav-item">
@@ -257,7 +274,9 @@ if (isset($_SESSION['user_id'])) {
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=profile">My Profile</a></li>
-                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=logout">Logout</a></li>
                             </ul>
                         </div>
@@ -281,36 +300,36 @@ if (isset($_SESSION['user_id'])) {
                 <?php flash('banner_error'); ?>
 
                 <script>
-                // Enhance mobile sidebar UX: manage backdrop and body scroll
-                (function() {
-                    const sidebar = document.getElementById('sidebar');
-                    const backdrop = document.getElementById('sidebarBackdrop');
-                    const toggleBtn = document.getElementById('sidebarToggleBtn');
+                    // Enhance mobile sidebar UX: manage backdrop and body scroll
+                    (function() {
+                        const sidebar = document.getElementById('sidebar');
+                        const backdrop = document.getElementById('sidebarBackdrop');
+                        const toggleBtn = document.getElementById('sidebarToggleBtn');
 
-                    function updateState() {
-                        const isOpen = sidebar.classList.contains('show');
-                        document.body.classList.toggle('sidebar-open', isOpen);
-                        if (backdrop) backdrop.classList.toggle('active', isOpen);
-                    }
-
-                    document.addEventListener('shown.bs.collapse', function(e) {
-                        if (e.target === sidebar) updateState();
-                    });
-                    document.addEventListener('hidden.bs.collapse', function(e) {
-                        if (e.target === sidebar) updateState();
-                    });
-                    if (backdrop) {
-                        backdrop.addEventListener('click', function() {
-                            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
-                            bsCollapse.hide();
-                        });
-                    }
-                    // Close sidebar after clicking a link on mobile
-                    sidebar.addEventListener('click', function(e) {
-                        if (window.innerWidth < 768 && e.target.closest('a.nav-link')) {
-                            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
-                            bsCollapse.hide();
+                        function updateState() {
+                            const isOpen = sidebar.classList.contains('show');
+                            document.body.classList.toggle('sidebar-open', isOpen);
+                            if (backdrop) backdrop.classList.toggle('active', isOpen);
                         }
-                    });
-                })();
+
+                        document.addEventListener('shown.bs.collapse', function(e) {
+                            if (e.target === sidebar) updateState();
+                        });
+                        document.addEventListener('hidden.bs.collapse', function(e) {
+                            if (e.target === sidebar) updateState();
+                        });
+                        if (backdrop) {
+                            backdrop.addEventListener('click', function() {
+                                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
+                                bsCollapse.hide();
+                            });
+                        }
+                        // Close sidebar after clicking a link on mobile
+                        sidebar.addEventListener('click', function(e) {
+                            if (window.innerWidth < 768 && e.target.closest('a.nav-link')) {
+                                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
+                                bsCollapse.hide();
+                            }
+                        });
+                    })();
                 </script>

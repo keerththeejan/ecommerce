@@ -463,12 +463,31 @@ class UserController extends Controller {
             
             // Make sure there are no errors
             if(empty($errors)) {
+                // Remove confirm_password before saving
+                unset($data['confirm_password']);
+                
                 // Register user
                 $userId = $this->userModel->register($data);
                 
                 if($userId) {
                     flash('user_success', 'User created successfully');
-                    redirect('user/adminIndex');
+                    // Reset form data for new entry
+                    $data = [
+                        'username' => '',
+                        'email' => '',
+                        'password' => '',
+                        'confirm_password' => '',
+                        'first_name' => '',
+                        'last_name' => '',
+                        'role' => 'customer'
+                    ];
+                    
+                    // Reload the create form with success message
+                    $this->view('admin/users/create', [
+                        'errors' => [],
+                        'data' => $data
+                    ]);
+                    return;
                 } else {
                     $errors['db_error'] = 'Failed to create user: ' . $this->userModel->getLastError();
                 }

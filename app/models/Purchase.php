@@ -7,6 +7,7 @@ class Purchase {
     private $db;
     private $table = 'purchases';
     private $itemsTable = 'purchase_items';
+    private $paymentTable = 'purchase_payments';
     
     public function __construct($db = null) {
         if ($db instanceof Database) {
@@ -220,6 +221,174 @@ class Purchase {
             $this->db->rollBack();
             error_log($e->getMessage());
             return false;
+        }
+    }
+    
+    /**
+     * Get purchases with due payment
+     */
+    public function getPurchasesWithDuePayment() {
+        try {
+            $this->db->query("SELECT p.*, s.name as supplier_name, 
+                             COALESCE(SUM(pp.amount), 0) as paid_amount,
+                             (p.total_amount - COALESCE(SUM(pp.amount), 0)) as due_amount
+                             FROM {$this->table} p
+                             LEFT JOIN suppliers s ON p.supplier_id = s.id
+                             LEFT JOIN {$this->paymentTable} pp ON p.id = pp.purchase_id
+                             WHERE p.status = 'received'
+                             GROUP BY p.id
+                             HAVING due_amount > 0 OR p.total_amount > COALESCE(SUM(pp.amount), 0)
+                             ORDER BY p.due_date ASC");
+            
+            return $this->db->resultSet();
+            
+        } catch (Exception $e) {
+            error_log('Error in getPurchasesWithDuePayment: ' . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Get purchase with payment details
+     */
+    public function getPurchaseWithPayments($id) {
+        try {
+            // Get purchase details
+            $this->db->query("SELECT p.*, s.name as supplier_name, s.email as supplier_email, 
+                             s.phone as supplier_phone, s.address as supplier_address
+                             FROM {$this->table} p
+                             LEFT JOIN suppliers s ON p.supplier_id = s.id
+                             WHERE p.id = :id");
+            $this->db->bind(':id', $id);
+            
+            $purchase = $this->db->single();
+            
+            if ($purchase) {
+                // Get purchase items
+                $this->db->query("SELECT pi.*, p.name as product_name, p.sku, p.image
+                                 FROM {$this->itemsTable} pi
+                                 LEFT JOIN products p ON pi.product_id = p.id
+                                 WHERE pi.purchase_id = :purchase_id");
+                $this->db->bind(':purchase_id', $id);
+                $purchase->items = $this->db->resultSet();
+                
+                // Get payment history
+                $this->db->query("SELECT * FROM {$this->paymentTable} 
+                                 WHERE purchase_id = :purchase_id 
+                                 ORDER BY payment_date DESC");
+                $this->db->bind(':purchase_id', $id);
+                $purchase->payment_history = $this->db->resultSet();
+                
+                // Calculate paid amount and due amount
+                $purchase->paid_amount = 0;
+                foreach ($purchase->payment_history as $payment) {
+                    $purchase->paid_amount += $payment->amount;
+                }
+                $purchase->due_amount = $purchase->total_amount - $purchase->paid_amount;
+                
+                // Set payment status
+                if ($purchase->paid_amount >= $purchase->total_amount) {
+                    $purchase->payment_status = 'paid';
+                } elseif ($purchase->paid_amount > 0) {
+                    $purchase->payment_status = 'partial';
+                } else {
+                    $purchase->payment_status = 'unpaid';
+                }
+            }
+            
+            return $purchase;
+            
+        } catch (Exception $e) {
+            error_log('Error in getPurchaseWithPayments: ' . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Update payment status for a purchase
+     */
+    public function updatePaymentStatus($data) {
+        try {
+            $this->db->beginTransaction();
+            
+            // Insert payment record
+            $this->db->query("INSERT INTO {$this->paymentTable} 
+                             (purchase_id, amount, payment_date, payment_method, 
+                              transaction_id, notes, status, created_at)
+                             VALUES 
+                             (:purchase_id, :amount, :payment_date, :payment_method, 
+                              :transaction_id, :notes, :status, NOW())");
+            
+            $this->db->bind(':purchase_id', $data['id']);
+            $this->db->bind(':amount', $data['amount']);
+            $this->db->bind(':payment_date', $data['payment_date']);
+            $this->db->bind(':payment_method', $data['payment_method']);
+            $this->db->bind(':transaction_id', $data['transaction_id'] ?? null);
+            $this->db->bind(':notes', $data['notes'] ?? null);
+            $this->db->bind(':status', $data['payment_status']);
+            
+            if (!$this->db->execute()) {
+                throw new Exception('Failed to record payment');
+            }
+            
+            // Update purchase status if fully paid
+            if ($data['payment_status'] === 'paid') {
+                $this->db->query("UPDATE {$this->table} 
+                                 SET payment_status = 'paid', 
+                                     updated_at = NOW() 
+                                 WHERE id = :id");
+                $this->db->bind(':id', $data['id']);
+                
+                if (!$this->db->execute()) {
+                    throw new Exception('Failed to update purchase payment status');
+                }
+            }
+            
+            $this->db->commit();
+            return true;
+            
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log('Error in updatePaymentStatus: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Get payment due report
+     */
+    public function getPaymentDueReport($startDate, $endDate) {
+        try {
+            $this->db->query("SELECT 
+                                p.id, 
+                                p.invoice_no, 
+                                s.name as supplier_name,
+                                p.purchase_date,
+                                p.due_date,
+                                p.total_amount,
+                                COALESCE(SUM(pp.amount), 0) as paid_amount,
+                                (p.total_amount - COALESCE(SUM(pp.amount), 0)) as due_amount,
+                                CASE 
+                                    WHEN COALESCE(SUM(pp.amount), 0) >= p.total_amount THEN 'paid'
+                                    WHEN COALESCE(SUM(pp.amount), 0) > 0 THEN 'partial'
+                                    ELSE 'unpaid'
+                                END as payment_status
+                             FROM {$this->table} p
+                             LEFT JOIN suppliers s ON p.supplier_id = s.id
+                             LEFT JOIN {$this->paymentTable} pp ON p.id = pp.purchase_id
+                             WHERE p.purchase_date BETWEEN :start_date AND :end_date
+                             GROUP BY p.id
+                             HAVING due_amount > 0
+                             ORDER BY p.due_date ASC, due_amount DESC");
+            
+            $this->db->bind(':start_date', $startDate);
+            $this->db->bind(':end_date', $endDate . ' 23:59:59');
+            
+            return $this->db->resultSet();
+            
+        } catch (Exception $e) {
+            error_log('Error in getPaymentDueReport: ' . $e->getMessage());
+            return [];
         }
     }
     

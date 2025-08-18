@@ -429,39 +429,6 @@ class Order extends Model {
         }
     }
     
-    /**
-     * Update payment status
-     * 
-     * @param int $orderId Order ID
-     * @param string $status New payment status
-     * @return bool
-     */
-    public function updatePaymentStatus($orderId, $status) {
-        // Validate status
-        $validStatuses = ['pending', 'paid', 'failed', 'refunded'];
-        if(!in_array($status, $validStatuses)) {
-            $this->lastError = "Invalid payment status";
-            return false;
-        }
-        
-        // Check if order exists
-        if(!$this->exists($orderId)) {
-            $this->lastError = "Order not found";
-            return false;
-        }
-        
-        $sql = "UPDATE {$this->table} SET payment_status = :status WHERE id = :id";
-        
-        if(!$this->db->query($sql)) {
-            $this->lastError = $this->db->getError();
-            return false;
-        }
-        
-        $this->db->bind(':status', $status);
-        $this->db->bind(':id', $orderId);
-        
-        return $this->db->execute();
-    }
     
     /**
      * Get recent orders
@@ -686,5 +653,251 @@ class Order extends Model {
         $this->db->bind(':end_date', $endDate . ' 23:59:59');
         
         return $this->db->resultSet();
+    }
+    
+    /**
+     * Get orders with due payments
+     * 
+     * @return array
+     */
+    public function getOrdersWithDuePayment() {
+        try {
+            $sql = "SELECT o.*, u.first_name, u.last_name, u.email,
+                           COALESCE(SUM(op.amount), 0) as paid_amount,
+                           (o.total_amount - COALESCE(SUM(op.amount), 0)) as due_amount
+                    FROM {$this->table} o
+                    LEFT JOIN users u ON o.user_id = u.id
+                    LEFT JOIN order_payments op ON o.id = op.order_id AND op.status = 'completed'
+                    WHERE o.payment_status != 'paid' 
+                    GROUP BY o.id
+                    HAVING due_amount > 0
+                    ORDER BY o.due_date ASC, o.created_at DESC";
+            
+            $this->db->query($sql);
+            return $this->db->resultSet();
+            
+        } catch (Exception $e) {
+            error_log('Error in getOrdersWithDuePayment: ' . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Get order with payment details
+     * 
+     * @param int $orderId Order ID
+     * @return object|bool Order object with payments or false if not found
+     */
+    public function getOrderWithPayments($orderId) {
+        try {
+            // Get order details
+            $sql = "SELECT o.*, u.first_name, u.last_name, u.email, u.phone,
+                           COALESCE(SUM(op.amount), 0) as paid_amount,
+                           (o.total_amount - COALESCE(SUM(op.amount), 0)) as due_amount
+                    FROM {$this->table} o
+                    LEFT JOIN users u ON o.user_id = u.id
+                    LEFT JOIN order_payments op ON o.id = op.order_id AND op.status = 'completed'
+                    WHERE o.id = :order_id
+                    GROUP BY o.id";
+            
+            $this->db->query($sql);
+            $this->db->bind(':order_id', $orderId);
+            $order = $this->db->single();
+            
+            if (!$order) {
+                return false;
+            }
+            
+            // Get payment history
+            $sql = "SELECT * FROM order_payments 
+                    WHERE order_id = :order_id 
+                    ORDER BY payment_date DESC";
+            
+            $this->db->query($sql);
+            $this->db->bind(':order_id', $orderId);
+            $payments = $this->db->resultSet();
+            
+            $order->payments = $payments;
+            
+            return $order;
+            
+        } catch (Exception $e) {
+            error_log('Error in getOrderWithPayments: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Record a payment for an order
+     * 
+     * @param array $paymentData Payment data including:
+     *   - order_id: int
+     *   - amount: float
+     *   - payment_date: string (Y-m-d H:i:s)
+     *   - payment_method: string
+     *   - transaction_id: string (optional)
+     *   - notes: string (optional)
+     *   - status: string (default: 'completed')
+     * @return int|bool Payment ID on success, false on failure
+     */
+    public function recordPayment($paymentData) {
+        $this->db->beginTransaction();
+        
+        try {
+            // Insert payment record
+            $sql = "INSERT INTO order_payments (
+                        order_id, amount, payment_date, payment_method, 
+                        transaction_id, notes, status, created_at, updated_at
+                    ) VALUES (
+                        :order_id, :amount, :payment_date, :payment_method, 
+                        :transaction_id, :notes, :status, NOW(), NOW()
+                    )";
+            
+            $this->db->query($sql);
+            $this->db->bind(':order_id', $paymentData['order_id']);
+            $this->db->bind(':amount', $paymentData['amount']);
+            $this->db->bind(':payment_date', $paymentData['payment_date']);
+            $this->db->bind(':payment_method', $paymentData['payment_method']);
+            $this->db->bind(':transaction_id', $paymentData['transaction_id'] ?? null);
+            $this->db->bind(':notes', $paymentData['notes'] ?? null);
+            $this->db->bind(':status', $paymentData['status'] ?? 'completed');
+            
+            if (!$this->db->execute()) {
+                throw new Exception('Failed to record payment');
+            }
+            
+            $paymentId = $this->db->lastInsertId();
+            
+            // Update order payment status
+            $orderId = $paymentData['order_id'];
+            $order = $this->getOrderWithPayments($orderId);
+            
+            if (!$order) {
+                throw new Exception('Order not found');
+            }
+            
+            $newPaymentStatus = 'partial';
+            if ($order->due_amount <= 0.01) { // Account for floating point precision
+                $newPaymentStatus = 'paid';
+            }
+            
+            $this->updatePaymentStatus($orderId, $newPaymentStatus);
+            
+            // Update due date if this is the first payment
+            if (empty($order->payments)) {
+                $dueDate = date('Y-m-d', strtotime('+30 days'));
+                $this->db->query("UPDATE {$this->table} SET due_date = :due_date WHERE id = :id");
+                $this->db->bind(':due_date', $dueDate);
+                $this->db->bind(':id', $orderId);
+                $this->db->execute();
+            }
+            
+            $this->db->endTransaction();
+            return $paymentId;
+            
+        } catch (Exception $e) {
+            $this->db->cancelTransaction();
+            error_log('Error in recordPayment: ' . $e->getMessage());
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
+    
+    /**
+     * Update payment status and related data
+     * 
+     * @param int|array $data Either order ID or payment data array
+     * @param string $status (Optional) New status if first parameter is order ID
+     * @return bool True on success, false on failure
+     */
+    public function updatePaymentStatus($data, $status = null) {
+        // If first parameter is order ID and second is status (legacy usage)
+        if (is_numeric($data) && $status !== null) {
+            $orderId = $data;
+            
+            // Validate status
+            $validStatuses = ['pending', 'paid', 'failed', 'refunded'];
+            if (!in_array($status, $validStatuses)) {
+                $this->lastError = "Invalid payment status";
+                return false;
+            }
+            
+            // Check if order exists
+            if (!$this->exists($orderId)) {
+                $this->lastError = "Order not found";
+                return false;
+            }
+            
+            $sql = "UPDATE {$this->table} SET payment_status = :status WHERE id = :id";
+            
+            if (!$this->db->query($sql)) {
+                $this->lastError = $this->db->getError();
+                return false;
+            }
+            
+            $this->db->bind(':status', $status);
+            $this->db->bind(':id', $orderId);
+            
+            return $this->db->execute();
+        } 
+        // If first parameter is an array (new usage with full payment data)
+        elseif (is_array($data)) {
+            return $this->recordPayment($data) !== false;
+        }
+        
+        $this->lastError = "Invalid parameters for updatePaymentStatus";
+        return false;
+    }
+    
+    /**
+     * Get payment due report
+     * 
+     * @param string $startDate Start date (Y-m-d)
+     * @param string $endDate End date (Y-m-d)
+     * @return array
+     */
+    public function getPaymentDueReport($startDate = null, $endDate = null) {
+        try {
+            $sql = "SELECT 
+                        o.id, o.order_number, o.total_amount, o.payment_status, o.due_date,
+                        u.first_name, u.last_name, u.email,
+                        COALESCE(SUM(op.amount), 0) as paid_amount,
+                        (o.total_amount - COALESCE(SUM(op.amount), 0)) as due_amount,
+                        DATEDIFF(o.due_date, CURDATE()) as days_until_due
+                    FROM {$this->table} o
+                    LEFT JOIN users u ON o.user_id = u.id
+                    LEFT JOIN order_payments op ON o.id = op.order_id AND op.status = 'completed'
+                    WHERE o.payment_status != 'paid' 
+                    AND o.due_date IS NOT NULL";
+            
+            $params = [];
+            
+            if ($startDate) {
+                $sql .= " AND o.due_date >= :start_date";
+                $params['start_date'] = $startDate;
+            }
+            
+            if ($endDate) {
+                $sql .= " AND o.due_date <= :end_date";
+                $params['end_date'] = $endDate;
+            }
+            
+            $sql .= " GROUP BY o.id
+                      HAVING due_amount > 0
+                      ORDER BY o.due_date ASC, o.created_at DESC";
+            
+            $this->db->query($sql);
+            
+            // Bind parameters
+            foreach ($params as $key => $value) {
+                $this->db->bind(":{$key}", $value);
+            }
+            
+            return $this->db->resultSet();
+            
+        } catch (Exception $e) {
+            error_log('Error in getPaymentDueReport: ' . $e->getMessage());
+            return [];
+        }
     }
 }
