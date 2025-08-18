@@ -11,7 +11,7 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Payment Dues</h4>
+                    <h4 class="card-title mb-0">Customer Payment Dues</h4>
                     <div class="d-flex gap-2">
                         <a href="<?php echo URLROOT; ?>/paymentdue/report" class="btn btn-info btn-sm">
                             <i class="fas fa-file-export me-1"></i> Generate Report
@@ -21,11 +21,143 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
                            onclick="return confirm('Are you sure you want to clear ALL payment dues? This action cannot be undone.')">
                             <i class="fas fa-check-double me-1"></i> Clear All Dues
                         </a>
+                        <a href="<?php echo URLROOT; ?>/paymentdue?due_only=1" 
+                           class="btn btn-<?php echo (isset($_GET['due_only']) && $_GET['due_only'] == 1) ? 'primary' : 'outline-primary'; ?> btn-sm" 
+                           title="Show only customers with dues">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Show Due Customers Only
+                        </a>
                     </div>
                 </div>
                 <div class="card-body">
                     <?php flash('payment_message'); ?>
                     <?php flash('payment_error', null, 'alert alert-danger'); ?>
+                    
+                    <!-- Customer Selection Form with Search -->
+                    <div class="mb-3">
+                        <form action="" method="get" class="row g-3" id="customerSearchForm">
+                            <input type="hidden" name="controller" value="PaymentDue">
+                            <input type="hidden" name="action" value="index">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" 
+                                           id="customerSearchInput" 
+                                           class="form-control" 
+                                           placeholder="Search customer by name or email..." 
+                                           onkeyup="filterCustomers()"
+                                           autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearSearch()">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                </div>
+                                <select name="customer_id" 
+                                        id="customerSelect" 
+                                        class="form-select mt-2" 
+                                        size="5" 
+                                        onchange="this.form.submit()"
+                                        style="display: none;">
+                                    <option value="">-- Select a Customer --</option>
+                                    <?php foreach($data['customers'] as $customer): 
+                                        $customerText = htmlspecialchars($customer['name'] . ' (' . $customer['email'] . ')');
+                                        $isSelected = (isset($_GET['customer_id']) && $_GET['customer_id'] == $customer['id']);
+                                    ?>
+                                        <option value="<?php echo $customer['id']; ?>" 
+                                                data-search="<?php echo strtolower($customerText); ?>"
+                                                <?php echo $isSelected ? 'selected' : ''; ?>>
+                                            <?php echo $customerText; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <?php if(isset($_GET['customer_id']) && !empty($_GET['customer_id'])): ?>
+                                    <div class="mt-2">
+                                        <a href="<?php echo URLROOT; ?>/paymentdue" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-times"></i> Clear Filter
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </form>
+                        
+                        <script>
+                        function filterCustomers() {
+                            const input = document.getElementById('customerSearchInput');
+                            const filter = input.value.toLowerCase();
+                            const select = document.getElementById('customerSelect');
+                            const options = select.getElementsByTagName('option');
+                            
+                            // Show the select element when user starts typing
+                            if (filter.length > 0) {
+                                select.style.display = 'block';
+                            } else {
+                                select.style.display = 'none';
+                            }
+                            
+                            for (let i = 0; i < options.length; i++) {
+                                const option = options[i];
+                                const text = option.textContent || option.innerText;
+                                const searchText = option.getAttribute('data-search') || text.toLowerCase();
+                                
+                                if (text === '-- Select a Customer --') {
+                                    option.style.display = 'block';
+                                    continue;
+                                }
+                                
+                                if (searchText.includes(filter)) {
+                                    option.style.display = 'block';
+                                } else {
+                                    option.style.display = 'none';
+                                }
+                            }
+                        }
+                        
+                        function clearSearch() {
+                            // Clear the search input
+                            const searchInput = document.getElementById('customerSearchInput');
+                            searchInput.value = '';
+                            
+                            // Hide the dropdown
+                            const select = document.getElementById('customerSelect');
+                            select.style.display = 'none';
+                            
+                            // Reset the form and submit to clear filters
+                            const form = document.getElementById('customerSearchForm');
+                            const customerIdInput = form.querySelector('select[name="customer_id"]');
+                            customerIdInput.value = '';
+                            
+                            // Remove customer_id from URL parameters
+                            const url = new URL(window.location.href);
+                            url.searchParams.delete('customer_id');
+                            
+                            // Submit the form with cleared parameters
+                            window.location.href = url.toString();
+                        }
+                        
+                        // Initialize - show select if a customer is already selected
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const select = document.getElementById('customerSelect');
+                            if (select.value !== '') {
+                                select.style.display = 'block';
+                            }
+                        });
+                        </script>
+                        
+                        <style>
+                        #customerSelect {
+                            width: 100%;
+                            max-height: 200px;
+                            overflow-y: auto;
+                        }
+                        #customerSelect option {
+                            padding: 8px;
+                            border-bottom: 1px solid #eee;
+                        }
+                        #customerSelect option:last-child {
+                            border-bottom: none;
+                        }
+                        </style>
+                    </div>
+                    
+                    <!-- Hidden search field for compatibility with existing code -->
+                    <input type="hidden" name="search" id="customerSearch" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
                     
                     <div class="table-responsive">
                         <table class="table table-striped table-hover" id="paymentDuesTable">

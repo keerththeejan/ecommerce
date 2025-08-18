@@ -19,12 +19,49 @@ class PaymentDueController {
             redirect('users/login');
         }
 
-        // Get all purchases with payment due
-        $purchases = $this->purchaseModel->getPurchasesWithDuePayment();
+        $search = '';
+        $customerId = isset($_GET['customer_id']) ? (int)$_GET['customer_id'] : 0;
+        $dueOnly = isset($_GET['due_only']) && $_GET['due_only'] == 1;
+        
+        // Get all customers for dropdown
+        require_once __DIR__ . '/../models/User.php';
+        $userModel = new User();
+        
+        // Get customers based on filter
+        if ($dueOnly) {
+            $customers = $this->purchaseModel->getCustomersWithDuePayments();
+        } else {
+            $customers = $userModel->getAllCustomers();
+        }
+        
+        // If customer is selected, get their purchases
+        $purchases = [];
+        if ($customerId > 0) {
+            // Find the selected customer
+            $selectedCustomer = null;
+            foreach ($customers as $customer) {
+                if ($customer['id'] == $customerId) {
+                    $selectedCustomer = $customer;
+                    break;
+                }
+            }
+            
+            if ($selectedCustomer) {
+                // Set search to the customer's name to filter purchases
+                $search = $selectedCustomer['name'];
+            }
+        }
+        
+        // Get purchases with payment due, optionally filtered by customer
+        $purchases = $this->purchaseModel->getPurchasesWithDuePayment($search);
         
         $data = [
-            'title' => 'Payment Dues',
-            'purchases' => $purchases
+            'title' => $dueOnly ? 'Customers with Payment Dues' : 'Payment Dues',
+            'purchases' => $purchases,
+            'search' => $search,
+            'customers' => $customers,
+            'selected_customer_id' => $customerId,
+            'due_only' => $dueOnly
         ];
 
         // Load view
