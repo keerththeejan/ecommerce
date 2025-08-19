@@ -313,3 +313,41 @@ footer a:hover {
     color: #007bff;
     font-weight: bold;
 }
+
+/* Responsive Admin Tables */
+@media (max-width: 768px) {
+  .responsive-table thead {
+    display: none;
+  }
+  .responsive-table, 
+  .responsive-table tbody, 
+  .responsive-table tr, 
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table tr {
+    margin-bottom: 1rem;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .responsive-table td {
+    border: none !important;
+    padding: 0.75rem 1rem;
+    position: relative;
+  }
+  .responsive-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+  .responsive-table td {
+    padding-left: 9rem; /* space for labels */
+    min-height: 2.25rem;
+  }
+}

@@ -475,6 +475,12 @@ class OrderController extends Controller {
         try {
             // Get page number and filter parameters
             $page = (int)$this->get('page', 1);
+            // Page size selector (allowed values only)
+            $limit = (int)$this->get('limit', 20);
+            $allowedLimits = [10, 20, 50, 100];
+            if (!in_array($limit, $allowedLimits, true)) {
+                $limit = 20;
+            }
             $status = $this->get('status', '');
             $paymentStatus = $this->get('payment_status', '');
             $search = $this->get('search', '');
@@ -495,7 +501,7 @@ class OrderController extends Controller {
             $filters['exclude_deleted'] = true;
             
             // Get orders with pagination and filters
-            $orders = $this->orderModel->paginate($page, 20, 'id', 'DESC', $filters);
+            $orders = $this->orderModel->paginate($page, $limit, 'id', 'DESC', $filters);
             
             // Debug: Log the SQL query being executed
             error_log("Fetching orders with filters: " . print_r($filters, true));
@@ -509,7 +515,8 @@ class OrderController extends Controller {
                     'pagination' => [
                         'current_page' => $orders['current_page'],
                         'total_pages' => $orders['total_pages'],
-                        'total_items' => $orders['total']
+                        'total_items' => $orders['total'],
+                        'per_page' => $limit
                     ]
                 ]);
                 return;
@@ -521,7 +528,8 @@ class OrderController extends Controller {
                 'filters' => [
                     'status' => $status,
                     'payment_status' => $paymentStatus,
-                    'search' => $search
+                    'search' => $search,
+                    'limit' => $limit
                 ]
             ]);
             
@@ -636,20 +644,31 @@ class OrderController extends Controller {
         }
         
         try {
-            // Update order status
-            if($this->orderModel->updateOrderStatus($orderId, $status)) {
-                if($this->isAjax()) {
-                    $this->jsonResponse([
-                        'success' => true,
-                        'message' => 'Order status updated successfully',
-                        'status' => $status
-                    ]);
-                    return;
-                }
-                flash('order_success', 'Order status updated successfully');
-            } else {
+            // Optionally update payment status if provided
+            $paymentStatus = $this->post('payment_status');
+
+            // Update order status first
+            if(!$this->orderModel->updateOrderStatus($orderId, $status)) {
                 throw new Exception($this->orderModel->getLastError() ?? 'Failed to update order status');
             }
+
+            // If payment status provided, update it too
+            if (!empty($paymentStatus)) {
+                if(!$this->orderModel->updatePaymentStatus($orderId, $paymentStatus)) {
+                    throw new Exception($this->orderModel->getLastError() ?? 'Failed to update payment status');
+                }
+            }
+
+            if($this->isAjax()) {
+                $this->jsonResponse([
+                    'success' => true,
+                    'message' => 'Order updated successfully',
+                    'status' => $status,
+                    'payment_status' => $paymentStatus ?? null
+                ]);
+                return;
+            }
+            flash('order_success', 'Order updated successfully');
         } catch (Exception $e) {
             error_log('Error updating order status: ' . $e->getMessage());
             

@@ -29,9 +29,38 @@ function getStatusBadgeClass($status) {
                     <?php flash('order_success'); ?>
                     <?php flash('order_error', '', 'alert alert-danger'); ?>
                     
+                    <!-- Page size selector -->
+                    <?php 
+                        $filters = $data['filters'] ?? []; 
+                        $currentLimit = isset($filters['limit']) ? (int)$filters['limit'] : 20; 
+                        $allowedLimits = [10,20,50,100];
+                    ?>
+                    <form class="row g-2 align-items-center mb-3" method="GET" action="<?php echo BASE_URL; ?>">
+                        <input type="hidden" name="controller" value="order">
+                        <input type="hidden" name="action" value="adminIndex">
+                        <?php if (!empty($filters['status'])): ?>
+                            <input type="hidden" name="status" value="<?php echo htmlspecialchars($filters['status']); ?>">
+                        <?php endif; ?>
+                        <?php if (!empty($filters['payment_status'])): ?>
+                            <input type="hidden" name="payment_status" value="<?php echo htmlspecialchars($filters['payment_status']); ?>">
+                        <?php endif; ?>
+                        <?php if (!empty($filters['search'])): ?>
+                            <input type="hidden" name="search" value="<?php echo htmlspecialchars($filters['search']); ?>">
+                        <?php endif; ?>
+                        <div class="col-auto ms-auto">
+                            <label for="limit" class="form-label me-2 mb-0 small text-muted">Show</label>
+                            <select id="limit" name="limit" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                                <?php foreach ($allowedLimits as $opt): ?>
+                                    <option value="<?php echo $opt; ?>" <?php echo $opt === $currentLimit ? 'selected' : ''; ?>><?php echo $opt; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <span class="small text-muted ms-1">per page</span>
+                        </div>
+                    </form>
+
                     <!-- Orders Table -->
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover responsive-table">
                             <thead class="table-light">
                                 <tr>
                                     <th>Order #</th>
@@ -45,14 +74,14 @@ function getStatusBadgeClass($status) {
                             <tbody>
                                 <?php if (empty($orders['data'])): ?>
                                     <tr>
-                                        <td colspan="8" class="text-center py-4">No orders found</td>
+                                        <td colspan="6" class="text-center py-4">No orders found</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($orders['data'] as $order): ?>
                                         <tr>
-                                            <td>#<?php echo htmlspecialchars($order['order_number'] ?? $order['id']); ?></td>
-                                            <td><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
-                                            <td>
+                                            <td data-label="Order #">#<?php echo htmlspecialchars($order['order_number'] ?? $order['id']); ?></td>
+                                            <td data-label="Date"><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
+                                            <td data-label="Product Name">
                                                 <?php 
                                                 if (!empty($order['items'])) {
                                                     foreach ($order['items'] as $item) {
@@ -63,7 +92,7 @@ function getStatusBadgeClass($status) {
                                                 }
                                                 ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Price">
                                                 <?php 
                                                 if (!empty($order['items'])) {
                                                     foreach ($order['items'] as $item) {
@@ -72,7 +101,7 @@ function getStatusBadgeClass($status) {
                                                 }
                                                 ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Quantity">
                                                 <?php 
                                                 if (!empty($order['items'])) {
                                                     foreach ($order['items'] as $item) {
@@ -82,7 +111,7 @@ function getStatusBadgeClass($status) {
                                                 ?>
                                             </td>
 
-                                            <td>
+                                            <td data-label="Actions">
                                                 <div class="d-flex gap-1">
                                                     <a href="#" class="btn btn-sm btn-info text-white edit-order" 
                                                        data-id="<?php echo $order['id']; ?>"
@@ -105,10 +134,60 @@ function getStatusBadgeClass($status) {
                             </tbody>
                         </table>
                     </div>
-                                </button>
+
+                    <?php 
+                    // Pagination (Next/Prev) — expects $orders from controller paginate()
+                    $currentPage = isset($orders['current_page']) ? (int)$orders['current_page'] : 1;
+                    $totalPages  = isset($orders['total_pages']) ? (int)$orders['total_pages'] : 1;
+                    $totalItems  = isset($orders['total']) ? (int)$orders['total'] : (isset($orders['data']) ? count($orders['data']) : 0);
+
+                    // Build base URL preserving filters
+                    $filters = $data['filters'] ?? [];
+                    $query = [
+                        'controller' => 'order',
+                        'action' => 'adminIndex',
+                    ];
+                    if (!empty($filters['status']))         $query['status'] = $filters['status'];
+                    if (!empty($filters['payment_status'])) $query['payment_status'] = $filters['payment_status'];
+                    if (!empty($filters['search']))         $query['search'] = $filters['search'];
+                    if (!empty($filters['limit']))          $query['limit'] = (int)$filters['limit'];
+
+                    // Helpers
+                    $makeUrl = function($page) use ($query) {
+                        $q = http_build_query(array_merge($query, ['page' => max(1, (int)$page)]));
+                        return BASE_URL . '?' . $q;
+                    };
+                    ?>
+
+                    <?php if ($totalPages > 1): ?>
+                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mt-3 gap-2">
+                            <div class="text-muted small order-2 order-md-1">
+                                <?php 
+                                $perPage = isset($filters['limit']) ? (int)$filters['limit'] : 20; 
+                                $from = ($currentPage - 1) * $perPage + 1; 
+                                $to   = min($currentPage * $perPage, $totalItems);
+                                if ($totalItems > 0) {
+                                    echo "Showing {$from}–{$to} of {$totalItems} orders";
+                                }
+                                ?>
                             </div>
+                            <nav aria-label="Orders pagination" class="order-1 order-md-2 w-100 w-md-auto">
+                                <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center">
+                                    <li class="page-item <?php echo $currentPage <= 1 ? 'disabled' : ''; ?>">
+                                        <a class="page-link" href="<?php echo $currentPage <= 1 ? '#' : $makeUrl($currentPage - 1); ?>" aria-label="Previous">
+                                            &laquo; Prev
+                                        </a>
+                                    </li>
+                                    <li class="page-item disabled d-none d-md-block"><span class="page-link">Page <?php echo $currentPage; ?> of <?php echo $totalPages; ?></span></li>
+                                    <li class="page-item <?php echo $currentPage >= $totalPages ? 'disabled' : ''; ?>">
+                                        <a class="page-link" href="<?php echo $currentPage >= $totalPages ? '#' : $makeUrl($currentPage + 1); ?>" aria-label="Next">
+                                            Next &raquo;
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -193,8 +272,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('orderStatus').value = status;
             document.getElementById('paymentStatus').value = paymentStatus;
             
-            // Set form action
-            document.getElementById('editOrderForm').action = '<?php echo BASE_URL; ?>order/updateStatus/' + id;
+            // Set form action (use query style to match other routes)
+            document.getElementById('editOrderForm').action = '<?php echo BASE_URL; ?>?controller=order&action=updateStatus&id=' + encodeURIComponent(id);
             
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('editOrderModal'));
@@ -363,6 +442,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const orderId = formData.get('order_id');
         const submitButton = form.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.innerHTML;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
         
         // Show loading state
         submitButton.disabled = true;
@@ -371,51 +454,37 @@ document.addEventListener('DOMContentLoaded', function() {
         // Send AJAX request
         fetch(form.action, {
             method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {})
+            },
             body: formData
         })
-        .then(response => response.json())
+        .then(async response => {
+            // Try to parse JSON; if not JSON but OK, treat as success
+            let data = null;
+            try { data = await response.json(); } catch (_) {}
+            if (!response.ok) {
+                const message = data?.message || `HTTP ${response.status}`;
+                throw new Error(message);
+            }
+            return data || { success: true, message: 'Order updated successfully' };
+        })
         .then(data => {
-            if (data.success) {
-                // Show success message
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-success alert-dismissible fade show';
-                alert.role = 'alert';
-                alert.innerHTML = `
-                    ${data.message || 'Product updated successfully!'}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                
-                // Insert alert before the table
-                const table = document.querySelector('.table');
-                table.parentNode.insertBefore(alert, table);
-                
-                // Update the row with new data
-                const row = document.querySelector(`button[data-id="${data.product.id}"]`).closest('tr');
-                if (row) {
-                    row.cells[0].textContent = data.product.name;
-                    row.cells[1].textContent = '₹' + parseFloat(data.product.price).toFixed(2);
-                    row.cells[2].textContent = data.product.stock;
-                    
-                    // Update the edit button data attributes
-                    const editButton = row.querySelector('.edit-product');
-                    if (editButton) {
-                        editButton.setAttribute('data-name', data.product.name);
-                        editButton.setAttribute('data-price', data.product.price);
-                        editButton.setAttribute('data-stock', data.product.stock);
-                    }
-                }
-                
+            if (data && data.success) {
                 // Hide the modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editProductModal'));
-                modal.hide();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editOrderModal'));
+                if (modal) modal.hide();
+
+                // Reload to reflect updated statuses and pagination
+                window.location.reload();
             } else {
-                // Show error message
-                alert(data.message || 'Failed to update product');
+                alert(data?.message || 'Failed to update order');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while updating the product');
+            alert(error.message || 'An error occurred while updating the order');
         })
         .finally(() => {
             // Reset button state
