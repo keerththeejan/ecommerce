@@ -108,6 +108,9 @@ if (isset($_SESSION['user_id'])) {
                                 Products
                             </a>
                         </li>
+
+
+
                         <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex">
                                 <i class="fas fa-tags me-2"></i>
@@ -126,6 +129,20 @@ if (isset($_SESSION['user_id'])) {
                                 Country of Origin
                             </a>
                         </li>
+
+                        <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle text-white" href="#" id="purchaseDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-money-bill-wave me-2"></i> Purchase
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="purchaseDropdown">
+        <li><a class="dropdown-item" href="?controller=purchase&action=create">Purchase with customer</a></li>
+        <li><a class="dropdown-item" href="?controller=ListPurchaseController">List Purchase </a></li>
+        <li><a class="dropdown-item" href="?controller=purchase&action=purchase2">Add Purchase</a></li>
+        <li><a class="dropdown-item" href="?controller=purchase&action=purchase3">List Purchase Return</a></li>
+        
+    </ul>
+</li>
+
                         <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=banner">
                                 <i class="fas fa-images me-2"></i>
@@ -194,6 +211,8 @@ if (isset($_SESSION['user_id'])) {
                                 Payment Dues
                             </a>
                         </li>
+
+                        
 
                         <li class="nav-item">
                             <a class="nav-link text-white" href="#" id="clearCookiesBtn">
