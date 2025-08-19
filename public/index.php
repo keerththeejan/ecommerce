@@ -40,7 +40,8 @@ spl_autoload_register(function($className) {
 });
 
 // Set up database connection
-$db = new Database(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+// Use the globally initialized Database instance
+$db = isset($GLOBALS['db']) ? $GLOBALS['db'] : new Database();
 
 // Simple router
 $controller = isset($_GET['controller']) ? $_GET['controller'] : 'Home';
@@ -53,8 +54,8 @@ $controllerName = ucfirst($controller) . 'Controller';
 
 // Check if controller exists
 if(file_exists(APP_PATH . 'controllers/' . $controllerName . '.php')) {
-    // Create controller instance with database connection
-    $controllerInstance = new $controllerName($db);
+    // Create controller instance (uses global DB in base Controller)
+    $controllerInstance = new $controllerName();
     
     // Check if action exists
     if(method_exists($controllerInstance, $action)) {

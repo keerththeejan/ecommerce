@@ -6,13 +6,10 @@
 class CartController extends Controller {
     private $cartModel;
     private $productModel;
-    protected $db;
     
     public function __construct() {
-        parent::__construct();
         $this->cartModel = $this->model('Cart');
         $this->productModel = $this->model('Product');
-        $this->db = new Database();
     }
     
     /**
@@ -38,101 +35,6 @@ class CartController extends Controller {
     }
     
     /**
-     * Checkout and create order from cart
-     */
-    public function checkout() {
-        // Check if logged in
-        if(!isLoggedIn()) {
-            if($this->isAjax()) {
-                $this->json([
-                    'success' => false,
-                    'message' => 'Please login to checkout',
-                    'redirect' => BASE_URL . '?controller=user&action=login'
-                ]);
-                return;
-            }
-            redirect('user/login');
-        }
-        
-        try {
-            // Get cart items
-            $cartItems = $this->cartModel->getCartItems($_SESSION['user_id']);
-            
-            if (empty($cartItems)) {
-                throw new Exception('Your cart is empty');
-            }
-            
-            // Prepare order data
-            $orderData = [
-                'user_id' => $_SESSION['user_id'],
-                'shipping_id' => 1, // Default shipping
-                'payment_method' => 'cod',
-                'status' => 'pending',
-                'total_amount' => 0,
-                'items' => []
-            ];
-            
-            // Calculate total and prepare items
-            $totalAmount = 0;
-            foreach ($cartItems as $item) {
-                $itemPrice = !empty($item['sale_price']) ? $item['sale_price'] : $item['price'];
-                $itemTotal = $itemPrice * $item['quantity'];
-                $totalAmount += $itemTotal;
-                
-                $orderData['items'][] = [
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $itemPrice
-                ];
-            }
-            
-            $orderData['total_amount'] = $totalAmount;
-            
-            // Create order
-            $orderModel = $this->model('Order');
-            $orderId = $orderModel->createOrder($orderData);
-            
-            if (!$orderId) {
-                throw new Exception('Failed to create order');
-            }
-            
-            // Clear cart after creating order
-            $this->cartModel->clearCart($_SESSION['user_id']);
-            
-            // Return success response
-            $response = [
-                'success' => true,
-                'message' => 'Order created successfully',
-                'redirect' => BASE_URL . '?controller=order&action=adminIndex',
-                'orderId' => $orderId
-            ];
-            
-        } catch (Exception $e) {
-            // Log error
-            error_log('CartController::checkout - ' . $e->getMessage());
-            
-            // Return error response
-            $response = [
-                'success' => false,
-                'message' => $e->getMessage()
-            ];
-        }
-        
-        // Return JSON response for AJAX or redirect for normal requests
-        if($this->isAjax()) {
-            $this->json($response);
-        } else {
-            if(isset($response['success']) && $response['success']) {
-                flash('order_success', 'Your order has been placed successfully!', 'alert alert-success');
-                redirect('order/adminIndex');
-            } else {
-                flash('order_error', $response['message'] ?? 'An error occurred while processing your order', 'alert alert-danger');
-                redirect('cart');
-            }
-        }
-    }
-    
-    /**
      * Add product to cart
      * 
      * @param int $productId Product ID
@@ -140,158 +42,61 @@ class CartController extends Controller {
     public function add($productId = null) {
         // Check if logged in
         if(!isLoggedIn()) {
-            if($this->isAjax()) {
-                $this->json([
-                    'success' => false,
-                    'message' => 'Please login to add items to cart',
-                    'redirect' => BASE_URL . '?controller=user&action=login'
-                ]);
-                return;
-            }
             redirect('user/login');
         }
         
-        try {
-            // Check if product ID is provided
-            if(!$productId && !$this->isPost()) {
-                throw new Exception('Invalid request');
-            }
-            
-            // Get product ID from POST if not provided in URL
-            if(!$productId) {
-                $productId = $this->post('product_id');
-            }
-            
-            // Get quantity from POST
-            $quantity = (int)$this->post('quantity', 1);
-            
-            // Validate quantity
-            if($quantity < 1) {
-                $quantity = 1;
-            }
-            
-            // Get product
-            $product = $this->productModel->getById($productId);
-            
-            // Check if product exists and is active
-            if(!$product || $product['status'] != 'active') {
-                throw new Exception('Product not available');
-            }
-            
-            // Check if quantity is available
-            if($quantity > $product['stock_quantity']) {
-                throw new Exception('Not enough stock available');
-            }
-            
-            // Calculate item total
-            $itemPrice = !empty($product['sale_price']) ? $product['sale_price'] : $product['price'];
-            $itemTotal = $itemPrice * $quantity;
-            
-            // Begin transaction
-            $this->db->beginTransaction();
-            
-            try {
-                // 1. Create order
-                $sql = "INSERT INTO orders (
-                    user_id, 
-                    payment_method, 
-                    status, 
-                    total_amount, 
-                    created_at
-                ) VALUES (
-                    :user_id, 
-                    :payment_method, 
-                    :status, 
-                    :total_amount, 
-                    NOW()
-                )";
-                
-                $this->db->query($sql);
-                $this->db->bind(':user_id', $_SESSION['user_id']);
-                $this->db->bind(':payment_method', 'cod');
-                $this->db->bind(':status', 'pending');
-                $this->db->bind(':total_amount', $itemTotal);
-                
-                if(!$this->db->execute()) {
-                    throw new Exception('Failed to create order');
-                }
-                
-                $orderId = $this->db->lastInsertId();
-                
-                // 2. Add order item
-                $sql = "INSERT INTO order_items (
-                    order_id, 
-                    product_id, 
-                    quantity, 
-                    price, 
-                    created_at
-                ) VALUES (
-                    :order_id, 
-                    :product_id, 
-                    :quantity, 
-                    :price, 
-                    NOW()
-                )";
-                
-                $this->db->query($sql);
-                $this->db->bind(':order_id', $orderId);
-                $this->db->bind(':product_id', $product['id']);
-                $this->db->bind(':quantity', $quantity);
-                $this->db->bind(':price', $itemPrice);
-                
-                if(!$this->db->execute()) {
-                    throw new Exception('Failed to add order item');
-                }
-                
-                // 3. Update product stock
-                $sql = "UPDATE products SET stock_quantity = stock_quantity - :quantity WHERE id = :id";
-                $this->db->query($sql);
-                $this->db->bind(':quantity', $quantity);
-                $this->db->bind(':id', $product['id']);
-                
-                if(!$this->db->execute()) {
-                    throw new Exception('Failed to update product stock');
-                }
-                
-                // Commit transaction
-                $this->db->endTransaction();
-                
-                // Return success response
-                $response = [
-                    'success' => true,
-                    'message' => 'Order created successfully',
-                    'redirect' => BASE_URL . '?controller=order&action=adminIndex',
-                    'orderId' => $orderId
-                ];
-                
-            } catch (Exception $e) {
-                // Rollback transaction on error
-                $this->db->cancelTransaction();
-                throw $e;
-            }
-            
-        } catch (Exception $e) {
-            // Log error
-            error_log('CartController::add - ' . $e->getMessage());
-            
-            // Return error response
-            $response = [
-                'success' => false,
-                'message' => $e->getMessage()
-            ];
+        // Check if product ID is provided
+        if(!$productId && !$this->isPost()) {
+            redirect('products');
         }
         
-        // Return JSON response for AJAX or redirect for normal requests
+        // Get product ID from POST if not provided in URL
+        if(!$productId) {
+            $productId = $this->post('product_id');
+        }
+        
+        // Get quantity from POST
+        $quantity = $this->post('quantity', 1);
+        
+        // Get product
+        $product = $this->productModel->getById($productId);
+        
+        // Check if product exists and is active
+        if(!$product || $product['status'] != 'active') {
+            flash('cart_error', 'Product not available', 'alert alert-danger');
+            redirect('products');
+        }
+        
+        // Check if quantity is valid
+        if($quantity < 1) {
+            $quantity = 1;
+        }
+        
+        // Check if quantity is available
+        if($quantity > $product['stock_quantity']) {
+            flash('cart_error', 'Not enough stock available', 'alert alert-danger');
+            redirect('products/show/' . $productId);
+        }
+        
+        // Add to cart - no success message
+        $success = $this->cartModel->addToCart($_SESSION['user_id'], $productId, $quantity);
+        
+        // Only show error message if failed
+        if (!$success) {
+            flash('cart_error', 'Failed to add product to cart', 'alert alert-danger');
+        }
+        
+        // Check if AJAX request
         if($this->isAjax()) {
-            $this->json($response);
+            // Return JSON response
+            $cartCount = $this->cartModel->getCartCount($_SESSION['user_id']);
+            $this->json([
+                'success' => $success,
+                'cartCount' => $cartCount
+            ]);
         } else {
-            if(isset($response['success']) && $response['success']) {
-                flash('order_success', $response['message'], 'alert alert-success');
-                redirect('order/adminIndex');
-            } else {
-                flash('order_error', $response['message'] ?? 'An error occurred', 'alert alert-danger');
-                redirect(isset($productId) ? 'products/show/' . $productId : 'products');
-            }
+            // Redirect to cart
+            redirect('cart');
         }
     }
     

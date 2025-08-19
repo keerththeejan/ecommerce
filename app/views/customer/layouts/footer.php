@@ -500,11 +500,19 @@
     </div>
 </footer>
 
-    <!-- Bootstrap JS Bundle with Popper -->
+    <!-- Bootstrap and Dependencies -->
     <script>
     // No need for footer padding adjustment as the footer is not fixed anymore
     </script>
+    <!-- jQuery (required by our custom main.js) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Global config for JS -->
+    <script>
+        window.baseUrl = '<?php echo BASE_URL; ?>';
+    </script>
     
     <!-- Custom JS -->
     <script src="<?php echo BASE_URL; ?>assets/js/main.js"></script>

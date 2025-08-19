@@ -18,6 +18,22 @@ class Purchase {
     }
     
     /**
+     * Get customers with due payments
+     * @return array List of customers with due payments
+     */
+    public function getCustomersWithDuePayments() {
+        $this->db->query("
+            SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) as name, u.email
+            FROM users u
+            JOIN purchases p ON u.id = p.customer_id
+            WHERE p.payment_status != 'paid' AND p.payment_due > 0
+            ORDER BY u.first_name, u.last_name
+        ");
+        
+        return $this->db->resultSet();
+    }
+    
+    /**
      * Set the database connection
      * @param Database $db Database connection
      */
@@ -226,19 +242,32 @@ class Purchase {
     
     /**
      * Get purchases with due payment
+     * @param string $search Optional search term to filter by supplier name or invoice number
      */
-    public function getPurchasesWithDuePayment() {
+    public function getPurchasesWithDuePayment($search = '') {
         try {
-            $this->db->query("SELECT p.*, s.name as supplier_name, 
-                             COALESCE(SUM(pp.amount), 0) as paid_amount,
-                             (p.total_amount - COALESCE(SUM(pp.amount), 0)) as due_amount
-                             FROM {$this->table} p
-                             LEFT JOIN suppliers s ON p.supplier_id = s.id
-                             LEFT JOIN {$this->paymentTable} pp ON p.id = pp.purchase_id
-                             WHERE p.status = 'received'
-                             GROUP BY p.id
-                             HAVING due_amount > 0 OR p.total_amount > COALESCE(SUM(pp.amount), 0)
-                             ORDER BY p.due_date ASC");
+            $sql = "SELECT p.*, s.name as supplier_name, 
+                   COALESCE(SUM(pp.amount), 0) as paid_amount,
+                   (p.total_amount - COALESCE(SUM(pp.amount), 0)) as due_amount
+                   FROM {$this->table} p
+                   LEFT JOIN suppliers s ON p.supplier_id = s.id
+                   LEFT JOIN {$this->paymentTable} pp ON p.id = pp.purchase_id
+                   WHERE p.status = 'received'";
+            
+            if (!empty($search)) {
+                $sql .= " AND (s.name LIKE :search OR p.invoice_no LIKE :search)";
+            }
+            
+            $sql .= " GROUP BY p.id 
+                     HAVING due_amount > 0 
+                     ORDER BY p.due_date ASC";
+            
+            $this->db->query($sql);
+            
+            if (!empty($search)) {
+                $searchTerm = "%$search%";
+                $this->db->bind(':search', $searchTerm);
+            }
             
             return $this->db->resultSet();
             

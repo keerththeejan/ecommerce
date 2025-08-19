@@ -143,17 +143,21 @@
                                 <!-- 🛒 Add to Cart -->
                                 <?php if($product['stock_quantity'] > 0) { ?>
                                     <?php if(isLoggedIn()) { ?>
-                                        <div class="mt-auto">
-                                            <button type="button" class="btn btn-primary w-100 add-to-cart-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#productModal"
-                                                data-product-id="<?php echo $product['id']; ?>"
-                                                data-product-name="<?php echo htmlspecialchars($product['name'], ENT_QUOTES); ?>"
-                                                data-product-price="<?php echo isset($product['sale_price']) ? $product['sale_price'] : $product['price']; ?>"
-                                                data-product-stock="<?php echo $product['stock_quantity']; ?>">
-                                                <i class="fas fa-cart-plus me-1"></i> Add to Cart
-                                            </button>
-                                        </div>
+                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mt-auto add-to-cart-form">
+                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="input-group input-group-sm cart-quantity" role="group" aria-label="Quantity selector">
+                                                    <button class="btn btn-outline-secondary qty-minus" type="button" aria-label="Decrease quantity">−</button>
+                                                    <input type="number" class="form-control quantity-input text-center"
+                                                           name="quantity" value="1" min="1" max="<?php echo (int)$product['stock_quantity']; ?>"
+                                                           data-max="<?php echo (int)$product['stock_quantity']; ?>">
+                                                    <button class="btn btn-outline-secondary qty-plus" type="button" aria-label="Increase quantity">+</button>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100 add-to-cart-btn">
+                                                    <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                                </button>
+                                            </div>
+                                        </form>
                                     <?php } else { ?>
                                         <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-primary btn-sm w-100">
                                             Login to Buy
@@ -974,25 +978,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Quantity controls
     function setupQuantityControls(container) {
-        container.querySelectorAll('.quantity-increase').forEach(button => {
-            button.addEventListener('click', function() {
-                const input = this.parentNode.querySelector('.quantity-input');
-                const max = parseInt(input.max);
-                let value = parseInt(input.value);
-                if (value < max) {
-                    input.value = value + 1;
-                }
+        // Support both class name variants: quantity-increase/quantity-decrease and qty-plus/qty-minus
+        const incSelectors = ['.quantity-increase', '.qty-plus'];
+        const decSelectors = ['.quantity-decrease', '.qty-minus'];
+
+        incSelectors.forEach(sel => {
+            container.querySelectorAll(sel).forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.parentNode.querySelector('.quantity-input');
+                    const max = parseInt(input.max || input.getAttribute('data-max') || '9999');
+                    let value = parseInt(input.value || '1');
+                    if (value < max) {
+                        input.value = value + 1;
+                    }
+                });
             });
         });
 
-        container.querySelectorAll('.quantity-decrease').forEach(button => {
-            button.addEventListener('click', function() {
-                const input = this.parentNode.querySelector('.quantity-input');
-                const min = parseInt(input.min);
-                let value = parseInt(input.value);
-                if (value > min) {
-                    input.value = value - 1;
-                }
+        decSelectors.forEach(sel => {
+            container.querySelectorAll(sel).forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.parentNode.querySelector('.quantity-input');
+                    const min = parseInt(input.min || '1');
+                    let value = parseInt(input.value || '1');
+                    if (value > min) {
+                        input.value = value - 1;
+                    }
+                });
             });
         });
     }

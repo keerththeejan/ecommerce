@@ -12,9 +12,10 @@
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center no-print">
                     <h3 class="card-title mb-0">Order #<?php echo $order['order']['id']; ?></h3>
-                    <div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-light" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
                         <a href="<?php echo BASE_URL; ?>?controller=order&action=updateStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Status</a>
                         <a href="<?php echo BASE_URL; ?>?controller=order&action=updatePaymentStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Payment</a>
                     </div>
@@ -172,5 +173,16 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Print styles */
+@media print {
+  body * { visibility: hidden; }
+  .container-fluid, .container-fluid * { visibility: visible; }
+  .no-print, .no-print * { display: none !important; }
+  .container-fluid { position: absolute; left: 0; top: 0; width: 100%; }
+  a[href]:after { content: "" !important; }
+}
+</style>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

@@ -178,11 +178,7 @@ $settingModel = new Setting();
                 <div class="d-flex justify-content-between mb-4">
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="btn btn-outline-primary">
                         <i class="fas fa-arrow-left me-2"></i><span class="d-none d-md-inline">Continue Shopping</span>
-                        <span class="d-inline d-md-none"><i class="fas fa-arrow-left"></i> Back</span>
                     </a>
-                    <button type="button" id="checkoutBtn" class="btn btn-primary">
-                        <i class="fas fa-shopping-cart me-2"></i> Create Order
-                    </button>
                 </div>
             </div>
             
@@ -209,6 +205,11 @@ $settingModel = new Setting();
                             <strong>Estimated Total:</strong>
                             <strong><?php echo formatCurrency($cartTotal); ?></strong>
                         </div>
+                        <div class="d-grid">
+                            <a href="<?php echo BASE_URL; ?>?controller=order&action=checkout" class="btn btn-primary">
+                                <i class="fas fa-lock me-2"></i>Proceed to Checkout
+                            </a>
+                        </div>
                     </div>
                 </div>
                 
@@ -229,60 +230,7 @@ $settingModel = new Setting();
 </div>
 
 <script>
-// Utility function to show alert messages
-function showAlert(message, type = 'success') {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.role = 'alert';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    
-    const container = document.querySelector('.container.py-5');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto-remove alert after 5 seconds
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle AJAX form submissions
-    function handleFormSubmit(form, successCallback) {
-        fetch(form.action, {
-            method: form.method,
-            body: new URLSearchParams(new FormData(form)),
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.redirect) {
-                window.location.href = data.redirect;
-            } else if (data.success) {
-                if (successCallback) successCallback(data);
-                if (data.message) showAlert(data.message, 'success');
-                
-                // If this is a checkout, redirect to admin orders
-                if (form.action.includes('checkout')) {
-                    setTimeout(() => {
-                        window.location.href = '<?php echo BASE_URL; ?>?controller=order&action=adminIndex';
-                    }, 1500);
-                }
-            } else {
-                throw new Error(data.message || 'An error occurred');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert(error.message || 'An error occurred', 'danger');
-        });
-    }
-
     // Quantity buttons functionality with AJAX
     const quantityBtns = document.querySelectorAll('.quantity-btn');
     quantityBtns.forEach(btn => {
@@ -389,52 +337,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return currencySymbol + ' ' + parseFloat(amount).toFixed(2);
     }
     
-    // Handle checkout button click
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to create an order with the items in your cart?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '<?php echo BASE_URL; ?>?controller=cart&action=checkout';
-                
-                // Add CSRF token if available
-                const csrfInput = document.querySelector('input[name="csrf_token"]');
-                if (csrfInput) {
-                    form.appendChild(csrfInput.cloneNode());
-                }
-                
-                document.body.appendChild(form);
-                
-                // Show loading state
-                const originalBtnHtml = checkoutBtn.innerHTML;
-                checkoutBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...';
-                checkoutBtn.disabled = true;
-                
-                // Submit form
-                handleFormSubmit(form, function(data) {
-                    // Success callback
-                    checkoutBtn.innerHTML = originalBtnHtml;
-                    checkoutBtn.disabled = false;
-                });
-                
-                document.body.removeChild(form);
-            }
-        });
-    }
-    
-    // Handle remove item
+    // Remove item AJAX functionality
     const removeButtons = document.querySelectorAll('.remove-item');
     removeButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             
             const cartId = this.dataset.cartId;
-            if (!confirm('Are you sure you want to remove this item from your cart?')) {
-                return;
-            }
+            const url = this.getAttribute('href');
             
-            fetch(this.href, {
+            fetch(url, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'

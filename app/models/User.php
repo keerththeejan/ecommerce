@@ -11,6 +11,21 @@ class User extends Model {
      * @param array $data User data
      * @return int|bool
      */
+    /**
+     * Get all customers
+     * @return array List of customers
+     */
+    public function getAllCustomers() {
+        $this->db->query("SELECT id, CONCAT(first_name, ' ', last_name) as name, email FROM {$this->table} WHERE role = 'customer' ORDER BY first_name, last_name");
+        return $this->db->resultSet();
+    }
+    
+    /**
+     * Register a new user
+     * 
+     * @param array $data User data
+     * @return int|bool
+     */
     public function register($data) {
         // Hash password
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);

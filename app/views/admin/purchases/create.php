@@ -11,7 +11,7 @@ $items = $formData['items'] ?? [['product_id' => '', 'quantity' => 1, 'unit_pric
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800"><?php echo $title; ?></h1>
-        <a href="<?php echo BASE_URL; ?>?controller=home&action=admin" class="btn btn-secondary">
+        <a href="<?php echo BASE_URL; ?>?controller=ListPurchaseController" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Back to Admin
         </a>
     </div>
