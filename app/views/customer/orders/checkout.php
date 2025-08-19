@@ -12,9 +12,29 @@
                     <h5 class="mb-0 fs-6">Shipping & Billing Information</h5>
                 </div>
                 <div class="card-body">
+                    <?php $hasAddresses = !empty($addresses); ?>
                     <form action="<?php echo BASE_URL; ?>?controller=order&action=checkout" method="POST" id="checkout-form">
                         <div class="mb-3">
-                            <label for="shipping_address" class="form-label">Shipping Address</label>
+                            <?php if($hasAddresses): ?>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="shipping_address" class="form-label mb-0">Shipping Address</label>
+                                <div class="d-flex gap-2">
+                                    <select id="shipping_address_select" class="form-select form-select-sm" style="min-width:260px">
+                                        <option value="">Select saved shipping address...</option>
+                                        <?php foreach($addresses as $addr): if(isset($addr['type']) && $addr['type']==='shipping'): ?>
+                                            <?php 
+                                                $label = trim(($addr['name'] ?? '') . ' - ' . ($addr['address_line1'] ?? '') . ', ' . ($addr['city'] ?? '')); 
+                                                $text = trim(($addr['name'] ?? '') . "\n" . ($addr['address_line1'] ?? '') . (empty($addr['address_line2']) ? '' : ("\n".$addr['address_line2'])) . "\n" . ($addr['city'] ?? '') . ', ' . ($addr['state'] ?? '') . ' ' . ($addr['postal_code'] ?? '') . "\n" . ($addr['country'] ?? '') . (empty($addr['phone']) ? '' : ("\nPhone: ".$addr['phone'])));
+                                            ?>
+                                            <option value="<?php echo htmlspecialchars($text); ?>" <?php echo !empty($addr['is_default']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($label); ?><?php echo !empty($addr['is_default']) ? ' (Default)' : ''; ?></option>
+                                        <?php endif; endforeach; ?>
+                                    </select>
+                                    <a class="btn btn-outline-secondary btn-sm" href="<?php echo BASE_URL; ?>?controller=address">Manage</a>
+                                </div>
+                            </div>
+                            <?php else: ?>
+                                <label for="shipping_address" class="form-label">Shipping Address</label>
+                            <?php endif; ?>
                             <textarea class="form-control <?php echo isset($errors['shipping_address']) ? 'is-invalid' : ''; ?>" id="shipping_address" name="shipping_address" rows="3" <?php echo isset($data['same_address']) && $data['same_address'] ? 'disabled' : ''; ?>><?php echo $data['shipping_address']; ?></textarea>
                             <?php if(isset($errors['shipping_address'])): ?>
                                 <div class="invalid-feedback"><?php echo $errors['shipping_address']; ?></div>
@@ -22,7 +42,26 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="billing_address" class="form-label">Billing Address</label>
+                            <?php if($hasAddresses): ?>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="billing_address" class="form-label mb-0">Billing Address</label>
+                                <div class="d-flex gap-2">
+                                    <select id="billing_address_select" class="form-select form-select-sm" style="min-width:260px">
+                                        <option value="">Select saved billing address...</option>
+                                        <?php foreach($addresses as $addr): if(isset($addr['type']) && $addr['type']==='billing'): ?>
+                                            <?php 
+                                                $label = trim(($addr['name'] ?? '') . ' - ' . ($addr['address_line1'] ?? '') . ', ' . ($addr['city'] ?? '')); 
+                                                $text = trim(($addr['name'] ?? '') . "\n" . ($addr['address_line1'] ?? '') . (empty($addr['address_line2']) ? '' : ("\n".$addr['address_line2'])) . "\n" . ($addr['city'] ?? '') . ', ' . ($addr['state'] ?? '') . ' ' . ($addr['postal_code'] ?? '') . "\n" . ($addr['country'] ?? '') . (empty($addr['phone']) ? '' : ("\nPhone: ".$addr['phone'])));
+                                            ?>
+                                            <option value="<?php echo htmlspecialchars($text); ?>" <?php echo !empty($addr['is_default']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($label); ?><?php echo !empty($addr['is_default']) ? ' (Default)' : ''; ?></option>
+                                        <?php endif; endforeach; ?>
+                                    </select>
+                                    <a class="btn btn-outline-secondary btn-sm" href="<?php echo BASE_URL; ?>?controller=address">Manage</a>
+                                </div>
+                            </div>
+                            <?php else: ?>
+                                <label for="billing_address" class="form-label">Billing Address</label>
+                            <?php endif; ?>
                             <textarea class="form-control <?php echo isset($errors['billing_address']) ? 'is-invalid' : ''; ?>" id="billing_address" name="billing_address" rows="3"><?php echo $data['billing_address']; ?></textarea>
                             <?php if(isset($errors['billing_address'])): ?>
                                 <div class="invalid-feedback"><?php echo $errors['billing_address']; ?></div>
@@ -231,6 +270,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const sameAddressCheckbox = document.getElementById('same_address');
     const shippingAddressField = document.getElementById('shipping_address');
     const billingAddressField = document.getElementById('billing_address');
+    const shippingSelect = document.getElementById('shipping_address_select');
+    const billingSelect = document.getElementById('billing_address_select');
     
     function handleSameAddressChange() {
         if(sameAddressCheckbox.checked) {
@@ -247,6 +288,35 @@ document.addEventListener('DOMContentLoaded', function() {
             shippingAddressField.value = billingAddressField.value;
         }
     });
+    
+    // Populate from selects
+    if (shippingSelect) {
+        shippingSelect.addEventListener('change', function() {
+            if (this.value) {
+                shippingAddressField.value = this.value;
+            }
+        });
+        // If a default option is selected, apply it on load
+        if (shippingSelect.value) {
+            shippingAddressField.value = shippingSelect.value;
+        }
+    }
+    if (billingSelect) {
+        billingSelect.addEventListener('change', function() {
+            if (this.value) {
+                billingAddressField.value = this.value;
+                if(sameAddressCheckbox && sameAddressCheckbox.checked) {
+                    shippingAddressField.value = this.value;
+                }
+            }
+        });
+        if (billingSelect.value) {
+            billingAddressField.value = billingSelect.value;
+            if(sameAddressCheckbox && sameAddressCheckbox.checked) {
+                shippingAddressField.value = billingSelect.value;
+            }
+        }
+    }
     
     // Initialize
     handleSameAddressChange();

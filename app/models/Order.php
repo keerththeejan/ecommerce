@@ -6,203 +6,6 @@ class Order extends Model {
     protected $table = 'orders';
     
     /**
-     * Get paginated results with order items
-     * 
-     * @param int $page The current page
-     * @param int $perPage Number of items per page
-     * @param string $orderBy Column to order by
-     * @param string $order Order direction (ASC or DESC)
-     * @param array $filters Additional filters
-     * @return array
-     */
-    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC', $filters = []) {
-        // Validate parameters
-        $page = max(1, intval($page));
-        $perPage = max(1, intval($perPage));
-        
-        // Calculate offset
-        $offset = ($page - 1) * $perPage;
-        
-        // Start building the query
-        $sql = "SELECT o.*, 
-                       CONCAT(u.first_name, ' ', u.last_name) as customer_name,
-                       u.email as customer_email
-                FROM {$this->table} o
-                LEFT JOIN users u ON o.user_id = u.id 
-                WHERE 1=1 ";
-        
-        // Add filters
-        $params = [];
-        if (!empty($filters['status'])) {
-            $sql .= " AND o.status = :status";
-            $params['status'] = $filters['status'];
-        }
-        
-        if (!empty($filters['payment_status'])) {
-            $sql .= " AND o.payment_status = :payment_status";
-            $params['payment_status'] = $filters['payment_status'];
-        }
-        
-        if (!empty($filters['search'])) {
-            $search = "%{$filters['search']}%";
-            $sql .= " AND (
-                o.id LIKE :search OR 
-                u.first_name LIKE :search OR 
-                u.last_name LIKE :search OR 
-                u.email LIKE :search OR 
-                o.status LIKE :search
-            )";
-            $params['search'] = $search;
-        }
-        
-        // Add sorting
-        $sql .= " ORDER BY o.{$orderBy} {$order}";
-        
-        // Add pagination
-        $sql .= " LIMIT :limit OFFSET :offset";
-        
-        // Execute the query
-        $this->db->query($sql);
-        
-        // Bind parameters
-        foreach ($params as $key => $value) {
-            $this->db->bind(":{$key}", $value);
-        }
-        
-        // Bind pagination parameters
-        $this->db->bind(':limit', $perPage, PDO::PARAM_INT);
-        $this->db->bind(':offset', $offset, PDO::PARAM_INT);
-        
-        $results = $this->db->resultSet();
-        
-        // Get total count for pagination
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table} o 
-                    LEFT JOIN users u ON o.user_id = u.id 
-                    WHERE 1=1 ";
-        
-        // Add the same filters to the count query
-        if (!empty($filters['status'])) {
-            $countSql .= " AND o.status = :status";
-        }
-        
-        if (!empty($filters['payment_status'])) {
-            $countSql .= " AND o.payment_status = :payment_status";
-        }
-        
-        if (!empty($filters['search'])) {
-            $countSql .= " AND (
-                o.id LIKE :search OR 
-                u.first_name LIKE :search OR 
-                u.last_name LIKE :search OR 
-                u.email LIKE :search OR 
-                o.status LIKE :search
-            )";
-        }
-        
-        // Add filter to exclude deleted orders if needed
-        if (!empty($filters['exclude_deleted'])) {
-            $sql .= " AND o.id IS NOT NULL"; // This is a placeholder, will be handled by the actual deletion
-            $countSql .= " AND o.id IS NOT NULL";
-        }
-        
-        $this->db->query($countSql);
-        
-        // Bind parameters for count query
-        foreach ($params as $key => $value) {
-            $this->db->bind(":{$key}", $value);
-        }
-        
-        $totalResult = $this->db->single();
-        $totalCount = $totalResult ? $totalResult['total'] : 0;
-        $totalPages = ceil($totalCount / $perPage);
-        
-        // Get order items for each order
-        foreach ($results as &$order) {
-            $order['items'] = $this->getOrderItems($order['id']);
-        }
-        
-        return [
-            'data' => $results,
-            'current_page' => $page,
-            'per_page' => $perPage,
-            'total' => $totalCount,
-            'total_pages' => $totalPages
-        ];
-    }
-    
-    /**
-     * Get order items for a specific order
-     * 
-     * @param int $orderId Order ID
-     * @return array
-     */
-    public function getOrderItems($orderId) {
-        $sql = "SELECT oi.*, p.name as product_name, p.image as product_image
-                FROM order_items oi
-                LEFT JOIN products p ON oi.product_id = p.id
-                WHERE oi.order_id = :order_id";
-        
-        $this->db->query($sql);
-        $this->db->bind(':order_id', $orderId);
-        
-        return $this->db->resultSet();
-    }
-    
-    /**
-     * Get order by ID
-     * 
-     * @param int $id Order ID
-     * @return array|bool Order data or false if not found
-     */
-    public function getById($id) {
-        $this->db->query("SELECT * FROM " . $this->table . " WHERE id = :id");
-        $this->db->bind(':id', $id);
-        
-        $result = $this->db->single();
-        return $result ?: false;
-    }
-    
-    /**
-     * Delete order items by order ID
-     * 
-     * @param int $orderId Order ID
-     * @return bool True on success, false on failure
-     */
-    public function deleteOrderItems($orderId) {
-        try {
-            // First, get the order items to update product quantities if needed
-            $this->db->query("SELECT product_id, quantity FROM order_items WHERE order_id = :order_id");
-            $this->db->bind(':order_id', $orderId);
-            $items = $this->db->resultSet();
-            
-            // Delete the order items
-            $this->db->query("DELETE FROM order_items WHERE order_id = :order_id");
-            $this->db->bind(':order_id', $orderId);
-            
-            $result = $this->db->execute();
-            
-            if ($result && !empty($items)) {
-                // Update product quantities (if needed)
-                foreach ($items as $item) {
-                    $this->db->query("UPDATE products SET stock = stock + :quantity WHERE id = :product_id");
-                    $this->db->bind(':quantity', $item['quantity']);
-                    $this->db->bind(':product_id', $item['product_id']);
-                    $this->db->execute();
-                }
-            }
-            
-            // Force a hard delete by running an additional query to ensure deletion
-            $this->db->query("SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';");
-            $this->db->query("OPTIMIZE TABLE order_items;");
-            
-            return $result;
-        } catch (Exception $e) {
-            error_log('Error deleting order items for order #' . $orderId . ': ' . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
      * Create a new order with items
      * 
      * @param array $orderData Order data
@@ -211,43 +14,72 @@ class Order extends Model {
      */
     /**
      * Create a new order with items
-     * 
+     *
+     * Supports two calling styles:
+     *  - createOrder($orderData, $items)
+     *  - createOrder(['user_id'=>.., 'total_amount'=>.., 'items'=>[...], ...])
+     *
      * @param array $orderData Order data including:
-     *   - user_id: int
-     *   - shipping_id: int
-     *   - payment_method: string
+     *   - user_id: int (required)
+     *   - total_amount: float (required)
      *   - status: string (optional, defaults to 'pending')
-     *   - total_amount: float
-     *   - items: array of items with product_id, quantity, and price
+     *   - payment_status: string (optional, defaults to 'pending')
+     *   - payment_method: string (optional)
+     *   - shipping_address, billing_address: text (optional)
+     *   - shipping_fee, tax: float (optional)
+     *   - notes: text (optional)
+     *   - items: array of items with product_id, quantity, price (optional if $items provided)
+     * @param array|null $items Optional items array if not provided within $orderData
      * @return int|bool Order ID on success, false on failure
      */
-    public function createOrder($orderData) {
+    public function createOrder($orderData, $items = null) {
         $this->db->beginTransaction();
         
         try {
-            // Set default status if not provided
-            if (!isset($orderData['status'])) {
-                $orderData['status'] = 'pending';
+            // Defaults
+            $status = isset($orderData['status']) ? $orderData['status'] : 'pending';
+            $paymentStatus = isset($orderData['payment_status']) ? $orderData['payment_status'] : 'pending';
+            $paymentMethod = isset($orderData['payment_method']) ? $orderData['payment_method'] : null;
+            $shippingAddress = isset($orderData['shipping_address']) ? $orderData['shipping_address'] : null;
+            $billingAddress = isset($orderData['billing_address']) ? $orderData['billing_address'] : null;
+            $shippingFee = isset($orderData['shipping_fee']) ? $orderData['shipping_fee'] : 0;
+            $tax = isset($orderData['tax']) ? $orderData['tax'] : 0;
+            $notes = isset($orderData['notes']) ? $orderData['notes'] : null;
+
+            // Validate required fields
+            if (!isset($orderData['user_id']) || !isset($orderData['total_amount'])) {
+                throw new Exception("Missing required order fields: user_id or total_amount");
             }
+
+            // Determine items source
+            $orderItems = $items !== null ? $items : (isset($orderData['items']) ? $orderData['items'] : []);
+
+            // Create order (align with actual schema: no shipping_id or order_number)
+            $sql = "INSERT INTO orders (
+                        user_id, total_amount, status, payment_status, payment_method,
+                        shipping_address, billing_address, shipping_fee, tax, notes,
+                        created_at, updated_at
+                    ) VALUES (
+                        :user_id, :total_amount, :status, :payment_status, :payment_method,
+                        :shipping_address, :billing_address, :shipping_fee, :tax, :notes,
+                        NOW(), NOW()
+                    )";
             
-            // Create order
-            $sql = "INSERT INTO orders (user_id, shipping_id, payment_method, status, total_amount, order_number, created_at, updated_at)
-                    VALUES (:user_id, :shipping_id, :payment_method, :status, :total_amount, :order_number, NOW(), NOW())";
-                    
             if(!$this->db->query($sql)) {
                 throw new Exception("Failed to prepare order query: " . $this->db->getError());
             }
             
-            // Generate order number
-            $orderNumber = 'ORD-' . strtoupper(uniqid());
-            
             // Bind order data
-            $this->db->bind(':user_id', $orderData['user_id']);
-            $this->db->bind(':shipping_id', $orderData['shipping_id']);
-            $this->db->bind(':payment_method', $orderData['payment_method']);
-            $this->db->bind(':status', $orderData['status']);
-            $this->db->bind(':total_amount', $orderData['total_amount']);
-            $this->db->bind(':order_number', $orderNumber);
+            $this->db->bind(':user_id', (int)$orderData['user_id']);
+            $this->db->bind(':total_amount', (float)$orderData['total_amount']);
+            $this->db->bind(':status', $status);
+            $this->db->bind(':payment_status', $paymentStatus);
+            $this->db->bind(':payment_method', $paymentMethod);
+            $this->db->bind(':shipping_address', $shippingAddress);
+            $this->db->bind(':billing_address', $billingAddress);
+            $this->db->bind(':shipping_fee', (float)$shippingFee);
+            $this->db->bind(':tax', (float)$tax);
+            $this->db->bind(':notes', $notes);
             
             if(!$this->db->execute()) {
                 throw new Exception("Failed to create order: " . $this->db->getError());
@@ -256,19 +88,19 @@ class Order extends Model {
             $orderId = $this->db->lastInsertId();
             
             // Create order items
-            if (!empty($orderData['items']) && is_array($orderData['items'])) {
-                foreach($orderData['items'] as $item) {
-                    $sql = "INSERT INTO order_items (order_id, product_id, quantity, price, created_at, updated_at)
-                            VALUES (:order_id, :product_id, :quantity, :price, NOW(), NOW())";
+            if (!empty($orderItems) && is_array($orderItems)) {
+                foreach($orderItems as $item) {
+                    $sql = "INSERT INTO order_items (order_id, product_id, quantity, price, created_at)
+                            VALUES (:order_id, :product_id, :quantity, :price, NOW())";
                             
                     if(!$this->db->query($sql)) {
                         throw new Exception("Failed to prepare order item query: " . $this->db->getError());
                     }
                     
                     $this->db->bind(':order_id', $orderId);
-                    $this->db->bind(':product_id', $item['product_id']);
-                    $this->db->bind(':quantity', $item['quantity']);
-                    $this->db->bind(':price', $item['price']);
+                    $this->db->bind(':product_id', (int)$item['product_id']);
+                    $this->db->bind(':quantity', (int)$item['quantity']);
+                    $this->db->bind(':price', (float)$item['price']);
                     
                     if(!$this->db->execute()) {
                         throw new Exception("Failed to create order item: " . $this->db->getError());
@@ -291,6 +123,103 @@ class Order extends Model {
             
             return false;
         }
+    }
+    
+    /**
+     * Paginate orders with filters
+     *
+     * Supported filters keys:
+     *  - status: pending|processing|shipped|delivered|cancelled
+     *  - payment_status: pending|paid|failed|refunded
+     *  - date_from: Y-m-d
+     *  - date_to: Y-m-d
+     *  - q: search term (order id, customer name, or email)
+     */
+    public function paginateFiltered($page = 1, $perPage = 20, $filters = [], $orderBy = 'id', $order = 'DESC') {
+        $offset = ($page - 1) * $perPage;
+
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['status'])) {
+            $where[] = 'o.status = :status';
+            $params[':status'] = $filters['status'];
+        }
+        if (!empty($filters['payment_status'])) {
+            $where[] = 'o.payment_status = :payment_status';
+            $params[':payment_status'] = $filters['payment_status'];
+        }
+        if (!empty($filters['date_from'])) {
+            $where[] = 'o.created_at >= :date_from';
+            $params[':date_from'] = $filters['date_from'] . ' 00:00:00';
+        }
+        if (!empty($filters['date_to'])) {
+            $where[] = 'o.created_at <= :date_to';
+            $params[':date_to'] = $filters['date_to'] . ' 23:59:59';
+        }
+        if (!empty($filters['q'])) {
+            // Search by order id or customer name/email
+            $where[] = '(o.id = :qid OR u.first_name LIKE :q OR u.last_name LIKE :q OR u.email LIKE :q)';
+            $params[':qid'] = is_numeric($filters['q']) ? (int)$filters['q'] : 0;
+            $params[':q'] = '%' . $filters['q'] . '%';
+        }
+
+        $whereSql = empty($where) ? '' : ('WHERE ' . implode(' AND ', $where));
+
+        // Count
+        $countSql = "SELECT COUNT(*) as total
+                     FROM {$this->table} o
+                     JOIN users u ON o.user_id = u.id
+                     {$whereSql}";
+        if(!$this->db->query($countSql)) {
+            $this->lastError = $this->db->getError();
+            return [
+                'data' => [],
+                'total' => 0,
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => 0
+            ];
+        }
+        foreach ($params as $k => $v) {
+            $this->db->bind($k, $v);
+        }
+        $totalResult = $this->db->single();
+        $total = $totalResult ? (int)$totalResult['total'] : 0;
+        $totalPages = $perPage > 0 ? (int)ceil($total / $perPage) : 0;
+
+        // Data
+        $sql = "SELECT o.*, u.first_name, u.last_name, u.email
+                FROM {$this->table} o
+                JOIN users u ON o.user_id = u.id
+                {$whereSql}
+                ORDER BY o.{$orderBy} {$order}
+                LIMIT :limit OFFSET :offset";
+        if(!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return [
+                'data' => [],
+                'total' => $total,
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => $totalPages
+            ];
+        }
+        foreach ($params as $k => $v) {
+            $this->db->bind($k, $v);
+        }
+        $this->db->bind(':limit', $perPage);
+        $this->db->bind(':offset', $offset);
+
+        $data = $this->db->resultSet();
+
+        return [
+            'data' => $data,
+            'total' => $total,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => $totalPages
+        ];
     }
     
     /**
@@ -429,6 +358,39 @@ class Order extends Model {
         }
     }
     
+    /**
+     * Update payment status
+     * 
+     * @param int $orderId Order ID
+     * @param string $status New payment status
+     * @return bool
+     */
+    public function updatePaymentStatus($orderId, $status) {
+        // Validate status
+        $validStatuses = ['pending', 'paid', 'failed', 'refunded'];
+        if(!in_array($status, $validStatuses)) {
+            $this->lastError = "Invalid payment status";
+            return false;
+        }
+        
+        // Check if order exists
+        if(!$this->exists($orderId)) {
+            $this->lastError = "Order not found";
+            return false;
+        }
+        
+        $sql = "UPDATE {$this->table} SET payment_status = :status WHERE id = :id";
+        
+        if(!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        
+        $this->db->bind(':status', $status);
+        $this->db->bind(':id', $orderId);
+        
+        return $this->db->execute();
+    }
     
     /**
      * Get recent orders
@@ -546,6 +508,69 @@ class Order extends Model {
     }
     
     /**
+     * Paginate orders
+     * 
+     * @param int $page Current page
+     * @param int $perPage Items per page
+     * @param string $orderBy Column to order by
+     * @param string $order Order direction (ASC or DESC)
+     * @return array
+     */
+    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC') {
+        // Calculate offset
+        $offset = ($page - 1) * $perPage;
+        
+        // Get total count
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table}";
+        
+        if(!$this->db->query($countSql)) {
+            $this->lastError = $this->db->getError();
+            return [
+                'data' => [],
+                'total' => 0,
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => 0
+            ];
+        }
+        
+        $totalResult = $this->db->single();
+        $total = $totalResult['total'];
+        $totalPages = ceil($total / $perPage);
+        
+        // Get orders with user info
+        $sql = "SELECT o.*, u.first_name, u.last_name, u.email 
+                FROM {$this->table} o
+                JOIN users u ON o.user_id = u.id
+                ORDER BY o.{$orderBy} {$order}
+                LIMIT :limit OFFSET :offset";
+                
+        if(!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return [
+                'data' => [],
+                'total' => $total,
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => $totalPages
+            ];
+        }
+        
+        $this->db->bind(':limit', $perPage);
+        $this->db->bind(':offset', $offset);
+        
+        $data = $this->db->resultSet();
+        
+        return [
+            'data' => $data,
+            'total' => $total,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => $totalPages
+        ];
+    }
+    
+    /**
      * Get sales summary
      * 
      * @return array
@@ -653,251 +678,5 @@ class Order extends Model {
         $this->db->bind(':end_date', $endDate . ' 23:59:59');
         
         return $this->db->resultSet();
-    }
-    
-    /**
-     * Get orders with due payments
-     * 
-     * @return array
-     */
-    public function getOrdersWithDuePayment() {
-        try {
-            $sql = "SELECT o.*, u.first_name, u.last_name, u.email,
-                           COALESCE(SUM(op.amount), 0) as paid_amount,
-                           (o.total_amount - COALESCE(SUM(op.amount), 0)) as due_amount
-                    FROM {$this->table} o
-                    LEFT JOIN users u ON o.user_id = u.id
-                    LEFT JOIN order_payments op ON o.id = op.order_id AND op.status = 'completed'
-                    WHERE o.payment_status != 'paid' 
-                    GROUP BY o.id
-                    HAVING due_amount > 0
-                    ORDER BY o.due_date ASC, o.created_at DESC";
-            
-            $this->db->query($sql);
-            return $this->db->resultSet();
-            
-        } catch (Exception $e) {
-            error_log('Error in getOrdersWithDuePayment: ' . $e->getMessage());
-            return [];
-        }
-    }
-    
-    /**
-     * Get order with payment details
-     * 
-     * @param int $orderId Order ID
-     * @return object|bool Order object with payments or false if not found
-     */
-    public function getOrderWithPayments($orderId) {
-        try {
-            // Get order details
-            $sql = "SELECT o.*, u.first_name, u.last_name, u.email, u.phone,
-                           COALESCE(SUM(op.amount), 0) as paid_amount,
-                           (o.total_amount - COALESCE(SUM(op.amount), 0)) as due_amount
-                    FROM {$this->table} o
-                    LEFT JOIN users u ON o.user_id = u.id
-                    LEFT JOIN order_payments op ON o.id = op.order_id AND op.status = 'completed'
-                    WHERE o.id = :order_id
-                    GROUP BY o.id";
-            
-            $this->db->query($sql);
-            $this->db->bind(':order_id', $orderId);
-            $order = $this->db->single();
-            
-            if (!$order) {
-                return false;
-            }
-            
-            // Get payment history
-            $sql = "SELECT * FROM order_payments 
-                    WHERE order_id = :order_id 
-                    ORDER BY payment_date DESC";
-            
-            $this->db->query($sql);
-            $this->db->bind(':order_id', $orderId);
-            $payments = $this->db->resultSet();
-            
-            $order->payments = $payments;
-            
-            return $order;
-            
-        } catch (Exception $e) {
-            error_log('Error in getOrderWithPayments: ' . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Record a payment for an order
-     * 
-     * @param array $paymentData Payment data including:
-     *   - order_id: int
-     *   - amount: float
-     *   - payment_date: string (Y-m-d H:i:s)
-     *   - payment_method: string
-     *   - transaction_id: string (optional)
-     *   - notes: string (optional)
-     *   - status: string (default: 'completed')
-     * @return int|bool Payment ID on success, false on failure
-     */
-    public function recordPayment($paymentData) {
-        $this->db->beginTransaction();
-        
-        try {
-            // Insert payment record
-            $sql = "INSERT INTO order_payments (
-                        order_id, amount, payment_date, payment_method, 
-                        transaction_id, notes, status, created_at, updated_at
-                    ) VALUES (
-                        :order_id, :amount, :payment_date, :payment_method, 
-                        :transaction_id, :notes, :status, NOW(), NOW()
-                    )";
-            
-            $this->db->query($sql);
-            $this->db->bind(':order_id', $paymentData['order_id']);
-            $this->db->bind(':amount', $paymentData['amount']);
-            $this->db->bind(':payment_date', $paymentData['payment_date']);
-            $this->db->bind(':payment_method', $paymentData['payment_method']);
-            $this->db->bind(':transaction_id', $paymentData['transaction_id'] ?? null);
-            $this->db->bind(':notes', $paymentData['notes'] ?? null);
-            $this->db->bind(':status', $paymentData['status'] ?? 'completed');
-            
-            if (!$this->db->execute()) {
-                throw new Exception('Failed to record payment');
-            }
-            
-            $paymentId = $this->db->lastInsertId();
-            
-            // Update order payment status
-            $orderId = $paymentData['order_id'];
-            $order = $this->getOrderWithPayments($orderId);
-            
-            if (!$order) {
-                throw new Exception('Order not found');
-            }
-            
-            $newPaymentStatus = 'partial';
-            if ($order->due_amount <= 0.01) { // Account for floating point precision
-                $newPaymentStatus = 'paid';
-            }
-            
-            $this->updatePaymentStatus($orderId, $newPaymentStatus);
-            
-            // Update due date if this is the first payment
-            if (empty($order->payments)) {
-                $dueDate = date('Y-m-d', strtotime('+30 days'));
-                $this->db->query("UPDATE {$this->table} SET due_date = :due_date WHERE id = :id");
-                $this->db->bind(':due_date', $dueDate);
-                $this->db->bind(':id', $orderId);
-                $this->db->execute();
-            }
-            
-            $this->db->endTransaction();
-            return $paymentId;
-            
-        } catch (Exception $e) {
-            $this->db->cancelTransaction();
-            error_log('Error in recordPayment: ' . $e->getMessage());
-            $this->lastError = $e->getMessage();
-            return false;
-        }
-    }
-    
-    /**
-     * Update payment status and related data
-     * 
-     * @param int|array $data Either order ID or payment data array
-     * @param string $status (Optional) New status if first parameter is order ID
-     * @return bool True on success, false on failure
-     */
-    public function updatePaymentStatus($data, $status = null) {
-        // If first parameter is order ID and second is status (legacy usage)
-        if (is_numeric($data) && $status !== null) {
-            $orderId = $data;
-            
-            // Validate status
-            $validStatuses = ['pending', 'paid', 'failed', 'refunded'];
-            if (!in_array($status, $validStatuses)) {
-                $this->lastError = "Invalid payment status";
-                return false;
-            }
-            
-            // Check if order exists
-            if (!$this->exists($orderId)) {
-                $this->lastError = "Order not found";
-                return false;
-            }
-            
-            $sql = "UPDATE {$this->table} SET payment_status = :status WHERE id = :id";
-            
-            if (!$this->db->query($sql)) {
-                $this->lastError = $this->db->getError();
-                return false;
-            }
-            
-            $this->db->bind(':status', $status);
-            $this->db->bind(':id', $orderId);
-            
-            return $this->db->execute();
-        } 
-        // If first parameter is an array (new usage with full payment data)
-        elseif (is_array($data)) {
-            return $this->recordPayment($data) !== false;
-        }
-        
-        $this->lastError = "Invalid parameters for updatePaymentStatus";
-        return false;
-    }
-    
-    /**
-     * Get payment due report
-     * 
-     * @param string $startDate Start date (Y-m-d)
-     * @param string $endDate End date (Y-m-d)
-     * @return array
-     */
-    public function getPaymentDueReport($startDate = null, $endDate = null) {
-        try {
-            $sql = "SELECT 
-                        o.id, o.order_number, o.total_amount, o.payment_status, o.due_date,
-                        u.first_name, u.last_name, u.email,
-                        COALESCE(SUM(op.amount), 0) as paid_amount,
-                        (o.total_amount - COALESCE(SUM(op.amount), 0)) as due_amount,
-                        DATEDIFF(o.due_date, CURDATE()) as days_until_due
-                    FROM {$this->table} o
-                    LEFT JOIN users u ON o.user_id = u.id
-                    LEFT JOIN order_payments op ON o.id = op.order_id AND op.status = 'completed'
-                    WHERE o.payment_status != 'paid' 
-                    AND o.due_date IS NOT NULL";
-            
-            $params = [];
-            
-            if ($startDate) {
-                $sql .= " AND o.due_date >= :start_date";
-                $params['start_date'] = $startDate;
-            }
-            
-            if ($endDate) {
-                $sql .= " AND o.due_date <= :end_date";
-                $params['end_date'] = $endDate;
-            }
-            
-            $sql .= " GROUP BY o.id
-                      HAVING due_amount > 0
-                      ORDER BY o.due_date ASC, o.created_at DESC";
-            
-            $this->db->query($sql);
-            
-            // Bind parameters
-            foreach ($params as $key => $value) {
-                $this->db->bind(":{$key}", $value);
-            }
-            
-            return $this->db->resultSet();
-            
-        } catch (Exception $e) {
-            error_log('Error in getPaymentDueReport: ' . $e->getMessage());
-            return [];
-        }
     }
 }

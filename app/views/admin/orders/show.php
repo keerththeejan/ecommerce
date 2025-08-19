@@ -3,20 +3,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12 mb-3">
-            <?php
-                // Preserve filters and page size when navigating back
-                $backQuery = [
-                    'controller' => 'order',
-                    'action' => 'adminIndex',
-                ];
-                if (!empty($_GET['limit']))          { $backQuery['limit'] = (int)$_GET['limit']; }
-                if (!empty($_GET['status']))         { $backQuery['status'] = $_GET['status']; }
-                if (!empty($_GET['payment_status'])) { $backQuery['payment_status'] = $_GET['payment_status']; }
-                if (!empty($_GET['search']))         { $backQuery['search'] = $_GET['search']; }
-                if (!empty($_GET['page']))           { $backQuery['page'] = (int)$_GET['page']; }
-                $backUrl = BASE_URL . '?' . http_build_query($backQuery);
-            ?>
-            <a href="<?php echo $backUrl; ?>" class="btn btn-secondary">
+            <a href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Orders
             </a>
         </div>
@@ -25,9 +12,10 @@
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center no-print">
                     <h3 class="card-title mb-0">Order #<?php echo $order['order']['id']; ?></h3>
-                    <div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-light" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
                         <a href="<?php echo BASE_URL; ?>?controller=order&action=updateStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Status</a>
                         <a href="<?php echo BASE_URL; ?>?controller=order&action=updatePaymentStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Payment</a>
                     </div>
@@ -185,5 +173,16 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Print styles */
+@media print {
+  body * { visibility: hidden; }
+  .container-fluid, .container-fluid * { visibility: visible; }
+  .no-print, .no-print * { display: none !important; }
+  .container-fluid { position: absolute; left: 0; top: 0; width: 100%; }
+  a[href]:after { content: "" !important; }
+}
+</style>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

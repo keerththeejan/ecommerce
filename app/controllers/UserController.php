@@ -202,6 +202,21 @@ class UserController extends Controller {
     }
     
     /**
+     * User settings landing page
+     */
+    public function settings() {
+        // Require login
+        if(!isLoggedIn()) {
+            redirect('user/login');
+        }
+        
+        // Render simple settings hub
+        $this->view('customer/user/settings', [
+            'user' => $this->userModel->getById($_SESSION['user_id'])
+        ]);
+    }
+    
+    /**
      * User profile
      */
     public function profile() {
