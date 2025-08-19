@@ -3,7 +3,20 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12 mb-3">
-            <a href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex" class="btn btn-secondary">
+            <?php
+                // Preserve filters and page size when navigating back
+                $backQuery = [
+                    'controller' => 'order',
+                    'action' => 'adminIndex',
+                ];
+                if (!empty($_GET['limit']))          { $backQuery['limit'] = (int)$_GET['limit']; }
+                if (!empty($_GET['status']))         { $backQuery['status'] = $_GET['status']; }
+                if (!empty($_GET['payment_status'])) { $backQuery['payment_status'] = $_GET['payment_status']; }
+                if (!empty($_GET['search']))         { $backQuery['search'] = $_GET['search']; }
+                if (!empty($_GET['page']))           { $backQuery['page'] = (int)$_GET['page']; }
+                $backUrl = BASE_URL . '?' . http_build_query($backQuery);
+            ?>
+            <a href="<?php echo $backUrl; ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Orders
             </a>
         </div>

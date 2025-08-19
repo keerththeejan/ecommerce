@@ -79,7 +79,22 @@ function getStatusBadgeClass($status) {
                                 <?php else: ?>
                                     <?php foreach ($orders['data'] as $order): ?>
                                         <tr>
-                                            <td data-label="Order #">#<?php echo htmlspecialchars($order['order_number'] ?? $order['id']); ?></td>
+                                            <?php 
+                                            // Build details URL preserving filters and page size
+                                            $detailQuery = [
+                                                'controller' => 'order',
+                                                'action' => 'adminShow',
+                                                'id' => $order['id']
+                                            ];
+                                            if (!empty($filters['limit']))          $detailQuery['limit'] = (int)$filters['limit'];
+                                            if (!empty($filters['status']))         $detailQuery['status'] = $filters['status'];
+                                            if (!empty($filters['payment_status'])) $detailQuery['payment_status'] = $filters['payment_status'];
+                                            if (!empty($filters['search']))         $detailQuery['search'] = $filters['search'];
+                                            $detailUrl = BASE_URL . '?' . http_build_query($detailQuery);
+                                        ?>
+                                        <td data-label="Order #">
+                                            <a href="<?php echo $detailUrl; ?>" class="text-decoration-none">#<?php echo htmlspecialchars($order['order_number'] ?? $order['id']); ?></a>
+                                        </td>
                                             <td data-label="Date"><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
                                             <td data-label="Product Name">
                                                 <?php 
