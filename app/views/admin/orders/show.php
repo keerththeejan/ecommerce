@@ -38,18 +38,19 @@
                             <button type="button" class="btn btn-outline-light" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
                             <a href="<?php echo BASE_URL; ?>?controller=order&action=updateStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Status</a>
                             <a href="<?php echo BASE_URL; ?>?controller=order&action=updatePaymentStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Payment</a>
-                            <form action="<?php echo BASE_URL; ?>?controller=invoice&action=create" method="post" class="d-inline" onsubmit="return confirm('Create invoice for this order?');">
-                                <input type="hidden" name="order_id" value="<?php echo (int)$order['order']['id']; ?>">
-                                <button type="submit" class="btn btn-warning text-dark">
-                                    <i class="fas fa-file-invoice-dollar me-1"></i> Make Bill & Invoice
-                                </button>
-                            </form>
+                            <a href="<?php echo BASE_URL; ?>?controller=invoice&action=create&order_id=<?php echo (int)$order['order']['id']; ?>"
+                               class="btn btn-warning text-dark"
+                               onclick="return confirm('Create invoice for this order?');">
+                                <i class="fas fa-file-invoice-dollar me-1"></i> Make Bill & Invoice
+                            </a>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
                     <?php flash('order_success'); ?>
                     <?php flash('order_error', '', 'alert alert-danger'); ?>
+                    <?php flash('invoice_success'); ?>
+                    <?php flash('invoice_error', '', 'alert alert-danger'); ?>
                     
                     <div class="row">
                         <div class="col-md-6">

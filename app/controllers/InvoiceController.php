@@ -22,8 +22,8 @@ class InvoiceController extends Controller {
             return;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $orderId = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
+            $orderId = isset($_POST['order_id']) ? (int)$_POST['order_id'] : (isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0);
             if ($orderId <= 0) {
                 flash('invoice_error', 'Please provide a valid Order ID', 'alert alert-danger');
                 $this->view('admin/invoices/create');
@@ -38,34 +38,23 @@ class InvoiceController extends Controller {
                 return;
             }
 
-            // Try to create invoice (idempotent behavior)
-            if ($this->invoiceModel->createInvoice($orderId)) {
-                // Created now; fetch id and go to print
-                $invoiceId = $this->invoiceModel->getInvoiceIdByOrderId($orderId);
-                flash('invoice_success', 'Invoice created successfully');
-                if ($invoiceId) {
-                    redirect('?controller=invoice&action=print&id=' . (int)$invoiceId);
-                } else {
-                    // Fallback: go back to order page
-                    redirect('?controller=order&action=adminShow&id=' . (int)$orderId);
-                }
-                return;
-            } else {
-                // May already exist; try to find it and redirect
-                $existingId = $this->invoiceModel->getInvoiceIdByOrderId($orderId);
-                if ($existingId) {
-                    flash('invoice_success', 'Invoice already exists for this order');
-                    redirect('?controller=invoice&action=print&id=' . (int)$existingId);
-                    return;
-                }
-                // Real failure
-                flash('invoice_error', 'Failed to create invoice', 'alert alert-danger');
-                redirect('?controller=order&action=adminShow&id=' . (int)$orderId);
+            // Create or get existing invoice id, then redirect
+            $invoiceId = $this->invoiceModel->createOrGetInvoiceId($orderId);
+            if ($invoiceId) {
+                flash('invoice_success', 'Invoice ready');
+                // Redirect to POS for final processing with original order id to preload items
+                $this->redirect(BASE_URL . '?controller=pos&action=index&order_id=' . (int)$orderId);
                 return;
             }
+            // Failure
+            $err = method_exists($this->invoiceModel, 'getLastError') ? $this->invoiceModel->getLastError() : '';
+            $msg = 'Failed to create invoice' . ($err ? (': ' . $err) : '');
+            flash('invoice_error', $msg, 'alert alert-danger');
+            $this->redirect(BASE_URL . '?controller=order&action=adminShow&id=' . (int)$orderId);
+            return;
         }
 
-        // GET: show form
+        // GET without order_id: show form
         $this->view('admin/invoices/create');
     }
     

@@ -2,16 +2,27 @@
 
 class ContactController extends Controller {
     private $contactModel;
+    private $contactInfoModel;
     
     public function __construct() {
         parent::__construct();
         $this->contactModel = $this->model('Contact');
+        $this->contactInfoModel = $this->model('ContactInfo');
     }
     
     /**
      * Display contact form
      */
     public function index() {
+        // Load latest contact info for display
+        $contactInfo = null;
+        try {
+            $contactInfo = $this->contactInfoModel->getLatest();
+        } catch (\PDOException $e) {
+            // If table missing, ignore gracefully
+            $contactInfo = null;
+        }
+        
         $data = [
             'title' => 'Contact Us',
             'name' => '',
@@ -22,7 +33,8 @@ class ContactController extends Controller {
             'name_err' => '',
             'email_err' => '',
             'subject_err' => '',
-            'message_err' => ''
+            'message_err' => '',
+            'contactInfo' => $contactInfo
         ];
         
         $this->view('contact/index', $data);

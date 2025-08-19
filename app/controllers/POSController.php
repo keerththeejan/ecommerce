@@ -54,12 +54,40 @@ class POSController extends Controller {
             // Fallback to zero tax if models/tables not available
         }
         
+        // Optional: preload items from an existing order
+        $preloadItems = [];
+        $orderId = $this->get('order_id');
+        if (!empty($orderId)) {
+            try {
+                $orderModel = $this->model('Order');
+                $orderWithItems = $orderModel->getOrderWithItems((int)$orderId);
+                if ($orderWithItems && isset($orderWithItems['items'])) {
+                    foreach ($orderWithItems['items'] as $it) {
+                        // Fetch product to get category id and current name if needed
+                        $product = $this->productModel->getById($it['product_id']);
+                        if ($product) {
+                            $preloadItems[] = [
+                                'id' => (int)$it['product_id'],
+                                'name' => isset($product['name']) ? $product['name'] : (isset($it['product_name']) ? $it['product_name'] : ('Product #' . (int)$it['product_id'])),
+                                'price' => (float)$it['price'],
+                                'quantity' => (int)$it['quantity'],
+                                'categoryId' => isset($product['category_id']) ? (int)$product['category_id'] : 0,
+                            ];
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // ignore preload errors
+            }
+        }
+
         // Load view
         $this->view('pos/index', [
             'products' => $products,
             'categories' => $categories,
             'session' => $activeSession,
-            'categoryTaxMap' => $categoryTaxMap
+            'categoryTaxMap' => $categoryTaxMap,
+            'preloadItems' => $preloadItems
         ]);
     }
     

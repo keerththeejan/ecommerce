@@ -329,7 +329,9 @@ if(!isStaff()) {
         $(document).ready(function() {
             const CURRENCY = '<?php echo CURRENCY_SYMBOL; ?>';
             const CATEGORY_TAX = <?php echo json_encode(isset($categoryTaxMap) ? $categoryTaxMap : []); ?>; // {category_id: rate_percent}
-            let cart = [];
+            // Preload items from order if provided
+            const PRELOAD_ITEMS = <?php echo json_encode(isset($preloadItems) ? $preloadItems : []); ?>;
+            let cart = Array.isArray(PRELOAD_ITEMS) && PRELOAD_ITEMS.length > 0 ? PRELOAD_ITEMS : [];
             let selectedProduct = null;
             let customers = [];
 
@@ -338,6 +340,11 @@ if(!isStaff()) {
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+
+            // If we preloaded items, render immediately
+            if (cart.length > 0) {
+                updateCart();
+            }
 
             // Product search
             $('#searchProduct').on('input', function() {
