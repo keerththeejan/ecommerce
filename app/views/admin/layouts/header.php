@@ -157,6 +157,12 @@ if (isset($_SESSION['user_id'])) {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="?controller=newsletter&action=adminIndex">
+                                <i class="fas fa-envelope-open-text me-2"></i>
+                                Newsletter
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=active">
                                 <i class="fas fa-user-check me-2"></i>
                                 Active Users
@@ -187,7 +193,13 @@ if (isset($_SESSION['user_id'])) {
                                 Manage About Store
                             </a>
                         </li>
-
+                            <li class="nav-item">
+                            <a class="nav-link text-white" href="?controller=contact">
+                                <i class="fas fa-address-book me-2"></i>
+                                Contact Info
+                            </a>
+                        </li>
+                           
                         <li class="nav-item">
                             <a class="nav-link text-white" href="?controller=PaymentDue&action=index">
                                 <i class="fas fa-money-bill-wave me-2"></i>

@@ -454,11 +454,30 @@
                 <!-- Newsletter Widget -->
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
-                        <h4>Newsletter</h4>
-                        <p>Subscribe to our newsletter to get exclusive updates about our latest products, special offers, and seasonal discounts.</p>
-                        <form class="newsletter-form">
-                            <input type="email" placeholder="Your Email Address" required>
-                            <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                        <?php
+                        // Newsletter widget settings with defaults
+                        $newsletterTitle = 'Newsletter';
+                        $newsletterDesc = 'Subscribe to our newsletter to get exclusive updates about our latest products, special offers, and seasonal discounts.';
+
+                        // Try load from settings if available
+                        try {
+                            require_once APP_PATH . 'models/Setting.php';
+                            $settingModel = new Setting();
+                            $titleVal = $settingModel->getSetting('newsletter_title', $newsletterTitle);
+                            $descVal  = $settingModel->getSetting('newsletter_description', $newsletterDesc);
+                            if (!empty($titleVal)) { $newsletterTitle = $titleVal; }
+                            if (!empty($descVal))  { $newsletterDesc  = $descVal; }
+                        } catch (Exception $e) {
+                            // Ignore and keep defaults
+                            error_log('Footer newsletter settings load failed: ' . $e->getMessage());
+                        }
+                        ?>
+                        <h4><?php echo htmlspecialchars($newsletterTitle); ?></h4>
+                        <p><?php echo htmlspecialchars($newsletterDesc); ?></p>
+                        <form class="newsletter-form" method="post" action="<?php echo BASE_URL; ?>?controller=newsletter&action=subscribe">
+                            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+                            <input type="email" name="email" placeholder="Your Email Address" required>
+                            <button type="submit" aria-label="Subscribe"><i class="fas fa-paper-plane"></i></button>
                         </form>
                     </div>
                 </div>
