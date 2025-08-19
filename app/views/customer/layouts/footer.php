@@ -420,7 +420,7 @@
                             <li><a href="<?php echo BASE_URL; ?>?controller=product&action=sale">Special Offers</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=category&action=all">All Categories</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">About Store</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=contact">Contact Us</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=contact">Contact Us</a></li>
                         </ul>
                     </div>
                 </div>
@@ -429,23 +429,41 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
                         <h4>Contact Info</h4>
+                        <?php
+                        $ci = null;
+                        try {
+                            require_once APP_PATH . 'models/ContactInfo.php';
+                            $ciModel = new ContactInfo();
+                            $ci = $ciModel->getLatest();
+                        } catch (Exception $e) {
+                            error_log('Footer contact info load failed: ' . $e->getMessage());
+                        }
+                        ?>
                         <ul class="contact-info">
                             <li>
                                 <i class="fas fa-map-marker-alt"></i>
-                                123 Trade Center, City, Country
+                                <?php echo $ci && !empty($ci['address']) ? nl2br(htmlspecialchars($ci['address'])) : 'Address not set'; ?>
                             </li>
                             <li>
                                 <i class="fas fa-phone"></i>
-                                +1 234 567 890
+                                <?php if ($ci && !empty($ci['phone'])): ?>
+                                    <a href="tel:<?php echo htmlspecialchars($ci['phone']); ?>" class="text-decoration-none text-light"><?php echo htmlspecialchars($ci['phone']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-muted">Phone not set</span>
+                                <?php endif; ?>
                             </li>
                             <li>
                                 <i class="fas fa-envelope"></i>
-                                info@estore.com
+                                <?php if ($ci && !empty($ci['email'])): ?>
+                                    <a href="mailto:<?php echo htmlspecialchars($ci['email']); ?>" class="text-decoration-none text-light"><?php echo htmlspecialchars($ci['email']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-muted">Email not set</span>
+                                <?php endif; ?>
                             </li>
                             <li>
                                 <i class="fas fa-clock"></i>
-                                Mon - Fri: 9:00 AM - 8:00 PM<br>
-                                Sat - Sun: 10:00 AM - 6:00 PM
+                                <?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon - Fri: 9:00 AM - 8:00 PM'; ?><br>
+                                <?php echo $ci && !empty($ci['hours_weekends']) ? htmlspecialchars($ci['hours_weekends']) : 'Sat - Sun: 10:00 AM - 6:00 PM'; ?>
                             </li>
                         </ul>
                     </div>

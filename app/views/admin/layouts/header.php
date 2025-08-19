@@ -211,7 +211,7 @@ if (isset($_SESSION['user_id'])) {
                             </a>
                         </li>
                             <li class="nav-item">
-                            <a class="nav-link text-white" href="?controller=contact">
+                            <a class="nav-link text-white" href="?controller=contactinfo&action=index">
                                 <i class="fas fa-address-book me-2"></i>
                                 Contact Info
                             </a>
