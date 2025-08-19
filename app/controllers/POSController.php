@@ -35,12 +35,31 @@ class POSController extends Controller {
         
         // Get categories for filter
         $categories = $this->model('Category')->getActiveCategories();
+
+        // Build category => tax rate map (percentage) for the view
+        $categoryTaxMap = [];
+        try {
+            $taxModel = $this->model('TaxModel');
+            foreach ($categories as $cat) {
+                $rate = 0.0;
+                if (isset($cat['tax_id']) && $cat['tax_id']) {
+                    $tax = $taxModel->getTaxRateById($cat['tax_id']);
+                    if ($tax && isset($tax->rate)) {
+                        $rate = (float)$tax->rate; // stored as percent
+                    }
+                }
+                $categoryTaxMap[(int)$cat['id']] = $rate;
+            }
+        } catch (Exception $e) {
+            // Fallback to zero tax if models/tables not available
+        }
         
         // Load view
         $this->view('pos/index', [
             'products' => $products,
             'categories' => $categories,
-            'session' => $activeSession
+            'session' => $activeSession,
+            'categoryTaxMap' => $categoryTaxMap
         ]);
     }
     

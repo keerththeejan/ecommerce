@@ -245,11 +245,11 @@ class Invoice {
     public function createInvoice($orderId) {
         try {
             // Check if invoice already exists
-            $sql = 'SELECT id FROM ' . $this->table . ' WHERE order_id = :order_id';
+            $sql = 'SELECT id FROM ' . $this->table . ' WHERE order_id = :order_id LIMIT 1';
             $this->db->query($sql);
             $this->db->bind(':order_id', $orderId);
-            
-            if($this->db->rowCount() > 0) {
+            $existing = $this->db->single();
+            if($existing && isset($existing->id)) {
                 return false; // Invoice already exists
             }
             
@@ -274,6 +274,24 @@ class Invoice {
             // Log the error or handle it appropriately
             error_log('Error in createInvoice: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Get invoice id by order id
+     * @param int $orderId
+     * @return int|null
+     */
+    public function getInvoiceIdByOrderId($orderId) {
+        try {
+            $sql = 'SELECT id FROM ' . $this->table . ' WHERE order_id = :order_id LIMIT 1';
+            $this->db->query($sql);
+            $this->db->bind(':order_id', $orderId);
+            $row = $this->db->single();
+            return ($row && isset($row->id)) ? (int)$row->id : null;
+        } catch (Exception $e) {
+            error_log('Error in getInvoiceIdByOrderId: ' . $e->getMessage());
+            return null;
         }
     }
 }

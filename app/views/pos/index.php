@@ -132,8 +132,18 @@ if(!isStaff()) {
                                             <?php endif; ?>
                                             <div class="card-body text-center">
                                                 <h6 class="card-title"><?php echo $product['name']; ?></h6>
-                                                <p class="card-text fw-bold"><?php echo formatPrice($product['sale_price'] ?? $product['price']); ?></p>
-                                                <small class="text-muted">Stock: <?php echo $product['stock_quantity']; ?></small>
+                                                <?php 
+                                                    $basePrice = isset($product['sale_price']) && $product['sale_price'] > 0 
+                                                        ? (float)$product['sale_price'] 
+                                                        : (float)$product['price'];
+                                                    $inclTax = $basePrice * 1.10; // match 10% tax used in cart
+                                                ?>
+                                                <div class="small text-muted">purches Price: <?php echo formatPrice((float)$product['price']); ?></div>
+                                                <div class="small <?php echo (isset($product['sale_price']) && $product['sale_price'] > 0) ? 'text-danger fw-semibold' : 'text-muted'; ?>">
+                                                    Sale Price: <?php echo (isset($product['sale_price']) && $product['sale_price'] > 0) ? formatPrice((float)$product['sale_price']) : 'N/A'; ?>
+                                                </div>
+                                                <div class="fw-bold">Incl. Tax (10%): <?php echo formatPrice($inclTax); ?></div>
+                                                <small class="text-muted d-block mt-1">Stock: <?php echo (int)$product['stock_quantity']; ?></small>
                                             </div>
                                         </div>
                                     </div>
@@ -148,7 +158,7 @@ if(!isStaff()) {
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Shopping Cart</h5>
+                        <h5 class="mb-0">Bill & Invoice</h5>
                     </div>
                     <div class="card-body">
                         <div class="cart-container mb-3" id="cartItems">
@@ -162,26 +172,76 @@ if(!isStaff()) {
                         <div class="cart-summary">
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Subtotal:</span>
-                                <span id="subtotal">₹0.00</span>
+                                <span id="subtotal">CHF0.00</span>
+                            </div>
+                            <div class="row g-2 align-items-end mb-2">
+                                <div class="col-5">
+                                    <label class="form-label mb-1">Discount</label>
+                                    <select id="discountType" class="form-select form-select-sm">
+                                        <option value="none" selected>None</option>
+                                        <option value="percent">% Percent</option>
+                                        <option value="fixed">Fixed</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label mb-1">Value</label>
+                                    <input type="number" class="form-control form-control-sm" id="discountValue" min="0" step="0.01" value="0" disabled>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="applyTax" checked>
+                                        <label class="form-check-label" for="applyTax">Tax</label>
+                                    </div>
+                                </div>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Tax (10%):</span>
-                                <span id="tax">₹0.00</span>
+                                <span>Discount:</span>
+                                <span id="discount">CHF0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (category-wise):</span>
+                                <span id="tax">CHF0.00</span>
                             </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold">Total:</span>
-                                <span class="fw-bold" id="total">₹0.00</span>
+                                <span class="fw-bold" id="total">CHF0.00</span>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="customerSearch" class="form-label">Customer (Optional)</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="customerSearch" placeholder="Search customer...">
-                                <button class="btn btn-outline-secondary" type="button" id="clearCustomer">Clear</button>
+                            <label class="form-label d-block">Customer (Optional)</label>
+                            <div class="btn-group w-100 mb-2" role="group" aria-label="Customer mode">
+                                <input type="radio" class="btn-check" name="customerMode" id="modeRegistered" value="registered" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="modeRegistered">Registered</label>
+                                <input type="radio" class="btn-check" name="customerMode" id="modeManual" value="manual" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="modeManual">Manual</label>
                             </div>
-                            <input type="hidden" id="customerId" value="">
-                            <div id="customerInfo" class="mt-2"></div>
+
+                            <!-- Registered customer UI -->
+                            <div id="registeredCustomerBox">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="customerSearch" placeholder="Search customer by name, email, phone...">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearCustomer">Clear</button>
+                                </div>
+                                <input type="hidden" id="customerId" value="">
+                                <div id="customerInfo" class="mt-2"></div>
+                            </div>
+
+                            <!-- Manual customer UI -->
+                            <div id="manualCustomerBox" class="d-none">
+                                <div class="mb-2">
+                                    <label class="form-label mb-1" for="manualName">Name</label>
+                                    <input type="text" class="form-control" id="manualName" placeholder="Enter customer name">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label mb-1" for="manualPhone">Phone</label>
+                                    <input type="text" class="form-control" id="manualPhone" placeholder="Enter phone number">
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label mb-1" for="manualEmail">Email</label>
+                                    <input type="email" class="form-control" id="manualEmail" placeholder="Enter email (optional)">
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -242,14 +302,14 @@ if(!isStaff()) {
                     <div class="mb-3">
                         <label for="amountTendered" class="form-label">Amount Tendered</label>
                         <input type="number" class="form-control" id="amountTendered" min="0" step="0.01">
-                        <div class="form-text">Total amount: <span id="modalTotal">₹0.00</span></div>
+                        <div class="form-text">Total amount: <span id="modalTotal">CHF0.00</span></div>
                     </div>
                     <div class="mb-3">
                         <label for="saleNotes" class="form-label">Notes (Optional)</label>
                         <textarea class="form-control" id="saleNotes" rows="2"></textarea>
                     </div>
                     <div id="changeAmount" class="alert alert-success d-none">
-                        Change: <span id="changeValue">₹0.00</span>
+                        Change: <span id="changeValue">CHF0.00</span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -267,6 +327,8 @@ if(!isStaff()) {
     <!-- Custom JS -->
     <script>
         $(document).ready(function() {
+            const CURRENCY = '<?php echo CURRENCY_SYMBOL; ?>';
+            const CATEGORY_TAX = <?php echo json_encode(isset($categoryTaxMap) ? $categoryTaxMap : []); ?>; // {category_id: rate_percent}
             let cart = [];
             let selectedProduct = null;
             let customers = [];
@@ -306,12 +368,13 @@ if(!isStaff()) {
             });
 
             // Product click - show quantity modal
-            $('.product-item').on('click', function() {
+            $(document).on('click', '.product-item', function() {
                 selectedProduct = {
                     id: $(this).data('id'),
                     name: $(this).data('name'),
                     price: $(this).data('price'),
-                    stock: $(this).data('stock')
+                    stock: $(this).data('stock'),
+                    categoryId: $(this).data('category')
                 };
                 
                 $('#availableStock').text(selectedProduct.stock);
@@ -346,7 +409,8 @@ if(!isStaff()) {
                         id: selectedProduct.id,
                         name: selectedProduct.name,
                         price: selectedProduct.price,
-                        quantity: quantity
+                        quantity: quantity,
+                        categoryId: selectedProduct.categoryId
                     });
                 }
                 
@@ -365,40 +429,56 @@ if(!isStaff()) {
                     `);
                     $('#checkoutBtn, #clearCartBtn').prop('disabled', true);
                 } else {
-                    let cartHtml = '';
                     let subtotal = 0;
-                    
+                    let cartHtml = '';
                     cart.forEach((item, index) => {
                         const itemTotal = item.price * item.quantity;
                         subtotal += itemTotal;
-                        
                         cartHtml += `
-                            <div class="cart-item">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="mb-0">${item.name}</h6>
-                                        <small class="text-muted">${formatPrice(item.price)} x ${item.quantity}</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold">${formatPrice(itemTotal)}</div>
-                                        <div>
-                                            <button class="btn btn-sm btn-link text-danger remove-item" data-index="${index}">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div class="cart-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold">${item.name}</div>
+                                    <div class="text-muted small">${formatPrice(item.price)} x ${item.quantity}</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-semibold">${formatPrice(itemTotal)}</div>
+                                    <a href="#" class="text-danger small remove-item" data-index="${index}"><i class="fas fa-times"></i></a>
                                 </div>
                             </div>
+                            <hr>
                         `;
                     });
-                    
                     $('#cartItems').html(cartHtml);
-                    
-                    // Calculate totals
-                    const tax = subtotal * 0.1; // 10% tax
-                    const total = subtotal + tax;
-                    
+
+                    // Discount
+                    const dType = $('#discountType').val();
+                    const dVal = parseFloat($('#discountValue').val()) || 0;
+                    let discountAmt = 0;
+                    if (dType === 'percent') {
+                        const pct = Math.max(0, Math.min(100, dVal));
+                        discountAmt = subtotal * (pct / 100);
+                    } else if (dType === 'fixed') {
+                        discountAmt = Math.max(0, Math.min(subtotal, dVal));
+                    }
+
+                    const taxableBase = Math.max(0, subtotal - discountAmt);
+
+                    // Category-wise tax (post-discount, proportionally allocated)
+                    let tax = 0;
+                    if ($('#applyTax').is(':checked') && subtotal > 0) {
+                        cart.forEach((item) => {
+                            const itemSubtotal = item.price * item.quantity;
+                            const share = itemSubtotal / subtotal; // proportion of discount
+                            const itemBase = Math.max(0, itemSubtotal - (discountAmt * share));
+                            const rate = parseFloat(CATEGORY_TAX[item.categoryId]) || 0; // percent
+                            tax += itemBase * (rate / 100);
+                        });
+                    }
+
+                    const total = taxableBase + tax;
+
                     $('#subtotal').text(formatPrice(subtotal));
+                    $('#discount').text('- ' + formatPrice(discountAmt));
                     $('#tax').text(formatPrice(tax));
                     $('#total').text(formatPrice(total));
                     $('#modalTotal').text(formatPrice(total));
@@ -407,9 +487,30 @@ if(!isStaff()) {
                 }
             }
 
-            // Format price
+            // Discount/tax controls
+            $('#discountType').on('change', function() {
+                const type = $(this).val();
+                const $val = $('#discountValue');
+                if (type === 'none') {
+                    $val.prop('disabled', true).val(0);
+                } else {
+                    $val.prop('disabled', false);
+                    if (!$val.val()) $val.val(0);
+                }
+                updateCart();
+            });
+            $('#discountValue').on('input', function() { updateCart(); });
+            $('#applyTax').on('change', function() { updateCart(); });
+
+            // Format price with dynamic currency
             function formatPrice(price) {
-                return '₹' + parseFloat(price).toFixed(2);
+                return CURRENCY + ' ' + parseFloat(price).toFixed(2);
+            }
+
+            function parsePrice(text) {
+                // Strip all non-numeric/decimal characters
+                const n = parseFloat(String(text).replace(/[^0-9.]/g, ''));
+                return isNaN(n) ? 0 : n;
             }
 
             // Remove item from cart
@@ -488,6 +589,24 @@ if(!isStaff()) {
                 $('#customerInfo').html('');
             });
 
+            // Customer mode toggle (Registered vs Manual)
+            $('input[name="customerMode"]').on('change', function() {
+                const mode = $(this).val();
+                if (mode === 'registered') {
+                    $('#registeredCustomerBox').removeClass('d-none');
+                    $('#manualCustomerBox').addClass('d-none');
+                    // clear manual fields
+                    $('#manualName, #manualPhone, #manualEmail').val('');
+                } else {
+                    $('#registeredCustomerBox').addClass('d-none');
+                    $('#manualCustomerBox').removeClass('d-none');
+                    // clear registered selection
+                    $('#customerId').val('');
+                    $('#customerSearch').val('');
+                    $('#customerInfo').html('');
+                }
+            });
+
             // Checkout button
             $('#checkoutBtn').on('click', function() {
                 if (cart.length === 0) {
@@ -495,7 +614,7 @@ if(!isStaff()) {
                     return;
                 }
                 
-                const total = parseFloat($('#total').text().replace('₹', ''));
+                const total = parsePrice($('#total').text());
                 $('#amountTendered').val(total);
                 $('#changeAmount').addClass('d-none');
                 $('#checkoutModal').modal('show');
@@ -504,7 +623,7 @@ if(!isStaff()) {
             // Calculate change
             $('#amountTendered').on('input', function() {
                 const amountTendered = parseFloat($(this).val());
-                const total = parseFloat($('#total').text().replace('₹', ''));
+                const total = parsePrice($('#total').text());
                 
                 if (amountTendered >= total) {
                     const change = amountTendered - total;
@@ -518,9 +637,13 @@ if(!isStaff()) {
             // Complete sale
             $('#completeSaleBtn').on('click', function() {
                 const amountTendered = parseFloat($('#amountTendered').val());
-                const total = parseFloat($('#total').text().replace('₹', ''));
+                const total = parsePrice($('#total').text());
                 const paymentMethod = $('#paymentMethod').val();
+                const customerMode = $('input[name="customerMode"]:checked').val();
                 const customerId = $('#customerId').val();
+                const manualName = $('#manualName').val();
+                const manualPhone = $('#manualPhone').val();
+                const manualEmail = $('#manualEmail').val();
                 const notes = $('#saleNotes').val();
                 
                 if (amountTendered < total) {
@@ -531,7 +654,11 @@ if(!isStaff()) {
                 // Prepare data for submission
                 const data = {
                     items: JSON.stringify(cart),
+                    customer_mode: customerMode,
                     customer_id: customerId,
+                    manual_name: manualName,
+                    manual_phone: manualPhone,
+                    manual_email: manualEmail,
                     payment_method: paymentMethod,
                     total_amount: total,
                     notes: notes

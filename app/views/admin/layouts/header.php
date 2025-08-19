@@ -180,6 +180,12 @@ if (isset($_SESSION['user_id'])) {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=invoice&action=create">
+                                <i class="fas fa-user-check me-2"></i>
+                                Billing & Invoices
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=setting&action=index">
                                 <i class="fas fa-cog me-2"></i>
                                 Settings
