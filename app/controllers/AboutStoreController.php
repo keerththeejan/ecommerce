@@ -2,7 +2,9 @@
 class AboutStoreController {
     private $aboutStoreModel;
     
-    public function __construct($db) {
+    public function __construct() {
+        // Use the globally initialized Database instance for consistency
+        $db = isset($GLOBALS['db']) ? $GLOBALS['db'] : new Database();
         $this->aboutStoreModel = new AboutStore($db);
     }
 

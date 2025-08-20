@@ -2,7 +2,9 @@
 class AboutController {
     private $aboutStoreModel;
     
-    public function __construct($db) {
+    public function __construct() {
+        // Obtain the global database instance to match how controllers are instantiated
+        $db = isset($GLOBALS['db']) ? $GLOBALS['db'] : null;
         $this->aboutStoreModel = new AboutStore($db);
     }
 

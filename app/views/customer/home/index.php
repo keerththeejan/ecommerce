@@ -1,13 +1,14 @@
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
 <!-- Banner Section -->
+<div id="banner"></div>
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
 <!-- Featured Categories - Improved responsive grid -->
-<section class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px;">
+<section id="categories" class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px;">
 
     <div class="container-fluid" style="padding: 0; margin: 0 auto; max-width: 100%; position: relative; z-index: 1;">
-        <h2 class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
+        <h2 id="categories-heading" class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
 
         <!-- 🔹 Category Slider -->
         <div id="categorySlider"
@@ -52,6 +53,7 @@
             <?php if (empty($activeCategories)): ?>
                 <div style="padding: 20px;">No categories available</div>
             <?php endif; ?>
+            <?php endif; ?>
         </div>
 
         <!-- 🔹 Dot Navigation (horizontal like loading gif) -->
@@ -79,7 +81,7 @@
 
 
 <!-- Featured Products - Enhanced filtering and responsive layout -->
-<section class="featured-products py-4 py-md-5 bg-light full-width-section">
+<section id="featured-products" class="featured-products py-4 py-md-5 bg-light full-width-section">
     <div class="container-fluid px-4 px-xl-5 max-width-1400">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
             <h2 class="h4 mb-3 mb-md-0">Featured Products</h2>
@@ -140,7 +142,7 @@
                                     </div>
                                 </a>
 
-                                <!-- 🛒 Add to Cart -->
+                                <!-- Add to Cart -->
                                 <?php if($product['stock_quantity'] > 0) { ?>
                                     <?php if(isLoggedIn()) { ?>
                                         <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mt-auto add-to-cart-form">
@@ -191,14 +193,8 @@
 
 
 
-
-
-
-
-
-
 <!-- Brand Showcase - Enhanced with responsive grid -->
-<section class="brands-showcase py-4 py-md-5 bg-white">
+<section id="brands" class="brands-showcase py-4 py-md-5 bg-white">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
             <h2 class="h4 mb-0">Our Brands</h2>
@@ -256,8 +252,6 @@
             <?php endif; ?>
         </div>
         
-        <?php endif; ?>
-        
         <?php if(!empty($brands) && count($brands) > 12): ?>
         <div class="text-center mt-3 d-md-none">
             <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="btn btn-outline-primary px-4">
@@ -305,6 +299,11 @@
     margin-bottom: 50px;
     
 }
+
+/* Ensure anchor scroll aligns nicely with header for categories heading */
+#categories-heading { scroll-margin-top: 140px; }
+/* Offset for banner anchor so banner top is visible under fixed header */
+#banner { scroll-margin-top: 100px; }
 
 /* Product Card - Mobile-first responsive styles */
 .product-card {

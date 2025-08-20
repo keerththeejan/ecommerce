@@ -6,6 +6,7 @@
     html, body {
         height: 100%;
         margin: 0;
+        scroll-behavior: smooth;
     }
     
     body {
@@ -415,12 +416,10 @@
                     <div class="footer-widget">
                         <h4>Quick Links</h4>
                         <ul class="footer-links">
-                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=new">New Arrivals</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=featured">Featured Products</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=sale">Special Offers</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=category&action=all">All Categories</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">About Store</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=contact">Contact Us</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#banner">Banner</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#featured-products">Featured Products</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#brands">Brands</a></li>
                         </ul>
                     </div>
                 </div>
