@@ -416,10 +416,19 @@
                     <div class="footer-widget">
                         <h4>Quick Links</h4>
                         <ul class="footer-links">
+<<<<<<< HEAD
                             <li><a href="<?php echo BASE_URL; ?>#banner">Banner</a></li>
                             <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
                             <li><a href="<?php echo BASE_URL; ?>#featured-products">Featured Products</a></li>
                             <li><a href="<?php echo BASE_URL; ?>#brands">Brands</a></li>
+=======
+                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=new">New Arrivals</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=featured">Featured Products</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=sale">Special Offers</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=category&action=all">All Categories</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">About Store</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=contact">Contact Us</a></li>
+>>>>>>> 8698a878c8a66367e6f6f1c2752a4570d3c11102
                         </ul>
                     </div>
                 </div>
@@ -428,23 +437,41 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
                         <h4>Contact Info</h4>
+                        <?php
+                        $ci = null;
+                        try {
+                            require_once APP_PATH . 'models/ContactInfo.php';
+                            $ciModel = new ContactInfo();
+                            $ci = $ciModel->getLatest();
+                        } catch (Exception $e) {
+                            error_log('Footer contact info load failed: ' . $e->getMessage());
+                        }
+                        ?>
                         <ul class="contact-info">
                             <li>
                                 <i class="fas fa-map-marker-alt"></i>
-                                123 Trade Center, City, Country
+                                <?php echo $ci && !empty($ci['address']) ? nl2br(htmlspecialchars($ci['address'])) : 'Address not set'; ?>
                             </li>
                             <li>
                                 <i class="fas fa-phone"></i>
-                                +1 234 567 890
+                                <?php if ($ci && !empty($ci['phone'])): ?>
+                                    <a href="tel:<?php echo htmlspecialchars($ci['phone']); ?>" class="text-decoration-none text-light"><?php echo htmlspecialchars($ci['phone']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-muted">Phone not set</span>
+                                <?php endif; ?>
                             </li>
                             <li>
                                 <i class="fas fa-envelope"></i>
-                                info@estore.com
+                                <?php if ($ci && !empty($ci['email'])): ?>
+                                    <a href="mailto:<?php echo htmlspecialchars($ci['email']); ?>" class="text-decoration-none text-light"><?php echo htmlspecialchars($ci['email']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-muted">Email not set</span>
+                                <?php endif; ?>
                             </li>
                             <li>
                                 <i class="fas fa-clock"></i>
-                                Mon - Fri: 9:00 AM - 8:00 PM<br>
-                                Sat - Sun: 10:00 AM - 6:00 PM
+                                <?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon - Fri: 9:00 AM - 8:00 PM'; ?><br>
+                                <?php echo $ci && !empty($ci['hours_weekends']) ? htmlspecialchars($ci['hours_weekends']) : 'Sat - Sun: 10:00 AM - 6:00 PM'; ?>
                             </li>
                         </ul>
                     </div>
@@ -453,11 +480,30 @@
                 <!-- Newsletter Widget -->
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
-                        <h4>Newsletter</h4>
-                        <p>Subscribe to our newsletter to get exclusive updates about our latest products, special offers, and seasonal discounts.</p>
-                        <form class="newsletter-form">
-                            <input type="email" placeholder="Your Email Address" required>
-                            <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                        <?php
+                        // Newsletter widget settings with defaults
+                        $newsletterTitle = 'Newsletter';
+                        $newsletterDesc = 'Subscribe to our newsletter to get exclusive updates about our latest products, special offers, and seasonal discounts.';
+
+                        // Try load from settings if available
+                        try {
+                            require_once APP_PATH . 'models/Setting.php';
+                            $settingModel = new Setting();
+                            $titleVal = $settingModel->getSetting('newsletter_title', $newsletterTitle);
+                            $descVal  = $settingModel->getSetting('newsletter_description', $newsletterDesc);
+                            if (!empty($titleVal)) { $newsletterTitle = $titleVal; }
+                            if (!empty($descVal))  { $newsletterDesc  = $descVal; }
+                        } catch (Exception $e) {
+                            // Ignore and keep defaults
+                            error_log('Footer newsletter settings load failed: ' . $e->getMessage());
+                        }
+                        ?>
+                        <h4><?php echo htmlspecialchars($newsletterTitle); ?></h4>
+                        <p><?php echo htmlspecialchars($newsletterDesc); ?></p>
+                        <form class="newsletter-form" method="post" action="<?php echo BASE_URL; ?>?controller=newsletter&action=subscribe">
+                            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+                            <input type="email" name="email" placeholder="Your Email Address" required>
+                            <button type="submit" aria-label="Subscribe"><i class="fas fa-paper-plane"></i></button>
                         </form>
                     </div>
                 </div>

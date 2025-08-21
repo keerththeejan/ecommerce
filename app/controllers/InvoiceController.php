@@ -11,6 +11,52 @@ class InvoiceController extends Controller {
         $this->invoiceModel = $this->model('Invoice');
         $this->orderModel = $this->model('Order');
     }
+
+    /**
+     * Admin: Create invoice from an Order
+     */
+    public function create() {
+        // Require admin login
+        if (!isAdmin()) {
+            redirect('user/login');
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
+            $orderId = isset($_POST['order_id']) ? (int)$_POST['order_id'] : (isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0);
+            if ($orderId <= 0) {
+                flash('invoice_error', 'Please provide a valid Order ID', 'alert alert-danger');
+                $this->view('admin/invoices/create');
+                return;
+            }
+
+            // Ensure order exists
+            $order = $this->orderModel->getById($orderId);
+            if (!$order) {
+                flash('invoice_error', 'Order not found', 'alert alert-danger');
+                $this->view('admin/invoices/create');
+                return;
+            }
+
+            // Create or get existing invoice id, then redirect
+            $invoiceId = $this->invoiceModel->createOrGetInvoiceId($orderId);
+            if ($invoiceId) {
+                flash('invoice_success', 'Invoice ready');
+                // Redirect to POS for final processing with original order id to preload items
+                $this->redirect(BASE_URL . '?controller=pos&action=index&order_id=' . (int)$orderId);
+                return;
+            }
+            // Failure
+            $err = method_exists($this->invoiceModel, 'getLastError') ? $this->invoiceModel->getLastError() : '';
+            $msg = 'Failed to create invoice' . ($err ? (': ' . $err) : '');
+            flash('invoice_error', $msg, 'alert alert-danger');
+            $this->redirect(BASE_URL . '?controller=order&action=adminShow&id=' . (int)$orderId);
+            return;
+        }
+
+        // GET without order_id: show form
+        $this->view('admin/invoices/create');
+    }
     
     /**
      * Display customer invoices
@@ -99,21 +145,31 @@ class InvoiceController extends Controller {
      * @param int $invoiceId Invoice ID
      */
     public function print($invoiceId) {
-        // Check if logged in
-        if(!isLoggedIn()) {
+        // Allow admins; otherwise require customer login
+        if (!isAdmin() && !isLoggedIn()) {
             redirect('user/login');
+            return;
         }
-        
+
         // Get invoice with order details
         $invoice = $this->invoiceModel->getInvoiceWithOrder($invoiceId);
-        
-        // Check if invoice exists and belongs to user
-        if(!$invoice || $invoice['user_id'] != $_SESSION['user_id']) {
+
+        if (!$invoice) {
             flash('invoice_error', 'Invoice not found', 'alert alert-danger');
             redirect('invoice');
+            return;
         }
-        
-        // Load print view
+
+        // If not admin, ensure invoice belongs to logged-in customer
+        if (!isAdmin()) {
+            if (!isset($_SESSION['user_id']) || $invoice['user_id'] != $_SESSION['user_id']) {
+                flash('invoice_error', 'Invoice not found', 'alert alert-danger');
+                redirect('invoice');
+                return;
+            }
+        }
+
+        // Load print view (reuse existing view)
         $this->view('customer/invoices/print', [
             'invoice' => $invoice
         ]);

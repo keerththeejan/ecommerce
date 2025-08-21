@@ -11,7 +11,7 @@
                 <div class="card-body">
                     <?php flash('contact_message'); ?>
                     
-                    <form action="<?php echo URLROOT; ?>/contact/send" method="post" id="contactForm">
+                    <form action="<?php echo BASE_URL; ?>?controller=contact&action=send" method="post" id="contactForm">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
@@ -61,12 +61,15 @@
                 </div>
                 <div class="card-footer bg-light">
                     <div class="row">
+                        <?php $ci = isset($data['contactInfo']) ? $data['contactInfo'] : null; ?>
                         <div class="col-md-4 text-center mb-3 mb-md-0">
                             <div class="text-primary mb-2">
                                 <i class="fas fa-map-marker-alt fa-2x"></i>
                             </div>
                             <h6 class="h6 mb-1">Our Location</h6>
-                            <p class="mb-0 small">123 Business St.<br>City, State 12345</p>
+                            <p class="mb-0 small">
+                                <?php echo $ci && !empty($ci['address']) ? nl2br(htmlspecialchars($ci['address'])) : 'Address not set'; ?>
+                            </p>
                         </div>
                         <div class="col-md-4 text-center mb-3 mb-md-0">
                             <div class="text-primary mb-2">
@@ -74,7 +77,11 @@
                             </div>
                             <h6 class="h6 mb-1">Phone</h6>
                             <p class="mb-0">
-                                <a href="tel:+1234567890" class="text-decoration-none">+1 (234) 567-890</a>
+                                <?php if ($ci && !empty($ci['phone'])): ?>
+                                    <a href="tel:<?php echo htmlspecialchars($ci['phone']); ?>" class="text-decoration-none"><?php echo htmlspecialchars($ci['phone']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-muted">Phone not set</span>
+                                <?php endif; ?>
                             </p>
                         </div>
                         <div class="col-md-4 text-center">
@@ -83,7 +90,11 @@
                             </div>
                             <h6 class="h6 mb-1">Email</h6>
                             <p class="mb-0">
-                                <a href="mailto:info@example.com" class="text-decoration-none">info@example.com</a>
+                                <?php if ($ci && !empty($ci['email'])): ?>
+                                    <a href="mailto:<?php echo htmlspecialchars($ci['email']); ?>" class="text-decoration-none"><?php echo htmlspecialchars($ci['email']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-muted">Email not set</span>
+                                <?php endif; ?>
                             </p>
                         </div>
                     </div>
@@ -99,8 +110,16 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="ratio ratio-16x9 rounded shadow">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209056535!2d-73.98784492401249!3d40.74844097138994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b3117469%3A0xd134e199a405a163!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1623456789012!5m2!1sen!2sus" 
-                            style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    <?php if (!empty($ci['map_embed'])): ?>
+                        <?php echo $ci['map_embed']; ?>
+                    <?php else: ?>
+                        <div class="d-flex align-items-center justify-content-center bg-white border rounded">
+                            <div class="text-center p-4">
+                                <i class="fas fa-map-marked-alt fa-2x text-muted mb-2"></i>
+                                <p class="mb-0 text-muted">Map is not configured yet.</p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

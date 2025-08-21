@@ -154,7 +154,8 @@ function formatPrice($price) {
     // Get currency symbol from settings if not already loaded
     if ($currencySymbol === null) {
         $settingModel = new Setting();
-        $currencySymbol = $settingModel->getSetting('store_currency_symbol', '₹');
+        // Default to configured symbol constant if setting is missing
+        $currencySymbol = $settingModel->getSetting('store_currency_symbol', CURRENCY_SYMBOL);
     }
     
     return $currencySymbol . ' ' . number_format((float)$price, 2);
@@ -171,7 +172,7 @@ function formatCurrency($amount, $currency = null) {
     if ($currency === null) {
         // Get currency symbol from settings if not provided
         $settingModel = new Setting();
-        $currency = $settingModel->getSetting('store_currency_symbol', '₹');
+        $currency = $settingModel->getSetting('store_currency_symbol', CURRENCY_SYMBOL);
     }
     return $currency . ' ' . number_format((float)$amount, 2);
 }

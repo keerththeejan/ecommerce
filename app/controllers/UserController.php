@@ -698,4 +698,38 @@ class UserController extends Controller {
             'error' => $error
         ]);
     }
+
+    /**
+     * Unified user search (JSON)
+     * Accessible by admin or staff. Supports role filter and limit.
+     * Example: ?controller=user&action=search&keyword=john&role=customer&limit=10
+     */
+    public function search() {
+        // Allow both admin and staff (for POS). Deny others.
+        if(!(isAdmin() || isStaff())) {
+            $this->json(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $keyword = $this->get('keyword', '');
+        $role = $this->get('role', '');
+        $limit = (int)$this->get('limit', 10);
+
+        if (empty($keyword)) {
+            $this->json(['success' => true, 'users' => []]);
+            return;
+        }
+
+        $roles = [];
+        if (!empty($role)) {
+            $roles = [$role];
+        }
+
+        $results = $this->userModel->searchUsers($keyword, $roles, $limit);
+        // Fallback: if role filter returns no results, try without role filter
+        if (!empty($roles) && empty($results)) {
+            $results = $this->userModel->searchUsers($keyword, [], $limit);
+        }
+        $this->json(['success' => true, 'users' => $results]);
+    }
 }

@@ -241,10 +241,13 @@ class Database {
     // Check if a column exists in a table
     public function columnExists($table, $column) {
         try {
-            $stmt = $this->conn->prepare("SHOW COLUMNS FROM `{$table}` LIKE :column");
-            $stmt->bindValue(':column', $column, PDO::PARAM_STR);
-            $stmt->execute();
-            return $stmt->rowCount() > 0;
+            // Sanitize identifiers and values
+            $table = str_replace(['`', '\\'], '', $table);
+            // Quote the column pattern safely as a string literal
+            $quoted = $this->conn->quote($column);
+            $sql = "SHOW COLUMNS FROM `{$table}` LIKE {$quoted}";
+            $stmt = $this->conn->query($sql);
+            return $stmt && $stmt->rowCount() > 0;
         } catch (PDOException $e) {
             $this->error = $e->getMessage();
             error_log('ColumnExists Error: ' . $this->error);

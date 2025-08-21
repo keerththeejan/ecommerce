@@ -7,6 +7,7 @@ class Invoice {
     private $db;
     private $table = 'invoices';
     private $debug = true; // Set to false in production
+    private $lastError = null;
     
     public function __construct() {
         try {
@@ -25,9 +26,13 @@ class Invoice {
             if ($this->debug) {
                 error_log('Database connection initialized in Invoice model');
             }
+
+            // Ensure invoices table exists
+            $this->ensureInvoicesTable();
         } catch (Exception $e) {
             // Log the error
             error_log('Error initializing database in Invoice model: ' . $e->getMessage());
+            $this->lastError = $e->getMessage();
             
             // For debugging, show the error
             if ($this->debug) {
@@ -36,6 +41,72 @@ class Invoice {
             
             // In production, you might want to show a generic error
             throw new Exception('Failed to initialize database connection');
+        }
+    }
+    
+    /**
+     * Get last error (for debugging/admin feedback)
+     */
+    public function getLastError() {
+        return $this->lastError;
+    }
+
+    /**
+     * Ensure the invoices table exists; create it if missing.
+     */
+    private function ensureInvoicesTable() {
+        try {
+            if (method_exists($this->db, 'tableExists') && !$this->db->tableExists($this->table)) {
+                $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `invoice_number` VARCHAR(50) NOT NULL,
+  `order_id` INT UNSIGNED NOT NULL,
+  `invoice_date` DATETIME NOT NULL,
+  `due_date` DATETIME NULL,
+  `status` ENUM('unpaid','paid','cancelled') NOT NULL DEFAULT 'unpaid',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_invoice_number` (`invoice_number`),
+  KEY `idx_invoices_order_id` (`order_id`),
+  CONSTRAINT `fk_invoices_order_id`
+    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+                // Execute DDL
+                $this->db->query($sql);
+                if (!$this->db->execute()) {
+                    // Fallback: try without foreign key (e.g., if column types don't match)
+                    $this->lastError = method_exists($this->db, 'getError') ? $this->db->getError() : 'Failed to create invoices table';
+                    error_log('Failed to auto-create invoices table with FK: ' . $this->lastError . ' - Retrying without FK');
+                    $fallbackSql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `invoice_number` VARCHAR(50) NOT NULL,
+  `order_id` INT UNSIGNED NOT NULL,
+  `invoice_date` DATETIME NOT NULL,
+  `due_date` DATETIME NULL,
+  `status` ENUM('unpaid','paid','cancelled') NOT NULL DEFAULT 'unpaid',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_invoice_number` (`invoice_number`),
+  KEY `idx_invoices_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+                    $this->db->query($fallbackSql);
+                    if (!$this->db->execute()) {
+                        $this->lastError = method_exists($this->db, 'getError') ? $this->db->getError() : 'Failed to create invoices table (no FK)';
+                        error_log('Failed to auto-create invoices table (no FK): ' . $this->lastError);
+                    } else if ($this->debug) {
+                        error_log('Invoices table created automatically (without FK)');
+                    }
+                } else if ($this->debug) {
+                    error_log('Invoices table created automatically');
+                }
+            }
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log('Error ensuring invoices table: ' . $e->getMessage());
         }
     }
     
@@ -245,11 +316,12 @@ class Invoice {
     public function createInvoice($orderId) {
         try {
             // Check if invoice already exists
-            $sql = 'SELECT id FROM ' . $this->table . ' WHERE order_id = :order_id';
+            $sql = 'SELECT id FROM ' . $this->table . ' WHERE order_id = :order_id LIMIT 1';
             $this->db->query($sql);
             $this->db->bind(':order_id', $orderId);
-            
-            if($this->db->rowCount() > 0) {
+            $existing = $this->db->single();
+            if (is_object($existing)) { $existing = (array)$existing; }
+            if($existing && isset($existing['id'])) {
                 return false; // Invoice already exists
             }
             
@@ -269,11 +341,78 @@ class Invoice {
             $this->db->bind(':due_date', date('Y-m-d H:i:s', strtotime('+30 days')));
             $this->db->bind(':status', 'unpaid');
             
-            return $this->db->execute();
+            $ok = $this->db->execute();
+            if (!$ok) {
+                $this->lastError = method_exists($this->db, 'getError') ? $this->db->getError() : 'DB execute failed';
+            }
+            return $ok;
         } catch (Exception $e) {
             // Log the error or handle it appropriately
             error_log('Error in createInvoice: ' . $e->getMessage());
+            $this->lastError = $e->getMessage();
             return false;
+        }
+    }
+
+    /**
+     * Get invoice id by order id
+     * @param int $orderId
+     * @return int|null
+     */
+    public function getInvoiceIdByOrderId($orderId) {
+        try {
+            $sql = 'SELECT id FROM ' . $this->table . ' WHERE order_id = :order_id LIMIT 1';
+            $this->db->query($sql);
+            $this->db->bind(':order_id', $orderId);
+            $row = $this->db->single();
+            if (is_object($row)) { $row = (array)$row; }
+            return ($row && isset($row['id'])) ? (int)$row['id'] : null;
+        } catch (Exception $e) {
+            error_log('Error in getInvoiceIdByOrderId: ' . $e->getMessage());
+            $this->lastError = $e->getMessage();
+            return null;
+        }
+    }
+
+    /**
+     * Create an invoice if not exists and return its ID.
+     * Returns existing invoice ID if already present.
+     *
+     * @param int $orderId
+     * @return int|null Invoice ID or null on failure
+     */
+    public function createOrGetInvoiceId($orderId) {
+        try {
+            // Already has invoice?
+            $existingId = $this->getInvoiceIdByOrderId($orderId);
+            if ($existingId) {
+                return $existingId;
+            }
+
+            // Create
+            $invoiceNumber = 'INV-' . strtoupper(uniqid());
+            $sql = 'INSERT INTO ' . $this->table . ' 
+                   (invoice_number, order_id, invoice_date, due_date, status)
+                   VALUES (:invoice_number, :order_id, :invoice_date, :due_date, :status)';
+            $this->db->query($sql);
+            $this->db->bind(':invoice_number', $invoiceNumber);
+            $this->db->bind(':order_id', $orderId);
+            $this->db->bind(':invoice_date', date('Y-m-d H:i:s'));
+            $this->db->bind(':due_date', date('Y-m-d H:i:s', strtotime('+30 days')));
+            $this->db->bind(':status', 'unpaid');
+            if (!$this->db->execute()) {
+                $this->lastError = method_exists($this->db, 'getError') ? $this->db->getError() : 'DB execute failed';
+                if (method_exists($this->db, 'getError')) {
+                    error_log('Invoice insert failed: ' . $this->db->getError());
+                }
+                return null;
+            }
+            $newId = method_exists($this->db, 'lastInsertId') ? (int)$this->db->lastInsertId() : null;
+            return $newId ?: $this->getInvoiceIdByOrderId($orderId);
+        } catch (Exception $e) {
+            error_log('Error in createOrGetInvoiceId: ' . $e->getMessage());
+            $this->lastError = $e->getMessage();
+            return null;
         }
     }
 }

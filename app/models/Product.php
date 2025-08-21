@@ -352,20 +352,34 @@ class Product extends Model {
                 return [];
             }
             
-            // Get all products (temporarily removing status filter for testing)
-            $sql = "SELECT p.id, p.name, p.sku, p.purchase_price, p.stock_quantity, 
-                           p.status, p.image, IFNULL(c.name, 'Uncategorized') as category_name 
+            // Get only active products with the exact fields needed by POS
+            $sql = "SELECT 
+                        p.id,
+                        p.name,
+                        p.category_id,
+                        p.price,
+                        p.sale_price,
+                        p.stock_quantity,
+                        p.image,
+                        p.status,
+                        IFNULL(c.name, 'Uncategorized') as category_name
                     FROM {$this->table} p
                     LEFT JOIN categories c ON p.category_id = c.id
+                    WHERE p.status = 'active'
                     ORDER BY p.name ASC";
-            
+
             if(!$this->db->query($sql)) {
                 $error = $this->db->getError();
                 error_log('Error in Product::getActiveProducts query: ' . $error);
                 $this->lastError = $error;
                 return [];
             }
-            $products = $this->db->resultSet();
+            $results = $this->db->resultSet();
+            // Normalize to array-of-arrays (POS view uses array access)
+            $products = [];
+            foreach ($results as $row) {
+                $products[] = (array)$row;
+            }
             
             // Log the number of products found
             error_log('Found ' . count($products) . ' active products');

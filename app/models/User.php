@@ -19,6 +19,75 @@ class User extends Model {
         $this->db->query("SELECT id, CONCAT(first_name, ' ', last_name) as name, email FROM {$this->table} WHERE role = 'customer' ORDER BY first_name, last_name");
         return $this->db->resultSet();
     }
+
+    /**
+     * Check if a column exists on the users table
+     *
+     * @param string $column
+     * @return bool
+     */
+    protected function columnExists($column) {
+        // Use database helper which handles quoting safely
+        return $this->db->columnExists($this->table, $column);
+    }
+
+    /**
+     * Search users by keyword across common fields.
+     * Supports optional role filter and result limiting.
+     *
+     * @param string $keyword
+     * @param array|string $roles Single role or array of roles to include (e.g., 'customer')
+     * @param int $limit Max results to return
+     * @return array
+     */
+    public function searchUsers($keyword, $roles = [], $limit = 10) {
+        $keyword = trim((string)$keyword);
+        if ($keyword === '') {
+            return [];
+        }
+
+        $includePhone = $this->columnExists('phone');
+        $fields = "id, username, email, first_name, last_name" . ($includePhone ? ", phone" : "");
+
+        $sql = "SELECT {$fields} FROM {$this->table} WHERE 1=1";
+
+        // Role filter (case-insensitive)
+        $rolesParam = [];
+        if (!empty($roles)) {
+            if (!is_array($roles)) { $roles = [$roles]; }
+            $placeholders = [];
+            foreach ($roles as $idx => $role) {
+                $ph = ":role{$idx}";
+                $placeholders[] = $ph;
+                $rolesParam[$ph] = strtolower($role);
+            }
+            if (!empty($placeholders)) {
+                $sql .= " AND LOWER(role) IN (" . implode(',', $placeholders) . ")";
+            }
+        }
+
+        // Keyword filter across fields
+        $sql .= " AND (username LIKE :kw OR email LIKE :kw OR first_name LIKE :kw OR last_name LIKE :kw";
+        if ($includePhone) {
+            $sql .= " OR phone LIKE :kw";
+        }
+        // Append limit safely (cannot bind LIMIT with native prepares)
+        $limit = max(1, (int)$limit);
+        $sql .= ") LIMIT " . $limit;
+
+        if(!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return [];
+        }
+
+        foreach ($rolesParam as $ph => $val) {
+            $this->db->bind($ph, $val);
+        }
+        $this->db->bind(':kw', '%' . $keyword . '%');
+        // Do not bind limit; already applied in SQL
+
+        return $this->db->resultSet();
+    }
     
     /**
      * Register a new user
