@@ -1304,10 +1304,13 @@ if(!isStaff()) {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function(response) {
                         if (response.success) {
-                            alert('Sale completed successfully!');
-                            
-                            // Redirect to receipt
-                            window.location.href = '<?php echo BASE_URL; ?>?controller=pos&action=receipt&param=' + response.order_id;
+                            const receiptUrl = '<?php echo BASE_URL; ?>?controller=pos&action=receipt&param=' + response.order_id;
+                            // Open receipt in a new tab (auto-prints and closes), keep POS page here
+                            window.open(receiptUrl, '_blank');
+                            // Close checkout and reset cart for next sale
+                            $('#checkoutModal').modal('hide');
+                            cart = [];
+                            updateCart();
                         } else {
                             alert('Error: ' + response.message);
                         }
