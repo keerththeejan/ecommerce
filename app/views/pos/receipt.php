@@ -34,7 +34,7 @@ if(!isStaff()) { redirect('user/login'); }
         </div>
         <div class="col-md-6 text-md-end">
           <p class="mb-1"><strong>Payment:</strong> <?php echo htmlspecialchars($order['order']['payment_method'] ?? 'cash'); ?></p>
-          <p class="mb-1"><strong>Status:</strong> <?php echo htmlspecialchars($order['order']['status'] ?? 'completed'); ?></p>
+          <p class="mb-1"><strong>Status:</strong> <?php echo htmlspecialchars($order['order']['payment_status'] ?? 'paid'); ?></p>
         </div>
       </div>
     </div>
@@ -65,16 +65,40 @@ if(!isStaff()) { redirect('user/login'); }
           <tfoot>
             <tr>
               <th colspan="3" class="text-end">Subtotal:</th>
-              <td class="text-end"><?php echo formatPrice(($order['order']['total_amount'] ?? 0) - ($order['order']['tax'] ?? 0)); ?></td>
+              <td class="text-end"><?php echo formatPrice($summary['subtotal'] ?? (($order['order']['total_amount'] ?? 0) - ($order['order']['tax'] ?? 0))); ?></td>
+            </tr>
+            <tr>
+              <th colspan="3" class="text-end">Discount:</th>
+              <td class="text-end">- <?php echo formatPrice($summary['discount'] ?? 0); ?></td>
             </tr>
             <tr>
               <th colspan="3" class="text-end">Tax:</th>
-              <td class="text-end"><?php echo formatPrice($order['order']['tax'] ?? 0); ?></td>
+              <td class="text-end"><?php echo formatPrice($summary['tax'] ?? ($order['order']['tax'] ?? 0)); ?></td>
+            </tr>
+            <tr>
+              <th colspan="3" class="text-end">Shipping:</th>
+              <td class="text-end"><?php echo formatPrice($summary['shipping'] ?? 0); ?></td>
             </tr>
             <tr>
               <th colspan="3" class="text-end">Total:</th>
-              <td class="text-end fw-bold"><?php echo formatPrice($order['order']['total_amount'] ?? 0); ?></td>
+              <td class="text-end fw-bold"><?php echo formatPrice($summary['total'] ?? ($order['order']['total_amount'] ?? 0)); ?></td>
             </tr>
+            <tr>
+              <th colspan="3" class="text-end">Paid:</th>
+              <td class="text-end"><?php echo formatPrice($summary['paid'] ?? 0); ?></td>
+            </tr>
+            <?php if (!empty($summary['balance']) && ($summary['balance'] > 0)): ?>
+            <tr>
+              <th colspan="3" class="text-end">Balance Due:</th>
+              <td class="text-end text-danger"><?php echo formatPrice($summary['balance']); ?></td>
+            </tr>
+            <?php endif; ?>
+            <?php if (!empty($summary['change']) && ($summary['change'] > 0)): ?>
+            <tr>
+              <th colspan="3" class="text-end">Change:</th>
+              <td class="text-end text-success"><?php echo formatPrice($summary['change']); ?></td>
+            </tr>
+            <?php endif; ?>
           </tfoot>
         </table>
       </div>

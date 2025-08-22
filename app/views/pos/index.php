@@ -192,6 +192,60 @@ if(!isStaff()) {
                     <?php endforeach; ?>
                 </div>
 
+    <!-- Card Payment Modal -->
+    <div class="modal fade" id="cardPaymentModal" tabindex="-1" aria-labelledby="cardPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cardPaymentModalLabel">Card transaction details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-control" id="cardNumber" placeholder="Card Number" maxlength="19">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Card holder name</label>
+                            <input type="text" class="form-control" id="cardHolder" placeholder="Card holder name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Card Transaction No.</label>
+                            <input type="text" class="form-control" id="cardTxnNo" placeholder="Card Transaction No.">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Card Type</label>
+                            <select class="form-select" id="cardType">
+                                <option value="Visa">Visa</option>
+                                <option value="MasterCard">MasterCard</option>
+                                <option value="Amex">Amex</option>
+                                <option value="Rupay">Rupay</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Month</label>
+                            <input type="text" class="form-control" id="cardExpMonth" placeholder="Month">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Year</label>
+                            <input type="text" class="form-control" id="cardExpYear" placeholder="Year">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Security Code</label>
+                            <input type="password" class="form-control" id="cardCvv" placeholder="Security Code">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="finalizeCardPayment">Finalize Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
                 <!-- Product Grid -->
                 <div class="product-grid">
                     <div class="row" id="productContainer">
@@ -428,16 +482,7 @@ if(!isStaff()) {
                     </div>
                   
 
-                <!-- 6) Payment + actions on one line (kept for top controls; bottom bar also available) -->
-                
-                    <div class="d-flex gap-2 checkout-actions">
-                        <button class="btn btn-success btn-sm" id="checkoutBtn" disabled>
-                            <i class="fas fa-cash-register me-2"></i> Checkout
-                        </button>
-                        <button class="btn btn-danger btn-sm" id="clearCartBtn" disabled>
-                            <i class="fas fa-trash me-2"></i> Clear Cart
-                        </button>
-                    </div>
+                <!-- Top action buttons removed as per request -->
                 </div>
             </div>
         </div>
@@ -452,7 +497,7 @@ if(!isStaff()) {
             <button class="btn btn-outline-secondary action-btn" type="button"><i class="fa-regular fa-file"></i> Quotation</button>
             <button class="btn btn-outline-secondary action-btn" type="button"><i class="fa-regular fa-circle-pause"></i> Suspend</button>
             <button class="btn btn-outline-secondary action-btn" type="button"><i class="fa-regular fa-user"></i> Credit Sale</button>
-            <button class="btn btn-outline-secondary action-btn" type="button"><i class="fa-regular fa-credit-card"></i> Card</button>
+            <button class="btn btn-outline-secondary action-btn" type="button" id="cardBtn"><i class="fa-regular fa-credit-card"></i> Card</button>
             <button class="btn btn-outline-secondary action-btn" type="button"><i class="fa-solid fa-layer-group"></i> Multiple Pay</button>
             <button class="btn btn-success action-btn" id="checkoutBtnBottom" type="button" disabled><i class="fa-solid fa-money-bill-wave"></i> Cash</button>
             <button class="btn btn-danger action-btn" id="bottomCancel" type="button" disabled><i class="fa-solid fa-xmark"></i> Cancel</button>
@@ -1015,7 +1060,14 @@ if(!isStaff()) {
             });
 
             // Bottom bar button wiring
-            $('#checkoutBtnBottom').on('click', function(){ $('#checkoutBtn').trigger('click'); });
+            $('#cardBtn').on('click', function(){
+                $('#cardPaymentModal').modal('show');
+            });
+            $('#finalizeCardPayment').on('click', function(){
+                $('#cardPaymentModal').modal('hide');
+                openCheckout('Card');
+            });
+            $('#checkoutBtnBottom').on('click', function(){ openCheckout('Cash'); });
             $('#bottomCancel').on('click', function(){ $('#clearCartBtn').trigger('click'); });
 
             // Customer search (debounced)
@@ -1134,13 +1186,15 @@ if(!isStaff()) {
                 $('#modeRegistered').prop('checked', true).trigger('change');
             });
 
-            // Checkout button
-            $('#checkoutBtn').on('click', function() {
+            // Helper to open checkout modal, optionally preset payment method
+            function openCheckout(presetMethod){
                 if (cart.length === 0) {
                     alert('Cart is empty.');
                     return;
                 }
-                
+                if (presetMethod){
+                    $('#paymentMethod').val(presetMethod);
+                }
                 const total = parsePrice($('#summaryTotal').text());
                 $('#amountTendered').val(total);
                 $('#modalTotal').text(formatPrice(total));
@@ -1149,6 +1203,14 @@ if(!isStaff()) {
                 updatePaymentSummary();
                 $('#changeAmount').addClass('d-none');
                 $('#checkoutModal').modal('show');
+            }
+
+            // Checkout button (top) should NOT open modal; guide user to Cash button
+            $('#checkoutBtn').on('click', function(e) {
+                e.preventDefault();
+                try { document.getElementById('checkoutBtnBottom').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(err) {}
+                $('#checkoutBtnBottom').addClass('btn-warning');
+                setTimeout(function(){ $('#checkoutBtnBottom').removeClass('btn-warning'); }, 1200);
             });
 
             // When cart becomes empty, reflect disabled state
@@ -1189,7 +1251,7 @@ if(!isStaff()) {
             $('#completeSaleBtn').on('click', function() {
                 const amountTendered = parseFloat($('#amountTendered').val());
                 const total = parsePrice($('#summaryTotal').text());
-                const paymentMethod = $('#paymentMethod').val();
+                const paymentMethod = ($('#paymentMethod').val() || '').toString().toLowerCase();
                 const customerMode = $('input[name="customerMode"]:checked').val();
                 const customerId = $('#customerId').val();
                 const manualName = $('#manualName').val();
@@ -1204,9 +1266,18 @@ if(!isStaff()) {
                     return;
                 }
                 
-                // Prepare data for submission
+                // Prepare data for submission (map to backend schema)
+                const itemsForServer = cart.map(item => ({
+                    product_id: item.id,
+                    quantity: item.quantity,
+                    price: item.price
+                }));
+                // Derive order-level numbers for backend/receipt
+                const subtotalForServer = cart.reduce((s, it) => s + (it.price * it.quantity), 0);
+                const taxForServer = parsePrice($('#orderTax').text());
+                const shippingForServer = parsePrice($('#shippingAmount').text());
                 const data = {
-                    items: JSON.stringify(cart),
+                    items: JSON.stringify(itemsForServer),
                     customer_mode: customerMode,
                     customer_id: customerId,
                     manual_name: manualName,
@@ -1215,6 +1286,10 @@ if(!isStaff()) {
                     payment_method: paymentMethod,
                     total_amount: total,
                     amount_tendered: amountTendered,
+                    paid_amount: amountTendered,
+                    tax: taxForServer,
+                    shipping_fee: shippingForServer,
+                    subtotal: subtotalForServer,
                     notes: notes,
                     sell_note: sellNote,
                     staff_note: staffNote
@@ -1226,6 +1301,7 @@ if(!isStaff()) {
                     type: 'POST',
                     data: data,
                     dataType: 'json',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function(response) {
                         if (response.success) {
                             alert('Sale completed successfully!');
@@ -1236,8 +1312,20 @@ if(!isStaff()) {
                             alert('Error: ' + response.message);
                         }
                     },
-                    error: function() {
-                        alert('An error occurred. Please try again.');
+                    error: function(xhr, status, err) {
+                        let msg = 'An error occurred. Please try again.';
+                        if (xhr && xhr.responseText) {
+                            try {
+                                const j = JSON.parse(xhr.responseText);
+                                if (j && j.message) msg = j.message;
+                                else msg = xhr.responseText;
+                            } catch(e){
+                                msg = xhr.responseText;
+                            }
+                        } else if (err) {
+                            msg = err;
+                        }
+                        alert(msg);
                     }
                 });
             });

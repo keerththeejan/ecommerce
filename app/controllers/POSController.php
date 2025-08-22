@@ -211,77 +211,97 @@ class POSController extends Controller {
         
         // Check for POST
         if($this->isPost()) {
-            // Process form
-            
-            // Get items from POST
-            $items = json_decode($this->post('items'), true);
-            $customerId = $this->post('customer_id');
-            $paymentMethod = $this->post('payment_method');
-            $totalAmount = $this->post('total_amount');
-            $notes = sanitize($this->post('notes'));
-            
-            // Validate data
-            if(empty($items)) {
-                if($this->isAjax()) {
-                    $this->json(['success' => false, 'message' => 'No items in cart']);
-                } else {
-                    flash('pos_error', 'No items in cart', 'alert alert-danger');
-                    redirect('pos');
+            try {
+                // Get items from POST
+                $itemsRaw = $this->post('items');
+                $items = json_decode($itemsRaw, true);
+                $customerId = $this->post('customer_id');
+                $paymentMethod = strtolower((string)$this->post('payment_method'));
+                $totalAmount = (float)$this->post('total_amount');
+                $amountTendered = (float)$this->post('amount_tendered');
+                $tax = (float)$this->post('tax');
+                $shippingFee = (float)$this->post('shipping_fee');
+                $notes = sanitize($this->post('notes'));
+
+                // Validate data
+                if(empty($items) || !is_array($items)) {
+                    return $this->json(['success' => false, 'message' => 'No items in cart']);
                 }
-                return;
-            }
-            
-            // Set customer ID to guest if not provided
-            if(empty($customerId)) {
-                // Get or create guest user
-                $guestUser = $this->userModel->getSingleBy('username', 'guest');
-                
-                if(!$guestUser) {
-                    // Create guest user
-                    $guestData = [
-                        'username' => 'guest',
-                        'email' => 'guest@example.com',
-                        'password' => password_hash('guest123', PASSWORD_DEFAULT),
-                        'first_name' => 'Guest',
-                        'last_name' => 'User',
-                        'role' => 'customer'
+
+                // Normalize items schema and basic validation
+                $normalizedItems = [];
+                foreach ($items as $it) {
+                    $pid = isset($it['product_id']) ? (int)$it['product_id'] : 0;
+                    $qty = isset($it['quantity']) ? (int)$it['quantity'] : 0;
+                    $price = isset($it['price']) ? (float)$it['price'] : 0.0;
+                    if ($pid <= 0 || $qty <= 0 || $price < 0) {
+                        return $this->json(['success' => false, 'message' => 'Invalid item data']);
+                    }
+                    $normalizedItems[] = [
+                        'product_id' => $pid,
+                        'quantity' => $qty,
+                        'price' => $price,
                     ];
-                    
-                    $customerId = $this->userModel->create($guestData);
-                } else {
-                    $customerId = $guestUser['id'];
                 }
-            }
-            
-            // Prepare order data
-            $orderData = [
-                'user_id' => $customerId,
-                'total_amount' => $totalAmount,
-                'payment_method' => $paymentMethod,
-                'notes' => $notes
-            ];
-            
-            // Create POS order
-            $orderId = $this->posModel->createPOSOrder($orderData, $items);
-            
-            if($orderId) {
-                if($this->isAjax()) {
-                    $this->json([
-                        'success' => true, 
+
+                if ($totalAmount <= 0) {
+                    return $this->json(['success' => false, 'message' => 'Invalid total amount']);
+                }
+                if (empty($paymentMethod)) {
+                    $paymentMethod = 'cash';
+                }
+                if ($amountTendered < 0) { $amountTendered = 0; }
+
+                // Set customer ID to guest if not provided
+                if(empty($customerId)) {
+                    // Get or create guest user
+                    $guestUser = $this->userModel->getSingleBy('username', 'guest');
+                    if(!$guestUser) {
+                        // Create guest user
+                        $guestData = [
+                            'username' => 'guest',
+                            'email' => 'guest@example.com',
+                            'password' => password_hash('guest123', PASSWORD_DEFAULT),
+                            'first_name' => 'Guest',
+                            'last_name' => 'User',
+                            'role' => 'customer'
+                        ];
+                        $customerId = $this->userModel->create($guestData);
+                    } else {
+                        $customerId = $guestUser['id'];
+                    }
+                }
+
+                // Prepare order data
+                $paymentStatus = ($amountTendered + 0.0001) >= $totalAmount ? 'paid' : 'pending';
+                $orderData = [
+                    'user_id' => $customerId,
+                    'total_amount' => $totalAmount,
+                    'payment_method' => $paymentMethod,
+                    'notes' => $notes,
+                    'tax' => $tax,
+                    'shipping_fee' => $shippingFee,
+                    'payment_status' => $paymentStatus,
+                    'status' => 'processing',
+                    'amount_tendered' => $amountTendered,
+                ];
+
+                // Create POS order
+                $orderId = $this->posModel->createPOSOrder($orderData, $normalizedItems);
+
+                if($orderId) {
+                    return $this->json([
+                        'success' => true,
                         'message' => 'Sale completed successfully',
                         'order_id' => $orderId
                     ]);
-                } else {
-                    flash('pos_success', 'Sale completed successfully');
-                    redirect('pos/receipt/' . $orderId);
                 }
-            } else {
-                if($this->isAjax()) {
-                    $this->json(['success' => false, 'message' => 'Failed to process sale']);
-                } else {
-                    flash('pos_error', 'Failed to process sale', 'alert alert-danger');
-                    redirect('pos');
-                }
+
+                return $this->json(['success' => false, 'message' => 'Failed to process sale']);
+            } catch (Exception $e) {
+                // Log and return JSON error to avoid AJAX generic error handler
+                error_log('POS processSale error: ' . $e->getMessage());
+                return $this->json(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
             }
         } else {
             redirect('pos');
@@ -294,49 +314,57 @@ class POSController extends Controller {
      * @param int $orderId Order ID
      */
     public function receipt($orderId) {
-        // Check if staff
+        // Staff only
         if(!isStaff()) {
             redirect('user/login');
         }
         
-        // Get order with items
+        $orderId = (int)$orderId;
         $order = $this->model('Order')->getOrderWithItems($orderId);
-        
-        // Check if order exists
         if(!$order) {
             flash('pos_error', 'Order not found', 'alert alert-danger');
             redirect('pos');
         }
-        
-        // Load view
+
+        // Compute financial summary
+        $items = isset($order['items']) && is_array($order['items']) ? $order['items'] : [];
+        $subtotal = 0.0;
+        foreach ($items as $it) {
+            $price = isset($it['price']) ? (float)$it['price'] : 0.0;
+            $qty = isset($it['quantity']) ? (int)$it['quantity'] : 0;
+            $subtotal += $price * $qty;
+        }
+
+        $ord = isset($order['order']) ? $order['order'] : [];
+        $tax = isset($ord['tax']) ? (float)$ord['tax'] : 0.0;
+        $shipping = isset($ord['shipping_fee']) ? (float)$ord['shipping_fee'] : 0.0;
+        $total = isset($ord['total_amount']) ? (float)$ord['total_amount'] : ($subtotal + $tax + $shipping);
+        $discount = max(0, round(($subtotal + $tax + $shipping) - $total, 2));
+
+        // Sum paid amount from transactions
+        $db = new Database();
+        $db->query("SELECT COALESCE(SUM(amount),0) AS paid FROM transactions WHERE order_id = :oid AND status IN ('completed','paid')");
+        $db->bind(':oid', $orderId);
+        $tx = $db->single();
+        $paid = $tx && isset($tx['paid']) ? (float)$tx['paid'] : 0.0;
+
+        $balance = max(0, round($total - $paid, 2));
+        $change = max(0, round($paid - $total, 2));
+
+        $summary = [
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'tax' => $tax,
+            'shipping' => $shipping,
+            'total' => $total,
+            'paid' => $paid,
+            'balance' => $balance,
+            'change' => $change,
+        ];
+
         $this->view('pos/receipt', [
-            'order' => $order
-        ]);
-    }
-    
-    /**
-     * Search products for POS (AJAX)
-     */
-    public function searchProducts() {
-        // Check if staff
-        if(!isStaff()) {
-            $this->json(['success' => false, 'message' => 'Unauthorized']);
-            return;
-        }
-        
-        // Get search keyword
-        $keyword = $this->get('keyword', '');
-        
-        // Get products
-        $products = [];
-        if(!empty($keyword)) {
-            $products = $this->productModel->searchProducts($keyword);
-        }
-        
-        // Return JSON response
-        $this->json([
-            'success' => true,
-            'products' => $products
+            'order' => $order,
+            'summary' => $summary,
         ]);
     }
     

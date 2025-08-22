@@ -94,15 +94,17 @@ class POS extends Model {
         $this->db->beginTransaction();
         
         try {
-            // Create order
-            $this->db->query("INSERT INTO orders (user_id, total_amount, status, payment_status, payment_method, notes) 
-                             VALUES (:user_id, :total_amount, :status, :payment_status, :payment_method, :notes)");
+            // Create order (include tax and shipping_fee if available)
+            $this->db->query("INSERT INTO orders (user_id, total_amount, status, payment_status, payment_method, notes, shipping_fee, tax) 
+                             VALUES (:user_id, :total_amount, :status, :payment_status, :payment_method, :notes, :shipping_fee, :tax)");
             $this->db->bind(':user_id', $orderData['user_id']);
             $this->db->bind(':total_amount', $orderData['total_amount']);
             $this->db->bind(':status', $orderData['status'] ?? 'processing');
             $this->db->bind(':payment_status', $orderData['payment_status'] ?? 'paid');
             $this->db->bind(':payment_method', $orderData['payment_method']);
             $this->db->bind(':notes', $orderData['notes'] ?? 'POS Order');
+            $this->db->bind(':shipping_fee', isset($orderData['shipping_fee']) ? (float)$orderData['shipping_fee'] : 0);
+            $this->db->bind(':tax', isset($orderData['tax']) ? (float)$orderData['tax'] : 0);
             
             if(!$this->db->execute()) {
                 throw new Exception("Failed to create order");
@@ -134,13 +136,15 @@ class POS extends Model {
                 }
             }
             
-            // Create transaction record
+            // Create transaction record using amount_tendered when provided
             $this->db->query("INSERT INTO transactions (order_id, payment_method, amount, status) 
                              VALUES (:order_id, :payment_method, :amount, :status)");
             $this->db->bind(':order_id', $orderId);
             $this->db->bind(':payment_method', $orderData['payment_method']);
-            $this->db->bind(':amount', $orderData['total_amount']);
-            $this->db->bind(':status', 'completed');
+            $paidAmt = isset($orderData['amount_tendered']) ? (float)$orderData['amount_tendered'] : (float)$orderData['total_amount'];
+            $this->db->bind(':amount', $paidAmt);
+            $txStatus = ($paidAmt + 0.0001) >= (float)$orderData['total_amount'] ? 'completed' : 'pending';
+            $this->db->bind(':status', $txStatus);
             
             if(!$this->db->execute()) {
                 throw new Exception("Failed to create transaction");
