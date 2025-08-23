@@ -19,6 +19,8 @@
                             <th>Supplier</th>
                             <th>Date</th>
                             <th>Total Amount</th>
+                            <th>Advance</th>
+                            <th class="text-danger">Due</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -30,7 +32,14 @@
                                     <td>#<?php echo $purchase['id']; ?></td>
                                     <td><?php echo htmlspecialchars($purchase['supplier_name']); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($purchase['purchase_date'])); ?></td>
-                                    <td><?php echo formatPrice($purchase['total_amount']); ?></td>
+                                    <?php 
+                                        $total = (float)($purchase['total_amount'] ?? 0);
+                                        $advance = (float)($purchase['paid_amount'] ?? 0);
+                                        $balance = max($total - $advance, 0);
+                                    ?>
+                                    <td><?php echo formatPrice($total); ?></td>
+                                    <td><?php echo formatPrice($advance); ?></td>
+                                    <td class="text-danger fw-bold"><?php echo formatPrice($balance); ?></td>
                                     <td>
                                         <span class="badge bg-<?php 
                                             echo $purchase['status'] === 'received' ? 'success' : 
