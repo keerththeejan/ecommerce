@@ -10,17 +10,17 @@ if (empty($banners)) {
         [
             'title' => 'Welcome to Our Store',
             'description' => 'Discover amazing products and great deals',
-            'image_url' => '/assets/images/default-banner.jpg'
+            'image_url' => '/images/default-brand.png'
         ],
         [
             'title' => 'Special Offers',
             'description' => 'Check out our latest collection',
-            'image_url' => '/assets/images/default-banner-2.jpg'
+            'image_url' => '/images/bottom.png'
         ],
         [
             'title' => 'New Arrivals',
             'description' => 'Explore our newest products',
-            'image_url' => '/assets/images/default-banner-3.jpg'
+            'image_url' => '/images/bottom.png'
         ]
     ];
 }
