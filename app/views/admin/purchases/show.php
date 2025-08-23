@@ -62,21 +62,31 @@
                             </thead>
                             <tbody>
                                 <?php 
+                                $items = isset($purchase['items']) && is_array($purchase['items']) ? $purchase['items'] : [];
                                 $subtotal = 0;
-                                foreach ($purchase['items'] as $item): 
-                                    $itemTotal = $item['quantity'] * $item['unit_price'];
-                                    $subtotal += $itemTotal;
+                                if (!empty($items)):
+                                    foreach ($items as $item): 
+                                        $qty = isset($item['quantity']) ? (float)$item['quantity'] : 0;
+                                        $price = isset($item['unit_price']) ? (float)$item['unit_price'] : 0;
+                                        $itemTotal = $qty * $price;
+                                        $subtotal += $itemTotal;
                                 ?>
                                     <tr>
                                         <td>
                                             <div class="fw-bold"><?php echo htmlspecialchars($item['product_name']); ?></div>
                                             <div class="text-muted small">SKU: <?php echo htmlspecialchars($item['product_sku']); ?></div>
                                         </td>
-                                        <td class="text-end"><?php echo $item['quantity']; ?></td>
-                                        <td class="text-end"><?php echo formatPrice($item['unit_price']); ?></td>
+                                        <td class="text-end"><?php echo $qty; ?></td>
+                                        <td class="text-end"><?php echo formatPrice($price); ?></td>
                                         <td class="text-end"><?php echo formatPrice($itemTotal); ?></td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php 
+                                    endforeach; 
+                                else: ?>
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No items found for this purchase.</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                             <tfoot>
                                 <tr>
