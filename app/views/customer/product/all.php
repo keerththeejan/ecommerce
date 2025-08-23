@@ -92,11 +92,6 @@
                                             </form>
                                         <?php endif; ?>
                                     <?php else: ?>
-                                        <div class="text-center py-2">
-                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-success w-100">
-                                                <i class="fas fa-sign-in-alt me-1"></i> <span class="d-none d-sm-inline">Login to Buy</span><span class="d-inline d-sm-none">Login</span>
-                                            </a>
-                                        </div>
                                     <?php endif; ?>
                                 </div>
                             </div>

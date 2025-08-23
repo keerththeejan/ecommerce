@@ -160,10 +160,6 @@
                                                 </button>
                                             </div>
                                         </form>
-                                    <?php } else { ?>
-                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-primary btn-sm w-100">
-                                            Login to Buy
-                                        </a>
                                     <?php } ?>
                                 <?php } else { ?>
                                     <div class="alert alert-danger py-1 mb-0 text-center">Out of Stock</div>
