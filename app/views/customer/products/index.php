@@ -217,9 +217,24 @@
                                 
                                 <div class="mt-1">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <div class="price-container">
-                                            <span class="fw-bold text-danger"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                        </div>
+                                        <?php if(isLoggedIn()): ?>
+                                            <div class="price-container">
+                                                <?php if(!empty($product['sale_price']) && $product['sale_price'] < ($product['price'] ?? PHP_INT_MAX)): ?>
+                                                    <span class="fw-bold text-danger"><?php echo formatCurrency($product['sale_price']); ?></span>
+                                                    <?php if(!empty($product['price'])): ?>
+                                                        <small class="text-muted text-decoration-line-through ms-2"><?php echo formatCurrency($product['price']); ?></small>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <?php if(isset($product['price'])): ?>
+                                                        <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="price-container">
+                                                <span class="text-muted small">Login to see price</span>
+                                            </div>
+                                        <?php endif; ?>
                                         
                                         <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?>" style="font-size: 0.65em; padding: 0.2em 0.4em;">
                                             <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out'; ?>
@@ -236,7 +251,7 @@
                                         <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary flex-grow-1 px-1 px-sm-2" style="font-size: 0.7rem;">
                                             <i class="fas fa-eye d-none d-sm-inline"></i> <span>View</span>
                                         </a>
-                                        <?php if($product['stock_quantity'] > 0): ?>
+                                        <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
                                             <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="flex-grow-1">
                                                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                                 <input type="hidden" name="quantity" value="1">
@@ -244,6 +259,10 @@
                                                     <i class="fas fa-cart-plus d-none d-sm-inline"></i> <span>Add</span>
                                                 </button>
                                             </form>
+                                        <?php elseif($product['stock_quantity'] > 0 && !isLoggedIn()): ?>
+                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary flex-grow-1 px-1 px-sm-2" style="font-size: 0.7rem;">
+                                                <i class="fas fa-sign-in-alt d-none d-sm-inline"></i> <span>Login to purchase</span>
+                                            </a>
                                         <?php else: ?>
                                             <button class="btn btn-sm btn-secondary flex-grow-1 px-1 px-sm-2" style="font-size: 0.7rem;" disabled>
                                                 <i class="fas fa-times-circle d-none d-sm-inline"></i> <span>Stock Out</span>
@@ -288,14 +307,20 @@
                                         
                                         <div class="mt-auto">
                                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <div class="price-container">
-                                                    <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                                                        <span class="fw-bold text-danger"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                                        <small class="text-muted text-decoration-line-through ms-2"><?php echo formatCurrency($product['price']); ?></small>
-                                                    <?php else: ?>
-                                                        <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
-                                                    <?php endif; ?>
-                                                </div>
+                                                <?php if(isLoggedIn()): ?>
+                                                    <div class="price-container">
+                                                        <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
+                                                            <span class="fw-bold text-danger"><?php echo formatCurrency($product['sale_price']); ?></span>
+                                                            <small class="text-muted text-decoration-line-through ms-2"><?php echo formatCurrency($product['price']); ?></small>
+                                                        <?php else: ?>
+                                                            <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <div class="price-container">
+                                                        <span class="text-muted small">Login to see price</span>
+                                                    </div>
+                                                <?php endif; ?>
                                                 
                                                 <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?> ms-auto">
                                                     <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
@@ -313,12 +338,14 @@
                                             
                                             <div class="d-flex gap-2">
                                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary flex-grow-1">View Details</a>
-                                                <?php if($product['stock_quantity'] > 0): ?>
+                                                <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
                                                     <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="flex-grow-1">
                                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                                         <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="btn btn-sm btn-success w-100">Add to Cart</button>
                                                     </form>
+                                                <?php elseif($product['stock_quantity'] > 0 && !isLoggedIn()): ?>
+                                                    <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary flex-grow-1">Login to purchase</a>
                                                 <?php else: ?>
                                                     <button class="btn btn-sm btn-secondary flex-grow-1" disabled>Out of Stock</button>
                                                 <?php endif; ?>

@@ -92,6 +92,19 @@
                                             </form>
                                         <?php endif; ?>
                                     <?php else: ?>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="product-price">
+                                                <span class="text-muted small">Login to see price</span>
+                                            </div>
+                                            <?php if($product['stock_quantity'] <= 0): ?>
+                                                <span class="badge bg-secondary">Out of Stock</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if($product['stock_quantity'] > 0): ?>
+                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary w-100">
+                                                <i class="fas fa-sign-in-alt me-1"></i> <span class="d-none d-sm-inline">Login to purchase</span><span class="d-inline d-sm-none">Login</span>
+                                            </a>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
