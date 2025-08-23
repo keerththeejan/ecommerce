@@ -416,19 +416,12 @@
                     <div class="footer-widget">
                         <h4>Quick Links</h4>
                         <ul class="footer-links">
-<<<<<<< HEAD
-                            <li><a href="<?php echo BASE_URL; ?>#banner">Banner</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>#featured-products">Featured Products</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>#brands">Brands</a></li>
-=======
                             <li><a href="<?php echo BASE_URL; ?>?controller=product&action=new">New Arrivals</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=product&action=featured">Featured Products</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=product&action=sale">Special Offers</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=category&action=all">All Categories</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">About Store</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=contact">Contact Us</a></li>
->>>>>>> 8698a878c8a66367e6f6f1c2752a4570d3c11102
                         </ul>
                     </div>
                 </div>
@@ -517,9 +510,31 @@
             <div class="footer-bottom-content">
                 <p class="copyright-text">&copy; <?php echo date('Y'); ?> E-Store. All rights reserved.</p>
                 <div class="footer-bottom-links">
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy">Privacy Policy</a>
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=terms">Terms of Service</a>
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=faq">FAQ</a>
+                    <a href="#" class="policy-link" data-policy="privacy">Privacy Policy</a>
+                    <a href="#" class="policy-link" data-policy="terms">Terms of Service</a>
+                    <a href="#" class="policy-link" data-policy="faq">FAQ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Policy Modal -->
+    <div class="modal fade" id="policyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="policyModalTitle">Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center text-muted py-5" id="policyModalLoading" style="display:none;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2">Loading...</div>
+                    </div>
+                    <div id="policyModalContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -542,6 +557,44 @@
     
     <!-- Custom JS -->
     <script src="<?php echo BASE_URL; ?>assets/js/main.js"></script>
+    
+    <!-- Policy Modal Loader -->
+    <script>
+    (function() {
+        function loadPolicy(section) {
+            const modal = new bootstrap.Modal(document.getElementById('policyModal'));
+            const titleMap = { privacy: 'Privacy Policy', terms: 'Terms of Service', faq: 'FAQ' };
+            document.getElementById('policyModalTitle').textContent = titleMap[section] || 'Policy';
+            const loading = document.getElementById('policyModalLoading');
+            const content = document.getElementById('policyModalContent');
+            content.innerHTML = '';
+            loading.style.display = 'block';
+            modal.show();
+
+            // Fetch HTML snippet from public endpoints
+            const url = `${window.baseUrl}?controller=page&action=${encodeURIComponent(section)}`;
+            fetch(url, { credentials: 'same-origin' })
+                .then(r => r.text())
+                .then(html => {
+                    loading.style.display = 'none';
+                    content.innerHTML = html || '<div class="text-muted">No content available.</div>';
+                })
+                .catch(() => {
+                    loading.style.display = 'none';
+                    content.innerHTML = '<div class="text-danger">Failed to load content.</div>';
+                });
+        }
+
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a.policy-link');
+            if (link) {
+                e.preventDefault();
+                const section = link.getAttribute('data-policy');
+                loadPolicy(section);
+            }
+        });
+    })();
+    </script>
     
     <!-- Quantity Adjuster Script -->
     <script>

@@ -246,6 +246,24 @@ if(!isStaff()) {
         </div>
     </div>
 
+    <!-- Post-Sale Actions Modal -->
+    <div class="modal fade" id="postSaleModal" tabindex="-1" aria-labelledby="postSaleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title" id="postSaleModalLabel">Sale Completed</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="postSalePrint"><i class="fa-solid fa-print me-1"></i> Print</button>
+                        <button class="btn btn-outline-secondary" id="postSaleMail"><i class="fa-regular fa-envelope me-1"></i> Mail</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
                 <!-- Product Grid -->
                 <div class="product-grid">
                     <div class="row" id="productContainer">
@@ -1248,6 +1266,7 @@ if(!isStaff()) {
             }
 
             // Complete sale
+            let lastOrderId = null;
             $('#completeSaleBtn').on('click', function() {
                 const amountTendered = parseFloat($('#amountTendered').val());
                 const total = parsePrice($('#summaryTotal').text());
@@ -1304,11 +1323,11 @@ if(!isStaff()) {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function(response) {
                         if (response.success) {
-                            const receiptUrl = '<?php echo BASE_URL; ?>?controller=pos&action=receipt&param=' + response.order_id;
-                            // Open receipt in a new tab (auto-prints and closes), keep POS page here
-                            window.open(receiptUrl, '_blank');
+                            lastOrderId = response.order_id;
                             // Close checkout and reset cart for next sale
                             $('#checkoutModal').modal('hide');
+                            // Open post-sale actions modal
+                            $('#postSaleModal').modal('show');
                             cart = [];
                             updateCart();
                         } else {
@@ -1331,6 +1350,19 @@ if(!isStaff()) {
                         alert(msg);
                     }
                 });
+            });
+
+            // Post-sale modal actions
+            $('#postSalePrint').on('click', function(){
+                if (!lastOrderId) return;
+                const receiptUrl = '<?php echo BASE_URL; ?>?controller=pos&action=receipt&param=' + lastOrderId;
+                window.open(receiptUrl, '_blank');
+                $('#postSaleModal').modal('hide');
+            });
+            $('#postSaleMail').on('click', function(){
+                // Navigate to Mail page with context so SMTP section appears
+                const qs = lastOrderId ? '&from=pos&order_id=' + encodeURIComponent(lastOrderId) : '&from=pos';
+                window.location.href = '<?php echo BASE_URL; ?>?controller=mail&action=index' + qs;
             });
         });
     </script>

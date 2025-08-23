@@ -45,6 +45,30 @@ if (isset($_SESSION['user_id'])) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css">
     <style>
+        /* Ensure last items in sidebar are reachable */
+        #sidebar .position-sticky { padding-bottom: 80px; box-sizing: border-box; }
+
+        /* Scrollbar styling - Sidebar and Main */
+        /* Firefox */
+        #sidebar .position-sticky { scrollbar-width: thin; scrollbar-color: #6c757d rgba(255,255,255,0.06); }
+        main { scrollbar-width: thin; scrollbar-color: #adb5bd rgba(0,0,0,0.06); }
+
+        /* WebKit (Chrome, Edge, Safari) */
+        #sidebar .position-sticky::-webkit-scrollbar,
+        main::-webkit-scrollbar { width: 10px; height: 10px; }
+
+        #sidebar .position-sticky::-webkit-scrollbar-track { background: #1f2429; border-radius: 8px; }
+        #sidebar .position-sticky::-webkit-scrollbar-thumb {
+            background: #5a6b7a; border-radius: 8px; border: 2px solid #1f2429;
+        }
+        #sidebar .position-sticky::-webkit-scrollbar-thumb:hover { background: #7b8ea1; }
+
+        main::-webkit-scrollbar-track { background: #e9ecef; border-radius: 8px; }
+        main::-webkit-scrollbar-thumb {
+            background: #adb5bd; border-radius: 8px; border: 2px solid #e9ecef;
+        }
+        main::-webkit-scrollbar-thumb:hover { background: #9099a2; }
+
         /* Mobile sidebar behavior */
         @media (max-width: 767.98px) {
             #sidebar {
@@ -82,6 +106,58 @@ if (isset($_SESSION['user_id'])) {
             .sidebar-backdrop.active {
                 display: block;
             }
+        }
+
+        /* Desktop: fix sidebar; scroll only main content */
+        @media (min-width: 768px) {
+            html, body { height: 100%; }
+            body { overflow: hidden; }
+            #sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                height: 100vh;
+                width: 260px; /* match mobile width for consistency */
+                overflow: hidden; /* prevent sidebar from scrolling with page */
+                overscroll-behavior: contain;
+            }
+            #sidebar .position-sticky { height: 100vh; overflow: auto; overscroll-behavior: contain; }
+            main {
+                margin-left: 260px; /* create space for fixed sidebar */
+                height: 100vh;
+                overflow: auto;
+                overscroll-behavior: contain;
+                padding-bottom: 32px; /* ensure last field is reachable */
+                box-sizing: border-box;
+                scrollbar-gutter: stable both-edges;
+            }
+        }
+
+        /* Policy slide-in panel (covers white main area) */
+        .policy-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0; /* default for mobile: full width */
+            background: #fff;
+            transform: translateX(100%);
+            transition: transform .3s ease;
+            z-index: 1060; /* above main, below modal backdrop (1050-1060 area) */
+            box-shadow: -2px 0 12px rgba(0,0,0,.15);
+            display: flex;
+            flex-direction: column;
+        }
+        .policy-panel.show { transform: translateX(0); }
+        .policy-panel .policy-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .policy-panel .policy-body { padding: 1rem 1.25rem; overflow: auto; }
+
+        /* On desktop, offset panel to start after fixed sidebar */
+        @media (min-width: 768px) {
+            .policy-panel { left: 260px; }
         }
     </style>
 </head>
@@ -180,6 +256,12 @@ if (isset($_SESSION['user_id'])) {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=mail&action=index">
+                                <i class="fas fa-envelope me-2"></i>
+                                Mail
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=active">
                                 <i class="fas fa-user-check me-2"></i>
                                 Active Users
@@ -230,7 +312,12 @@ if (isset($_SESSION['user_id'])) {
                             </a>
                         </li>
 
-                        
+                        <li class="nav-item">
+                            <a class="nav-link text-white" id="policyLink" href="<?php echo BASE_URL; ?>?controller=policy&action=index">
+                                <i class="fas fa-file-contract me-2"></i>
+                                Policy
+                            </a>
+                        </li>
 
                         <li class="nav-item">
                             <a class="nav-link text-white" href="#" id="clearCookiesBtn">
@@ -320,6 +407,60 @@ if (isset($_SESSION['user_id'])) {
                     </div>
                 </div>
 
+                <!-- Policy slide-in panel -->
+                <div id="policyPanel" class="policy-panel" aria-hidden="true">
+                    <div class="policy-header">
+                        <h5 class="mb-0">Policy</h5>
+                        <button type="button" class="btn-close" id="policyCloseBtn" aria-label="Close"></button>
+                    </div>
+                    <div class="policy-body">
+                        <ul class="nav nav-pills mb-3" id="policyTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="tab-privacy" data-policy-target="#section-privacy" type="button" role="tab">Privacy Policy</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="tab-terms" data-policy-target="#section-terms" type="button" role="tab">Terms of Service</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="tab-faq" data-policy-target="#section-faq" type="button" role="tab">FAQ</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="section-privacy" role="tabpanel" aria-labelledby="tab-privacy">
+                                <div class="mb-3">
+                                    <label for="privacyText" class="form-label">Privacy Policy</label>
+                                    <textarea id="privacyText" class="form-control" rows="8" placeholder="Write your Privacy Policy here..."></textarea>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-primary policy-save-btn" type="button" data-key="privacy">Save</button>
+                                    <small class="text-muted" id="privacyStatus"></small>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="section-terms" role="tabpanel" aria-labelledby="tab-terms">
+                                <div class="mb-3">
+                                    <label for="termsText" class="form-label">Terms of Service</label>
+                                    <textarea id="termsText" class="form-control" rows="8" placeholder="Write your Terms of Service here..."></textarea>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-primary policy-save-btn" type="button" data-key="terms">Save</button>
+                                    <small class="text-muted" id="termsStatus"></small>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="section-faq" role="tabpanel" aria-labelledby="tab-faq">
+                                <div class="mb-3">
+                                    <label for="faqText" class="form-label">FAQ</label>
+                                    <textarea id="faqText" class="form-control" rows="8" placeholder="Write your FAQs here..."></textarea>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-primary policy-save-btn" type="button" data-key="faq">Save</button>
+                                    <small class="text-muted" id="faqStatus"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Flash Messages -->
                 <?php flash('product_success'); ?>
                 <?php flash('product_error'); ?>
@@ -367,6 +508,139 @@ if (isset($_SESSION['user_id'])) {
                                 const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
                                 bsCollapse.hide();
                             }
+                        });
+                    })();
+                </script>
+
+                <script>
+                    // Policy panel open/close handlers
+                    (function(){
+                        const policyLink = document.getElementById('policyLink');
+                        const policyPanel = document.getElementById('policyPanel');
+                        const policyCloseBtn = document.getElementById('policyCloseBtn');
+
+                        if (!policyLink || !policyPanel) return;
+
+                        function openPolicy(){
+                            policyPanel.classList.add('show');
+                            policyPanel.setAttribute('aria-hidden', 'false');
+                            // Load existing content once panel opens
+                            try {
+                                fetch('<?php echo BASE_URL; ?>?controller=policy&action=get', {
+                                    credentials: 'same-origin',
+                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                })
+                                .then(r => r.json())
+                                .then(d => {
+                                    if (d && d.success && d.data){
+                                        const { privacy, terms, faq } = d.data;
+                                        const privacyEl = document.getElementById('privacyText');
+                                        const termsEl = document.getElementById('termsText');
+                                        const faqEl = document.getElementById('faqText');
+                                        if (privacyEl) privacyEl.value = privacy || '';
+                                        if (termsEl) termsEl.value = terms || '';
+                                        if (faqEl) faqEl.value = faq || '';
+                                    }
+                                })
+                                .catch(() => {});
+                            } catch(_){}
+                        }
+                        function closePolicy(){
+                            policyPanel.classList.remove('show');
+                            policyPanel.setAttribute('aria-hidden', 'true');
+                        }
+
+                        policyLink.addEventListener('click', function(e){
+                            // prevent navigating away; use panel instead
+                            e.preventDefault();
+                            openPolicy();
+                        });
+
+                        if (policyCloseBtn){
+                            policyCloseBtn.addEventListener('click', function(){
+                                closePolicy();
+                            });
+                        }
+
+                        // ESC to close
+                        document.addEventListener('keydown', function(e){
+                            if (e.key === 'Escape') closePolicy();
+                        });
+                    })();
+                </script>
+
+                <script>
+                    // Simple tabs for Policy panel
+                    (function(){
+                        const tabs = document.querySelectorAll('#policyTabs .nav-link');
+                        const panes = document.querySelectorAll('.policy-body .tab-pane');
+                        if (!tabs.length) return;
+                        tabs.forEach(btn => {
+                            btn.addEventListener('click', function(){
+                                // activate button
+                                tabs.forEach(b => b.classList.remove('active'));
+                                this.classList.add('active');
+                                // show target pane
+                                const target = document.querySelector(this.getAttribute('data-policy-target'));
+                                panes.forEach(p => p.classList.remove('show','active'));
+                                if (target){
+                                    target.classList.add('show','active');
+                                }
+                            });
+                        });
+                    })();
+                </script>
+
+                <script>
+                    // Save buttons for policy sections
+                    (function(){
+                        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                        function setStatus(id, msg, ok){
+                            const el = document.getElementById(id);
+                            if (!el) return;
+                            el.textContent = msg;
+                            el.className = ok ? 'text-success' : 'text-danger';
+                            if (msg) setTimeout(()=>{ el.textContent=''; el.className='text-muted'; }, 3000);
+                        }
+                        function saveSection(key, content){
+                            return fetch('<?php echo BASE_URL; ?>?controller=policy&action=save', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-Token': csrf
+                                },
+                                credentials: 'same-origin',
+                                body: JSON.stringify({ key, content })
+                            }).then(r=>r.json());
+                        }
+
+                        document.addEventListener('click', function(e){
+                            const btn = e.target.closest('.policy-save-btn');
+                            if (!btn) return;
+                            const key = btn.getAttribute('data-key');
+                            const map = { privacy: ['privacyText','privacyStatus'], terms: ['termsText','termsStatus'], faq: ['faqText','faqStatus'] };
+                            if (!map[key]) return;
+                            const [taId, statusId] = map[key];
+                            const ta = document.getElementById(taId);
+                            if (!ta) return;
+                            const original = btn.innerHTML;
+                            btn.disabled = true;
+                            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving';
+                            setStatus(statusId, '', true);
+                            saveSection(key, ta.value)
+                                .then(d=>{
+                                    if (d && d.success){
+                                        setStatus(statusId, 'Saved', true);
+                                    } else {
+                                        setStatus(statusId, d?.message || 'Save failed', false);
+                                    }
+                                })
+                                .catch(()=> setStatus(statusId, 'Error saving', false))
+                                .finally(()=>{
+                                    btn.disabled = false;
+                                    btn.innerHTML = original;
+                                });
                         });
                     })();
                 </script>

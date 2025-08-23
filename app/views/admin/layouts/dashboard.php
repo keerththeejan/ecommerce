@@ -24,6 +24,7 @@
       transition:transform .3s ease, box-shadow .3s ease;
       transform:translateX(-100%);
       will-change:transform;
+      overscroll-behavior:contain; /* prevent wheel chaining into body */
     }
     .sidebar.show{
       transform:translateX(0);
@@ -57,9 +58,11 @@
 
     /* Main content */
     .main-content{
-      padding:20px; min-height:calc(100vh - 56px);
+      padding:20px; height:calc(100vh - 56px);
       transition:transform .3s ease, margin-left .3s ease;
       background:#fff;
+      overflow:auto;
+      overscroll-behavior:contain; /* prevent bubbling scroll to sidebar/body */
     }
 
     /* Mobile */
@@ -74,10 +77,11 @@
 
     /* Desktop */
     @media (min-width: 992px){
-      .sidebar{ transform:translateX(0); position:sticky; top:0; }
-      .layout-shell{ margin-left:var(--sidebar-w); }
+      .sidebar{ transform:translateX(0); position:fixed; top:0; overflow:hidden; }
+      .layout-shell{ margin-left:var(--sidebar-w); min-height:100vh; }
       #sidebarToggle{ display:none !important; }
       .sidebar-backdrop{ display:none !important; }
+      body{ overflow:hidden; }
     }
 
     /* Optional scrollbar style */
