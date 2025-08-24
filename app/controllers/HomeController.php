@@ -30,9 +30,9 @@ class HomeController extends Controller {
             // Get categories
             $categories = $this->categoryModel->getActiveCategories();
             
-            // Get brands
+            // Get brands (use processed active brands so logos have proper URLs)
             $brandModel = $this->model('Brand');
-            $brands = $brandModel->getAll('name', 'ASC');
+            $brands = $brandModel->getActiveBrands();
 
             // Get latest About Store entry (for homepage intro)
             require_once APP_PATH . 'models/AboutStore.php';

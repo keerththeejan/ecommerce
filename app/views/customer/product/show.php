@@ -194,11 +194,7 @@
                                     </div>
                                 <?php endif; ?>
                             <?php else: ?>
-                                <div class="text-center py-3">
-                                    <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-success w-100">
-                                        <i class="fas fa-sign-in-alt me-1"></i> Login to Buy
-                                    </a>
-                                </div>
+                                
                             <?php endif; ?>
 
                             <?php if(isLoggedIn() && $product['stock_quantity'] > 0) : ?>

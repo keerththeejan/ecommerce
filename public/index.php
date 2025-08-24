@@ -44,13 +44,17 @@ spl_autoload_register(function($className) {
 $db = isset($GLOBALS['db']) ? $GLOBALS['db'] : new Database();
 
 // Simple router
-$controller = isset($_GET['controller']) ? $_GET['controller'] : 'Home';
+$controllerParam = isset($_GET['controller']) ? $_GET['controller'] : 'Home';
 $action = isset($_GET['action']) ? $_GET['action'] : 'index';
 // Check for both 'param' and 'id' in the URL
 $param = isset($_GET['param']) ? $_GET['param'] : (isset($_GET['id']) ? $_GET['id'] : null);
 
-// Format controller name
-$controllerName = ucfirst($controller) . 'Controller';
+// Format controller name, but do not double-append if already provided with suffix
+if (preg_match('/Controller$/i', $controllerParam)) {
+    $controllerName = $controllerParam;
+} else {
+    $controllerName = ucfirst($controllerParam) . 'Controller';
+}
 
 // Check if controller exists
 if(file_exists(APP_PATH . 'controllers/' . $controllerName . '.php')) {

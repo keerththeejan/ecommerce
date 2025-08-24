@@ -1,4 +1,4 @@
-<?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
+<?php require_once APP_PATH . '/views/customer/layouts/header.php'; ?>
 
 <div class="container py-5">
     <div class="row">
@@ -13,7 +13,11 @@
             
             <div class="d-flex align-items-center mb-4">
                 <?php if(!empty($country['flag_image'])) : ?>
-                    <img src="<?php echo BASE_URL . $country['flag_image']; ?>" alt="<?php echo $country['name']; ?>" class="me-3" style="height: 40px; width: auto;">
+                    <img src="<?php echo rtrim(BASE_URL, '/'); ?>/uploads/flags/<?php echo htmlspecialchars($country['flag_image']); ?>"
+                         alt="<?php echo htmlspecialchars($country['name']); ?>"
+                         class="me-3"
+                         style="height: 40px; width: auto;"
+                         onerror="this.onerror=null; this.src='<?php echo rtrim(BASE_URL, '/'); ?>/images/default-brand.png';">
                 <?php else : ?>
                     <i class="fas fa-globe fa-2x me-3 text-secondary"></i>
                 <?php endif; ?>
@@ -76,4 +80,4 @@
     </div>
 </div>
 
-<?php require_once APP_PATH . 'views/customer/layouts/footer.php'; ?>
+<?php require_once APP_PATH . '/views/customer/layouts/footer.php'; ?>

@@ -3,7 +3,7 @@
  * POS Controller
  * Handles Point of Sale functionality
  */
-class POSController extends Controller {
+class PosController extends Controller {
     private $posModel;
     private $productModel;
     private $userModel;

@@ -160,10 +160,6 @@
                                                 </button>
                                             </div>
                                         </form>
-                                    <?php } else { ?>
-                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-primary btn-sm w-100">
-                                            Login to Buy
-                                        </a>
                                     <?php } ?>
                                 <?php } else { ?>
                                     <div class="alert alert-danger py-1 mb-0 text-center">Out of Stock</div>
@@ -213,11 +209,11 @@
                                     <div class="card-body p-2 d-flex align-items-center justify-content-center">
                                         <div class="brand-logo-container">
                                             <?php if(!empty($brand['logo'])) : ?>
-                                                <img src="<?php echo BASE_URL . 'uploads/brands/' . $brand['logo']; ?>" 
+                                                <img src="<?php echo $brand['logo']; ?>" 
                                                      class="img-fluid" 
                                                      alt="<?php echo htmlspecialchars($brand['name']); ?>" 
                                                      loading="lazy"
-                                                     onerror="this.onerror=null; this.src='<?php echo BASE_URL; ?>assets/img/no-image.jpg';">
+                                                     onerror="this.onerror=null; this.src='<?php echo rtrim(BASE_URL, '/'); ?>/assets/images/default-brand.png';">
                                             <?php else : ?>
                                                 <div class="text-center">
                                                     <span class="fw-bold small text-muted"><?php echo htmlspecialchars($brand['name']); ?></span>

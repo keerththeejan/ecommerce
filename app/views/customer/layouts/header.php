@@ -73,7 +73,7 @@
             <div class="d-flex align-items-center justify-content-between">
                 <a href="<?php echo BASE_URL; ?>" class="text-decoration-none">
                     <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
-                        <img src="<?php echo BASE_URL . 'public/uploads/' . htmlspecialchars($siteLogo); ?>" 
+                        <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" 
                              alt="<?php echo htmlspecialchars($siteName); ?>" 
                              style="max-height: 30px;">
                     <?php else: ?>
@@ -381,7 +381,7 @@
         <div class="container">
             <a class="navbar-brand fw-bold" href="<?php echo BASE_URL; ?>">
                 <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
-                    <img src="<?php echo BASE_URL . 'public/uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: 40px;">
+                    <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: 40px;">
                 <?php else: ?>
                     <?php echo htmlspecialchars($siteName); ?>
                 <?php endif; ?>

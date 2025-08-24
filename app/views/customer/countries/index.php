@@ -11,7 +11,11 @@
                         <div class="col mb-3">
                             <div class="card h-100 border-0 shadow-sm">
                                 <?php if(!empty($country['flag_image'])) : ?>
-                                    <img src="<?php echo BASE_URL . $country['flag_image']; ?>" class="card-img-top" alt="<?php echo $country['name']; ?>" style="height: 140px; object-fit: cover;">
+                                    <img src="<?php echo rtrim(BASE_URL, '/'); ?>/uploads/flags/<?php echo htmlspecialchars($country['flag_image']); ?>"
+                                         class="card-img-top"
+                                         alt="<?php echo htmlspecialchars($country['name']); ?>"
+                                         style="height: 140px; object-fit: cover;"
+                                         onerror="this.onerror=null; this.src='<?php echo rtrim(BASE_URL, '/'); ?>/images/default-brand.png';">
                                 <?php else : ?>
                                     <div class="bg-light p-4 text-center">
                                         <i class="fas fa-globe fa-3x text-secondary"></i>
