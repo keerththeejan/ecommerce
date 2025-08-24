@@ -371,6 +371,31 @@
             font-size: 0.9rem;
         }
     }
+
+    /* Scroll To Top Button */
+    #scrollTopBtn {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        width: 44px;
+        height: 44px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00ADB5 0%, #007a80 100%);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0, 173, 181, 0.35);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050; /* above content */
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+    #scrollTopBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0, 173, 181, 0.45);
+    }
+    #scrollTopBtn i { font-size: 16px; }
 </style>
 
 <script>
@@ -406,6 +431,35 @@
             // document.querySelector('.login-section').style.backgroundImage = 'linear-gradient(135deg, #222831 0%, #393E46 100%)';
         };
         img.src = '<?php echo BASE_URL; ?>public/assets/images/banners/login-bg.jpg';
+    });
+
+    // Scroll To Top button logic
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create button if not present
+        let btn = document.getElementById('scrollTopBtn');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'scrollTopBtn';
+            btn.setAttribute('aria-label', 'Back to top');
+            btn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+            document.body.appendChild(btn);
+        }
+
+        const toggleBtn = () => {
+            if (window.scrollY > 120) {
+                btn.style.display = 'flex';
+                btn.style.opacity = '1';
+            } else {
+                btn.style.opacity = '0';
+                btn.style.display = 'none';
+            }
+        };
+
+        window.addEventListener('scroll', toggleBtn);
+        window.addEventListener('load', toggleBtn);
+        btn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     });
 </script>
 

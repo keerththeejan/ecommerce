@@ -131,34 +131,6 @@ if (isset($_SESSION['user_id'])) {
                 scrollbar-gutter: stable both-edges;
             }
         }
-
-        /* Policy slide-in panel (covers white main area) */
-        .policy-panel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0; /* default for mobile: full width */
-            background: #fff;
-            transform: translateX(100%);
-            transition: transform .3s ease;
-            z-index: 1060; /* above main, below modal backdrop (1050-1060 area) */
-            box-shadow: -2px 0 12px rgba(0,0,0,.15);
-            display: flex;
-            flex-direction: column;
-        }
-        .policy-panel.show { transform: translateX(0); }
-        .policy-panel .policy-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid #dee2e6;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .policy-panel .policy-body { padding: 1rem 1.25rem; overflow: auto; }
-
-        /* On desktop, offset panel to start after fixed sidebar */
-        @media (min-width: 768px) {
-            .policy-panel { left: 260px; }
-        }
     </style>
 </head>
 
@@ -313,7 +285,7 @@ if (isset($_SESSION['user_id'])) {
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link text-white" id="policyLink" href="<?php echo BASE_URL; ?>?controller=policy&action=index">
+                            <a class="nav-link text-white" id="policyLink" href="<?php echo BASE_URL; ?>?controller=policy&action=index" data-keep-open="1">
                                 <i class="fas fa-file-contract me-2"></i>
                                 Policy
                             </a>
@@ -407,60 +379,6 @@ if (isset($_SESSION['user_id'])) {
                     </div>
                 </div>
 
-                <!-- Policy slide-in panel -->
-                <div id="policyPanel" class="policy-panel" aria-hidden="true">
-                    <div class="policy-header">
-                        <h5 class="mb-0">Policy</h5>
-                        <button type="button" class="btn-close" id="policyCloseBtn" aria-label="Close"></button>
-                    </div>
-                    <div class="policy-body">
-                        <ul class="nav nav-pills mb-3" id="policyTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="tab-privacy" data-policy-target="#section-privacy" type="button" role="tab">Privacy Policy</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="tab-terms" data-policy-target="#section-terms" type="button" role="tab">Terms of Service</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="tab-faq" data-policy-target="#section-faq" type="button" role="tab">FAQ</button>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content">
-                            <div class="tab-pane fade show active" id="section-privacy" role="tabpanel" aria-labelledby="tab-privacy">
-                                <div class="mb-3">
-                                    <label for="privacyText" class="form-label">Privacy Policy</label>
-                                    <textarea id="privacyText" class="form-control" rows="8" placeholder="Write your Privacy Policy here..."></textarea>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <button class="btn btn-primary policy-save-btn" type="button" data-key="privacy">Save</button>
-                                    <small class="text-muted" id="privacyStatus"></small>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="section-terms" role="tabpanel" aria-labelledby="tab-terms">
-                                <div class="mb-3">
-                                    <label for="termsText" class="form-label">Terms of Service</label>
-                                    <textarea id="termsText" class="form-control" rows="8" placeholder="Write your Terms of Service here..."></textarea>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <button class="btn btn-primary policy-save-btn" type="button" data-key="terms">Save</button>
-                                    <small class="text-muted" id="termsStatus"></small>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="section-faq" role="tabpanel" aria-labelledby="tab-faq">
-                                <div class="mb-3">
-                                    <label for="faqText" class="form-label">FAQ</label>
-                                    <textarea id="faqText" class="form-control" rows="8" placeholder="Write your FAQs here..."></textarea>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <button class="btn btn-primary policy-save-btn" type="button" data-key="faq">Save</button>
-                                    <small class="text-muted" id="faqStatus"></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Flash Messages -->
                 <?php flash('product_success'); ?>
                 <?php flash('product_error'); ?>
@@ -502,145 +420,29 @@ if (isset($_SESSION['user_id'])) {
                                 bsCollapse.hide();
                             });
                         }
-                        // Close sidebar after clicking a link on mobile
+                        // Close sidebar after clicking a link on mobile, except links marked to keep open
                         sidebar.addEventListener('click', function(e) {
-                            if (window.innerWidth < 768 && e.target.closest('a.nav-link')) {
+                            if (window.innerWidth < 768) {
+                                const link = e.target.closest('a.nav-link');
+                                if (!link) return;
+                                // Skip closing if link requests to keep sidebar open
+                                if (link.matches('#policyLink') || link.dataset.keepOpen === '1') return;
                                 const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
                                 bsCollapse.hide();
                             }
                         });
-                    })();
-                </script>
 
-                <script>
-                    // Policy panel open/close handlers
-                    (function(){
-                        const policyLink = document.getElementById('policyLink');
-                        const policyPanel = document.getElementById('policyPanel');
-                        const policyCloseBtn = document.getElementById('policyCloseBtn');
-
-                        if (!policyLink || !policyPanel) return;
-
-                        function openPolicy(){
-                            policyPanel.classList.add('show');
-                            policyPanel.setAttribute('aria-hidden', 'false');
-                            // Load existing content once panel opens
+                        // On page load, auto-open sidebar on mobile for Policy page
+                        (function autoOpenForPolicy() {
                             try {
-                                fetch('<?php echo BASE_URL; ?>?controller=policy&action=get', {
-                                    credentials: 'same-origin',
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                })
-                                .then(r => r.json())
-                                .then(d => {
-                                    if (d && d.success && d.data){
-                                        const { privacy, terms, faq } = d.data;
-                                        const privacyEl = document.getElementById('privacyText');
-                                        const termsEl = document.getElementById('termsText');
-                                        const faqEl = document.getElementById('faqText');
-                                        if (privacyEl) privacyEl.value = privacy || '';
-                                        if (termsEl) termsEl.value = terms || '';
-                                        if (faqEl) faqEl.value = faq || '';
-                                    }
-                                })
-                                .catch(() => {});
-                            } catch(_){}
-                        }
-                        function closePolicy(){
-                            policyPanel.classList.remove('show');
-                            policyPanel.setAttribute('aria-hidden', 'true');
-                        }
-
-                        policyLink.addEventListener('click', function(e){
-                            // prevent navigating away; use panel instead
-                            e.preventDefault();
-                            openPolicy();
-                        });
-
-                        if (policyCloseBtn){
-                            policyCloseBtn.addEventListener('click', function(){
-                                closePolicy();
-                            });
-                        }
-
-                        // ESC to close
-                        document.addEventListener('keydown', function(e){
-                            if (e.key === 'Escape') closePolicy();
-                        });
-                    })();
-                </script>
-
-                <script>
-                    // Simple tabs for Policy panel
-                    (function(){
-                        const tabs = document.querySelectorAll('#policyTabs .nav-link');
-                        const panes = document.querySelectorAll('.policy-body .tab-pane');
-                        if (!tabs.length) return;
-                        tabs.forEach(btn => {
-                            btn.addEventListener('click', function(){
-                                // activate button
-                                tabs.forEach(b => b.classList.remove('active'));
-                                this.classList.add('active');
-                                // show target pane
-                                const target = document.querySelector(this.getAttribute('data-policy-target'));
-                                panes.forEach(p => p.classList.remove('show','active'));
-                                if (target){
-                                    target.classList.add('show','active');
+                                const params = new URLSearchParams(window.location.search);
+                                const isPolicy = (params.get('controller') || '').toLowerCase() === 'policy';
+                                if (isPolicy && window.innerWidth < 768) {
+                                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar, { toggle: false });
+                                    bsCollapse.show();
+                                    updateState();
                                 }
-                            });
-                        });
-                    })();
-                </script>
-
-                <script>
-                    // Save buttons for policy sections
-                    (function(){
-                        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-                        function setStatus(id, msg, ok){
-                            const el = document.getElementById(id);
-                            if (!el) return;
-                            el.textContent = msg;
-                            el.className = ok ? 'text-success' : 'text-danger';
-                            if (msg) setTimeout(()=>{ el.textContent=''; el.className='text-muted'; }, 3000);
-                        }
-                        function saveSection(key, content){
-                            return fetch('<?php echo BASE_URL; ?>?controller=policy&action=save', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'X-CSRF-Token': csrf
-                                },
-                                credentials: 'same-origin',
-                                body: JSON.stringify({ key, content })
-                            }).then(r=>r.json());
-                        }
-
-                        document.addEventListener('click', function(e){
-                            const btn = e.target.closest('.policy-save-btn');
-                            if (!btn) return;
-                            const key = btn.getAttribute('data-key');
-                            const map = { privacy: ['privacyText','privacyStatus'], terms: ['termsText','termsStatus'], faq: ['faqText','faqStatus'] };
-                            if (!map[key]) return;
-                            const [taId, statusId] = map[key];
-                            const ta = document.getElementById(taId);
-                            if (!ta) return;
-                            const original = btn.innerHTML;
-                            btn.disabled = true;
-                            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving';
-                            setStatus(statusId, '', true);
-                            saveSection(key, ta.value)
-                                .then(d=>{
-                                    if (d && d.success){
-                                        setStatus(statusId, 'Saved', true);
-                                    } else {
-                                        setStatus(statusId, d?.message || 'Save failed', false);
-                                    }
-                                })
-                                .catch(()=> setStatus(statusId, 'Error saving', false))
-                                .finally(()=>{
-                                    btn.disabled = false;
-                                    btn.innerHTML = original;
-                                });
-                        });
+                            } catch (_) { /* no-op */ }
+                        })();
                     })();
                 </script>

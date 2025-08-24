@@ -42,7 +42,7 @@ if(!isStaff()) {
             padding: 2px 0; /* ultra-compact vertical spacing */
         }
         .cart-container {
-            height: calc(90vh - 420px); /* reduced to make Bill & Invoice shorter */
+            height: calc(105vh - 420px); /* reduced to make Bill & Invoice shorter */
             overflow-y: auto;
         }
         /* Smaller labels inside Bill & Invoice cart */

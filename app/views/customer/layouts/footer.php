@@ -416,12 +416,10 @@
                     <div class="footer-widget">
                         <h4>Quick Links</h4>
                         <ul class="footer-links">
-                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=new">New Arrivals</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=featured">Featured Products</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=sale">Special Offers</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=category&action=all">All Categories</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">About Store</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=contact">Contact Us</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#banner">Home Banner</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#featured-products">Featured Products</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#brands">Brands</a></li>
                         </ul>
                     </div>
                 </div>
@@ -510,36 +508,62 @@
             <div class="footer-bottom-content">
                 <p class="copyright-text">&copy; <?php echo date('Y'); ?> E-Store. All rights reserved.</p>
                 <div class="footer-bottom-links">
-                    <a href="#" class="policy-link" data-policy="privacy">Privacy Policy</a>
-                    <a href="#" class="policy-link" data-policy="terms">Terms of Service</a>
-                    <a href="#" class="policy-link" data-policy="faq">FAQ</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Policy Modal -->
-    <div class="modal fade" id="policyModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="policyModalTitle">Policy</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center text-muted py-5" id="policyModalLoading" style="display:none;">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <div class="mt-2">Loading...</div>
-                    </div>
-                    <div id="policyModalContent"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy">Privacy Policy</a>
+                    <a href="<?php echo BASE_URL; ?>?controller=page&action=terms">Terms of Service</a>
+                    <a href="<?php echo BASE_URL; ?>?controller=page&action=faq">FAQ</a>
                 </div>
             </div>
         </div>
     </div>
 </footer>
+
+    <!-- Policy Modal -->
+    <style>
+      /* Content normalization */
+      .policy-content { white-space: pre-wrap; font-size: 0.95rem; line-height: 1.65; }
+      .policy-content * { font-size: inherit !important; line-height: inherit !important; }
+      .policy-content h1 { font-size: 1.35rem !important; }
+      .policy-content h2 { font-size: 1.15rem !important; }
+      .policy-content h3 { font-size: 1.05rem !important; }
+      .policy-content h4 { font-size: 1rem !important; }
+      .policy-content p, .policy-content li { margin-bottom: 0.5rem; }
+      .policy-content img, .policy-content video { max-width: 100%; height: auto; }
+
+      /* Modal refinements */
+      /* Right-side slide-in panel */
+      .policy-modal .modal-dialog { max-width: 560px; width: min(560px, 95vw); }
+      .policy-modal .modal-dialog.modal-right { margin: 0 0 0 auto; height: 100%; transform: translateX(100%); }
+      .policy-modal.show .modal-dialog.modal-right { transform: translateX(0); transition: transform 0.32s ease-in-out; }
+      .modal.fade .modal-dialog.modal-right { transition: transform 0.32s ease-in-out; }
+      .policy-modal .modal-content { height: 100vh; border-top-left-radius: 14px; border-bottom-left-radius: 14px; border-top-right-radius: 0; border-bottom-right-radius: 0; box-shadow: -12px 0 40px rgba(0,0,0,0.25); }
+      .policy-modal .modal-header { padding: 0.7rem 1.1rem; border-bottom: 1px solid #eee; }
+      .policy-modal .modal-body { padding: 0.85rem 1.1rem; height: calc(100vh - 6.2rem); overflow-y: auto; }
+      .policy-modal .modal-footer { padding: 0.55rem 1.1rem; border-top: 1px solid #eee; }
+      .policy-modal .modal-title { font-weight: 600; }
+      .policy-modal .policy-content ol, .policy-modal .policy-content ul { padding-left: 1.2rem; }
+      @media (max-width: 576px) {
+        .policy-modal .modal-dialog { margin: 0; max-width: 100%; }
+        .policy-modal .modal-dialog.modal-right { width: 100%; }
+        .policy-modal .modal-content { border-radius: 0; height: 100vh; }
+        .policy-modal .modal-body { height: calc(100vh - 6.2rem); }
+      }
+    </style>
+    <div class="modal fade policy-modal" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-right">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="policyModalLabel">Policy</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="policyModalBody" class="policy-content"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Bootstrap and Dependencies -->
     <script>
@@ -558,47 +582,48 @@
     <!-- Custom JS -->
     <script src="<?php echo BASE_URL; ?>assets/js/main.js"></script>
     
-    <!-- Policy Modal Loader -->
-    <script>
-    (function() {
-        function loadPolicy(section) {
-            const modal = new bootstrap.Modal(document.getElementById('policyModal'));
-            const titleMap = { privacy: 'Privacy Policy', terms: 'Terms of Service', faq: 'FAQ' };
-            document.getElementById('policyModalTitle').textContent = titleMap[section] || 'Policy';
-            const loading = document.getElementById('policyModalLoading');
-            const content = document.getElementById('policyModalContent');
-            content.innerHTML = '';
-            loading.style.display = 'block';
-            modal.show();
-
-            // Fetch HTML snippet from public endpoints
-            const url = `${window.baseUrl}?controller=page&action=${encodeURIComponent(section)}`;
-            fetch(url, { credentials: 'same-origin' })
-                .then(r => r.text())
-                .then(html => {
-                    loading.style.display = 'none';
-                    content.innerHTML = html || '<div class="text-muted">No content available.</div>';
-                })
-                .catch(() => {
-                    loading.style.display = 'none';
-                    content.innerHTML = '<div class="text-danger">Failed to load content.</div>';
-                });
-        }
-
-        document.addEventListener('click', function(e) {
-            const link = e.target.closest('a.policy-link');
-            if (link) {
-                e.preventDefault();
-                const section = link.getAttribute('data-policy');
-                loadPolicy(section);
-            }
-        });
-    })();
-    </script>
-    
     <!-- Quantity Adjuster Script -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Intercept footer policy links and open in modal
+        const footerLinks = document.querySelectorAll('.footer-bottom-links a[href*="?controller=page&action="]');
+        const policyModalEl = document.getElementById('policyModal');
+        let policyModal;
+        if (policyModalEl) {
+            policyModal = new bootstrap.Modal(policyModalEl, { backdrop: true, keyboard: true, focus: true });
+        }
+
+        footerLinks.forEach(function(link){
+            link.addEventListener('click', function(e){
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                // Show loading state
+                document.getElementById('policyModalLabel').textContent = 'Loading...';
+                document.getElementById('policyModalBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                if (policyModal) { policyModal.show(); }
+
+                // Fetch content via AJAX expecting JSON from PageController
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                    .then(async (res) => {
+                        const text = await res.text();
+                        try {
+                            return JSON.parse(text);
+                        } catch (err) {
+                            // Fallback if server returned HTML
+                            return { title: 'Information', content: text };
+                        }
+                    })
+                    .then((data) => {
+                        document.getElementById('policyModalLabel').textContent = data.title || 'Information';
+                        document.getElementById('policyModalBody').innerHTML = data.content || '<div class="alert alert-info mb-0">No content available.</div>';
+                    })
+                    .catch(() => {
+                        document.getElementById('policyModalLabel').textContent = 'Error';
+                        document.getElementById('policyModalBody').innerHTML = '<div class="alert alert-danger">Failed to load content. Please try again.</div>';
+                    });
+            });
+        });
+
         // Quantity adjuster functionality
         document.addEventListener('click', function(e) {
             // Handle quantity increase

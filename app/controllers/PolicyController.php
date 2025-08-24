@@ -1,76 +1,57 @@
 <?php
 /**
  * Policy Controller
- * Handles saving and retrieving Privacy Policy, Terms of Service, and FAQ content
+ * Renders a simple admin page for policies so the sidebar link works.
  */
 class PolicyController extends Controller {
     private $settingModel;
 
     public function __construct() {
-        // Restrict to admin area
+        // Restrict to admin area similar to other admin sections
         if (!isAdmin()) {
             redirect('user/login');
         }
         $this->settingModel = $this->model('Setting');
     }
 
-    // GET: /?controller=policy&action=get
-    // Returns JSON of existing policy contents
-    public function get() {
-        header('Content-Type: application/json');
-        try {
-            $privacy = $this->settingModel->getSetting('policy_privacy', '');
-            $terms   = $this->settingModel->getSetting('policy_terms', '');
-            $faq     = $this->settingModel->getSetting('policy_faq', '');
-            echo json_encode([
-                'success' => true,
-                'data' => [
-                    'privacy' => $privacy,
-                    'terms' => $terms,
-                    'faq' => $faq,
-                ]
-            ]);
-        } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Failed to load policies.']);
-        }
-        exit;
+    // GET: /?controller=policy&action=index
+    public function index() {
+        // Load existing contents from settings
+        $privacy = $this->settingModel->getSetting('policy_privacy', '');
+        $terms   = $this->settingModel->getSetting('policy_terms', '');
+        $faq     = $this->settingModel->getSetting('policy_faq', '');
+
+        $this->view('admin/policy/index', [
+            'title' => 'Policy',
+            'privacy' => $privacy,
+            'terms' => $terms,
+            'faq' => $faq
+        ]);
     }
 
     // POST: /?controller=policy&action=save
-    // Accepts JSON or form data: key = privacy|terms|faq, content = string
     public function save() {
         if (!$this->isPost()) {
-            return $this->redirect(BASE_URL . '?controller=home&action=admin');
+            return $this->redirect(BASE_URL . '?controller=policy&action=index');
         }
 
-        // Support JSON body
-        $raw = file_get_contents('php://input');
-        $json = json_decode($raw, true);
-        $key = $json['key'] ?? $this->post('key');
-        $content = $json['content'] ?? $this->post('content');
+        // Preserve whitespace exactly as entered (no trim)
+        $privacy = (string)$this->post('privacy', '');
+        $terms   = (string)$this->post('terms', '');
+        $faq     = (string)$this->post('faq', '');
 
-        header('Content-Type: application/json');
+        // Persist settings
+        $ok = true;
+        $ok = $ok && $this->settingModel->updateSetting('policy_privacy', $privacy);
+        $ok = $ok && $this->settingModel->updateSetting('policy_terms', $terms);
+        $ok = $ok && $this->settingModel->updateSetting('policy_faq', $faq);
 
-        $keyMap = [
-            'privacy' => 'policy_privacy',
-            'terms'   => 'policy_terms',
-            'faq'     => 'policy_faq',
-        ];
-        if (!$key || !isset($keyMap[$key])) {
-            echo json_encode(['success' => false, 'message' => 'Invalid section.']);
-            exit;
-        }
-
-        $settingKey = $keyMap[$key];
-        $safeContent = sanitize($content);
-
-        $ok = $this->settingModel->updateSetting($settingKey, $safeContent);
         if ($ok) {
-            echo json_encode(['success' => true, 'message' => 'Saved successfully.']);
+            $_SESSION['policy_success'] = 'Policy content saved successfully';
         } else {
-            $msg = method_exists($this->settingModel, 'getLastError') ? $this->settingModel->getLastError() : 'Save failed.';
-            echo json_encode(['success' => false, 'message' => $msg ?: 'Save failed.']);
+            $_SESSION['policy_error'] = 'Failed to save one or more fields. Please try again.';
         }
-        exit;
+
+        return $this->redirect(BASE_URL . '?controller=policy&action=index');
     }
 }
