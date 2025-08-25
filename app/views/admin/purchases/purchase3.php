@@ -17,10 +17,37 @@ if ($start && $end) {
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h4 mb-0"><?php echo htmlspecialchars($title); ?></h1>
+    <div>
+      <?php if (!empty($selectedProduct['id'])): ?>
+        <a href="<?php echo BASE_URL; ?>?controller=ListPurchaseController&highlight_product_id=<?php echo urlencode($selectedProduct['id']); ?>" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+      <?php else: ?>
+        <a href="<?php echo BASE_URL; ?>?controller=ListPurchaseController" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+      <?php endif; ?>
+    </div>
   </div>
 
-  <!-- Filters -->
-  <div class="card shadow-sm mb-4">
+  <?php if (!empty($selectedProduct)) : ?>
+    <div class="alert alert-info d-flex align-items-center justify-content-between" role="alert">
+      <div class="d-flex align-items-center">
+        <?php if (!empty($selectedProduct['image'])): ?>
+          <img src="<?php echo htmlspecialchars($selectedProduct['image']); ?>" alt="<?php echo htmlspecialchars($selectedProduct['name'] ?? 'Product'); ?>" style="width:48px;height:48px;object-fit:cover" class="rounded border me-3" />
+        <?php endif; ?>
+        <div>
+          <div class="fw-bold">Returning: <?php echo htmlspecialchars($selectedProduct['name'] ?? ('#' . ($selectedProduct['id'] ?? ''))); ?></div>
+          <small class="text-muted">SKU: <?php echo htmlspecialchars($selectedProduct['sku'] ?? '-'); ?> | ID: <?php echo htmlspecialchars($selectedProduct['id'] ?? '-'); ?></small>
+        </div>
+      </div>
+      <div class="ms-3">
+        <a class="btn btn-sm btn-outline-primary" href="<?php echo BASE_URL; ?>?controller=purchase&action=index">
+          <i class="fas fa-undo-alt me-1"></i>Start Return Entry
+        </a>
+      </div>
+    </div>
+<div class="card shadow-sm mb-4">
     <div class="card-header bg-white border-0">
       <strong><i class="fas fa-filter me-2"></i>Filters</strong>
     </div>
@@ -51,18 +78,14 @@ if ($start && $end) {
       </form>
     </div>
   </div>
-
-  <!-- All Purchase Returns table -->
-  <div class="card shadow mb-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">All Purchase Returns</h5>
-        <a href="#" class="btn btn-primary rounded-pill px-3">
-          <i class="fas fa-plus me-2"></i>Add
-        </a>
+    <!-- Selected Product Details Table -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-white">
+        
+        <strong><i class="fas fa-box me-2"></i>Selected Product Details</strong>
       </div>
-
-      <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
         <div></div>
         <div id="tableActions" class="btn-group">
           <button id="btnExportCsv" class="btn btn-outline-secondary btn-sm">Export CSV</button>
@@ -72,60 +95,55 @@ if ($start && $end) {
           <button id="btnExportPdf" class="btn btn-outline-secondary btn-sm">Export PDF</button>
         </div>
       </div>
-
-      <div class="table-responsive">
-        <table class="table table-bordered" id="returnsTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Reference No</th>
-              <th>Parent Purchase</th>
-              <th>Location</th>
-              <th>Supplier</th>
-              <th>Payment Status</th>
-              <th>Grand Total</th>
-              <th>Payment due</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php if (!empty($returns)): ?>
-              <?php foreach ($returns as $r): ?>
-                <tr>
-                  <td><?php echo htmlspecialchars($r['date']); ?></td>
-                  <td><?php echo htmlspecialchars($r['reference_no']); ?></td>
-                  <td><?php echo htmlspecialchars($r['parent_reference'] ?? '-'); ?></td>
-                  <td><?php echo htmlspecialchars($r['location'] ?? '-'); ?></td>
-                  <td><?php echo htmlspecialchars($r['supplier'] ?? '-'); ?></td>
-                  <td><?php echo htmlspecialchars(ucfirst($r['payment_status'] ?? '')); ?></td>
-                  <td><?php echo htmlspecialchars($r['grand_total'] ?? '0.00'); ?></td>
-                  <td><?php echo htmlspecialchars($r['payment_due'] ?? '0.00'); ?></td>
-                  <td>
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button>
-                      <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">View</a></li>
-                      </ul>
-                    </div>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            <?php else: ?>
-              <tr><td colspan="9" class="text-center">No data available in table</td></tr>
-            <?php endif; ?>
-          </tbody>
-          <tfoot>
-            <tr class="table-active">
-              <td colspan="6" class="text-end"><strong>Total:</strong></td>
-              <td id="grand-total"><strong>Rs 0.00</strong></td>
-              <td id="due-total"><strong>Rs 0.00</strong></td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:48px">Image</th>
+                <th>Name</th>
+                <th>SKU</th>
+                <th>Buying Price</th>
+                <th>Incl. Tax Price</th>
+                <th>Selling Price</th>
+                <th>Wholesale Price</th>
+                <th>Stock Qty</th>
+                <th>Supplier</th>
+                <th>Batch</th>
+                <th>Expiry Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <?php if (!empty($selectedProduct['image'])): ?>
+                    <img src="<?php echo htmlspecialchars($selectedProduct['image']); ?>" alt="<?php echo htmlspecialchars($selectedProduct['name'] ?? 'Product'); ?>" style="width:48px;height:48px;object-fit:cover" class="rounded border" />
+                  <?php else: ?>
+                    <div class="bg-light border rounded" style="width:48px;height:48px"></div>
+                  <?php endif; ?>
+                </td>
+                <td><?php echo htmlspecialchars($selectedProduct['name'] ?? '—'); ?></td>
+                <td><?php echo htmlspecialchars($selectedProduct['sku'] ?? '—'); ?></td>
+                <td><?php echo isset($selectedProduct['price']) ? htmlspecialchars(number_format((float)$selectedProduct['price'], 2)) : '—'; ?></td>
+                <td><?php echo isset($selectedProduct['sale_price']) ? htmlspecialchars(number_format((float)$selectedProduct['sale_price'], 2)) : '—'; ?></td>
+                <td><?php echo isset($selectedProduct['price2']) ? htmlspecialchars(number_format((float)$selectedProduct['price2'], 2)) : '—'; ?></td>
+                <td><?php echo isset($selectedProduct['price3']) ? htmlspecialchars(number_format((float)$selectedProduct['price3'], 2)) : '—'; ?></td>
+                <td><?php echo isset($selectedProduct['stock_quantity']) ? htmlspecialchars(number_format((float)$selectedProduct['stock_quantity'], 2)) : '—'; ?></td>
+                <td><?php echo htmlspecialchars($selectedProduct['supplier'] ?? '—'); ?></td>
+                <td><?php echo htmlspecialchars($selectedProduct['batch_number'] ?? '—'); ?></td>
+                <td><?php echo htmlspecialchars($selectedProduct['expiry_date'] ?? '—'); ?></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
+  <?php endif; ?>
+
+  <!-- Filters -->
+  
+
+  <!-- All Purchase Returns table -->
+
 </div>
 
 <!-- DataTables assets -->

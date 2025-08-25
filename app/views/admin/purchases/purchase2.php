@@ -4,6 +4,12 @@ $formData = $_SESSION['form_data'] ?? [];
 unset($_SESSION['form_data']);
 
 $supplierId = $formData['supplier_id'] ?? '';
+// Optional product prefill (when coming from purchase3/banner action)
+$prefillProductId = isset($_GET['prefill_product_id']) ? (int)$_GET['prefill_product_id'] : 0;
+// One-time submit token to prevent duplicate purchases
+if (session_status() === PHP_SESSION_NONE) { @session_start(); }
+try { $submitToken = bin2hex(random_bytes(16)); } catch (Exception $e) { $submitToken = bin2hex(openssl_random_pseudo_bytes(16)); }
+$_SESSION['purchase_submit_token'] = $submitToken;
 ?>
 
 <div class="container-fluid">
@@ -16,6 +22,11 @@ $supplierId = $formData['supplier_id'] ?? '';
   <?php flash('success'); ?>
 
   <form id="purchaseForm" enctype="multipart/form-data" method="POST" action="<?php echo BASE_URL; ?>?controller=purchase&action=store" onsubmit="submitForm(event)">
+    <input type="hidden" name="submit_token" value="<?php echo htmlspecialchars($submitToken); ?>">
+    <?php if (!empty($prefillProductId)): ?>
+      <input type="hidden" name="prefill_product_id" id="prefill_product_id" value="<?php echo (int)$prefillProductId; ?>">
+      <input type="hidden" name="is_return" id="is_return" value="1">
+    <?php endif; ?>
     <div class="row">
       <!-- Left column -->
       <div class="col-12">
@@ -96,23 +107,35 @@ $supplierId = $formData['supplier_id'] ?? '';
             </div>
 
             <div class="table-responsive">
+              <style>
+                /* Narrow price columns without changing font size */
+                .price-col { padding-left: .25rem !important; padding-right: .25rem !important; white-space: nowrap; }
+                .price-col.text-end { text-align: right !important; }
+                /* Narrow quantity column without changing font size */
+                .qty-col { padding-left: .25rem !important; padding-right: .25rem !important; }
+                .qty-col input { max-width: 72px; }
+              </style>
               <table class="table table-bordered align-middle">
                 <thead class="table-success">
                   <tr>
                     <th style="width: 3%">#</th>
-                    <th style="width: 24%">Product Name</th>
-                    <th style="width: 10%">Purchase Quantity</th>
-                    <th style="width: 12%">Unit Cost (Before Discount)</th>
-                    <th style="width: 10%">Discount Percent</th>
-                    <th style="width: 12%">Unit Cost (Before Tax)</th>
-                    <th style="width: 12%">Line Total</th>
+                    <th style="width: 18%">Product Name</th>
+                    <th class="price-col text-end" style="width: 6%">Buying</th>
+                    <th class="price-col text-end" style="width: 6%">Incl. Tax</th>
+                    <th class="price-col text-end" style="width: 6%">Sales</th>
+                    <th class="price-col text-end" style="width: 6%">Wholesale</th>
+                    <th class="qty-col" style="width: 7%">Purchase Qty</th>
+                    <th style="width: 10%">Unit Cost</th>
+                    <th style="width: 7%">Discount %</th>
+                    <th style="width: 7%">Cost (After Disc)</th>
+                    <th style="width: 7%">Line Total</th>
                     <th style="width: 8%">Profit Margin %</th>
-                    <th style="width: 12%">Unit Selling Price (Inc. tax)</th>
+                    <th style="width: 10%">Unit Selling (Inc. tax)</th>
                     <th style="width: 3%"><i class="fas fa-trash"></i></th>
                   </tr>
                 </thead>
                 <tbody id="product-rows">
-                  <tr><td colspan="10" class="text-center text-muted py-4">Select a supplier to load products.</td></tr>
+                  <tr><td colspan="14" class="text-center text-muted py-4">Select a supplier to load products.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -183,7 +206,7 @@ $supplierId = $formData['supplier_id'] ?? '';
             </div>
 
             <div class="text-center mt-3">
-              <button type="submit" class="btn btn-primary px-5">Save</button>
+              <button id="saveBtn" type="submit" class="btn btn-primary px-5">Save</button>
             </div>
           </div>
         </div>
@@ -196,13 +219,14 @@ $supplierId = $formData['supplier_id'] ?? '';
 <script>
 const CURRENCY_SYMBOL = '<?php echo CURRENCY_SYMBOL; ?>';
 const BASE_URL = '<?php echo BASE_URL; ?>';
+const PREFILL_PRODUCT_ID = <?php echo (int)($prefillProductId ?: 0); ?>;
 
 function currency(num) { return CURRENCY_SYMBOL + (parseFloat(num||0).toFixed(2)); }
 
 async function loadProducts(supplierId) {
   const tbody = document.getElementById('product-rows');
-  if (!supplierId) { tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Select a supplier to load products.</td></tr>'; updateTotals(); return; }
-  tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-primary"></div><span class="ms-2">Loading...</span></td></tr>';
+  if (!supplierId) { tbody.innerHTML = '<tr><td colspan="14" class="text-center text-muted py-4">Select a supplier to load products.</td></tr>'; updateTotals(); return; }
+  tbody.innerHTML = '<tr><td colspan="14" class="text-center py-4"><div class="spinner-border text-primary"></div><span class="ms-2">Loading...</span></td></tr>';
   try {
     const resp = await fetch(`${BASE_URL}?controller=purchase&action=getProductsBySupplier&supplier_id=${supplierId}`, {
       headers: {
@@ -212,15 +236,21 @@ async function loadProducts(supplierId) {
     });
     const data = await resp.json();
     if (!data.success || !Array.isArray(data.products) || data.products.length === 0) {
-      tbody.innerHTML = `<tr><td colspan=10 class="text-center text-muted py-4">${data.message || 'No products found for this supplier.'}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan=14 class="text-center text-muted py-4">${data.message || 'No products found for this supplier.'}</td></tr>`;
       updateTotals();
       return;
     }
     let html = '';
     let idx = 1;
     data.products.forEach(p => {
-      const unit = parseFloat(p.price || 0);
+      const unit = parseFloat(p.price || 0); // Buying Price
       const unitStr = unit.toFixed(2);
+      const sale = parseFloat(p.sale_price || 0); // Including Tax Price
+      const price2 = parseFloat(p.price2 || 0);   // Sales Price
+      const price3 = parseFloat(p.price3 || 0);   // Wholesale Price (SP)
+      // Prefer selling init: sale_price > price2 > price3 > buying price
+      const sellInit = (sale > 0 ? sale : (price2 > 0 ? price2 : (price3 > 0 ? price3 : unit)));
+      const sellInitStr = parseFloat(sellInit || 0).toFixed(2);
       const discount = 0;
       const beforeTax = unit; // placeholder: same as unit until discount/tax logic added
       const lineTotal = beforeTax * 1; // qty default 1
@@ -232,7 +262,11 @@ async function loadProducts(supplierId) {
             <div class="small text-muted">${p.code ? ('SKU: ' + p.code) : ''}</div>
             <input type="hidden" name="items[${p.id}][product_id]" value="${p.id}">
           </td>
-          <td>
+          <td class="price-col text-end text-nowrap">${currency(unit)}</td>
+          <td class="price-col text-end text-nowrap">${sale > 0 ? currency(sale) : '-'}</td>
+          <td class="price-col text-end text-nowrap">${price2 > 0 ? currency(price2) : '-'}</td>
+          <td class="price-col text-end text-nowrap">${price3 > 0 ? currency(price3) : '-'}</td>
+          <td class="qty-col">
             <input type="number" min="1" class="form-control form-control-sm qty-input" name="items[${p.id}][quantity]" value="1" required>
           </td>
           <td>
@@ -249,13 +283,13 @@ async function loadProducts(supplierId) {
           </td>
           <td class="before-tax">${currency(beforeTax)}</td>
           <td class="row-total">${currency(lineTotal)}</td>
+          <td class="margin-display">0.00%</td>
           <td>
             <div class="input-group input-group-sm">
-              <input type="number" step="0.01" min="0" class="form-control margin-input" name="items[${p.id}][profit_margin]" value="0">
-              <span class="input-group-text">%</span>
+              <span class="input-group-text">${CURRENCY_SYMBOL}</span>
+              <input type="number" step="0.01" min="0" class="form-control sell-input" name="items[${p.id}][selling_price]" value="${sellInitStr}">
             </div>
           </td>
-          <td class="sell-price">${currency(unit)}</td>
           <td class="text-center">
             <button type="button" class="btn btn-link text-danger p-0 remove-row" title="Remove">
               <i class="fas fa-trash"></i>
@@ -268,12 +302,12 @@ async function loadProducts(supplierId) {
     updateTotals();
     indexProducts();
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger py-4">Error loading products</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="14" class="text-center text-danger py-4">Error loading products</td></tr>';
   }
 }
 
 function bindRowEvents() {
-  document.querySelectorAll('#product-rows .price-input, #product-rows .qty-input, #product-rows .discount-input, #product-rows .margin-input').forEach(el => {
+  document.querySelectorAll('#product-rows .price-input, #product-rows .qty-input, #product-rows .discount-input, #product-rows .sell-input').forEach(el => {
     el.addEventListener('input', updateTotals);
   });
   document.querySelectorAll('#product-rows .remove-row').forEach(btn => {
@@ -292,10 +326,10 @@ function updateTotals() {
   document.querySelectorAll('#product-rows tr[data-product-id]').forEach(tr => {
     // Skip hidden rows (e.g., when a product filter is applied)
     if (tr.style.display === 'none') { return; }
+
     const unit = parseFloat(tr.querySelector('.price-input')?.value || 0);
     const qty = parseFloat(tr.querySelector('.qty-input')?.value || 0);
     const disc = parseFloat(tr.querySelector('.discount-input')?.value || 0);
-    const margin = parseFloat(tr.querySelector('.margin-input')?.value || 0);
     const unitAfterDiscount = unit - (unit * (disc/100));
     const beforeTaxCell = tr.querySelector('.before-tax');
     if (beforeTaxCell) beforeTaxCell.textContent = currency(unitAfterDiscount);
@@ -304,10 +338,11 @@ function updateTotals() {
     items += qty;
     const rowTotalCell = tr.querySelector('.row-total');
     if (rowTotalCell) rowTotalCell.textContent = currency(total);
-    // selling price (inc tax) placeholder: apply margin on unitAfterDiscount
-    const sell = unitAfterDiscount + (unitAfterDiscount * (margin/100));
-    const sellCell = tr.querySelector('.sell-price');
-    if (sellCell) sellCell.textContent = currency(sell);
+    // Read selling price input and compute margin % automatically
+    const sell = parseFloat(tr.querySelector('.sell-input')?.value || 0);
+    const marginPct = unitAfterDiscount > 0 ? ((sell - unitAfterDiscount) / unitAfterDiscount) * 100 : 0;
+    const marginCell = tr.querySelector('.margin-display');
+    if (marginCell) marginCell.textContent = `${(isFinite(marginPct)?marginPct:0).toFixed(2)}%`;
   });
   const totalItemsEl = document.getElementById('total-items');
   if (totalItemsEl) totalItemsEl.textContent = items.toFixed(2);
@@ -348,10 +383,15 @@ updateTotals = function(){
 
 document.getElementById('pay-amount')?.addEventListener('input', updatePaymentDue);
 
+let __submitting = false;
 async function submitForm(ev) {
   ev.preventDefault();
+  if (__submitting) { return; }
+  __submitting = true;
   const form = ev.target;
   const fd = new FormData(form);
+  const saveBtn = document.getElementById('saveBtn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
   try {
     // Basic client-side validation
     const supplier = fd.get('supplier_id');
@@ -378,7 +418,11 @@ async function submitForm(ev) {
     try { out = JSON.parse(text); } catch (_) { out = null; }
     if (out && out.success) {
       alert('Purchase saved successfully');
-      window.location.href = BASE_URL + '?controller=purchase&action=index';
+      if (PREFILL_PRODUCT_ID > 0) {
+        window.location.href = BASE_URL + `?controller=ListPurchaseController&highlight_product_id=${PREFILL_PRODUCT_ID}`;
+      } else {
+        window.location.href = BASE_URL + '?controller=purchase&action=index';
+      }
     } else {
       // If server returned HTML (non-AJAX path), fallback to normal form submit
       if (!out) {
@@ -389,6 +433,10 @@ async function submitForm(ev) {
     }
   } catch (e) {
     alert('Error submitting form');
+  } finally {
+    // Re-enable only if we are not navigating away due to success
+    __submitting = false;
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
   }
 }
 

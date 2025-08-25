@@ -8,7 +8,7 @@ $supplierId = $formData['supplier_id'] ?? $purchase['supplier_id'];
 $purchaseDate = $formData['purchase_date'] ?? $purchase['purchase_date'];
 $status = $formData['status'] ?? $purchase['status'];
 $notes = $formData['notes'] ?? $purchase['notes'];
-$items = $formData['items'] ?? $purchase['items'];
+$items = $formData['items'] ?? ($purchase['items'] ?? []);
 ?>
 
 <div class="container-fluid">
@@ -88,8 +88,9 @@ $items = $formData['items'] ?? $purchase['items'];
                                     // Find product details for display
                                     foreach ($products as $product) {
                                         if ($product['id'] == $productId) {
-                                            $productName = $product['name'];
-                                            $productSku = $product['sku'];
+                                            $productName = $product['name'] ?? '';
+                                            // Safely handle SKU/code presence
+                                            $productSku = $product['sku'] ?? ($product['code'] ?? '');
                                             break;
                                         }
                                     }
@@ -100,9 +101,13 @@ $items = $formData['items'] ?? $purchase['items'];
                                             <option value="">Select Product</option>
                                             <?php foreach ($products as $product): ?>
                                                 <option value="<?php echo $product['id']; ?>" 
-                                                    data-price="<?php echo $product['purchase_price']; ?>"
+                                                    data-price="<?php echo isset($product['purchase_price']) ? $product['purchase_price'] : ($product['price'] ?? 0); ?>"
                                                     <?php echo ($productId == $product['id']) ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($product['name'] . ' (' . $product['sku'] . ')'); ?>
+                                                    <?php 
+                                                        $nm = $product['name'] ?? '';
+                                                        $skuOrCode = $product['sku'] ?? ($product['code'] ?? '');
+                                                        echo htmlspecialchars($nm . ($skuOrCode !== '' ? (' (' . $skuOrCode . ')') : ''));
+                                                    ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
