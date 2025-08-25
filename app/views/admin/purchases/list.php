@@ -1,3 +1,7 @@
+<?php
+  // Optional: focus/highlight a specific product row when returning
+  $highlightId = isset($_GET['highlight_product_id']) ? (int)$_GET['highlight_product_id'] : 0;
+?>
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -16,6 +20,14 @@
             </button>
         </div>
     </div>
+
+    <?php if (!empty($highlightId)): ?>
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        Showing product ID: <strong><?php echo htmlspecialchars($highlightId); ?></strong>
+        <a class="ms-2" href="<?php echo BASE_URL; ?>?controller=ListPurchaseController">Clear</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <?php endif; ?>
 
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white">
@@ -139,6 +151,7 @@
                                     <th>Unit Purchase Price</th>
                                     <th>Selling Price</th>
                                     <th>Current stock</th>
+                                    <th>Stock Status</th>
                                     <th>Product Type</th>
                                     <th>Category</th>
                                     <th>Brand</th>
@@ -162,7 +175,7 @@
                                             $type = isset($p['type']) ? ucfirst($p['type']) : 'Single';
                                             $taxDisplay = '—';
                                         ?>
-                                        <tr>
+                                        <tr data-product-id="<?php echo htmlspecialchars($p['id']); ?>">
                                             <td><input type="checkbox"></td>
                                             <td>
                                                 <?php if ($img): ?>
@@ -191,6 +204,11 @@
                                                             </a>
                                                         </li>
                                                         <li>
+                                                            <a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=purchase&action=purchase3&product_id=<?php echo urlencode($p['id']); ?>" title="Purchase Return">
+                                                                <i class="fas fa-undo-alt me-2 text-muted"></i> Purchase Return
+                                                            </a>
+                                                        </li>
+                                                        <li>
                                                             <a class="dropdown-item text-danger" href="<?php echo BASE_URL; ?>?controller=ProductController&action=delete&id=<?php echo urlencode($p['id']); ?>" onclick="return confirm('Delete this product?')">
                                                                 <i class="far fa-trash-alt me-2"></i> Delete
                                                             </a>
@@ -214,11 +232,27 @@
                                                     </ul>
                                                 </div>
                                             </td>
-                                            <td><?php echo htmlspecialchars($name); ?></td>
+                                            <td>
+                                                <?php echo htmlspecialchars($name); ?>
+                                                <?php if (!empty($highlightId) && (int)$highlightId === (int)$p['id']): ?>
+                                                    <span class="badge bg-info ms-2">Returned</span>
+                                                <?php endif; ?>
+                                            </td>
                                             <td>S.N PASUMAI KALANJIYAM</td>
                                             <td><?php echo isset($purchase) ? htmlspecialchars(formatPrice($purchase)) : '—'; ?></td>
                                             <td><?php echo isset($sell) ? htmlspecialchars(formatPrice($sell)) : '—'; ?></td>
                                             <td><?php echo number_format($stockQty, 2) . ' ' . $unitLabel; ?></td>
+                                            <td>
+                                                <?php
+                                                    $badge = '<span class="badge bg-success">In Stock</span>';
+                                                    if ($stockQty <= 0) {
+                                                        $badge = '<span class="badge bg-danger">Out of Stock</span>';
+                                                    } elseif ($stockQty <= 5) {
+                                                        $badge = '<span class="badge bg-warning text-dark">Low</span>';
+                                                    }
+                                                    echo $badge;
+                                                ?>
+                                            </td>
                                             <td><?php echo htmlspecialchars($type); ?></td>
                                             <td><?php echo htmlspecialchars($categoryName); ?></td>
                                             <td><?php echo htmlspecialchars($brandName); ?></td>
@@ -247,6 +281,25 @@
     document.addEventListener('DOMContentLoaded', function(){
         if (window.jQuery && $.fn.DataTable) {
             $('#productsTable').DataTable();
+        }
+
+        // If returning with a specific product to show, highlight and focus it
+        const highlightId = <?php echo (int)($highlightId ?: 0); ?>;
+        if (highlightId > 0) {
+            const rows = document.querySelectorAll('#productsTable tbody tr');
+            let target = null;
+            rows.forEach(tr => {
+                const id = tr.getAttribute('data-product-id');
+                if (String(id) === String(highlightId)) {
+                    target = tr;
+                    tr.classList.add('table-warning');
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     });
 </script>

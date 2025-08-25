@@ -36,10 +36,24 @@ class PurchaseController {
                 ['id' => 'BL0003', 'name' => 'Location 3']
             ];
 
+            // Optional: selected product context from product list link
+            $selectedProduct = null;
+            if (!empty($_GET['product_id'])) {
+                $pid = (int)$_GET['product_id'];
+                if ($pid > 0) {
+                    $prod = $this->productModel->getById($pid);
+                    if ($prod) {
+                        // normalize to array for the view
+                        $selectedProduct = is_object($prod) ? (array)$prod : $prod;
+                    }
+                }
+            }
+
             $data = [
                 'title' => 'Purchase Return',
                 'locations' => $locations,
-                'returns' => [] // placeholder list
+                'returns' => [], // placeholder list
+                'selectedProduct' => $selectedProduct,
             ];
 
             $this->view('admin/purchases/purchase3', $data);
@@ -172,7 +186,7 @@ class PurchaseController {
 
             if (!empty($colCheck)) {
                 // Schema has supplier_id FK
-                $this->db->query("SELECT id, name, sku AS code, price, status, supplier_id
+                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, status, supplier_id
                                   FROM products
                                   WHERE status = 'active' AND supplier_id = :supplier_id
                                   ORDER BY name ASC");
@@ -183,7 +197,7 @@ class PurchaseController {
                 // Fallback schema uses supplier name string column
                 $supplierName = is_object($supplier) ? $supplier->name : (is_array($supplier) ? ($supplier['name'] ?? '') : '');
                 $supplierName = trim((string)$supplierName);
-                $this->db->query("SELECT id, name, sku AS code, price, status, supplier as supplier_name
+                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, status, supplier as supplier_name
                                   FROM products
                                   WHERE status = 'active' AND (supplier = :supplier_name OR LOWER(supplier) LIKE LOWER(CONCAT('%', :supplier_name_like, '%')))
                                   ORDER BY name ASC");
@@ -241,6 +255,25 @@ class PurchaseController {
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             try {
+                // Idempotency: prevent duplicate submissions creating multiple purchases
+                if (session_status() === PHP_SESSION_NONE) { @session_start(); }
+                $submitToken = isset($_POST['submit_token']) ? (string)$_POST['submit_token'] : '';
+                if (!isset($_SESSION['used_purchase_tokens'])) { $_SESSION['used_purchase_tokens'] = []; }
+                if ($submitToken !== '') {
+                    if (isset($_SESSION['used_purchase_tokens'][$submitToken])) {
+                        // Already processed this request; return success without creating again
+                        if ($this->isAjaxRequest()) {
+                            echo json_encode(['success' => true, 'message' => 'Purchase already processed.']);
+                            exit;
+                        } else {
+                            flash('success', 'Purchase already processed.');
+                            redirect('?controller=purchase&action=index');
+                        }
+                    }
+                    // Mark token as used
+                    $_SESSION['used_purchase_tokens'][$submitToken] = time();
+                }
+
                 // Sanitize and validate input
                 $supplierId = isset($_POST['supplier_id']) ? trim((string)$_POST['supplier_id']) : null;
                 $purchaseDate = isset($_POST['purchase_date']) ? trim((string)$_POST['purchase_date']) : null;
@@ -311,6 +344,24 @@ class PurchaseController {
                 $purchaseId = $this->purchaseModel->create($purchaseData);
 
                 if ($purchaseId) {
+                    // Apply stock adjustments
+                    $isReturn = isset($_POST['is_return']) && (int)$_POST['is_return'] === 1;
+                    if ($isReturn || $updateStockChecked) {
+                        foreach ($items as $it) {
+                            $pid = (int)($it['product_id'] ?? 0);
+                            $qty = (float)($it['quantity'] ?? 0);
+                            if ($pid <= 0 || $qty <= 0) { continue; }
+                            try {
+                                $current = (float)$this->productModel->getProductStock($pid);
+                                $delta = $isReturn ? -$qty : +$qty;
+                                $newStock = $current + $delta;
+                                if ($newStock < 0) { $newStock = 0; }
+                                $this->productModel->updateStock($pid, $newStock);
+                            } catch (Exception $e) {
+                                error_log('Stock adjust failed for product #' . $pid . ': ' . $e->getMessage());
+                            }
+                        }
+                    }
                     // If an advance payment was provided, record it
                     if (isset($_POST['payment']) && is_array($_POST['payment'])) {
                         $pay = $_POST['payment'];
@@ -397,6 +448,10 @@ class PurchaseController {
             if (!$purchase) {
                 throw new Exception('Purchase not found');
             }
+            // Normalize to array and attach items so the view can read $purchase['items'] safely
+            if (is_object($purchase)) { $purchase = (array)$purchase; }
+            $items = $this->purchaseModel->getPurchaseItems($id);
+            $purchase['items'] = is_array($items) ? $items : [];
             
             $data = [
                 'title' => 'Edit Purchase #' . $id,

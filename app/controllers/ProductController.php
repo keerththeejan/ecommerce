@@ -607,7 +607,12 @@ class ProductController extends Controller {
             }
             redirect('user/login');
         }
-        
+
+        // Determine back URL (prefer staying on ListPurchaseController page)
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        $defaultBack = (defined('BASE_URL') ? BASE_URL : '/') . '?controller=ListPurchaseController';
+        $backUrl = (strpos($referer, 'controller=ListPurchaseController') !== false) ? $referer : $defaultBack;
+
         // Check if ID is provided
         if(!$id) {
             if($this->isAjax()) {
@@ -615,7 +620,8 @@ class ProductController extends Controller {
                 return;
             }
             flash('product_error', 'Product ID is required', 'alert alert-danger');
-            redirect('admin/products');
+            header('Location: ' . $backUrl);
+            exit;
         }
         
         // Get product
@@ -628,11 +634,12 @@ class ProductController extends Controller {
                 return;
             }
             flash('product_error', 'Product not found', 'alert alert-danger');
-            redirect('admin/products');
+            header('Location: ' . $backUrl);
+            exit;
         }
         
-        // Check for POST or DELETE request
-        if($this->isPost() || $this->isDelete()) {
+        // Check for POST or DELETE request (avoid undefined isDelete())
+        if($this->isPost() || (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'DELETE')) {
             try {
                 // Delete product
                 if($this->productModel->delete($id)) {
@@ -670,7 +677,8 @@ class ProductController extends Controller {
             }
             
             if(!$this->isAjax()) {
-                redirect('admin/products');
+                header('Location: ' . $backUrl);
+                exit;
             }
         } else {
             // For GET requests, show confirmation page
