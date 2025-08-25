@@ -155,8 +155,8 @@
                             <tr>
                                 <th scope="row">Country</th>
                                 <td>
-                                    <a href="<?php echo BASE_URL; ?>?controller=country&action=show&param=<?php echo $product['country_id']; ?>">
-                                        <?php echo $product['country_name'] ?? 'Unknown'; ?>
+                                    <a href="<?php echo BASE_URL; ?>?controller=country&action=show&id=<?php echo (int)$product['country_id']; ?>">
+                                        <?php echo !empty($product['country_name']) ? htmlspecialchars($product['country_name']) : 'Unknown'; ?>
                                     </a>
                                 </td>
                             </tr>

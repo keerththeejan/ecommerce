@@ -447,21 +447,21 @@
                             $countries = $countryModel->getActiveCountries();
                             
                             if(!empty($countries)) :
-                                foreach($countries as $country) :
+                                foreach($countries as $countryItem) :
                             ?>
                                 <?php 
-                                    $countryCode = strtolower(substr($country['name'], 0, 2));
-                                    $flagImage = !empty($country['flag_image']) ? 
-                                        BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
+                                    $countryCode = strtolower(substr($countryItem['name'], 0, 2));
+                                    $flagImage = !empty($countryItem['flag_image']) ? 
+                                        BASE_URL . 'uploads/flags/' . $countryItem['flag_image'] : 
                                         'https://flagcdn.com/24x18/' . $countryCode . '.png';
                                 ?>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=country&action=show&param=<?php echo $country['id']; ?>">
+                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=country&action=show&id=<?php echo (int)$countryItem['id']; ?>">
                                         <img src="<?php echo $flagImage; ?>" 
-                                             alt="<?php echo htmlspecialchars($country['name']); ?>" 
+                                             alt="<?php echo htmlspecialchars($countryItem['name']); ?>" 
                                              class="me-2" 
                                              style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">
-                                        <?php echo htmlspecialchars($country['name']); ?>
+                                        <?php echo htmlspecialchars($countryItem['name']); ?>
                                     </a>
                                 </li>
                             <?php 

@@ -200,9 +200,10 @@ class Product extends Model {
      */
     public function getProductWithCategory($id) {
         try {
-            $sql = "SELECT p.*, c.name as category_name 
+            $sql = "SELECT p.*, c.name as category_name, co.name AS country_name 
                    FROM {$this->table} p
                    LEFT JOIN categories c ON p.category_id = c.id
+                   LEFT JOIN countries co ON p.country_id = co.id
                    WHERE p.id = :id";
             
             $this->db->query($sql);

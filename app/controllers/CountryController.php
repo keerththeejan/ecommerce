@@ -48,7 +48,7 @@ class CountryController extends Controller {
         $this->view('customer/countries/show', [
             'country' => $country,
             'products' => $products,
-            'title' => $country['name'] . ' Products'
+            'title' => $country['name']
         ]);
     }
     

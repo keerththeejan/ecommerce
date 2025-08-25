@@ -383,11 +383,19 @@ class CategoryController extends Controller {
                 return;
             }
             flash('category_error', 'Category ID is required', 'alert alert-danger');
-            redirect('category/adminIndex');
+            redirect('?controller=category&action=adminIndex');
         }
         
+        // Debug: timing start
+        $t0 = microtime(true);
+        error_log("[Category::delete] start id={$id}");
+
         // Get category
         $category = $this->categoryModel->getById($id);
+        // Ensure array shape for consistent access
+        if (is_object($category)) {
+            $category = (array)$category;
+        }
         
         // Check if category exists
         if(!$category) {
@@ -396,33 +404,64 @@ class CategoryController extends Controller {
                 return;
             }
             flash('category_error', 'Category not found', 'alert alert-danger');
-            redirect('category/adminIndex');
+            redirect('?controller=category&action=adminIndex');
         }
         
-        // Check if category has products
+        // If category has products, detach them before delete
         if($this->categoryModel->hasProducts($id)) {
-            if($this->isAjax()) {
-                $this->json(['success' => false, 'message' => 'Cannot delete category with associated products'], 400);
-                return;
+            $reassigned = false;
+            try {
+                error_log("[Category::delete] hasProducts=true, starting reassignment id={$id}");
+                $tRe1 = microtime(true);
+                // 1) Try detaching to NULL
+                $reassigned = $this->categoryModel->reassignProductsToNull($id);
+                error_log("[Category::delete] reassignToNull done (ok=" . ($reassigned ? '1' : '0') . ") in " . round((microtime(true)-$tRe1)*1000) . "ms");
+                if (!$reassigned) {
+                    // 2) Fallback: assign to 'Uncategorized'
+                    $tRe2 = microtime(true);
+                    $uncatId = $this->categoryModel->getOrCreateUncategorizedId();
+                    error_log("[Category::delete] getOrCreateUncategorizedId => " . var_export($uncatId, true));
+                    if ($uncatId && (int)$uncatId !== (int)$id) {
+                        $reassigned = $this->categoryModel->reassignProductsToCategory($id, $uncatId);
+                    } else {
+                        error_log("[Category::delete] skip reassign to same category id or invalid uncatId");
+                    }
+                    error_log("[Category::delete] reassignToCategory done (ok=" . ($reassigned ? '1' : '0') . ") in " . round((microtime(true)-$tRe2)*1000) . "ms");
+                }
+            } catch (Exception $e) {
+                error_log('category delete reassign error: ' . $e->getMessage());
+                $reassigned = false;
             }
-            flash('category_error', 'Cannot delete category with associated products', 'alert alert-danger');
-            redirect('category/adminIndex');
+            if (!$reassigned) {
+                $msg = 'Failed to detach or reassign products from this category: ' . $this->categoryModel->getLastError();
+                if($this->isAjax()) {
+                    $this->json(['success' => false, 'message' => $msg], 500);
+                    return;
+                }
+                flash('category_error', $msg, 'alert alert-danger');
+                redirect('?controller=category&action=adminIndex');
+            }
+            error_log("[Category::delete] reassignment successful id={$id}");
         }
         
         // Check if category has subcategories
-        if($this->categoryModel->hasSubcategories($id)) {
+        $tSub = microtime(true);
+        $hasSubs = $this->categoryModel->hasSubcategories($id);
+        error_log("[Category::delete] hasSubcategories=" . ($hasSubs ? '1' : '0') . " in " . round((microtime(true)-$tSub)*1000) . "ms");
+        if($hasSubs) {
             if($this->isAjax()) {
                 $this->json(['success' => false, 'message' => 'Cannot delete category with subcategories'], 400);
                 return;
             }
             flash('category_error', 'Cannot delete category with subcategories', 'alert alert-danger');
-            redirect('category/adminIndex');
+            redirect('?controller=category&action=adminIndex');
         }
         
         // Check for POST
         if($this->isPost() || $this->isDelete()) {
             // Delete category image if exists (support different storage roots)
             if(!empty($category['image'])) {
+                $tImg = microtime(true);
                 $possiblePaths = [
                     // Project root relative path
                     (defined('ROOT_PATH') ? ROOT_PATH : __DIR__ . '/../../') . $category['image'],
@@ -437,9 +476,11 @@ class CategoryController extends Controller {
                         break;
                     }
                 }
+                error_log("[Category::delete] image cleanup took " . round((microtime(true)-$tImg)*1000) . "ms");
             }
             
             // Delete category
+            $tDel = microtime(true);
             if($this->categoryModel->delete($id)) {
                 if($this->isAjax()) {
                     $this->json([
@@ -447,6 +488,7 @@ class CategoryController extends Controller {
                         'message' => 'Category deleted successfully',
                         'id' => $id
                     ]);
+                    error_log("[Category::delete] delete success in " . round((microtime(true)-$tDel)*1000) . "ms; total " . round((microtime(true)-$t0)*1000) . "ms");
                     return;
                 }
                 flash('category_success', 'Category deleted successfully');
@@ -470,5 +512,6 @@ class CategoryController extends Controller {
                 'category' => $category
             ]);
         }
+        error_log("[Category::delete] end id={$id} total " . round((microtime(true)-$t0)*1000) . "ms");
     }
 }

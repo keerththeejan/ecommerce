@@ -271,6 +271,7 @@ class Category extends Model {
      * @return bool
      */
     public function hasProducts($id) {
+        $t0 = microtime(true);
         $sql = "SELECT COUNT(*) as count FROM products WHERE category_id = :id";
         
         if(!$this->db->query($sql)) {
@@ -280,8 +281,89 @@ class Category extends Model {
         
         $this->db->bind(':id', $id);
         $result = $this->db->single();
+        error_log('[Category::hasProducts] id=' . $id . ' count=' . ($result['count'] ?? 'n/a') . ' in ' . round((microtime(true)-$t0)*1000) . 'ms');
         
         return $result['count'] > 0;
+    }
+
+    /**
+     * Reassign all products of a category to NULL (detach from category)
+     *
+     * @param int $id Category ID
+     * @return bool
+     */
+    public function reassignProductsToNull($id) {
+        // If products table doesn't exist, nothing to reassign
+        if (!$this->db->tableExists('products')) {
+            return true;
+        }
+
+        $t0 = microtime(true);
+        $sql = "UPDATE products SET category_id = NULL WHERE category_id = :id";
+        if (!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        if (!$this->db->bind(':id', $id)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        $ok = $this->db->execute();
+        error_log('[Category::reassignProductsToNull] id=' . $id . ' ok=' . ($ok ? '1' : '0') . ' in ' . round((microtime(true)-$t0)*1000) . 'ms');
+        return $ok;
+    }
+
+    /**
+     * Reassign all products from one category to another category ID
+     *
+     * @param int $fromId Source category ID
+     * @param int $toId Destination category ID
+     * @return bool
+     */
+    public function reassignProductsToCategory($fromId, $toId) {
+        if (!$this->db->tableExists('products')) {
+            return true;
+        }
+        $t0 = microtime(true);
+        $sql = "UPDATE products SET category_id = :toId WHERE category_id = :fromId";
+        if (!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        if (!$this->db->bind(':toId', $toId) || !$this->db->bind(':fromId', $fromId)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        $ok = $this->db->execute();
+        error_log('[Category::reassignProductsToCategory] from=' . $fromId . ' to=' . $toId . ' ok=' . ($ok ? '1' : '0') . ' in ' . round((microtime(true)-$t0)*1000) . 'ms');
+        return $ok;
+    }
+
+    /**
+     * Get or create a default 'Uncategorized' category and return its ID
+     *
+     * @return int|false
+     */
+    public function getOrCreateUncategorizedId() {
+        // Ensure categories table exists
+        if (!$this->db->tableExists($this->table)) {
+            $this->lastError = 'Categories table not found';
+            return false;
+        }
+        // Try to find existing
+        $sql = "SELECT id FROM {$this->table} WHERE name = :name LIMIT 1";
+        if (!$this->db->query($sql)) { $this->lastError = $this->db->getError(); return false; }
+        $this->db->bind(':name', 'Uncategorized');
+        $row = $this->db->single();
+        if ($row && isset($row['id'])) {
+            return (int)$row['id'];
+        }
+        // Create it
+        $insert = "INSERT INTO {$this->table} (name, parent_id, status) VALUES (:name, NULL, 1)";
+        if (!$this->db->query($insert)) { $this->lastError = $this->db->getError(); return false; }
+        $this->db->bind(':name', 'Uncategorized');
+        if (!$this->db->execute()) { $this->lastError = $this->db->getError(); return false; }
+        return (int)$this->db->lastInsertId();
     }
     
     /**

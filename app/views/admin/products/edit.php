@@ -170,6 +170,66 @@
                                         <div class="invalid-feedback"><?php echo $errors['category_id']; ?></div>
                                     <?php endif; ?>
                                 </div>
+
+                                <!-- Country Selection -->
+                                <div class="mb-3">
+                                    <label for="country_id" class="form-label">Country of Origin</label>
+                                    <div class="input-group">
+                                        <select class="form-select <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required>
+                                            <option value="">Select Country</option>
+                                            <?php 
+                                            // Get active countries
+                                            $countryModel = new Country();
+                                            $countries = $countryModel->getActiveCountries();
+                                            if(!empty($countries)) :
+                                                foreach($countries as $country) :
+                                                    $selected = (isset($product['country_id']) && (int)$product['country_id'] === (int)$country['id']) ? 'selected' : '';
+                                            ?>
+                                                <option value="<?php echo (int)$country['id']; ?>" <?php echo $selected; ?>>
+                                                    <?php echo htmlspecialchars($country['name']); ?>
+                                                </option>
+                                            <?php 
+                                                endforeach;
+                                            endif; 
+                                            ?>
+                                        </select>
+                                        <?php if(isset($errors['country_id'])): ?>
+                                            <div class="invalid-feedback d-block"><?php echo $errors['country_id']; ?></div>
+                                        <?php endif; ?>
+                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button">
+                                            <i class="fas fa-plus me-1"></i> Add New
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Brand Selection -->
+                                <div class="mb-3">
+                                    <label for="brand_id" class="form-label">Brand</label>
+                                    <div class="input-group">
+                                        <select class="form-select <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required>
+                                            <option value="">Select Brand</option>
+                                            <?php 
+                                            // Get active brands
+                                            $brandModel = new Brand();
+                                            $brands = $brandModel->getActiveBrands();
+                                            if(!empty($brands)) :
+                                                foreach($brands as $brand) :
+                                                    $selected = (isset($product['brand_id']) && (int)$product['brand_id'] === (int)$brand['id']) ? 'selected' : '';
+                                            ?>
+                                                <option value="<?php echo (int)$brand['id']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($brand['name']); ?></option>
+                                            <?php 
+                                                endforeach;
+                                            endif; 
+                                            ?>
+                                        </select>
+                                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button">
+                                            <i class="fas fa-plus me-1"></i> Add New
+                                        </a>
+                                        <?php if(isset($errors['brand_id'])): ?>
+                                            <div class="invalid-feedback d-block"><?php echo $errors['brand_id']; ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                                 
                                 <div class="mb-3">
                                     <label for="status" class="form-label">Status</label>
