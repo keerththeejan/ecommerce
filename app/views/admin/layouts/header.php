@@ -426,7 +426,9 @@ if (isset($_SESSION['user_id'])) {
                                 const link = e.target.closest('a.nav-link');
                                 if (!link) return;
                                 // Skip closing if link requests to keep sidebar open
-                                if (link.matches('#policyLink') || link.dataset.keepOpen === '1') return;
+                                // Also do not close when tapping dropdown toggles on mobile
+                                const isDropdownToggle = link.classList.contains('dropdown-toggle') || link.getAttribute('data-bs-toggle') === 'dropdown';
+                                if (link.matches('#policyLink') || link.dataset.keepOpen === '1' || isDropdownToggle) return;
                                 const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar);
                                 bsCollapse.hide();
                             }

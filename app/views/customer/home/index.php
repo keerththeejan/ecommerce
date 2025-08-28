@@ -405,6 +405,32 @@
     font-size: 0.8em;
 }
 
+/* Align quantity controls neatly and ensure consistent sizing */
+.cart-quantity {
+    display: inline-flex;
+    align-items: stretch;
+    border-radius: .375rem;
+}
+.cart-quantity .btn,
+.cart-quantity .form-control {
+    height: 36px;
+    line-height: 36px;
+}
+.cart-quantity .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    padding: 0 .5rem;
+}
+.cart-quantity .form-control {
+    max-width: 60px;
+    padding: 0 .25rem;
+}
+.cart-quantity .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.cart-quantity .form-control { border-radius: 0; }
+.cart-quantity .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+
 /* Ensure buttons are properly sized on mobile */
 @media (max-width: 767px) {
     .add-to-cart-form .btn {
@@ -853,7 +879,51 @@
     margin-left: auto;
     margin-right: auto;
 }
-</style>
+
+/* Mobile tweaks for Categories: show 2 tiles per screen and enable smooth horizontal scroll */
+@media (max-width: 576px) {
+    /* Reduce extra space under the categories section on small phones */
+    #categories { padding-bottom: 40px !important; }
+
+    /* Ensure the slider shows two tiles fully within viewport */
+    #categorySlider {
+      gap: 8px !important;
+      padding: 8px 10px !important;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Each tile takes ~50% width so two are fully visible */
+    #categorySlider > div { /* category item wrapper */
+      width: calc(50% - 8px) !important;
+      flex: 0 0 calc(50% - 8px) !important;
+      scroll-snap-align: start;
+    }
+
+    /* Override the fixed 150x150 inline size of the image box */
+    #categorySlider > div > a > div > div { /* image box */
+      width: 47vw !important;
+      height: 47vw !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+    }
+
+    /* Make sure the image itself scales nicely */
+    #categorySlider img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+    }
+
+    /* Slightly smaller category title on very small devices */
+    #categorySlider h3 { font-size: 14px !important; }
+
+    /* Mobile sizing harmony with the add-to-cart row */
+    .add-to-cart-form .btn { height: 36px !important; }
+    .cart-quantity { width: 100px !important; }
+    .cart-quantity .btn,
+    .cart-quantity .form-control { height: 36px !important; line-height: 36px !important; }
+}
 
 <!-- Category Slider JavaScript -->
 <script>
