@@ -353,6 +353,20 @@
             text-align: center;
         }
     }
+    
+    /* Mobile spacing optimizations */
+    @media (max-width: 576px) {
+        .footer-top { padding: 36px 0 28px; }
+        .footer-bottom { padding: 16px 0; }
+        .footer-widget h4 { margin-bottom: 14px; }
+        .footer-widget p { line-height: 1.45; margin-bottom: 0.5rem; }
+        .footer-links li { margin-bottom: 8px; }
+        .contact-info li { margin-bottom: 8px; }
+        .social-links { margin-top: 16px; gap: 10px; }
+        .newsletter-form { margin-top: 16px; }
+        .newsletter-form input { height: 48px; }
+        .newsletter-form button { height: 40px; width: 40px; top: 4px; right: 4px; }
+    }
 </style>
 
 <footer class="full-width-section">
@@ -363,7 +377,7 @@
         <div class="footer-decoration circle-2"></div>
         
         <div class="container-fluid px-4 px-xl-5 max-width-1400">
-            <div class="row">
+            <div class="row gx-2 gx-md-4 gy-4">
                 <!-- About Store Widget -->
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
@@ -412,7 +426,7 @@
                 </div>
                 
                 <!-- Quick Links Widget -->
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-3 col-md-6 col-6">
                     <div class="footer-widget">
                         <h4>Quick Links</h4>
                         <ul class="footer-links">
@@ -425,7 +439,7 @@
                 </div>
                 
                 <!-- Contact Info Widget -->
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-3 col-md-6 col-6">
                     <div class="footer-widget">
                         <h4>Contact Info</h4>
                         <?php

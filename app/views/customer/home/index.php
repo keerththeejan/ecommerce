@@ -119,6 +119,12 @@
 
                             <!-- Content -->
                             <div class="card-body p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                                <!-- Stock badge moved above product name -->
+                                <div class="mb-1">
+                                    <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?> small">
+                                        <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
+                                    </span>
+                                </div>
                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
                                     <h3 class="h6 card-title mb-0 text-truncate product-title"><?php echo $product['name']; ?></h3>
                                     <p class="product-desc small text-muted mb-1 d-none d-md-block"><?php echo isset($product['description']) ? truncateText($product['description'], 50) : ''; ?></p>
@@ -128,10 +134,7 @@
                                         <?php } else { ?>
                                             <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
                                         <?php } ?>
-                                        <div class="d-flex flex-column align-items-end">
-                                            <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?> small mb-1">
-                                                <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
-                                            </span>
+                                        <div class="d-flex flex-column align-items-end product-meta text-end">
                                             <?php if($product['stock_quantity'] > 0) { ?>
                                                 <small class="text-muted">Stock: <?php echo $product['stock_quantity']; ?> units</small>
                                                 <?php if(isLoggedIn()) { ?>
@@ -265,6 +268,15 @@
     transition: all 0.3s ease;
 }
 
+/* Center the quantity and add-to-cart row and tighten the gap */
+.add-to-cart-form .d-flex {
+    justify-content: center;
+    gap: 0.25rem !important; /* override gap-2 */
+}
+
+/* Slightly reduce default cart-quantity width */
+.cart-quantity { max-width: 88px; }
+
 /* Banner Styles */
 .main-banner .carousel-item img {
     height: auto;
@@ -376,7 +388,7 @@
     .product-title { font-size: 0.9rem; }
     .product-desc { font-size: 0.8rem; }
     .add-to-cart-form .btn { 
-        height: 28px; 
+        height: 26px; 
         font-size: 0.75rem; 
         padding: 0.15rem 0.5rem;
     }
@@ -384,6 +396,9 @@
         font-size: 0.7em; 
         margin-right: 2px;
     }
+    /* Qty controls on >=768px - same height to align borders */
+    .cart-quantity .form-control { height: 26px; }
+    .cart-quantity .btn { height: 26px; min-width: 20px; }
 }
 
 /* Cart Quantity Controls */
@@ -391,18 +406,31 @@
     max-width: 120px;
 }
 .cart-quantity .form-control {
-    font-size: 0.85rem;
-    padding: 0.15rem;
+    font-size: 0.7rem;
+    padding: 0.08rem;
     text-align: center;
-    height: 30px;
+    height: 26px;
 }
 .cart-quantity .btn {
-    padding: 0.15rem 0.4rem;
+    padding: 0.08rem 0.3rem;
     font-size: 0.7rem;
-    height: 30px;
+    height: 26px;
 }
 .add-to-cart-form .btn i {
     font-size: 0.8em;
+}
+
+/* Make Add to Cart button narrower and prevent full-width expansion */
+.add-to-cart-btn {
+    flex: 0 0 auto;
+    width: auto !important; /* override w-100 */
+    min-width: 72px; /* further compact width */
+    white-space: nowrap;
+}
+@media (min-width: 768px) {
+    .add-to-cart-btn {
+        min-width: 84px; /* compact on md+ */
+    }
 }
 
 /* Align quantity controls neatly and ensure consistent sizing */
@@ -411,49 +439,66 @@
     align-items: stretch;
     border-radius: .375rem;
 }
-.cart-quantity .btn,
-.cart-quantity .form-control {
-    height: 36px;
-    line-height: 36px;
-}
+.cart-quantity .form-control { height: 26px; line-height: normal; }
+.cart-quantity .btn { height: 26px; line-height: normal; }
 .cart-quantity .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
-    padding: 0 .5rem;
+    min-width: 20px;
+    padding: 0 .25rem;
 }
 .cart-quantity .form-control {
-    max-width: 60px;
+    max-width: 48px;
     padding: 0 .25rem;
+}
+/* Unify border look to avoid visual misalignment */
+.cart-quantity .btn,
+.cart-quantity .form-control {
+    border-width: 1px;
+    border-color: #ced4da;
 }
 .cart-quantity .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .cart-quantity .form-control { border-radius: 0; }
 .cart-quantity .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 
+/* Remove inner borders so the group looks like a single outline */
+.cart-quantity .qty-minus { border-right-width: 0 !important; }
+.cart-quantity .quantity-input { border-left-width: 0 !important; border-right-width: 0 !important; }
+.cart-quantity .qty-plus { border-left-width: 0 !important; }
+
+/* Consistent focus without extra glow causing misalignment */
+.cart-quantity .btn:focus,
+.cart-quantity .form-control:focus {
+    box-shadow: none;
+    outline: none;
+    border-color: #ced4da;
+}
+
 /* Ensure buttons are properly sized on mobile */
 @media (max-width: 767px) {
     .add-to-cart-form .btn {
-        padding: 0.2rem 0.4rem;
+        padding: 0.15rem 0.35rem;
         font-size: 0.7rem;
-        height: 32px;
+        height: 24px;
     }
     .add-to-cart-form .btn i {
         font-size: 0.7em;
         margin-right: 2px;
     }
     .cart-quantity {
-        width: 90px !important;
+        width: 72px !important; /* narrower on mobile */
     }
     .cart-quantity .form-control {
-        font-size: 0.75rem;
-        padding: 0.15rem;
-        height: 32px;
+        font-size: 0.7rem;
+        padding: 0.08rem;
+        height: 26px;
     }
     .cart-quantity .btn {
-        padding: 0.15rem 0.3rem;
+        padding: 0.08rem 0.25rem;
         font-size: 0.7rem;
-        height: 32px;
+        height: 26px; /* match input height for clean borders */
+        min-width: 20px; /* decreased width */
     }
 }
 
@@ -1091,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-});
+});    
 </script>
 
 <?php require_once APP_PATH . 'views/customer/layouts/footer.php'; ?>
