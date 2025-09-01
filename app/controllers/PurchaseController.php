@@ -49,11 +49,20 @@ class PurchaseController {
                 }
             }
 
+            // Load suppliers so the view can render a supplier dropdown if needed
+            $suppliers = $this->supplierModel->getAllSuppliers();
+            if (is_array($suppliers)) {
+                $suppliers = array_map(function($row){ return (array)$row; }, $suppliers);
+            } else {
+                $suppliers = [];
+            }
+
             $data = [
                 'title' => 'Purchase Return',
                 'locations' => $locations,
                 'returns' => [], // placeholder list
                 'selectedProduct' => $selectedProduct,
+                'suppliers' => $suppliers,
             ];
 
             $this->view('admin/purchases/purchase3', $data);
@@ -186,7 +195,7 @@ class PurchaseController {
 
             if (!empty($colCheck)) {
                 // Schema has supplier_id FK
-                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, status, supplier_id
+                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, stock_quantity, status, supplier_id
                                   FROM products
                                   WHERE status = 'active' AND supplier_id = :supplier_id
                                   ORDER BY name ASC");
@@ -197,7 +206,7 @@ class PurchaseController {
                 // Fallback schema uses supplier name string column
                 $supplierName = is_object($supplier) ? $supplier->name : (is_array($supplier) ? ($supplier['name'] ?? '') : '');
                 $supplierName = trim((string)$supplierName);
-                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, status, supplier as supplier_name
+                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, stock_quantity, status, supplier as supplier_name
                                   FROM products
                                   WHERE status = 'active' AND (supplier = :supplier_name OR LOWER(supplier) LIKE LOWER(CONCAT('%', :supplier_name_like, '%')))
                                   ORDER BY name ASC");
@@ -295,6 +304,10 @@ class PurchaseController {
                         $items[$k]['product_id'] = isset($it['product_id']) ? (int)$it['product_id'] : (int)$k;
                         $items[$k]['quantity'] = isset($it['quantity']) ? (float)$it['quantity'] : 0;
                         $items[$k]['unit_price'] = isset($it['unit_price']) ? (float)$it['unit_price'] : 0;
+                        // Optional base stock sent from UI to ensure server uses the same base used for projection
+                        if (isset($it['base_stock']) && $it['base_stock'] !== '') {
+                            $items[$k]['base_stock'] = (float)$it['base_stock'];
+                        }
                         // Drop items with invalid quantities
                         if ($items[$k]['product_id'] <= 0 || $items[$k]['quantity'] <= 0) {
                             unset($items[$k]);
@@ -344,22 +357,21 @@ class PurchaseController {
                 $purchaseId = $this->purchaseModel->create($purchaseData);
 
                 if ($purchaseId) {
-                    // Apply stock adjustments
+                    // Apply stock adjustments ALWAYS: increment for purchases, decrement for returns
                     $isReturn = isset($_POST['is_return']) && (int)$_POST['is_return'] === 1;
-                    if ($isReturn || $updateStockChecked) {
-                        foreach ($items as $it) {
-                            $pid = (int)($it['product_id'] ?? 0);
-                            $qty = (float)($it['quantity'] ?? 0);
-                            if ($pid <= 0 || $qty <= 0) { continue; }
-                            try {
-                                $current = (float)$this->productModel->getProductStock($pid);
-                                $delta = $isReturn ? -$qty : +$qty;
-                                $newStock = $current + $delta;
-                                if ($newStock < 0) { $newStock = 0; }
-                                $this->productModel->updateStock($pid, $newStock);
-                            } catch (Exception $e) {
-                                error_log('Stock adjust failed for product #' . $pid . ': ' . $e->getMessage());
-                            }
+                    foreach ($items as $it) {
+                        $pid = (int)($it['product_id'] ?? 0);
+                        $qty = (float)($it['quantity'] ?? 0);
+                        if ($pid <= 0 || $qty <= 0) { continue; }
+                        try {
+                            // Prefer client-sent base_stock to perfectly match UI projection; fallback to DB current stock
+                            $current = isset($it['base_stock']) ? (float)$it['base_stock'] : (float)$this->productModel->getProductStock($pid);
+                            $delta = $isReturn ? -$qty : +$qty;
+                            $newStock = $current + $delta;
+                            if ($newStock < 0) { $newStock = 0; }
+                            $this->productModel->updateStock($pid, $newStock);
+                        } catch (Exception $e) {
+                            error_log('Stock adjust failed for product #' . $pid . ': ' . $e->getMessage());
                         }
                     }
                     // If an advance payment was provided, record it
@@ -382,7 +394,12 @@ class PurchaseController {
                         exit;
                     } else {
                         flash('success', 'Purchase created successfully!');
-                        redirect('?controller=purchase&action=index');
+                        $redirectTo = isset($_POST['redirect_to']) ? trim((string)$_POST['redirect_to']) : '';
+                        if ($redirectTo !== '') {
+                            redirect($redirectTo);
+                        } else {
+                            redirect('?controller=purchase&action=index');
+                        }
                     }
                 } else {
                     throw new Exception('Failed to create purchase.');

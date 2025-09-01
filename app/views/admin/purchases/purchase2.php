@@ -4,6 +4,10 @@ $formData = $_SESSION['form_data'] ?? [];
 unset($_SESSION['form_data']);
 
 $supplierId = $formData['supplier_id'] ?? '';
+// If coming from purchase3, allow supplier to be preselected
+if ($supplierId === '' && isset($_GET['prefill_supplier_id'])) {
+  $supplierId = (string)(int)$_GET['prefill_supplier_id'];
+}
 // Optional product prefill (when coming from purchase3/banner action)
 $prefillProductId = isset($_GET['prefill_product_id']) ? (int)$_GET['prefill_product_id'] : 0;
 // One-time submit token to prevent duplicate purchases
@@ -103,7 +107,7 @@ $_SESSION['purchase_submit_token'] = $submitToken;
                 <input id="product-search" type="text" class="form-control" placeholder="Enter Product name / SKU / Scan bar code">
               </div>
               <div id="product-suggestions" class="list-group" style="display:none; max-height: 240px; overflow:auto; width: 100%"></div>
-              <a href="#" class="ms-auto small text-primary"><i class="fas fa-plus me-1"></i>Add new product</a>
+              <a href="#" id="btn-quick-add" class="ms-auto small text-primary"><i class="fas fa-plus me-1"></i>Add new product</a>
             </div>
 
             <div class="table-responsive">
@@ -216,10 +220,56 @@ $_SESSION['purchase_submit_token'] = $submitToken;
   </form>
 </div>
 
+<!-- Quick Add Product Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add New Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info small">Product will be linked to the selected supplier.</div>
+        <form id="quickAddForm">
+          <div class="mb-3">
+            <label class="form-label">Product Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="name" required>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label">Buying Price <span class="text-danger">*</span></label>
+              <input type="number" step="0.01" min="0" class="form-control" name="price" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Initial Stock</label>
+              <input type="number" step="0.01" min="0" class="form-control" name="stock_quantity" value="0">
+            </div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-md-6">
+              <label class="form-label">SKU</label>
+              <input type="text" class="form-control" name="sku" placeholder="Auto if empty">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Sale Price (Inc. Tax)</label>
+              <input type="number" step="0.01" min="0" class="form-control" name="sale_price">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="quickAddSubmit" class="btn btn-primary">Save Product</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
 <script>
 const CURRENCY_SYMBOL = '<?php echo CURRENCY_SYMBOL; ?>';
 const BASE_URL = '<?php echo BASE_URL; ?>';
 const PREFILL_PRODUCT_ID = <?php echo (int)($prefillProductId ?: 0); ?>;
+const PREFILL_QTY = <?php echo isset($_GET['prefill_qty']) ? (int)$_GET['prefill_qty'] : 0; ?>;
 
 function currency(num) { return CURRENCY_SYMBOL + (parseFloat(num||0).toFixed(2)); }
 
@@ -254,13 +304,24 @@ async function loadProducts(supplierId) {
       const discount = 0;
       const beforeTax = unit; // placeholder: same as unit until discount/tax logic added
       const lineTotal = beforeTax * 1; // qty default 1
+      const baseStock = (p.stock_quantity !== undefined && p.stock_quantity !== null) ? parseFloat(p.stock_quantity) : 0;
+      const projected = baseStock + 1; // initial qty is 1
       html += `
-        <tr data-product-id="${p.id}">
+        <tr data-product-id="${p.id}" data-base-stock="${isFinite(baseStock)?baseStock:0}">
           <td class="row-index">${idx++}</td>
           <td>
             <strong>${p.name || 'Unnamed'}</strong>
             <div class="small text-muted">${p.code ? ('SKU: ' + p.code) : ''}</div>
+            <div class="small">
+              Stock:
+              <span class="badge bg-info text-dark base-stock">${(p.stock_quantity !== undefined && p.stock_quantity !== null) ? p.stock_quantity : '-'}</span>
+              +
+              <span class="badge bg-warning text-dark qty-stock">1</span>
+              =
+              <span class="badge bg-secondary projected-stock">${isFinite(projected)?projected.toFixed(2):'-'}</span>
+            </div>
             <input type="hidden" name="items[${p.id}][product_id]" value="${p.id}">
+            <input type="hidden" name="items[${p.id}][base_stock]" value="${isFinite(baseStock)?baseStock:0}">
           </td>
           <td class="price-col text-end text-nowrap">${currency(unit)}</td>
           <td class="price-col text-end text-nowrap">${sale > 0 ? currency(sale) : '-'}</td>
@@ -301,6 +362,15 @@ async function loadProducts(supplierId) {
     bindRowEvents();
     updateTotals();
     indexProducts();
+    // If coming from purchase3 with a specific product & qty, set the qty now
+    if (PREFILL_PRODUCT_ID > 0 && PREFILL_QTY > 0) {
+      const row = tbody.querySelector(`tr[data-product-id="${PREFILL_PRODUCT_ID}"]`);
+      const qtyInput = row?.querySelector('.qty-input');
+      if (qtyInput) {
+        qtyInput.value = PREFILL_QTY;
+        updateTotals();
+      }
+    }
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="14" class="text-center text-danger py-4">Error loading products</td></tr>';
   }
@@ -343,6 +413,15 @@ function updateTotals() {
     const marginPct = unitAfterDiscount > 0 ? ((sell - unitAfterDiscount) / unitAfterDiscount) * 100 : 0;
     const marginCell = tr.querySelector('.margin-display');
     if (marginCell) marginCell.textContent = `${(isFinite(marginPct)?marginPct:0).toFixed(2)}%`;
+    // Update projected stock display (current stock + qty)
+    const baseStock = parseFloat(tr.getAttribute('data-base-stock') || '0');
+    const projEl = tr.querySelector('.projected-stock');
+    const qtyEl = tr.querySelector('.qty-stock');
+    if (qtyEl) qtyEl.textContent = isFinite(qty) ? qty.toString() : '0';
+    if (projEl) {
+      const projected = (isFinite(baseStock) ? baseStock : 0) + (isFinite(qty) ? qty : 0);
+      projEl.textContent = isFinite(projected) ? projected.toFixed(2) : '-';
+    }
   });
   const totalItemsEl = document.getElementById('total-items');
   if (totalItemsEl) totalItemsEl.textContent = items.toFixed(2);
