@@ -45,7 +45,29 @@ class PurchaseController {
                     if ($prod) {
                         // normalize to array for the view
                         $selectedProduct = is_object($prod) ? (array)$prod : $prod;
+                        // attach last purchased qty for default return value
+                        if (method_exists($this->purchaseModel, 'getLastPurchasedQtyByProduct')) {
+                            $selectedProduct['last_purchase_qty'] = (float)$this->purchaseModel->getLastPurchasedQtyByProduct($pid);
+                        }
                     }
+                }
+            }
+
+            // Load suppliers so the view can render a supplier dropdown if needed
+            $suppliers = $this->supplierModel->getAllSuppliers();
+            if (is_array($suppliers)) {
+                $suppliers = array_map(function($row){ return (array)$row; }, $suppliers);
+            } else {
+                $suppliers = [];
+            }
+
+            // Try to resolve original purchase id for selected product to attach returns
+            $originalPurchaseId = 0;
+            if (!empty($selectedProduct['id'])) {
+                $pid = (int)$selectedProduct['id'];
+                $sid = !empty($selectedProduct['supplier_id']) ? (int)$selectedProduct['supplier_id'] : null;
+                if (method_exists($this->purchaseModel, 'findMostRecentPurchaseIdByProduct')) {
+                    $originalPurchaseId = (int)$this->purchaseModel->findMostRecentPurchaseIdByProduct($pid, $sid);
                 }
             }
 
@@ -54,6 +76,8 @@ class PurchaseController {
                 'locations' => $locations,
                 'returns' => [], // placeholder list
                 'selectedProduct' => $selectedProduct,
+                'suppliers' => $suppliers,
+                'original_purchase_id' => $originalPurchaseId,
             ];
 
             $this->view('admin/purchases/purchase3', $data);
@@ -186,7 +210,7 @@ class PurchaseController {
 
             if (!empty($colCheck)) {
                 // Schema has supplier_id FK
-                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, status, supplier_id
+                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, stock_quantity, status, supplier_id
                                   FROM products
                                   WHERE status = 'active' AND supplier_id = :supplier_id
                                   ORDER BY name ASC");
@@ -197,7 +221,7 @@ class PurchaseController {
                 // Fallback schema uses supplier name string column
                 $supplierName = is_object($supplier) ? $supplier->name : (is_array($supplier) ? ($supplier['name'] ?? '') : '');
                 $supplierName = trim((string)$supplierName);
-                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, status, supplier as supplier_name
+                $this->db->query("SELECT id, name, sku AS code, price, sale_price, price2, price3, stock_quantity, status, supplier as supplier_name
                                   FROM products
                                   WHERE status = 'active' AND (supplier = :supplier_name OR LOWER(supplier) LIKE LOWER(CONCAT('%', :supplier_name_like, '%')))
                                   ORDER BY name ASC");
@@ -288,6 +312,13 @@ class PurchaseController {
                     $status = 'received';
                 }
 
+                // Determine if this submission is a Return
+                $isReturn = isset($_POST['is_return']) && (int)$_POST['is_return'] === 1;
+                if ($isReturn) {
+                    // Tag notes so it is visible in details; non-breaking if column absent
+                    $notes = ($notes !== '') ? ('[RETURN] ' . $notes) : '[RETURN]';
+                }
+
                 // Normalize and sanitize item fields (quantity/unit_price numeric)
                 if (is_array($items)) {
                     foreach ($items as $k => $it) {
@@ -295,6 +326,10 @@ class PurchaseController {
                         $items[$k]['product_id'] = isset($it['product_id']) ? (int)$it['product_id'] : (int)$k;
                         $items[$k]['quantity'] = isset($it['quantity']) ? (float)$it['quantity'] : 0;
                         $items[$k]['unit_price'] = isset($it['unit_price']) ? (float)$it['unit_price'] : 0;
+                        // Optional base stock sent from UI to ensure server uses the same base used for projection
+                        if (isset($it['base_stock']) && $it['base_stock'] !== '') {
+                            $items[$k]['base_stock'] = (float)$it['base_stock'];
+                        }
                         // Drop items with invalid quantities
                         if ($items[$k]['product_id'] <= 0 || $items[$k]['quantity'] <= 0) {
                             unset($items[$k]);
@@ -325,41 +360,70 @@ class PurchaseController {
                     throw new Exception('Please fill in all required fields.');
                 }
 
-                // Generate purchase number compatible with DB schema
-                $purchaseNo = 'PO-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
-                
-                // Prepare purchase data
-                $purchaseData = [
-                    'supplier_id' => $supplierId,
-                    'purchase_no' => $purchaseNo,
-                    'location_id' => $locationId,
-                    'purchase_date' => $purchaseDate,
-                    'status' => $status,
-                    'notes' => $notes,
-                    'document_path' => $documentPath,
-                    'items' => $items
-                ];
+                // If this is a return and client provided an original purchase ID,
+                // append return items under the SAME purchase id instead of creating a new purchase.
+                $purchaseId = false;
+                $originalId = isset($_POST['original_purchase_id']) ? (int)$_POST['original_purchase_id'] : 0;
+                if ($isReturn && $originalId <= 0) {
+                    // Auto resolve original id from first item product when not provided
+                    $firstItem = reset($items);
+                    $prodIdForReturn = is_array($firstItem) ? (int)($firstItem['product_id'] ?? 0) : 0;
+                    if ($prodIdForReturn > 0 && method_exists($this->purchaseModel, 'findMostRecentPurchaseIdByProduct')) {
+                        $originalId = (int)$this->purchaseModel->findMostRecentPurchaseIdByProduct($prodIdForReturn, (int)$supplierId);
+                    }
+                }
 
-                // Create the purchase
-                $purchaseId = $this->purchaseModel->create($purchaseData);
+                if ($isReturn && $originalId > 0) {
+                    // 1) Insert negative items to original purchase and adjust totals
+                    $ok = $this->purchaseModel->insertReturnItems($originalId, $items);
+                    if (!$ok) {
+                        throw new Exception('Failed to record return items for the original purchase.');
+                    }
+                    // 2) Append return note for traceability
+                    $this->purchaseModel->appendNote($originalId, $notes !== '' ? $notes : '[RETURN]');
+                    // 3) Use the original id as the resulting purchase id for downstream logic (stock, payments)
+                    $purchaseId = $originalId;
+                } else {
+                    // Generate a unique purchase number (with DB check) and create a NEW purchase
+                    $attempts = 0;
+                    while ($attempts < 3 && !$purchaseId) {
+                        $attempts++;
+                        // Use PR- prefix for returns so list can visually identify them
+                        $prefix = $isReturn ? 'PR-' : 'PO-';
+                        $purchaseNo = $this->purchaseModel->generateUniquePurchaseNo($prefix);
+
+                        // Prepare purchase data
+                        $purchaseData = [
+                            'supplier_id' => $supplierId,
+                            'purchase_no' => $purchaseNo,
+                            'location_id' => $locationId,
+                            'purchase_date' => $purchaseDate,
+                            'status' => $status,
+                            'notes' => $notes,
+                            'document_path' => $documentPath,
+                            'items' => $items
+                        ];
+
+                        // Try to create the purchase
+                        $purchaseId = $this->purchaseModel->create($purchaseData);
+                    }
+                }
 
                 if ($purchaseId) {
-                    // Apply stock adjustments
-                    $isReturn = isset($_POST['is_return']) && (int)$_POST['is_return'] === 1;
-                    if ($isReturn || $updateStockChecked) {
-                        foreach ($items as $it) {
-                            $pid = (int)($it['product_id'] ?? 0);
-                            $qty = (float)($it['quantity'] ?? 0);
-                            if ($pid <= 0 || $qty <= 0) { continue; }
-                            try {
-                                $current = (float)$this->productModel->getProductStock($pid);
-                                $delta = $isReturn ? -$qty : +$qty;
-                                $newStock = $current + $delta;
-                                if ($newStock < 0) { $newStock = 0; }
-                                $this->productModel->updateStock($pid, $newStock);
-                            } catch (Exception $e) {
-                                error_log('Stock adjust failed for product #' . $pid . ': ' . $e->getMessage());
-                            }
+                    // Apply stock adjustments ALWAYS: increment for purchases, decrement for returns
+                    foreach ($items as $it) {
+                        $pid = (int)($it['product_id'] ?? 0);
+                        $qty = (float)($it['quantity'] ?? 0);
+                        if ($pid <= 0 || $qty <= 0) { continue; }
+                        try {
+                            // Prefer client-sent base_stock to perfectly match UI projection; fallback to DB current stock
+                            $current = isset($it['base_stock']) ? (float)$it['base_stock'] : (float)$this->productModel->getProductStock($pid);
+                            $delta = $isReturn ? -$qty : +$qty;
+                            $newStock = $current + $delta;
+                            if ($newStock < 0) { $newStock = 0; }
+                            $this->productModel->updateStock($pid, $newStock);
+                        } catch (Exception $e) {
+                            error_log('Stock adjust failed for product #' . $pid . ': ' . $e->getMessage());
                         }
                     }
                     // If an advance payment was provided, record it
@@ -382,7 +446,12 @@ class PurchaseController {
                         exit;
                     } else {
                         flash('success', 'Purchase created successfully!');
-                        redirect('?controller=purchase&action=index');
+                        $redirectTo = isset($_POST['redirect_to']) ? trim((string)$_POST['redirect_to']) : '';
+                        if ($redirectTo !== '') {
+                            redirect($redirectTo);
+                        } else {
+                            redirect('?controller=purchase&action=index');
+                        }
                     }
                 } else {
                     throw new Exception('Failed to create purchase.');

@@ -101,6 +101,7 @@
                                         <th>Stock</th>
                                         <th>Stock Value</th>
                                         <th>Status</th>
+                                        <th>History</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -164,10 +165,22 @@
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
                                             </td>
+<<<<<<< HEAD
                                             <td data-label="Stock">
                                                 <span class="badge bg-<?php echo ($product['stock_quantity'] > 0) ? 'success' : 'danger'; ?>">
                                                     <?php echo $product['stock_quantity']; ?>
                                                 </span>
+=======
+                                            <td>
+                                                <?php $qty = (float)($product['stock_quantity'] ?? 0); ?>
+                                                <?php if ($qty <= 0): ?>
+                                                    <span class="badge bg-info">Return</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-<?php echo ($qty <= 5) ? 'warning text-dark' : 'success'; ?>">
+                                                        <?php echo $product['stock_quantity']; ?>
+                                                    </span>
+                                                <?php endif; ?>
+>>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
                                             </td>
                                             <td class="text-nowrap" data-label="Stock Value">
                                                 <?php 
@@ -180,7 +193,19 @@
                                                     <?php echo ucfirst($product['status']); ?>
                                                 </span>
                                             </td>
+<<<<<<< HEAD
                                             <td data-label="Actions">
+=======
+                                            <td>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-info btn-history"
+                                                        data-product-id="<?php echo $product['id']; ?>"
+                                                        data-product-name="<?php echo htmlspecialchars($product['name']); ?>">
+                                                    <i class="fas fa-history"></i> History
+                                                </button>
+                                            </td>
+                                            <td>
+>>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
                                                 <div class="btn-group" role="group">
                                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" 
                                                        class="btn btn-sm btn-primary" 
@@ -213,6 +238,27 @@
     </div>
 </div>
 
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="historyModalLabel">Stock History</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="historyContent" class="py-2">
+                    <div class="text-center text-muted">Loading...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -239,6 +285,55 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // History modal elements
+    const historyModalEl = document.getElementById('historyModal');
+    const historyModal = historyModalEl ? new bootstrap.Modal(historyModalEl) : null;
+    const historyContent = document.getElementById('historyContent');
+    const historyTitle = document.getElementById('historyModalLabel');
+
+    function loadHistory(productId, page = 1) {
+        if (!historyContent) return;
+        historyContent.innerHTML = '<div class="text-center text-muted">Loading...</div>';
+        const url = `?controller=stock&action=history&id=${encodeURIComponent(productId)}&page=${page}&partial=1`;
+        fetch(url, { credentials: 'same-origin' })
+            .then(r => {
+                if (!r.ok) throw new Error('Failed to load history');
+                return r.text();
+            })
+            .then(html => {
+                historyContent.innerHTML = html;
+            })
+            .catch(err => {
+                historyContent.innerHTML = `<div class="alert alert-danger mb-0">${err.message}</div>`;
+            });
+    }
+
+    // Open history modal on button click
+    document.querySelectorAll('.btn-history').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const productName = this.getAttribute('data-product-name') || '';
+            if (historyTitle) historyTitle.textContent = `Stock History - ${productName}`;
+            if (historyModal) historyModal.show();
+            loadHistory(productId, 1);
+        });
+    });
+
+    // Delegate pagination clicks inside history modal
+    if (historyModalEl) {
+        historyModalEl.addEventListener('click', function(e) {
+            const link = e.target.closest('a.history-page-link');
+            if (link) {
+                e.preventDefault();
+                const page = parseInt(link.getAttribute('data-page') || '1', 10);
+                // Extract current product id from existing links
+                const href = new URL(link.getAttribute('href'), window.location.href);
+                const productId = href.searchParams.get('id');
+                if (productId) loadHistory(productId, page);
+            }
+        });
+    }
+
     // Delete modal elements
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     const productNameEl = document.getElementById('productName');

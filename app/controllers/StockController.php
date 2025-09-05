@@ -280,6 +280,7 @@ class StockController {
         try {
             $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
             $perPage = 20;
+            $isPartial = isset($_GET['partial']) && (int)$_GET['partial'] === 1;
             
             if ($productId) {
                 $product = $this->productModel->getById($productId);
@@ -297,6 +298,20 @@ class StockController {
                     'currentPage' => $page,
                     'totalPages' => ceil($totalMovements / $perPage)
                 ];
+                
+                if ($isPartial) {
+                    // Render partial table only
+                    extract($data);
+                    $partialFile = APP_PATH . 'views/admin/stock/partials/product_history_table.php';
+                    if (file_exists($partialFile)) {
+                        include $partialFile;
+                    } else {
+                        // Fallback minimal table
+                        header('Content-Type: text/html; charset=utf-8');
+                        echo '<div class="alert alert-danger">History partial not found.</div>';
+                    }
+                    return;
+                }
                 
                 $this->view('admin/stock/product_history', $data);
             } else {

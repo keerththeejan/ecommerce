@@ -23,11 +23,13 @@ class ListPurchaseController extends Controller {
         // Fetch from DB (products, categories, brands, taxes)
         // Require model files explicitly if no autoloader
         if (!class_exists('Product')) require_once APP_PATH . 'models/Product.php';
+        if (!class_exists('Purchase')) require_once APP_PATH . 'models/Purchase.php';
         if (!class_exists('Category')) require_once APP_PATH . 'models/Category.php';
         if (!class_exists('Brand')) require_once APP_PATH . 'models/Brand.php';
         if (!class_exists('TaxModel')) require_once APP_PATH . 'models/TaxModel.php';
 
         $productModel = new Product();
+        $purchaseModel = new Purchase();
         $categoryModel = new Category();
         $brandModel = new Brand();
         $taxModel = new TaxModel();
@@ -35,7 +37,12 @@ class ListPurchaseController extends Controller {
         // Products: include inactive too for admin listing; 0 page => no pagination
         $rawProducts = $productModel->getAllProducts(0, 0, true);
         $products = [];
-        foreach ((array)$rawProducts as $row) { $products[] = (array)$row; }
+        foreach ((array)$rawProducts as $row) {
+            $arr = (array)$row;
+            $pid = isset($arr['id']) ? (int)$arr['id'] : 0;
+            $arr['last_purchase_qty'] = $pid > 0 ? (float)$purchaseModel->getLastPurchasedQtyByProduct($pid) : 0.0;
+            $products[] = $arr;
+        }
 
         // Categories
         $rawCategories = $categoryModel->getAllCategories();

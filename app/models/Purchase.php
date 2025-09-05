@@ -16,6 +16,7 @@ class Purchase {
             $this->db = new Database();
         }
 
+<<<<<<< HEAD
         // Fallback to singular table names if plural tables are missing
         try {
             if (method_exists($this->db, 'tableExists')) {
@@ -32,6 +33,32 @@ class Purchase {
         } catch (Exception $e) {
             // ignore
         }
+=======
+    }
+
+    /**
+     * Find the most recent purchase ID that contains the given product.
+     * Optionally restrict by supplier_id if provided.
+     */
+    public function findMostRecentPurchaseIdByProduct($productId, $supplierId = null) {
+        $productId = (int)$productId;
+        if ($productId <= 0) return 0;
+        $sql = "SELECT p.id
+                FROM {$this->itemsTable} pi
+                INNER JOIN {$this->table} p ON p.id = pi.purchase_id
+                WHERE pi.product_id = :pid";
+        if ($supplierId) {
+            $sql .= " AND p.supplier_id = :sid";
+        }
+        $sql .= " ORDER BY p.purchase_date DESC, p.id DESC, pi.id DESC LIMIT 1";
+        $this->db->query($sql);
+        $this->db->bind(':pid', $productId);
+        if ($supplierId) { $this->db->bind(':sid', (int)$supplierId); }
+        $row = $this->db->single();
+        if (is_array($row)) return (int)($row['id'] ?? 0);
+        if (is_object($row)) return (int)($row->id ?? 0);
+        return 0;
+>>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
     }
 
     private function getTableColumns($tableName) {
@@ -49,15 +76,58 @@ class Purchase {
         }
     }
 
+    /**
+     * Check if a given purchase number already exists
+     */
+    public function purchaseNoExists($purchaseNo) {
+        try {
+            $this->db->query("SELECT 1 FROM {$this->table} WHERE purchase_no = :pn LIMIT 1");
+            $this->db->bind(':pn', (string)$purchaseNo);
+            $row = $this->db->single();
+            return !empty($row);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Generate a unique purchase number with retries, honoring DB uniqueness.
+     * Format: PO-YYYYMMDD-XXXXXX (X = hex)
+     */
+    public function generateUniquePurchaseNo($prefix = 'PO-') {
+        $datePart = date('Ymd');
+        for ($i = 0; $i < 5; $i++) {
+            $rand = strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+            $candidate = $prefix . $datePart . '-' . $rand;
+            if (!$this->purchaseNoExists($candidate)) {
+                return $candidate;
+            }
+        }
+        // Fallback with extra entropy if repeated collisions
+        return $prefix . $datePart . '-' . strtoupper(bin2hex(random_bytes(6)));
+    }
+
     // ---------- Listing ----------
     public function getAllPurchases($page = 1, $perPage = 20) {
         $offset = max(0, ($page - 1) * $perPage);
-        $select = "SELECT p.*, s.name AS supplier_name ";
-        $from = "FROM {$this->table} p LEFT JOIN suppliers s ON p.supplier_id = s.id ";
-        $order = "ORDER BY p.purchase_date DESC, p.id DESC ";
-        $limit = "LIMIT :limit OFFSET :offset";
+        // Include total_items if purchase_items table exists
+        $hasItems = method_exists($this->db, 'tableExists') ? $this->db->tableExists($this->itemsTable) : true;
+        $select = "SELECT p.*, s.name AS supplier_name";
+        if ($hasItems) {
+            $select .= ", COALESCE(SUM(pi.quantity), 0) AS total_items";
+            // List product names per purchase (distinct, comma-separated)
+            $select .= ", GROUP_CONCAT(DISTINCT pr.name ORDER BY pr.name SEPARATOR ', ') AS product_names";
+        }
+        $from = " FROM {$this->table} p LEFT JOIN suppliers s ON p.supplier_id = s.id";
+        if ($hasItems) {
+            $from .= " LEFT JOIN {$this->itemsTable} pi ON pi.purchase_id = p.id";
+            $from .= " LEFT JOIN products pr ON pr.id = pi.product_id";
+        }
+        $groupBy = $hasItems ? " GROUP BY p.id" : "";
+        $order = " ORDER BY p.purchase_date DESC, p.id DESC";
+        $limit = " LIMIT :limit OFFSET :offset";
 
-        $this->db->query($select . $from . $order . $limit);
+        $this->db->query($select . $from . $groupBy . $order . $limit);
         $this->db->bind(':limit', (int)$perPage);
         $this->db->bind(':offset', (int)$offset);
         return $this->db->resultSet();
@@ -328,6 +398,98 @@ class Purchase {
         return true;
     }
 
+    /**
+     * Append a note to an existing purchase (safe even if notes column missing)
+     */
+    public function appendNote($purchaseId, $note) {
+        $purchaseId = (int)$purchaseId;
+        $note = trim((string)$note);
+        if ($purchaseId <= 0 || $note === '') return false;
+
+        $cols = $this->getTableColumns($this->table);
+        if (!in_array('notes', $cols, true)) return false;
+
+        $sql = "UPDATE {$this->table} 
+                SET notes = TRIM(CONCAT(COALESCE(notes, ''), CASE WHEN COALESCE(notes, '') = '' THEN '' ELSE ' ' END, :note))
+                WHERE id = :id";
+        $this->db->query($sql);
+        $this->db->bind(':note', $note);
+        $this->db->bind(':id', $purchaseId);
+        return $this->db->execute();
+    }
+
+    /**
+     * Insert return items under an existing purchase ID.
+     * Stores quantities as negative and updates purchase total_amount accordingly (decrease).
+     */
+    public function insertReturnItems($purchaseId, $items) {
+        $purchaseId = (int)$purchaseId;
+        if ($purchaseId <= 0 || empty($items) || !$this->db->tableExists($this->itemsTable)) {
+            return false;
+        }
+
+        $itemCols = $this->getTableColumns($this->itemsTable);
+        $totalDelta = 0.0; // this will be negative or zero
+
+        foreach ((array)$items as $it) {
+            $pid = (int)($it['product_id'] ?? 0);
+            $qty = (float)($it['quantity'] ?? 0);
+            $price = (float)($it['unit_price'] ?? 0);
+            $disc = isset($it['discount_percent']) ? (float)$it['discount_percent'] : 0.0;
+            $margin = isset($it['profit_margin']) ? (float)$it['profit_margin'] : 0.0;
+            if ($pid <= 0 || $qty <= 0) continue;
+
+            $unitAfterDiscount = max($price - ($price * ($disc/100.0)), 0);
+            $lineTotal = -1 * ($unitAfterDiscount * $qty); // negative impact on total
+            $totalDelta += $lineTotal;
+
+            $insCols = ['purchase_id','product_id','quantity','unit_price'];
+            $phs = [':purchase_id', ':product_id', ':quantity', ':unit_price'];
+            $vals = [
+                ':purchase_id' => $purchaseId,
+                ':product_id'  => $pid,
+                ':quantity'    => -abs($qty), // store as negative qty
+                ':unit_price'  => $price,
+            ];
+            if (in_array('discount_percent', $itemCols, true)) { $insCols[] = 'discount_percent'; $phs[]=':discount_percent'; $vals[':discount_percent']=$disc; }
+            if (in_array('profit_margin', $itemCols, true)) { $insCols[] = 'profit_margin'; $phs[]=':profit_margin'; $vals[':profit_margin']=$margin; }
+            if (in_array('line_total', $itemCols, true)) { $insCols[] = 'line_total'; $phs[]=':line_total'; $vals[':line_total']=$lineTotal; }
+
+            $sqlIt = 'INSERT INTO ' . $this->itemsTable . ' (' . implode(',', $insCols) . ') VALUES (' . implode(',', $phs) . ')';
+            $this->db->query($sqlIt);
+            foreach ($vals as $k => $v) { $this->db->bind($k, $v); }
+            $this->db->execute();
+        }
+
+        // Update purchases.total_amount (decrease by totalDelta, which is negative)
+        $purchCols = $this->getTableColumns($this->table);
+        if (in_array('total_amount', $purchCols, true)) {
+            $this->db->query("UPDATE {$this->table} SET total_amount = GREATEST(COALESCE(total_amount,0) + :delta, 0) WHERE id = :id");
+            $this->db->bind(':delta', $totalDelta);
+            $this->db->bind(':id', $purchaseId);
+            $this->db->execute();
+        }
+
+        // Recompute payment_status after total change
+        if (in_array('payment_status', $purchCols, true)) {
+            $this->db->query("SELECT COALESCE(total_amount,0) AS total, COALESCE(paid_amount,0) AS paid FROM {$this->table} WHERE id = :id");
+            $this->db->bind(':id', $purchaseId);
+            $row = $this->db->single();
+            if ($row) {
+                $paid = is_array($row) ? (float)$row['paid'] : (float)($row->paid ?? 0);
+                $total = is_array($row) ? (float)$row['total'] : (float)($row->total ?? 0);
+                $status = ($paid >= $total && $total > 0) ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid');
+                if (!in_array($status, ['paid','partial'])) { $status = 'pending'; }
+                $this->db->query("UPDATE {$this->table} SET payment_status = :ps WHERE id = :id");
+                $this->db->bind(':ps', $status);
+                $this->db->bind(':id', $purchaseId);
+                $this->db->execute();
+            }
+        }
+
+        return true;
+    }
+
     public function processReturn($data) {
         // Stubbed success to satisfy controller; extend with actual return logic as needed
         return true;
@@ -402,6 +564,7 @@ class Purchase {
         return $this->db->resultSet();
     }
 
+<<<<<<< HEAD
     // ---------- Payment Due utilities required by PaymentDueController ----------
     /**
      * Returns purchases with outstanding due amounts. Optional $search filters by supplier name or purchase_no.
@@ -522,5 +685,41 @@ class Purchase {
         $this->db->bind(':start', $startDate);
         $this->db->bind(':end', $endDate);
         return $this->db->resultSet();
+=======
+    /**
+     * Get the quantity from the most recent purchase entry for a product.
+     * Prefers purchases with status 'received' when the status column exists.
+     * Returns float quantity or 0 if not found.
+     */
+    public function getLastPurchasedQtyByProduct($productId) {
+        try {
+            $productId = (int)$productId;
+            if ($productId <= 0) { return 0.0; }
+
+            // Check if purchases table has a status column
+            $this->db->query("SHOW COLUMNS FROM {$this->table} LIKE 'status'");
+            $hasStatus = $this->db->resultSet();
+
+            $sql = "SELECT pi.quantity
+                    FROM {$this->itemsTable} pi
+                    INNER JOIN {$this->table} p ON p.id = pi.purchase_id
+                    WHERE pi.product_id = :pid";
+            if (!empty($hasStatus)) {
+                $sql .= " AND (p.status = 'received' OR p.status IS NULL)";
+            }
+            $sql .= " ORDER BY p.purchase_date DESC, p.id DESC, pi.id DESC LIMIT 1";
+
+            $this->db->query($sql);
+            $this->db->bind(':pid', $productId);
+            $row = $this->db->single();
+            if (!$row) { return 0.0; }
+            // Row could be object or array
+            $qty = is_array($row) ? (float)($row['quantity'] ?? 0) : (float)($row->quantity ?? 0);
+            return $qty > 0 ? $qty : 0.0;
+        } catch (Exception $e) {
+            // Swallow and return 0 on any error
+            return 0.0;
+        }
+>>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
     }
 }

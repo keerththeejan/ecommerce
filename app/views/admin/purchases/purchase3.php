@@ -146,6 +146,83 @@ if ($start && $end) {
 
 </div>
 
+<?php if (!empty($selectedProduct)) : ?>
+  <div class="container-fluid mt-3">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <strong><i class="fas fa-undo-alt me-2"></i>Return</strong>
+      </div>
+      <div class="card-body">
+        <form class="row g-3 align-items-end" method="post" action="<?php echo BASE_URL; ?>?controller=purchase&action=store">
+          <!-- Required core fields for store() -->
+          <input type="hidden" name="is_return" value="1">
+          <input type="hidden" name="purchase_date" value="<?php echo date('Y-m-d'); ?>">
+          <input type="hidden" name="status" value="received">
+          <input type="hidden" name="redirect_to" value="?controller=ListPurchaseController&highlight_product_id=<?php echo urlencode((int)($selectedProduct['id'] ?? 0)); ?>&returned=1">
+          <?php if (!empty($original_purchase_id)): ?>
+            <input type="hidden" name="original_purchase_id" value="<?php echo (int)$original_purchase_id; ?>">
+          <?php endif; ?>
+          <?php if (!empty($selectedProduct['supplier_id'])): ?>
+            <?php
+              // Resolve supplier display name
+              $supplierNameDisplay = '';
+              if (!empty($selectedProduct['supplier'])) {
+                $supplierNameDisplay = (string)$selectedProduct['supplier'];
+              } elseif (!empty($suppliers) && is_array($suppliers)) {
+                foreach ($suppliers as $s) {
+                  $sid = isset($s['id']) ? (int)$s['id'] : (int)($s->id ?? 0);
+                  $sname = isset($s['name']) ? $s['name'] : ($s->name ?? '');
+                  if ($sid === (int)$selectedProduct['supplier_id']) { $supplierNameDisplay = $sname; break; }
+                }
+              }
+            ?>
+            <input type="hidden" name="supplier_id" value="<?php echo (int)$selectedProduct['supplier_id']; ?>">
+            <div class="col-12 col-sm-4">
+              <label class="form-label">Supplier</label>
+              <input type="text" class="form-control" value="<?php echo htmlspecialchars($supplierNameDisplay ?: ('#'.(int)$selectedProduct['supplier_id'])); ?>" readonly>
+            </div>
+          <?php else: ?>
+            <div class="col-12 col-sm-4">
+              <label class="form-label">Supplier</label>
+              <select class="form-select" name="supplier_id" required>
+                <option value="">Select supplier</option>
+                <?php if (!empty($suppliers) && is_array($suppliers)): ?>
+                  <?php foreach ($suppliers as $s): $sid = isset($s['id']) ? (int)$s['id'] : (int)($s->id ?? 0); $sname = isset($s['name']) ? $s['name'] : ($s->name ?? ''); $isSel = (!empty($selectedProduct['supplier']) && strcasecmp(trim((string)$selectedProduct['supplier']), trim((string)$sname)) === 0) ? ' selected' : ''; ?>
+                    <option value="<?php echo $sid; ?>"<?php echo $isSel; ?>><?php echo htmlspecialchars($sname); ?></option>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </select>
+            </div>
+          <?php endif; ?>
+
+          <!-- Item payload -->
+          <input type="hidden" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][product_id]" value="<?php echo (int)($selectedProduct['id'] ?? 0); ?>">
+          <input type="hidden" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][unit_price]" value="<?php echo isset($selectedProduct['price']) ? (float)$selectedProduct['price'] : 0; ?>">
+          <input type="hidden" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][base_stock]" value="<?php echo isset($selectedProduct['stock_quantity']) ? (float)$selectedProduct['stock_quantity'] : 0; ?>">
+
+          <?php
+            $__lastPurchasedRaw = isset($selectedProduct['last_purchase_qty']) ? (float)$selectedProduct['last_purchase_qty'] : null;
+            $__stockQtyRaw = isset($selectedProduct['stock_quantity']) ? (float)$selectedProduct['stock_quantity'] : 0;
+            $__returnQtyRaw = ($__lastPurchasedRaw !== null && $__lastPurchasedRaw > 0)
+              ? $__lastPurchasedRaw
+              : ($__stockQtyRaw > 0 ? $__stockQtyRaw : 0);
+          ?>
+          <div class="col-12 col-sm-4">
+            <label class="form-label">Return Qty</label>
+            <input type="number" class="form-control" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][quantity]" value="<?php echo $__returnQtyRaw; ?>" min="1" max="<?php echo $__returnQtyRaw; ?>" step="1" <?php echo ($__returnQtyRaw <= 0 ? 'disabled' : ''); ?> required>
+          </div>
+          
+          
+          <div class="col-12 col-sm-4 text-sm-end">
+            <button type="submit" class="btn btn-primary mt-2" <?php echo ($__returnQtyRaw <= 0 ? 'disabled' : ''); ?>>Submit Return</button>
+          </div>
+        </form>
+        <div class="form-text mt-2">Submitting will decrease the stock and return you to the Products list.</div>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
+
 <!-- DataTables assets -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">

@@ -13,6 +13,102 @@ class ProductController extends Controller {
         $this->categoryModel = $this->model('Category');
         $this->supplierModel = $this->model('Supplier');
     }
+
+    /**
+     * Quick create a product (for use inside Purchase -> purchase2)
+     * Accepts minimal fields and auto-fills the rest. Returns JSON.
+     */
+    public function quickCreate() {
+        // Only allow AJAX POST from authenticated admin context
+        if (!isAdmin()) { $this->json(['success' => false, 'message' => 'Unauthorized'], 401); return; }
+        if (!$this->isPost() || !$this->isAjax()) { $this->json(['success' => false, 'message' => 'Invalid request'], 400); return; }
+
+        try {
+            $name = trim((string)$this->post('name'));
+            $price = (float)($this->post('price') ?? 0);
+            $salePrice = $this->post('sale_price');
+            $stockQty = $this->post('stock_quantity');
+            $supplierId = (int)($this->post('supplier_id') ?? 0);
+            $sku = trim((string)($this->post('sku') ?? ''));
+
+            if ($name === '' || $price <= 0) {
+                $this->json(['success' => false, 'message' => 'Name and price are required'], 422);
+                return;
+            }
+
+            // Generate SKU if not provided
+            if ($sku === '') {
+                $baseSku = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($name, 0, 10)));
+                $sku = $baseSku . (time() % 100000);
+            } else {
+                // Ensure uniqueness
+                $existing = $this->productModel->getSingleBy('sku', $sku);
+                if ($existing) {
+                    $this->json(['success' => false, 'message' => 'SKU already exists'], 422);
+                    return;
+                }
+            }
+
+            // Build minimal data with sane defaults
+            $data = [
+                'name' => $name,
+                'description' => '',
+                'price' => $price,
+                'sale_price' => ($salePrice === '' ? null : $salePrice),
+                'price2' => $price,
+                'price3' => $price,
+                'stock_quantity' => is_numeric($stockQty) ? (float)$stockQty : 0,
+                'category_id' => null,
+                'country_id' => null,
+                'brand_id' => null,
+                'status' => 'active',
+                'expiry_date' => null,
+                'supplier' => null,
+                'batch_number' => null,
+                'sku' => $sku,
+            ];
+
+            // Map supplier field based on schema
+            try {
+                // Prefer supplier_id column if present
+                $hasSupplierId = false;
+                try {
+                    $this->db->query("SHOW COLUMNS FROM products LIKE 'supplier_id'");
+                    $cols = $this->db->resultSet();
+                    $hasSupplierId = !empty($cols);
+                } catch (Exception $e) {
+                    $hasSupplierId = false;
+                }
+
+                if ($supplierId > 0) {
+                    if ($hasSupplierId) {
+                        $data['supplier_id'] = $supplierId;
+                    } else {
+                        // Fallback to supplier name string
+                        if (method_exists($this->supplierModel, 'getById')) {
+                            $s = $this->supplierModel->getById($supplierId);
+                            $supplierName = is_array($s) ? ($s['name'] ?? null) : (is_object($s) ? ($s->name ?? null) : null);
+                            if ($supplierName) { $data['supplier'] = $supplierName; }
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // ignore supplier mapping errors
+            }
+
+            // Create the product
+            $newId = $this->productModel->create($data);
+            if (!$newId) {
+                $err = method_exists($this->productModel, 'getLastError') ? $this->productModel->getLastError() : 'Create failed';
+                $this->json(['success' => false, 'message' => $err], 500);
+                return;
+            }
+
+            $this->json(['success' => true, 'message' => 'Product created', 'productId' => $newId]);
+        } catch (Exception $e) {
+            $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
     
     /**
      * Display all products
