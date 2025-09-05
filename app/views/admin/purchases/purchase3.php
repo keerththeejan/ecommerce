@@ -158,7 +158,10 @@ if ($start && $end) {
           <input type="hidden" name="is_return" value="1">
           <input type="hidden" name="purchase_date" value="<?php echo date('Y-m-d'); ?>">
           <input type="hidden" name="status" value="received">
-          <input type="hidden" name="redirect_to" value="?controller=product&action=adminIndex">
+          <input type="hidden" name="redirect_to" value="?controller=ListPurchaseController&highlight_product_id=<?php echo urlencode((int)($selectedProduct['id'] ?? 0)); ?>&returned=1">
+          <?php if (!empty($original_purchase_id)): ?>
+            <input type="hidden" name="original_purchase_id" value="<?php echo (int)$original_purchase_id; ?>">
+          <?php endif; ?>
           <?php if (!empty($selectedProduct['supplier_id'])): ?>
             <?php
               // Resolve supplier display name
@@ -197,15 +200,21 @@ if ($start && $end) {
           <input type="hidden" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][unit_price]" value="<?php echo isset($selectedProduct['price']) ? (float)$selectedProduct['price'] : 0; ?>">
           <input type="hidden" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][base_stock]" value="<?php echo isset($selectedProduct['stock_quantity']) ? (float)$selectedProduct['stock_quantity'] : 0; ?>">
 
-          <?php $__stockQtyRaw = isset($selectedProduct['stock_quantity']) ? (float)$selectedProduct['stock_quantity'] : 1; ?>
+          <?php
+            $__lastPurchasedRaw = isset($selectedProduct['last_purchase_qty']) ? (float)$selectedProduct['last_purchase_qty'] : null;
+            $__stockQtyRaw = isset($selectedProduct['stock_quantity']) ? (float)$selectedProduct['stock_quantity'] : 0;
+            $__returnQtyRaw = ($__lastPurchasedRaw !== null && $__lastPurchasedRaw > 0)
+              ? $__lastPurchasedRaw
+              : ($__stockQtyRaw > 0 ? $__stockQtyRaw : 0);
+          ?>
           <div class="col-12 col-sm-4">
             <label class="form-label">Return Qty</label>
-            <input type="number" class="form-control" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][quantity]" value="<?php echo $__stockQtyRaw; ?>" min="1" max="<?php echo $__stockQtyRaw; ?>" step="1" required>
+            <input type="number" class="form-control" name="items[<?php echo (int)($selectedProduct['id'] ?? 0); ?>][quantity]" value="<?php echo $__returnQtyRaw; ?>" min="1" max="<?php echo $__returnQtyRaw; ?>" step="1" <?php echo ($__returnQtyRaw <= 0 ? 'disabled' : ''); ?> required>
           </div>
           
           
           <div class="col-12 col-sm-4 text-sm-end">
-            <button type="submit" class="btn btn-primary mt-2">Submit Return</button>
+            <button type="submit" class="btn btn-primary mt-2" <?php echo ($__returnQtyRaw <= 0 ? 'disabled' : ''); ?>>Submit Return</button>
           </div>
         </form>
         <div class="form-text mt-2">Submitting will decrease the stock and return you to the Products list.</div>

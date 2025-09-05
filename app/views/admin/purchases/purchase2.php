@@ -273,10 +273,18 @@ const PREFILL_QTY = <?php echo isset($_GET['prefill_qty']) ? (int)$_GET['prefill
 
 function currency(num) { return CURRENCY_SYMBOL + (parseFloat(num||0).toFixed(2)); }
 
+// Cache of products for the selected supplier; used by search to add rows
+let productsCache = [];
+
 async function loadProducts(supplierId) {
   const tbody = document.getElementById('product-rows');
-  if (!supplierId) { tbody.innerHTML = '<tr><td colspan="14" class="text-center text-muted py-4">Select a supplier to load products.</td></tr>'; updateTotals(); return; }
-  tbody.innerHTML = '<tr><td colspan="14" class="text-center py-4"><div class="spinner-border text-primary"></div><span class="ms-2">Loading...</span></td></tr>';
+  productsCache = [];
+  if (!supplierId) {
+    tbody.innerHTML = '<tr><td colspan="14" class="text-center text-muted py-4">Select a supplier to load products.</td></tr>';
+    updateTotals();
+    return;
+  }
+  tbody.innerHTML = '<tr><td colspan="14" class="text-center py-4"><div class="spinner-border text-primary"></div><span class="ms-2">Loading products for search...</span></td></tr>';
   try {
     const resp = await fetch(`${BASE_URL}?controller=purchase&action=getProductsBySupplier&supplier_id=${supplierId}`, {
       headers: {
@@ -290,90 +298,102 @@ async function loadProducts(supplierId) {
       updateTotals();
       return;
     }
-    let html = '';
-    let idx = 1;
-    data.products.forEach(p => {
-      const unit = parseFloat(p.price || 0); // Buying Price
-      const unitStr = unit.toFixed(2);
-      const sale = parseFloat(p.sale_price || 0); // Including Tax Price
-      const price2 = parseFloat(p.price2 || 0);   // Sales Price
-      const price3 = parseFloat(p.price3 || 0);   // Wholesale Price (SP)
-      // Prefer selling init: sale_price > price2 > price3 > buying price
-      const sellInit = (sale > 0 ? sale : (price2 > 0 ? price2 : (price3 > 0 ? price3 : unit)));
-      const sellInitStr = parseFloat(sellInit || 0).toFixed(2);
-      const discount = 0;
-      const beforeTax = unit; // placeholder: same as unit until discount/tax logic added
-      const lineTotal = beforeTax * 1; // qty default 1
-      const baseStock = (p.stock_quantity !== undefined && p.stock_quantity !== null) ? parseFloat(p.stock_quantity) : 0;
-      const projected = baseStock + 1; // initial qty is 1
-      html += `
-        <tr data-product-id="${p.id}" data-base-stock="${isFinite(baseStock)?baseStock:0}">
-          <td class="row-index">${idx++}</td>
-          <td>
-            <strong>${p.name || 'Unnamed'}</strong>
-            <div class="small text-muted">${p.code ? ('SKU: ' + p.code) : ''}</div>
-            <div class="small">
-              Stock:
-              <span class="badge bg-info text-dark base-stock">${(p.stock_quantity !== undefined && p.stock_quantity !== null) ? p.stock_quantity : '-'}</span>
-              +
-              <span class="badge bg-warning text-dark qty-stock">1</span>
-              =
-              <span class="badge bg-secondary projected-stock">${isFinite(projected)?projected.toFixed(2):'-'}</span>
-            </div>
-            <input type="hidden" name="items[${p.id}][product_id]" value="${p.id}">
-            <input type="hidden" name="items[${p.id}][base_stock]" value="${isFinite(baseStock)?baseStock:0}">
-          </td>
-          <td class="price-col text-end text-nowrap">${currency(unit)}</td>
-          <td class="price-col text-end text-nowrap">${sale > 0 ? currency(sale) : '-'}</td>
-          <td class="price-col text-end text-nowrap">${price2 > 0 ? currency(price2) : '-'}</td>
-          <td class="price-col text-end text-nowrap">${price3 > 0 ? currency(price3) : '-'}</td>
-          <td class="qty-col">
-            <input type="number" min="1" class="form-control form-control-sm qty-input" name="items[${p.id}][quantity]" value="1" required>
-          </td>
-          <td>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text">${CURRENCY_SYMBOL}</span>
-              <input type="number" step="0.01" min="0" class="form-control price-input" name="items[${p.id}][unit_price]" value="${unitStr}" required>
-            </div>
-          </td>
-          <td>
-            <div class="input-group input-group-sm">
-              <input type="number" step="0.01" min="0" class="form-control discount-input" name="items[${p.id}][discount_percent]" value="${discount}">
-              <span class="input-group-text">%</span>
-            </div>
-          </td>
-          <td class="before-tax">${currency(beforeTax)}</td>
-          <td class="row-total">${currency(lineTotal)}</td>
-          <td class="margin-display">0.00%</td>
-          <td>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text">${CURRENCY_SYMBOL}</span>
-              <input type="number" step="0.01" min="0" class="form-control sell-input" name="items[${p.id}][selling_price]" value="${sellInitStr}">
-            </div>
-          </td>
-          <td class="text-center">
-            <button type="button" class="btn btn-link text-danger p-0 remove-row" title="Remove">
-              <i class="fas fa-trash"></i>
-            </button>
-          </td>
-        </tr>`;
-    });
-    tbody.innerHTML = html;
-    bindRowEvents();
+    productsCache = data.products;
+    // Do not auto-add rows. Prompt user to search and add products.
+    tbody.innerHTML = '<tr><td colspan="14" class="text-center text-muted py-4">Type in search box to add products.</td></tr>';
     updateTotals();
-    indexProducts();
-    // If coming from purchase3 with a specific product & qty, set the qty now
-    if (PREFILL_PRODUCT_ID > 0 && PREFILL_QTY > 0) {
-      const row = tbody.querySelector(`tr[data-product-id="${PREFILL_PRODUCT_ID}"]`);
-      const qtyInput = row?.querySelector('.qty-input');
-      if (qtyInput) {
-        qtyInput.value = PREFILL_QTY;
-        updateTotals();
-      }
-    }
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="14" class="text-center text-danger py-4">Error loading products</td></tr>';
   }
+}
+
+function addProductRow(p) {
+  if (!p) return;
+  const tbody = document.getElementById('product-rows');
+  // If row already exists, just reveal and focus qty
+  const existing = tbody.querySelector(`tr[data-product-id="${p.id}"]`);
+  if (existing) {
+    existing.style.display = '';
+    const qtyInput = existing.querySelector('.qty-input');
+    if (qtyInput) { qtyInput.focus(); qtyInput.select(); }
+    renumberRows();
+    updateTotals();
+    return;
+  }
+  const unit = parseFloat(p.price || 0); // Buying Price
+  const unitStr = unit.toFixed(2);
+  const sale = parseFloat(p.sale_price || 0); // Including Tax Price
+  const price2 = parseFloat(p.price2 || 0);   // Sales Price
+  const price3 = parseFloat(p.price3 || 0);   // Wholesale Price (SP)
+  const sellInit = (sale > 0 ? sale : (price2 > 0 ? price2 : (price3 > 0 ? price3 : unit)));
+  const sellInitStr = parseFloat(sellInit || 0).toFixed(2);
+  const discount = 0;
+  const beforeTax = unit;
+  const lineTotal = beforeTax * 1;
+  const baseStock = (p.stock_quantity !== undefined && p.stock_quantity !== null) ? parseFloat(p.stock_quantity) : 0;
+  const projected = baseStock + 1;
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-product-id', p.id);
+  tr.setAttribute('data-base-stock', isFinite(baseStock)?baseStock:0);
+  tr.innerHTML = `
+    <td class="row-index"></td>
+    <td>
+      <strong>${p.name || 'Unnamed'}</strong>
+      <div class="small text-muted">${p.code ? ('SKU: ' + p.code) : ''}</div>
+      <div class="small">
+        Stock:
+        <span class="badge bg-info text-dark base-stock">${(p.stock_quantity !== undefined && p.stock_quantity !== null) ? p.stock_quantity : '-'}</span>
+        +
+        <span class="badge bg-warning text-dark qty-stock">1</span>
+        =
+        <span class="badge bg-secondary projected-stock">${isFinite(projected)?projected.toFixed(2):'-'}</span>
+      </div>
+      <input type="hidden" name="items[${p.id}][product_id]" value="${p.id}">
+      <input type="hidden" name="items[${p.id}][base_stock]" value="${isFinite(baseStock)?baseStock:0}">
+    </td>
+    <td class="price-col text-end text-nowrap">${currency(unit)}</td>
+    <td class="price-col text-end text-nowrap">${sale > 0 ? currency(sale) : '-'}</td>
+    <td class="price-col text-end text-nowrap">${price2 > 0 ? currency(price2) : '-'}</td>
+    <td class="price-col text-end text-nowrap">${price3 > 0 ? currency(price3) : '-'}</td>
+    <td class="qty-col">
+      <input type="number" min="1" class="form-control form-control-sm qty-input" name="items[${p.id}][quantity]" value="1" required>
+    </td>
+    <td>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">${CURRENCY_SYMBOL}</span>
+        <input type="number" step="0.01" min="0" class="form-control price-input" name="items[${p.id}][unit_price]" value="${unitStr}" required>
+      </div>
+    </td>
+    <td>
+      <div class="input-group input-group-sm">
+        <input type="number" step="0.01" min="0" class="form-control discount-input" name="items[${p.id}][discount_percent]" value="${discount}">
+        <span class="input-group-text">%</span>
+      </div>
+    </td>
+    <td class="before-tax">${currency(beforeTax)}</td>
+    <td class="row-total">${currency(lineTotal)}</td>
+    <td class="margin-display">0.00%</td>
+    <td>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">${CURRENCY_SYMBOL}</span>
+        <input type="number" step="0.01" min="0" class="form-control sell-input" name="items[${p.id}][selling_price]" value="${sellInitStr}">
+      </div>
+    </td>
+    <td class="text-center">
+      <button type="button" class="btn btn-link text-danger p-0 remove-row" title="Remove">
+        <i class="fas fa-trash"></i>
+      </button>
+    </td>`;
+  // If placeholder row present, remove it first
+  if (tbody.children.length === 1 && !tbody.querySelector('tr[data-product-id]')) {
+    tbody.innerHTML = '';
+  }
+  tbody.appendChild(tr);
+  bindRowEvents();
+  renumberRows();
+  updateTotals();
+  const qtyInput = tr.querySelector('.qty-input');
+  if (qtyInput) { qtyInput.focus(); qtyInput.select(); }
 }
 
 function bindRowEvents() {
@@ -531,22 +551,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const ymd = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
     ref.value = `PO-${ymd}-${rand}`;
   }
-  // Search wiring
+  // Search wiring (search within productsCache)
   const search = document.getElementById('product-search');
   const suggBox = document.getElementById('product-suggestions');
   search?.addEventListener('input', (e) => {
     const q = (e.target.value || '').trim().toLowerCase();
     if (!q){
-      if (suggBox){ suggBox.style.display = 'none'; suggBox.innerHTML=''; }
-      clearTableFilter();
+      // Show first 20 products for current supplier when query is empty
+      const initial = (productsCache || []).slice(0, 20);
+      showSuggestions(initial);
       return;
     }
-    if (!productsIndex.length) indexProducts();
-    const matches = productsIndex.filter(p =>
-      (p.name && p.name.toLowerCase().includes(q)) ||
-      (p.sku && p.sku.toLowerCase().includes(q))
+    const matches = (productsCache || []).filter(p =>
+      ((p.name || '').toLowerCase().includes(q)) ||
+      ((p.code || '').toLowerCase().includes(q)) ||
+      ((p.sku || '').toLowerCase().includes(q))
     ).slice(0, 20);
     showSuggestions(matches);
+  });
+  // Show suggestions on focus even before typing
+  search?.addEventListener('focus', () => {
+    const list = (productsCache || []).slice(0, 20);
+    if (list.length) showSuggestions(list);
+  });
+  // Quick add on Enter: add best match or first item
+  search?.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter'){
+      ev.preventDefault();
+      const q = (search.value || '').trim().toLowerCase();
+      let list = (productsCache || []);
+      if (q){
+        list = list.filter(p => ((p.name||'').toLowerCase().includes(q)) || ((p.code||'').toLowerCase().includes(q)) || ((p.sku||'').toLowerCase().includes(q)));
+      }
+      const pick = list[0];
+      if (pick){ addProductRow(pick); }
+      if (suggBox){ suggBox.style.display = 'none'; }
+    }
   });
   // Hide suggestions on outside click
   document.addEventListener('click', (ev) => {
@@ -576,7 +616,7 @@ function showSuggestions(matches){
   if (!box) return;
   if (!matches.length){ box.style.display = 'none'; box.innerHTML=''; return; }
   box.innerHTML = matches.map(m =>
-    `<a href="#" class="list-group-item list-group-item-action" data-id="${m.id}" data-name="${m.name}">${m.name}${m.sku?` <small class="text-muted">(${m.sku})</small>`:''}</a>`
+    `<a href="#" class="list-group-item list-group-item-action" data-id="${m.id}" data-name="${m.name}">${m.name}${(m.sku||m.code)?` <small class=\"text-muted\">(${m.sku||m.code})</small>`:''}</a>`
   ).join('');
   box.style.display = 'block';
   box.querySelectorAll('a').forEach(a => {
@@ -584,7 +624,8 @@ function showSuggestions(matches){
       e.preventDefault();
       const id = a.getAttribute('data-id');
       const nm = a.getAttribute('data-name') || '';
-      applyTableFilter(id);
+      const prod = (productsCache || []).find(p => String(p.id) === String(id));
+      if (prod) { addProductRow(prod); }
       const inp = document.getElementById('product-search');
       if (inp) inp.value = nm;
       box.style.display = 'none';

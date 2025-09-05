@@ -1,6 +1,7 @@
 <?php
   // Optional: focus/highlight a specific product row when returning
   $highlightId = isset($_GET['highlight_product_id']) ? (int)$_GET['highlight_product_id'] : 0;
+  $returned = isset($_GET['returned']) ? (int)$_GET['returned'] : 0;
 ?>
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -22,11 +23,19 @@
     </div>
 
     <?php if (!empty($highlightId)): ?>
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        Showing product ID: <strong><?php echo htmlspecialchars($highlightId); ?></strong>
-        <a class="ms-2" href="<?php echo BASE_URL; ?>?controller=ListPurchaseController">Clear</a>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
+      <?php if (!empty($returned)): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          Stock returned successfully for Product ID: <strong><?php echo htmlspecialchars($highlightId); ?></strong>
+          <a class="ms-2" href="<?php echo BASE_URL; ?>?controller=ListPurchaseController">Clear</a>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <?php else: ?>
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+          Showing product ID: <strong><?php echo htmlspecialchars($highlightId); ?></strong>
+          <a class="ms-2" href="<?php echo BASE_URL; ?>?controller=ListPurchaseController">Clear</a>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <?php endif; ?>
     <?php endif; ?>
 
     <div class="card shadow-sm mb-4">
@@ -150,7 +159,7 @@
                                     <th>Business Location</th>
                                     <th>Unit Purchase Price</th>
                                     <th>Selling Price</th>
-                                    <th>Current stock</th>
+                                    <th>Stock</th>
                                     <th>Stock Status</th>
                                     <th>Product Type</th>
                                     <th>Category</th>
@@ -171,6 +180,7 @@
                                             $purchase = isset($p['price']) ? (float)$p['price'] : null;
                                             $sell = isset($p['sale_price']) && $p['sale_price'] > 0 ? (float)$p['sale_price'] : (isset($p['price']) ? (float)$p['price'] : null);
                                             $stockQty = isset($p['stock_quantity']) ? (float)$p['stock_quantity'] : 0;
+                                            $lastPurchaseQty = isset($p['last_purchase_qty']) ? (float)$p['last_purchase_qty'] : 0;
                                             $unitLabel = 'Pieces';
                                             $type = isset($p['type']) ? ucfirst($p['type']) : 'Single';
                                             $taxDisplay = '—';
@@ -241,12 +251,15 @@
                                             <td>S.N PASUMAI KALANJIYAM</td>
                                             <td><?php echo isset($purchase) ? htmlspecialchars(formatPrice($purchase)) : '—'; ?></td>
                                             <td><?php echo isset($sell) ? htmlspecialchars(formatPrice($sell)) : '—'; ?></td>
-                                            <td><?php echo number_format($stockQty, 2) . ' ' . $unitLabel; ?></td>
+                                            <td title="Total stock: <?php echo number_format($stockQty, 2); ?>">
+                                                <?php echo number_format($lastPurchaseQty > 0 ? $lastPurchaseQty : 0, 2) . ' ' . $unitLabel; ?>
+                                            </td>
                                             <td>
                                                 <?php
                                                     $badge = '<span class="badge bg-success">In Stock</span>';
                                                     if ($stockQty <= 0) {
-                                                        $badge = '<span class="badge bg-danger">Out of Stock</span>';
+                                                        // Show Return instead of Out of Stock as requested
+                                                        $badge = '<span class="badge bg-info">Return</span>';
                                                     } elseif ($stockQty <= 5) {
                                                         $badge = '<span class="badge bg-warning text-dark">Low</span>';
                                                     }
