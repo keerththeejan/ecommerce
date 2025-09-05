@@ -133,6 +133,11 @@
           </a>
         </li>
         <li>
+          <a href="<?php echo BASE_URL; ?>admin/customers" class="nav-link <?php echo $current_page == 'customers' ? 'active' : ''; ?>" id="sidebarCustomersLink">
+            <i class="fas fa-user-friends"></i> Customers
+          </a>
+        </li>
+        <li>
           <a href="<?php echo BASE_URL; ?>admin/settings" class="nav-link <?php echo $current_page == 'settings' ? 'active' : ''; ?>">
             <i class="fas fa-cog"></i> Settings
           </a>
@@ -212,6 +217,18 @@
         if(sidebar.classList.contains('show')) closeSidebar();
         else openSidebar();
       }
+
+      // Expose globally so other views (e.g., dashboard cards) can open the sidebar
+      window.openSidebar = openSidebar;
+      window.closeSidebar = closeSidebar;
+      window.toggleSidebar = toggleSidebar;
+      window.highlightSidebarCustomers = function(){
+        const link = document.getElementById('customersSidebarLink');
+        if (link){
+          document.querySelectorAll('.sidebar .nav-link').forEach(a=>a.classList.remove('active'));
+          link.classList.add('active');
+        }
+      };
 
       // Mobile toggle
       if (toggleBtn){

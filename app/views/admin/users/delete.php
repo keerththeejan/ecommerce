@@ -3,8 +3,17 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12 mb-3">
-            <a href="<?php echo BASE_URL; ?>?controller=user&action=adminIndex" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Users
+            <?php 
+                $return = isset($return) ? trim($return) : '';
+                $backHref = BASE_URL . '?controller=user&action=adminIndex';
+                $backText = 'Back to Users';
+                if (strtolower($return) === 'customers') {
+                    $backHref = BASE_URL . '?controller=user&action=customers';
+                    $backText = 'Back to Customers';
+                }
+            ?>
+            <a href="<?php echo $backHref; ?>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> <?php echo $backText; ?>
             </a>
         </div>
     </div>
@@ -48,9 +57,9 @@
                         </div>
                     </div>
                     
-                    <form action="<?php echo BASE_URL; ?>?controller=user&action=adminDelete&id=<?php echo $user['id']; ?>" method="POST">
+                    <form action="<?php echo BASE_URL; ?>?controller=user&action=adminDelete&id=<?php echo $user['id']; ?><?php echo ($return ? '&return=' . urlencode($return) : ''); ?>" method="POST">
                         <div class="d-flex justify-content-between">
-                            <a href="<?php echo BASE_URL; ?>?controller=user&action=adminIndex" class="btn btn-secondary">Cancel</a>
+                            <a href="<?php echo $backHref; ?>" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-danger">Delete User</button>
                         </div>
                     </form>

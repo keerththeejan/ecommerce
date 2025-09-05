@@ -98,6 +98,10 @@ class User extends Model {
     public function register($data) {
         // Hash password
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        // If status column exists and not explicitly provided, default to pending for self-registrations
+        if (!isset($data['status']) && $this->columnExists('status')) {
+            $data['status'] = 'pending';
+        }
         
         return $this->create($data);
     }
@@ -165,7 +169,9 @@ class User extends Model {
      * @return array
      */
     public function getCustomers() {
-        $sql = "SELECT * FROM {$this->table} WHERE role = :role";
+        // If a status column exists, only include accepted/approved customers.
+        $hasStatus = $this->columnExists('status');
+        $sql = "SELECT * FROM {$this->table} WHERE role = :role" . ($hasStatus ? " AND (status IS NULL OR status IN ('accepted','approved'))" : "");
         
         if(!$this->db->query($sql)) {
             $this->lastError = $this->db->getError();
@@ -174,6 +180,30 @@ class User extends Model {
         
         $this->db->bind(':role', 'customer');
         return $this->db->resultSet();
+    }
+
+    /**
+     * Approve a user (set status=accepted/approved and ensure role=customer)
+     */
+    public function approveUser($userId) {
+        $data = [];
+        if ($this->columnExists('status')) {
+            $data['status'] = 'accepted';
+        }
+        // Ensure role is customer on approval
+        $data['role'] = 'customer';
+        return $this->update((int)$userId, $data);
+    }
+
+    /**
+     * Reject a user (set status=rejected and keep role unchanged)
+     */
+    public function rejectUser($userId) {
+        $data = [];
+        if ($this->columnExists('status')) {
+            $data['status'] = 'rejected';
+        }
+        return $this->update((int)$userId, $data);
     }
     
     /**

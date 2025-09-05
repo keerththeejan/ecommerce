@@ -84,7 +84,7 @@
                         <div class="alert alert-info">No products found.</div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover">
+                            <table class="table table-striped table-hover table-compact products-table no-stack">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -107,18 +107,18 @@
                                 <tbody>
                                     <?php foreach($products['data'] as $product): ?>
                                         <tr id="product-row-<?php echo $product['id']; ?>">
-                                            <td><?php echo $product['id']; ?></td>
-                                            <td>
+                                            <td data-label="ID"><?php echo $product['id']; ?></td>
+                                            <td data-label="Image">
                                                 <?php if(!empty($product['image'])): ?>
                                                     <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" width="50" class="img-thumbnail">
                                                 <?php else: ?>
                                                     <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" alt="No Image" width="50" class="img-thumbnail">
                                                 <?php endif; ?>
                                             </td>
-                                            <td><?php echo htmlspecialchars($product['name']); ?></td>
-                                            <td><?php echo htmlspecialchars($product['sku']); ?></td>
-                                            <td><?php echo !empty($product['batch_number']) ? htmlspecialchars($product['batch_number']) : '<span class="text-muted">-</span>'; ?></td>
-                                            <td>
+                                            <td data-label="Name"><?php echo htmlspecialchars($product['name']); ?></td>
+                                            <td data-label="SKU"><?php echo htmlspecialchars($product['sku']); ?></td>
+                                            <td data-label="Batch No."><?php echo !empty($product['batch_number']) ? htmlspecialchars($product['batch_number']) : '<span class="text-muted">-</span>'; ?></td>
+                                            <td data-label="Supplier">
                                                 <?php 
                                                     $supplierName = '';
                                                     if (!empty($product['supplier'])) {
@@ -129,7 +129,7 @@
                                                 ?>
                                                 <?php echo $supplierName !== '' ? htmlspecialchars($supplierName) : '<span class="text-muted">-</span>'; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Expiry">
                                                 <?php if(!empty($product['expiry_date'])): ?>
                                                     <?php echo htmlspecialchars($product['expiry_date']); ?>
                                                     <?php 
@@ -142,45 +142,45 @@
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td><?php echo formatPrice($product['price']); ?></td>
-                                            <td>
+                                            <td data-label="Buying Price"><?php echo formatPrice($product['price']); ?></td>
+                                            <td data-label="Including Tax Price">
                                                 <?php if(!empty($product['sale_price'])): ?>
                                                     <?php echo formatPrice($product['sale_price']); ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Sales Price">
                                                 <?php if(!empty($product['price2'])): ?>
                                                     <?php echo formatPrice($product['price2']); ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Wholesale Price (SP)">
                                                 <?php if(!empty($product['price3'])): ?>
                                                     <?php echo formatPrice($product['price3']); ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Stock">
                                                 <span class="badge bg-<?php echo ($product['stock_quantity'] > 0) ? 'success' : 'danger'; ?>">
                                                     <?php echo $product['stock_quantity']; ?>
                                                 </span>
                                             </td>
-                                            <td class="text-nowrap">
+                                            <td class="text-nowrap" data-label="Stock Value">
                                                 <?php 
                                                 $stockValue = (float)$product['stock_quantity'] * (float)$product['price'];
                                                 echo formatPrice($stockValue);
                                                 ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Status">
                                                 <span class="badge bg-<?php echo ($product['status'] == 'active') ? 'success' : 'secondary'; ?>">
                                                     <?php echo ucfirst($product['status']); ?>
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td data-label="Actions">
                                                 <div class="btn-group" role="group">
                                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" 
                                                        class="btn btn-sm btn-primary" 

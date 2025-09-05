@@ -15,6 +15,23 @@ class Purchase {
         } else {
             $this->db = new Database();
         }
+
+        // Fallback to singular table names if plural tables are missing
+        try {
+            if (method_exists($this->db, 'tableExists')) {
+                if (!$this->db->tableExists($this->table) && $this->db->tableExists('purchase')) {
+                    $this->table = 'purchase';
+                }
+                if (!$this->db->tableExists($this->itemsTable) && $this->db->tableExists('purchase_item')) {
+                    $this->itemsTable = 'purchase_item';
+                }
+                if (!$this->db->tableExists($this->paymentTable) && $this->db->tableExists('purchase_payment')) {
+                    $this->paymentTable = 'purchase_payment';
+                }
+            }
+        } catch (Exception $e) {
+            // ignore
+        }
     }
 
     private function getTableColumns($tableName) {
@@ -56,6 +73,9 @@ class Purchase {
 
     // ---------- Single purchase ----------
     public function getPurchaseById($id) {
+        if (method_exists($this->db, 'tableExists') && !$this->db->tableExists($this->table)) {
+            return null;
+        }
         $this->db->query("SELECT p.*, s.name AS supplier_name, s.email AS supplier_email, s.phone AS supplier_phone, s.address AS supplier_address
                           FROM {$this->table} p
                           LEFT JOIN suppliers s ON p.supplier_id = s.id
@@ -337,6 +357,9 @@ class Purchase {
     }
 
     public function getPendingPaymentsTotal() {
+        if (method_exists($this->db, 'tableExists') && !$this->db->tableExists($this->table)) {
+            return 0.0;
+        }
         $this->db->query("SELECT SUM(GREATEST(total_amount - COALESCE(paid_amount,0), 0)) AS pending_total FROM {$this->table} WHERE payment_status IS NULL OR payment_status NOT IN ('paid')");
         $row = $this->db->single();
         if (is_array($row)) return (float)($row['pending_total'] ?? 0);
@@ -349,6 +372,9 @@ class Purchase {
      * Returns: id, purchase_date, supplier_name, total_items, total_amount, status
      */
     public function getRecentPurchases($limit = 5) {
+        if (method_exists($this->db, 'tableExists') && !$this->db->tableExists($this->table)) {
+            return [];
+        }
         $limit = max(1, (int)$limit);
 
         $hasItems = method_exists($this->db, 'tableExists') ? $this->db->tableExists($this->itemsTable) : true;
@@ -373,6 +399,128 @@ class Purchase {
 
         $this->db->query($sql);
         $this->db->bind(':limit', (int)$limit);
+        return $this->db->resultSet();
+    }
+
+    // ---------- Payment Due utilities required by PaymentDueController ----------
+    /**
+     * Returns purchases with outstanding due amounts. Optional $search filters by supplier name or purchase_no.
+     */
+    public function getPurchasesWithDuePayment($search = '') {
+        if (method_exists($this->db, 'tableExists') && !$this->db->tableExists($this->table)) {
+            return [];
+        }
+        $select = "SELECT p.*, s.name AS supplier_name, 
+                           GREATEST(COALESCE(p.total_amount,0) - COALESCE(p.paid_amount,0), 0) AS due_amount,
+                           p.purchase_no AS invoice_no";
+        $from = " FROM {$this->table} p LEFT JOIN suppliers s ON p.supplier_id = s.id";
+        $where = " WHERE (p.payment_status IS NULL OR p.payment_status NOT IN ('paid'))
+                          AND COALESCE(p.total_amount,0) > COALESCE(p.paid_amount,0)";
+        $order = " ORDER BY p.purchase_date DESC, p.id DESC";
+
+        $params = [];
+        if (!empty($search)) {
+            $where .= " AND (s.name LIKE :search OR p.purchase_no LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $sql = $select . $from . $where . $order;
+        $this->db->query($sql);
+        foreach ($params as $k=>$v) { $this->db->bind($k, $v); }
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Returns distinct customers (suppliers) who have dues.
+     */
+    public function getCustomersWithDuePayments() {
+        if (method_exists($this->db, 'tableExists') && !$this->db->tableExists($this->table)) {
+            return [];
+        }
+        $sql = "SELECT DISTINCT s.id, s.name, s.email, s.phone
+                FROM {$this->table} p
+                LEFT JOIN suppliers s ON p.supplier_id = s.id
+                WHERE (p.payment_status IS NULL OR p.payment_status NOT IN ('paid'))
+                  AND COALESCE(p.total_amount,0) > COALESCE(p.paid_amount,0)
+                ORDER BY s.name ASC";
+        $this->db->query($sql);
+        return $this->db->resultSet();
+    }
+
+    /**
+     * Update only the payment_status for a purchase (and updated_at if exists).
+     */
+    public function updatePaymentStatus($data) {
+        if (empty($data['id'])) return false;
+        $cols = $this->getTableColumns($this->table);
+        $sets = [];
+        if (isset($data['payment_status']) && in_array('payment_status', $cols, true)) {
+            $sets[] = 'payment_status = :payment_status';
+        }
+        if (in_array('updated_at', $cols, true)) {
+            $sets[] = 'updated_at = NOW()';
+        }
+        if (empty($sets)) return false;
+        $sql = 'UPDATE ' . $this->table . ' SET ' . implode(', ', $sets) . ' WHERE id = :id';
+        $this->db->query($sql);
+        if (strpos($sql, ':payment_status') !== false) $this->db->bind(':payment_status', $data['payment_status']);
+        $this->db->bind(':id', (int)$data['id']);
+        return $this->db->execute();
+    }
+
+    /**
+     * Generic update for purchases table based on provided keys (id required).
+     */
+    public function updatePurchase($data) {
+        if (empty($data['id'])) return false;
+        $cols = $this->getTableColumns($this->table);
+        $allowedKeys = ['payment_status','due_amount','paid_amount','total_amount','status'];
+        $sets = [];
+        foreach ($allowedKeys as $k) {
+            if (array_key_exists($k, $data) && in_array($k, $cols, true)) {
+                $sets[] = "$k = :$k";
+            }
+        }
+        if (in_array('updated_at', $cols, true)) { $sets[] = 'updated_at = NOW()'; }
+        if (empty($sets)) return false;
+        $sql = 'UPDATE ' . $this->table . ' SET ' . implode(', ', $sets) . ' WHERE id = :id';
+        $this->db->query($sql);
+        foreach ($allowedKeys as $k) {
+            if (array_key_exists($k, $data) && in_array($k, $cols, true)) {
+                $this->db->bind(':' . $k, $data[$k]);
+            }
+        }
+        $this->db->bind(':id', (int)$data['id']);
+        return $this->db->execute();
+    }
+
+    /**
+     * Alias used by controller to record a payment.
+     */
+    public function recordPayment($data) {
+        return $this->addPayment($data);
+    }
+
+    /**
+     * Payment due report for a date range.
+     */
+    public function getPaymentDueReport($startDate, $endDate) {
+        if (method_exists($this->db, 'tableExists') && !$this->db->tableExists($this->table)) {
+            return [];
+        }
+        $sql = "SELECT p.id, s.name AS supplier_name, p.purchase_no AS invoice_no, p.purchase_date,
+                       COALESCE(p.total_amount,0) AS total_amount,
+                       COALESCE(p.paid_amount,0) AS paid_amount,
+                       GREATEST(COALESCE(p.total_amount,0) - COALESCE(p.paid_amount,0), 0) AS due_amount,
+                       COALESCE(p.payment_status, 'pending') AS payment_status,
+                       NULL AS due_date
+                FROM {$this->table} p
+                LEFT JOIN suppliers s ON p.supplier_id = s.id
+                WHERE p.purchase_date BETWEEN :start AND :end
+                ORDER BY p.purchase_date DESC, p.id DESC";
+        $this->db->query($sql);
+        $this->db->bind(':start', $startDate);
+        $this->db->bind(':end', $endDate);
         return $this->db->resultSet();
     }
 }

@@ -216,6 +216,12 @@ if (isset($_SESSION['user_id'])) {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=customers" id="customersSidebarLink">
+                                <i class="fas fa-user-friends me-2"></i>
+                                Customers
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=report&action=index">
                                 <i class="fas fa-chart-bar me-2"></i>
                                 Reports
@@ -447,4 +453,82 @@ if (isset($_SESSION['user_id'])) {
                             } catch (_) { /* no-op */ }
                         })();
                     })();
+                </script>
+                <script>
+                    // Expose a helper to open the sidebar and highlight Customers
+                    window.openCustomersSidebar = function() {
+                        try {
+                            const sidebar = document.getElementById('sidebar');
+                            const customersLink = document.getElementById('customersSidebarLink');
+                            // Open collapse if on mobile
+                            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(sidebar, { toggle: false });
+                            bsCollapse.show();
+                            // Mark active visually
+                            document.querySelectorAll('#sidebar .nav-link').forEach(a => a.classList.remove('active'));
+                            if (customersLink) {
+                                customersLink.classList.add('active');
+                                customersLink.scrollIntoView({ block: 'nearest' });
+                            }
+                            // Ensure backdrop/body state reflects open sidebar
+                            document.body.classList.add('sidebar-open');
+                            const backdrop = document.getElementById('sidebarBackdrop');
+                            if (backdrop) backdrop.classList.add('active');
+                        } catch (e) { /* no-op */ }
+                    };
+                </script>
+                <script>
+                    // Preserve sidebar scroll position across page loads
+                    (function() {
+                        const KEY = 'admin_sidebar_scrollTop_v1';
+                        document.addEventListener('DOMContentLoaded', function () {
+                            try {
+                                const scroller = document.querySelector('#sidebar .position-sticky');
+                                if (!scroller) return;
+                                const saved = parseInt(localStorage.getItem(KEY) || '0', 10);
+                                if (!isNaN(saved)) {
+                                    scroller.scrollTop = saved;
+                                }
+
+                                // Save on scroll
+                                scroller.addEventListener('scroll', function() {
+                                    localStorage.setItem(KEY, String(scroller.scrollTop));
+                                }, { passive: true });
+
+                                // Save right before navigating away (e.g., link click causes full page load)
+                                document.querySelector('#sidebar').addEventListener('click', function(e) {
+                                    const link = e.target.closest('a.nav-link, a.dropdown-item');
+                                    if (link && link.getAttribute('href')) {
+                                        localStorage.setItem(KEY, String(scroller.scrollTop));
+                                    }
+                                });
+
+                                window.addEventListener('beforeunload', function() {
+                                    localStorage.setItem(KEY, String(scroller.scrollTop));
+                                });
+                            } catch (_) { /* no-op */ }
+                        });
+                    })();
+                </script>
+                <script>
+                    // Auto-convert all admin tables to stacked responsive layout on small/medium screens
+                    document.addEventListener('DOMContentLoaded', function () {
+                        try {
+                            if (window.innerWidth > 768) return; // apply up to 768px
+                            document.querySelectorAll('main table.table').forEach(function(table){
+                                if (table.classList.contains('no-stack')) return; // opt-out
+                                // add responsive class so CSS applies
+                                table.classList.add('responsive-table');
+                                const headers = Array.from(table.querySelectorAll('thead th')).map(function(th){
+                                    return (th.textContent || '').trim();
+                                });
+                                table.querySelectorAll('tbody tr').forEach(function(tr){
+                                    tr.querySelectorAll('td').forEach(function(td, idx){
+                                        if (!td.hasAttribute('data-label')) {
+                                            td.setAttribute('data-label', headers[idx] || '');
+                                        }
+                                    });
+                                });
+                            });
+                        } catch (e) { /* no-op */ }
+                    });
                 </script>

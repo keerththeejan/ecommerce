@@ -9,6 +9,26 @@
                     <a href="<?php echo BASE_URL; ?>?controller=user&action=adminCreate" class="btn btn-light">Add New User</a>
                 </div>
                 <div class="card-body">
+                    <style>
+                        /* Widen status elements */
+                        .status-actions .btn {
+                            width: 34px;
+                            height: 34px;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 0 !important;
+                            border-radius: 6px;
+                        }
+                        .status-actions .badge {
+                            min-width: 90px;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 0.4rem 0.6rem;
+                            font-weight: 600;
+                        }
+                    </style>
                     <?php flash('user_success'); ?>
                     <?php flash('user_error', '', 'alert alert-danger'); ?>
                     
@@ -24,6 +44,7 @@
                                         <th>Email</th>
                                         <th>Name</th>
                                         <th>Role</th>
+                                        <th>Status</th>
                                         <th>Created</th>
                                         <th>Actions</th>
                                     </tr>
@@ -51,6 +72,36 @@
                                                 }
                                                 ?>
                                                 <span class="badge <?php echo $roleClass; ?>"><?php echo ucfirst($user['role']); ?></span>
+                                            </td>
+                                            <td>
+                                                <?php 
+                                                    $status = $user['status'] ?? '';
+                                                    $badgeClass = 'bg-secondary';
+                                                    $label = '—';
+                                                    $s = strtolower((string)$status);
+                                                    if ($status) {
+                                                        if ($s === 'accepted' || $s === 'approved') { $badgeClass = 'bg-success'; $label = 'Accepted'; }
+                                                        elseif ($s === 'pending') { $badgeClass = 'bg-warning text-dark'; $label = 'Pending'; }
+                                                        elseif ($s === 'rejected') { $badgeClass = 'bg-danger'; $label = 'Rejected'; }
+                                                        else { $label = ucfirst($status); }
+                                                    }
+                                                ?>
+                                                <div class="d-flex align-items-center gap-2 status-actions">
+                                                    <?php 
+                                                        $canModerate = ($s === '' || $s === 'pending');
+                                                    ?>
+                                                    <?php if (!$canModerate): ?>
+                                                        <span class="badge <?php echo $badgeClass; ?>"><?php echo $label; ?></span>
+                                                    <?php endif; ?>
+                                                    <?php if ($canModerate && ($user['id'] ?? 0) != ($_SESSION['user_id'] ?? 0)): ?>
+                                                        <a title="Accept" href="<?php echo BASE_URL; ?>?controller=user&action=adminApprove&id=<?php echo $user['id']; ?>" class="btn btn-sm btn-success p-1">
+                                                            <i class="fas fa-check"></i>
+                                                        </a>
+                                                        <a title="Reject" href="<?php echo BASE_URL; ?>?controller=user&action=adminReject&id=<?php echo $user['id']; ?>" class="btn btn-sm btn-outline-danger p-1">
+                                                            <i class="fas fa-times"></i>
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                             <td><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>
                                             <td>

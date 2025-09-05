@@ -7,6 +7,49 @@
     padding-top: 20px;
 }
 
+/* Compact table that fits many columns on one screen (no stacking) */
+@media (max-width: 992px) {
+  table.table-compact { table-layout: fixed; width: 100%; font-size: 11px; }
+  table.table-compact th,
+  table.table-compact td { padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table.table-compact .img-thumbnail { width: 24px !important; height: 24px !important; object-fit: cover; }
+  table.table-compact .btn { padding: 2px 6px; font-size: 10px; }
+  table.table-compact .badge { font-size: 10px; padding: 4px 6px; }
+  table.table-compact .btn-group { gap: 4px; }
+
+  /* Specific width allocation for Products table (15 columns) */
+  table.table-compact.products-table th:nth-child(1),
+  table.table-compact.products-table td:nth-child(1) { width: 3%; }
+  table.table-compact.products-table th:nth-child(2),
+  table.table-compact.products-table td:nth-child(2) { width: 6%; }
+  table.table-compact.products-table th:nth-child(3),
+  table.table-compact.products-table td:nth-child(3) { width: 10%; }
+  table.table-compact.products-table th:nth-child(4),
+  table.table-compact.products-table td:nth-child(4) { width: 7%; }
+  table.table-compact.products-table th:nth-child(5),
+  table.table-compact.products-table td:nth-child(5) { width: 7%; }
+  table.table-compact.products-table th:nth-child(6),
+  table.table-compact.products-table td:nth-child(6) { width: 9%; }
+  table.table-compact.products-table th:nth-child(7),
+  table.table-compact.products-table td:nth-child(7) { width: 7%; }
+  table.table-compact.products-table th:nth-child(8),
+  table.table-compact.products-table td:nth-child(8) { width: 7%; }
+  table.table-compact.products-table th:nth-child(9),
+  table.table-compact.products-table td:nth-child(9) { width: 7%; }
+  table.table-compact.products-table th:nth-child(10),
+  table.table-compact.products-table td:nth-child(10) { width: 6%; }
+  table.table-compact.products-table th:nth-child(11),
+  table.table-compact.products-table td:nth-child(11) { width: 7%; }
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(12) { width: 5%; }
+  table.table-compact.products-table th:nth-child(13),
+  table.table-compact.products-table td:nth-child(13) { width: 7%; }
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(14) { width: 6%; }
+  table.table-compact.products-table th:nth-child(15),
+  table.table-compact.products-table td:nth-child(15) { width: 6%; }
+}
+
 .sidebar .nav-link {
     color: rgba(255, 255, 255, 0.75);
     padding: 8px 20px;
@@ -107,4 +150,122 @@
     .main-content {
         padding: 15px;
     }
+}
+ 
+/* Mobile stacked table to avoid horizontal scroll */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: visible !important; overflow-y: visible; }
+  table.responsive-table,
+  table.responsive-table thead,
+  table.responsive-table tbody,
+  table.responsive-table th,
+  table.responsive-table td,
+  table.responsive-table tr { display: block !important; width: 100% !important; }
+  table.responsive-table { width: 100% !important; }
+  table.responsive-table thead { position: absolute !important; top: -9999px !important; left: -9999px !important; height: 0 !important; overflow: hidden !important; }
+  table.responsive-table tr {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+  }
+  table.responsive-table td {
+    border: none;
+    border-bottom: 1px solid #f1f3f5;
+    padding: 8px 10px;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    white-space: normal;
+    word-break: break-word;
+  }
+  table.responsive-table td:last-child { border-bottom: none; }
+  table.responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6c757d;
+  }
+  table.responsive-table .img-thumbnail { width: 44px; height: 44px; object-fit: cover; }
+  table.responsive-table .text-nowrap { white-space: normal !important; }
+  table.responsive-table .btn-group { display: flex; gap: 8px; }
+}
+
+/* Compact non-stacked table style and fixed column widths for the products table */
+@media (max-width: 992px) {
+  table.table-compact.products-table {
+    table-layout: fixed;
+    width: 100%;
+    font-size: 11px;
+  }
+  table.table-compact.products-table th:nth-child(1),
+  table.table-compact.products-table td:nth-child(1) { width: 3%; }
+  table.table-compact.products-table th:nth-child(2),
+  table.table-compact.products-table td:nth-child(2) { width: 6%; }
+  table.table-compact.products-table th:nth-child(3),
+  table.table-compact.products-table td:nth-child(3) { width: 10%; }
+  table.table-compact.products-table th:nth-child(4),
+  table.table-compact.products-table td:nth-child(4) { width: 7%; }
+  table.table-compact.products-table th:nth-child(5),
+  table.table-compact.products-table td:nth-child(5) { width: 7%; }
+  table.table-compact.products-table th:nth-child(6),
+  table.table-compact.products-table td:nth-child(6) { width: 9%; }
+  table.table-compact.products-table th:nth-child(7),
+  table.table-compact.products-table td:nth-child(7) { width: 7%; }
+  table.table-compact.products-table th:nth-child(8),
+  table.table-compact.products-table td:nth-child(8) { width: 7%; }
+  table.table-compact.products-table th:nth-child(9),
+  table.table-compact.products-table td:nth-child(9) { width: 7%; }
+  table.table-compact.products-table th:nth-child(10),
+  table.table-compact.products-table td:nth-child(10) { width: 6%; }
+  table.table-compact.products-table th:nth-child(11),
+  table.table-compact.products-table td:nth-child(11) { width: 7%; }
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(12) { width: 5%; }
+  table.table-compact.products-table th:nth-child(13),
+  table.table-compact.products-table td:nth-child(13) { width: 7%; }
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(14) { width: 6%; }
+  table.table-compact.products-table th:nth-child(15),
+  table.table-compact.products-table td:nth-child(15) { width: 6%; }
+}
+
+/* Force stacked layout on tablet and below (<= 992px) */
+@media (max-width: 992px) {
+  table.force-stacked,
+  table.force-stacked thead,
+  table.force-stacked tbody,
+  table.force-stacked th,
+  table.force-stacked td,
+  table.force-stacked tr { display: block !important; width: 100% !important; }
+  table.force-stacked { width: 100% !important; }
+  table.force-stacked thead { position: absolute !important; top: -9999px !important; left: -9999px !important; height: 0 !important; overflow: hidden !important; }
+  table.force-stacked tr {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+  }
+  table.force-stacked td {
+    border: none;
+    border-bottom: 1px solid #f1f3f5;
+    padding: 8px 10px;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    white-space: normal;
+    word-break: break-word;
+  }
+  table.force-stacked td:last-child { border-bottom: none; }
+  table.force-stacked td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6c757d;
+  }
+  table.force-stacked .img-thumbnail { width: 44px; height: 44px; object-fit: cover; }
+  table.force-stacked .text-nowrap { white-space: normal !important; }
+  table.force-stacked .btn-group { display: flex; gap: 8px; }
 }

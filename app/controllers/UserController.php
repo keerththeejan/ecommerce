@@ -88,6 +88,66 @@ class UserController extends Controller {
             $this->view('customer/user/register', $data);
         }
     }
+
+    /**
+     * Admin: Approve a user (sets status to accepted and role to customer)
+     * Route: ?controller=user&action=adminApprove&id=123
+     */
+    public function adminApprove() {
+        if (!isAdmin()) {
+            redirect('user/login');
+        }
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            flash('user_error', 'Invalid user ID', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+        if ($id == ($_SESSION['user_id'] ?? 0)) {
+            flash('user_error', 'You cannot approve your own account', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+        $user = $this->userModel->getById($id);
+        if (!$user) {
+            flash('user_error', 'User not found', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+        if ($this->userModel->approveUser($id)) {
+            flash('user_success', 'User approved successfully');
+        } else {
+            flash('user_error', 'Failed to approve user: ' . $this->userModel->getLastError(), 'alert alert-danger');
+        }
+        redirect('?controller=user&action=adminIndex');
+    }
+
+    /**
+     * Admin: Reject a user (sets status to rejected)
+     * Route: ?controller=user&action=adminReject&id=123
+     */
+    public function adminReject() {
+        if (!isAdmin()) {
+            redirect('user/login');
+        }
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            flash('user_error', 'Invalid user ID', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+        if ($id == ($_SESSION['user_id'] ?? 0)) {
+            flash('user_error', 'You cannot reject your own account', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+        $user = $this->userModel->getById($id);
+        if (!$user) {
+            flash('user_error', 'User not found', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+        if ($this->userModel->rejectUser($id)) {
+            flash('user_success', 'User rejected successfully');
+        } else {
+            flash('user_error', 'Failed to reject user: ' . $this->userModel->getLastError(), 'alert alert-danger');
+        }
+        redirect('?controller=user&action=adminIndex');
+    }
     
     /**
      * Login user
@@ -665,12 +725,18 @@ class UserController extends Controller {
             } else {
                 flash('user_error', 'Failed to delete user: ' . $this->userModel->getLastError(), 'alert alert-danger');
             }
-            
-            redirect('user/adminIndex');
+            // Determine where to return after delete
+            $return = isset($_GET['return']) ? strtolower(trim($_GET['return'])) : '';
+            if ($return === 'customers') {
+                redirect('?controller=user&action=customers');
+            } else {
+                redirect('?controller=user&action=adminIndex');
+            }
         } else {
             // Load view
             $this->view('admin/users/delete', [
-                'user' => $user
+                'user' => $user,
+                'return' => isset($_GET['return']) ? $_GET['return'] : ''
             ]);
         }
     }
@@ -696,6 +762,96 @@ class UserController extends Controller {
         $this->view('admin/users/active', [
             'activeUsers' => $activeUsers,
             'error' => $error
+        ]);
+    }
+
+    /**
+     * Admin: Reset a user's password
+     * Route: ?controller=user&action=adminResetPassword&id=123[&return=customers]
+     */
+    public function adminResetPassword() {
+        if(!isAdmin()) {
+            redirect('user/login');
+        }
+
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $return = isset($_GET['return']) ? trim($_GET['return']) : '';
+        if ($id <= 0) {
+            flash('user_error', 'Invalid user ID', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+
+        $user = $this->userModel->getById($id);
+        if (!$user) {
+            flash('user_error', 'User not found', 'alert alert-danger');
+            redirect('?controller=user&action=adminIndex');
+        }
+
+        if ($this->isPost()) {
+            $password = isset($_POST['password']) ? (string)$_POST['password'] : '';
+            $confirm  = isset($_POST['confirm_password']) ? (string)$_POST['confirm_password'] : '';
+
+            if (strlen($password) < 6) {
+                flash('user_error', 'Password must be at least 6 characters', 'alert alert-danger');
+                redirect('?controller=user&action=adminResetPassword&id=' . $id . ($return ? ('&return=' . urlencode($return)) : ''));
+            }
+            if ($password !== $confirm) {
+                flash('user_error', 'Passwords do not match', 'alert alert-danger');
+                redirect('?controller=user&action=adminResetPassword&id=' . $id . ($return ? ('&return=' . urlencode($return)) : ''));
+            }
+
+            if ($this->userModel->updatePassword($id, $password)) {
+                flash('user_success', 'Password reset successfully');
+                if (strtolower($return) === 'customers') {
+                    redirect('?controller=user&action=customers');
+                }
+                redirect('?controller=user&action=adminIndex');
+            } else {
+                flash('user_error', 'Failed to reset password: ' . $this->userModel->getLastError(), 'alert alert-danger');
+                redirect('?controller=user&action=adminResetPassword&id=' . $id . ($return ? ('&return=' . urlencode($return)) : ''));
+            }
+        }
+
+        $this->view('admin/users/reset_password', [
+            'user' => $user,
+            'return' => $return
+        ]);
+    }
+
+    /**
+     * Admin: List customers
+     * Route: ?controller=user&action=customers
+     */
+    public function customers() {
+        // Only admins can view
+        if (!isAdmin()) {
+            redirect('user/login');
+        }
+
+        // Fetch customers and basic stats
+        $customers = [];
+        $stats = [
+            'total_customers' => 0,
+            'new_customers' => 0,
+            'active_customers' => 0,
+        ];
+        try {
+            if (method_exists($this->userModel, 'getCustomers')) {
+                $customers = $this->userModel->getCustomers();
+            } elseif (method_exists($this->userModel, 'getAllCustomers')) {
+                $customers = $this->userModel->getAllCustomers();
+            }
+            if (method_exists($this->userModel, 'getCustomerStatistics')) {
+                $stats = $this->userModel->getCustomerStatistics();
+            }
+        } catch (Exception $e) {
+            // Log but don't interrupt UI
+            error_log('Error loading customers: ' . $e->getMessage());
+        }
+
+        $this->view('admin/users/customers', [
+            'customers' => $customers,
+            'stats' => $stats,
         ]);
     }
 

@@ -88,7 +88,7 @@ require_once APP_PATH . 'models/Supplier.php';
         </div>
         
         <div class="col-md-3 mb-4">
-            <div class="card bg-warning text-white h-100">
+            <div class="card bg-warning text-white h-100" id="customersOpenSidebarCard" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -104,7 +104,7 @@ require_once APP_PATH . 'models/Supplier.php';
                     </div>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a href="<?php echo BASE_URL; ?>?controller=user&action=adminIndex" class="text-white">View Details</a>
+                    <a href="#" class="text-white" id="openCustomersSidebarLink">Customers</a>
                     <i class="fas fa-angle-right text-white"></i>
                 </div>
             </div>
@@ -587,6 +587,31 @@ require_once APP_PATH . 'models/Supplier.php';
             });
         <?php endif; ?>
     });
+</script>
+
+<script>
+    // Make the Customers card open the sidebar Customers section
+    document.addEventListener('DOMContentLoaded', function(){
+        var BASE_URL = '<?php echo BASE_URL; ?>';
+        function openCustomers(e){
+            if (e) e.preventDefault();
+            if (window.openCustomersSidebar) {
+                window.openCustomersSidebar();
+            } else if (window.openSidebar) {
+                try { window.openSidebar(); } catch(_) {}
+                if (window.highlightSidebarCustomers) {
+                    try { window.highlightSidebarCustomers(); } catch(_) {}
+                }
+            } else {
+                window.location.href = BASE_URL + '?controller=user&action=customers';
+            }
+        }
+        var card = document.getElementById('customersOpenSidebarCard');
+        var link = document.getElementById('openCustomersSidebarLink');
+        if (card) card.addEventListener('click', openCustomers);
+        if (link) link.addEventListener('click', openCustomers);
+    });
+
 </script>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>
