@@ -234,16 +234,27 @@ class ProductController extends Controller {
      * Display products on sale
      */
     public function sale() {
-        // Get products on sale
-        $products = $this->productModel->getProductsOnSale();
-        
+        // Get products on sale (paginated structure)
+        $result = $this->productModel->getProductsOnSale();
+
+        // Extract the actual rows and normalize each row to an associative array
+        $rows = [];
+        if (is_array($result)) {
+            $data = $result['data'] ?? [];
+            if (is_array($data)) {
+                foreach ($data as $row) {
+                    $rows[] = is_object($row) ? (array)$row : (array)$row;
+                }
+            }
+        }
+
         // Get categories for sidebar
         $categories = $this->categoryModel->getActiveCategories();
-        
-        // Load view
+
+        // Load view with normalized rows only to match the view's expectations
         $this->view('customer/products/sale', [
-            'products' => $products,
-            'categories' => $categories
+            'products' => $rows,
+            'categories' => $categories,
         ]);
     }
     

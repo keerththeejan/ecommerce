@@ -8,6 +8,8 @@ class InvoiceController extends Controller {
     private $orderModel;
     
     public function __construct() {
+        // Initialize base controller (DB connection, etc.)
+        parent::__construct();
         $this->invoiceModel = $this->model('Invoice');
         $this->orderModel = $this->model('Order');
     }

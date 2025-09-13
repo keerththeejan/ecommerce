@@ -64,10 +64,13 @@
                             <form action="<?php echo URLROOT; ?>/paymentdue/updateStatus/<?php echo $data['purchase']->id; ?>" method="post">
                                 <div class="mb-3">
                                     <label for="amount" class="form-label">Amount to Pay</label>
-                                    <input type="number" class="form-control" id="amount" name="amount" 
+                                    <input type="number" class="form-control mb-2" id="amount" name="amount" 
                                            step="0.01" min="0.01" max="<?php echo $data['purchase']->due_amount; ?>" 
                                            value="<?php echo $data['purchase']->due_amount; ?>" required>
-                                    <div class="form-text">Due Amount: <?php echo formatPrice($data['purchase']->due_amount); ?></div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="form-text">Due Amount:</div>
+                                        <div class="form-text fw-bold due-amount-display"><?php echo formatPrice($data['purchase']->due_amount); ?></div>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="payment_method" class="form-label">Payment Method</label>
@@ -151,20 +154,79 @@
 
 <script>
 $(document).ready(function() {
-    // Update payment status based on amount
-    $('#amount').on('change', function() {
-        const amount = parseFloat($(this).val()) || 0;
-        const dueAmount = parseFloat('<?php echo $data['purchase']->due_amount; ?>');
+    // Get initial values from PHP
+    const totalAmount = parseFloat('<?php echo $data['purchase']->total_amount; ?>');
+    const paidAmount = parseFloat('<?php echo $data['purchase']->paid_amount; ?>');
+    const currentDue = parseFloat('<?php echo $data['purchase']->due_amount; ?>');
+    
+    console.log('Initial values - Total:', totalAmount, 'Paid:', paidAmount, 'Due:', currentDue);
+    
+    // Format price function
+    function formatPrice(amount) {
+        return 'Rs. ' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
+    
+    // Function to calculate and update the due amount
+    function updateDueAmount() {
+        const amountPaidNow = parseFloat($('#amount').val()) || 0;
+        const newDue = currentDue - amountPaidNow;
         
-        if (amount >= dueAmount) {
+        console.log('Updating - Amount Paid Now:', amountPaidNow, 'New Due:', newDue);
+        
+        // Update the due amount display
+        $('.due-amount-display').text(formatPrice(Math.max(0, newDue)));
+        
+        // Update payment status
+        if (newDue <= 0) {
             $('#payment_status').val('paid');
-            $(this).val(dueAmount);
-        } else if (amount > 0) {
+            $('#amount').val(currentDue.toFixed(2));
+            $('.due-amount-display').text('Rs. 0.00');
+        } else if (amountPaidNow > 0) {
             $('#payment_status').val('partial');
         } else {
             $('#payment_status').val('unpaid');
         }
+    }
+    
+    // Initialize the form
+    function initializeForm() {
+        // Set initial max value
+        $('#amount').attr('max', currentDue);
+        
+        // Set initial due amount display
+        $('.due-amount-display').text(formatPrice(currentDue));
+        
+        // Set initial payment status
+        if (currentDue <= 0) {
+            $('#payment_status').val('paid');
+        } else if (paidAmount > 0) {
+            $('#payment_status').val('partial');
+        } else {
+            $('#payment_status').val('unpaid');
+        }
+    }
+    
+    // Initialize the form
+    initializeForm();
+    
+    // Update on amount change
+    $('#amount').on('input', function() {
+        updateDueAmount();
     });
+    
+    // Prevent form submission if amount is invalid
+    $('form').on('submit', function(e) {
+        const amount = parseFloat($('#amount').val()) || 0;
+        if (amount <= 0 || amount > currentDue) {
+            e.preventDefault();
+            alert('Please enter a valid amount between 0.01 and ' + currentDue.toFixed(2));
+            return false;
+        }
+        return true;
+    });
+    
+    // Debugging
+    console.log('Form initialized');
 });
 </script>
 

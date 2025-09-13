@@ -2,8 +2,8 @@
 // Set page title
 $pageTitle = 'Quick Order';
 
-// Include header
-require_once APPROOT . '/app/views/includes/header.php';
+// Include customer layout header (consistent with other customer views)
+require_once APP_PATH . 'views/customer/layouts/header.php';
 ?>
 
 <div class="container mt-5">
@@ -17,15 +17,20 @@ require_once APPROOT . '/app/views/includes/header.php';
                     <?php flash('login_required'); ?>
                     <?php flash('order_success'); ?>
                     
-                    <form action="<?php echo URLROOT; ?>/order/speed" method="post">
+                    <form action="<?php echo BASE_URL; ?>?controller=order&action=speed" method="post">
                         <?php if (isAdmin()): ?>
                         <div class="mb-3">
                             <label for="customer_id" class="form-label">Customer</label>
                             <select name="customer_id" class="form-select <?php echo (!empty($data['customer_id_error'])) ? 'is-invalid' : ''; ?>">
                                 <option value="">Select Customer</option>
                                 <?php foreach ($data['customers'] as $customer): ?>
-                                    <option value="<?php echo $customer->id; ?>" <?php echo ($data['customer_id'] == $customer->id) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($customer->first_name . ' ' . $customer->last_name); ?>
+                                    <?php 
+                                        $cust = is_array($customer) ? $customer : (array)$customer;
+                                        $custId = $cust['id'] ?? '';
+                                        $custName = trim(($cust['first_name'] ?? '') . ' ' . ($cust['last_name'] ?? ''));
+                                    ?>
+                                    <option value="<?php echo htmlspecialchars($custId); ?>" <?php echo ($data['customer_id'] == $custId) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($custName ?: ('Customer #' . $custId)); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -54,8 +59,15 @@ require_once APPROOT . '/app/views/includes/header.php';
                                 <select name="shipping_id" class="form-select <?php echo (!empty($data['shipping_id_error'])) ? 'is-invalid' : ''; ?>">
                                     <option value="">Select Shipping Method</option>
                                     <?php foreach ($data['shipping_methods'] as $method): ?>
-                                        <option value="<?php echo $method->id; ?>" <?php echo (isset($_POST['shipping_id']) && $_POST['shipping_id'] == $method->id) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($method->name . ' - $' . number_format($method->base_price, 2)); ?>
+                                        <?php 
+                                            $m = is_array($method) ? $method : (array)$method;
+                                            $mid = $m['id'] ?? '';
+                                            $mname = $m['name'] ?? 'Method';
+                                            $mprice = isset($m['base_price']) ? (float)$m['base_price'] : 0;
+                                            $selected = (isset($_POST['shipping_id']) && $_POST['shipping_id'] == $mid) ? 'selected' : '';
+                                        ?>
+                                        <option value="<?php echo htmlspecialchars($mid); ?>" <?php echo $selected; ?>>
+                                            <?php echo htmlspecialchars($mname . ' - $' . number_format($mprice, 2)); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -99,6 +111,6 @@ require_once APPROOT . '/app/views/includes/header.php';
 </div>
 
 <?php 
-// Include footer
-require_once APPROOT . '/app/views/includes/footer.php'; 
+// Include customer layout footer
+require_once APP_PATH . 'views/customer/layouts/footer.php'; 
 ?>

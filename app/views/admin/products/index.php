@@ -165,22 +165,15 @@
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
                                             </td>
-<<<<<<< HEAD
                                             <td data-label="Stock">
-                                                <span class="badge bg-<?php echo ($product['stock_quantity'] > 0) ? 'success' : 'danger'; ?>">
-                                                    <?php echo $product['stock_quantity']; ?>
-                                                </span>
-=======
-                                            <td>
                                                 <?php $qty = (float)($product['stock_quantity'] ?? 0); ?>
                                                 <?php if ($qty <= 0): ?>
-                                                    <span class="badge bg-info">Return</span>
+                                                    <span class="badge bg-info">Out of Stock</span>
                                                 <?php else: ?>
                                                     <span class="badge bg-<?php echo ($qty <= 5) ? 'warning text-dark' : 'success'; ?>">
                                                         <?php echo $product['stock_quantity']; ?>
                                                     </span>
                                                 <?php endif; ?>
->>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
                                             </td>
                                             <td class="text-nowrap" data-label="Stock Value">
                                                 <?php 
@@ -193,20 +186,14 @@
                                                     <?php echo ucfirst($product['status']); ?>
                                                 </span>
                                             </td>
-<<<<<<< HEAD
                                             <td data-label="Actions">
-=======
-                                            <td>
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-info btn-history"
-                                                        data-product-id="<?php echo $product['id']; ?>"
-                                                        data-product-name="<?php echo htmlspecialchars($product['name']); ?>">
-                                                    <i class="fas fa-history"></i> History
-                                                </button>
-                                            </td>
-                                            <td>
->>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
                                                 <div class="btn-group" role="group">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-info btn-history me-1"
+                                                            data-product-id="<?php echo $product['id']; ?>"
+                                                            data-product-name="<?php echo htmlspecialchars($product['name']); ?>">
+                                                        <i class="fas fa-history"></i>
+                                                    </button>
                                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" 
                                                        class="btn btn-sm btn-primary" 
                                                        title="Edit">

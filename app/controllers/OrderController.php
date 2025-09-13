@@ -12,6 +12,8 @@ class OrderController extends Controller {
     private $addressModel;
     
     public function __construct() {
+        // Ensure base controller initializes the shared DB connection
+        parent::__construct();
         $this->orderModel = $this->model('Order');
         $this->cartModel = $this->model('Cart');
         $this->productModel = $this->model('Product');
@@ -527,22 +529,28 @@ class OrderController extends Controller {
      * Display order templates
      */
     public function templates() {
-        // Check if admin
-        if(!isAdmin()) {
+        // Allow both admins and logged-in customers
+        if (!isAdmin() && !isLoggedIn()) {
             redirect('user/login');
             return;
         }
-        
-        // For now, we'll use sample data
-        // In a real application, you would fetch templates from the database
-        $templates = [
-            ['id' => 1, 'name' => 'Standard Order', 'description' => 'Standard order template', 'created_at' => '2023-01-01'],
-            ['id' => 2, 'name' => 'Bulk Order', 'description' => 'Template for bulk orders', 'created_at' => '2023-01-15']
-        ];
-        
-        // Load view
-        $this->view('admin/orders/templates', [
-            'templates' => $templates
+
+        if (isAdmin()) {
+            // Admin: show existing admin templates page (sample data for now)
+            $templates = [
+                ['id' => 1, 'name' => 'Standard Order', 'description' => 'Standard order template', 'created_at' => '2023-01-01'],
+                ['id' => 2, 'name' => 'Bulk Order', 'description' => 'Template for bulk orders', 'created_at' => '2023-01-15']
+            ];
+            $this->view('admin/orders/templates', [
+                'templates' => $templates
+            ]);
+            return;
+        }
+
+        // Customer: derive simple templates list from their past orders for quick reorder
+        $orders = $this->orderModel->getOrdersByUser($_SESSION['user_id']);
+        $this->view('customer/orders/templates', [
+            'orders' => $orders
         ]);
     }
     
@@ -604,16 +612,13 @@ class OrderController extends Controller {
         
         // Check for POST
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Sanitize POST data
-            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-            
-            // Initialize product data
+            // Gather and sanitize POST data without deprecated filters (PHP 8+)
             $productData = [
-                'product_sku' => trim($_POST['product_sku']),
-                'quantity' => trim($_POST['quantity']),
-                'customer_id' => isset($_POST['customer_id']) ? trim($_POST['customer_id']) : $_SESSION['user_id'],
-                'shipping_id' => trim($_POST['shipping_id']),
-                'payment_method' => trim($_POST['payment_method'])
+                'product_sku' => sanitize($this->post('product_sku') ?? ''),
+                'quantity' => (int)($this->post('quantity') ?? 1),
+                'customer_id' => isAdmin() ? (int)($this->post('customer_id') ?? 0) : (int)($_SESSION['user_id'] ?? 0),
+                'shipping_id' => (int)($this->post('shipping_id') ?? 0),
+                'payment_method' => sanitize($this->post('payment_method') ?? 'cod'),
             ];
             
             // Validate product SKU
@@ -624,8 +629,11 @@ class OrderController extends Controller {
                 $product = $this->productModel->getProductBySku($productData['product_sku']);
                 if (!$product) {
                     $data['product_sku_error'] = 'Product not found';
-                } elseif ($product->stock_quantity < $productData['quantity']) {
-                    $data['quantity_error'] = 'Insufficient stock';
+                } else {
+                    $available = is_object($product) ? ($product->stock_quantity ?? 0) : (is_array($product) ? ($product['stock_quantity'] ?? 0) : 0);
+                    if ((int)$available < (int)$productData['quantity']) {
+                        $data['quantity_error'] = 'Insufficient stock';
+                    }
                 }
             }
             
@@ -651,53 +659,73 @@ class OrderController extends Controller {
                 try {
                     // Get product details
                     $product = $this->productModel->getProductBySku($productData['product_sku']);
-                    
                     if (!$product) {
                         throw new Exception('Product not found');
                     }
-                    
+
+                    // Access helpers for array/object
+                    $getVal = function($src, $key) {
+                        if (is_array($src)) return $src[$key] ?? null;
+                        if (is_object($src)) return $src->$key ?? null;
+                        return null;
+                    };
+
+                    $productId = (int)$getVal($product, 'id');
+                    $productPrice = (float)($getVal($product, 'price') ?? 0);
+                    $productSalePrice = (float)($getVal($product, 'sale_price') ?? 0);
+                    $productStock = (int)($getVal($product, 'stock_quantity') ?? 0);
+
+                    // Use sale price if valid; otherwise regular price
+                    $unitPrice = ($productSalePrice > 0 && $productSalePrice < $productPrice) ? $productSalePrice : $productPrice;
+
                     // Get shipping method details
                     $shippingMethod = $this->shippingModel->getShippingMethodById($productData['shipping_id']);
                     if (!$shippingMethod) {
                         throw new Exception('Invalid shipping method');
                     }
-                    
-                    // Calculate total amount (product price * quantity + shipping cost)
-                    $subtotal = $product->price * $productData['quantity'];
-                    $shippingCost = $shippingMethod->base_price; // Simple flat rate for now
+                    $shippingBase = (float)$getVal($shippingMethod, 'base_price');
+
+                    // Validate stock
+                    $newStock = $productStock - (int)$productData['quantity'];
+                    if ($newStock < 0) {
+                        throw new Exception('Insufficient stock');
+                    }
+
+                    // Calculate total amount (unit price * quantity + shipping cost)
+                    $subtotal = $unitPrice * (int)$productData['quantity'];
+                    $shippingCost = $shippingBase; // Simple flat rate for now
                     $totalAmount = $subtotal + $shippingCost;
-                    
+
                     // Prepare order data
                     $orderData = [
-                        'user_id' => $productData['customer_id'],
-                        'shipping_id' => $productData['shipping_id'],
+                        'user_id' => (int)$productData['customer_id'],
+                        'shipping_id' => (int)$productData['shipping_id'],
                         'payment_method' => $productData['payment_method'],
                         'status' => 'pending',
                         'total_amount' => $totalAmount,
                         'items' => [
                             [
-                                'product_id' => $product->id,
-                                'quantity' => $productData['quantity'],
-                                'price' => $product->price
+                                'product_id' => $productId,
+                                'quantity' => (int)$productData['quantity'],
+                                'price' => $unitPrice,
                             ]
                         ]
                     ];
-                    
+
                     // Start transaction
                     $this->db->beginTransaction();
-                    
+
                     // Create order
                     $orderId = $this->orderModel->createOrder($orderData);
-                    
                     if (!$orderId) {
-                        throw new Exception('Failed to create order: ' . $this->orderModel->getError());
+                        throw new Exception('Failed to create order: ' . ($this->orderModel->getError() ?? ''));
                     }
-                    
-                    // Update product stock
-                    if (!$this->productModel->updateStock($product->id, -$productData['quantity'])) {
-                        throw new Exception('Failed to update product stock: ' . $this->productModel->getError());
+
+                    // Update product stock to new absolute value
+                    if (!$this->productModel->updateStock($productId, $newStock)) {
+                        throw new Exception('Failed to update product stock: ' . ($this->productModel->getError() ?? ''));
                     }
-                    
+
                     // Commit transaction
                     $this->db->endTransaction();
                     
@@ -729,11 +757,11 @@ class OrderController extends Controller {
                 }
             } else {
                 // Load view with errors
-                $this->view('orders/speed', $data);
+                $this->view('customer/orders/speed', $data);
             }
         } else {
             // Load view
-            $this->view('orders/speed', $data);
+            $this->view('customer/orders/speed', $data);
         }
     }
 }

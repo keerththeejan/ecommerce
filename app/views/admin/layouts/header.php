@@ -45,8 +45,101 @@ if (isset($_SESSION['user_id'])) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css">
     <style>
+        /* Base styles for light theme */
+        :root {
+            --text-color: #212529;
+            --bg-color: #ffffff;
+            --sidebar-bg: #212529;
+            --sidebar-text: #f8f9fa;
+        }
+        
+        /* Dark theme overrides */
+        [data-bs-theme="dark"],
+        [data-bs-theme="dark"] body {
+            --text-color: #f8f9fa;
+            --bg-color: #212529;
+            --sidebar-bg: #1a1e21;
+            --sidebar-text: #f8f9fa;
+            color: var(--text-color) !important;
+            background-color: var(--bg-color) !important;
+        }
+        
+        /* Apply theme colors */
+        body {
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Force text color in light mode */
+        :not([data-bs-theme="dark"]) .text-body,
+        :not([data-bs-theme="dark"]) .text-dark,
+        :not([data-bs-theme="dark"]) .table,
+        :not([data-bs-theme="dark"]) .table th,
+        :not([data-bs-theme="dark"]) .table td,
+        :not([data-bs-theme="dark"]) .card,
+        :not([data-bs-theme="dark"]) .card-header,
+        :not([data-bs-theme="dark"]) .card-body {
+            color: #212529 !important;
+        }
+        
+        /* Force text color in dark mode */
+        [data-bs-theme="dark"],
+        [data-bs-theme="dark"] body,
+        [data-bs-theme="dark"] .card,
+        [data-bs-theme="dark"] .card-header,
+        [data-bs-theme="dark"] .card-body,
+        [data-bs-theme="dark"] .table,
+        [data-bs-theme="dark"] .table th,
+        [data-bs-theme="dark"] .table td,
+        [data-bs-theme="dark"] .text-dark,
+        [data-bs-theme="dark"] .text-body,
+        [data-bs-theme="dark"] .text-muted,
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-label,
+        [data-bs-theme="dark"] .form-select,
+        [data-bs-theme="dark"] .dropdown-menu,
+        [data-bs-theme="dark"] .dropdown-item {
+            color: #f8f9fa !important;
+        }
+        
+        /* Force background colors in dark mode */
+        [data-bs-theme="dark"] .bg-white,
+        [data-bs-theme="dark"] .bg-light,
+        [data-bs-theme="dark"] .card,
+        [data-bs-theme="dark"] .card-header,
+        [data-bs-theme="dark"] .card-body,
+        [data-bs-theme="dark"] .table,
+        [data-bs-theme="dark"] .table th,
+        [data-bs-theme="dark"] .table td,
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-select,
+        [data-bs-theme="dark"] .dropdown-menu {
+            background-color: #2c3034 !important;
+            border-color: #495057 !important;
+        }
+        
+        /* Table specific styles for dark mode */
+        [data-bs-theme="dark"] .table {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+        }
+        
+        [data-bs-theme="dark"] .table > :not(:last-child) > :last-child > * {
+            border-bottom-color: #495057;
+        }
+        
+        /* Sidebar theming */
+        #sidebar {
+            background-color: var(--sidebar-bg);
+        }
+        
         /* Ensure last items in sidebar are reachable */
-        #sidebar .position-sticky { padding-bottom: 80px; box-sizing: border-box; }
+        #sidebar .position-sticky { 
+            padding-bottom: 80px; 
+            box-sizing: border-box; 
+        }
 
         /* Scrollbar styling - Sidebar and Main */
         /* Firefox */
@@ -370,6 +463,11 @@ if (isset($_SESSION['user_id'])) {
                         <h1 class="h2 mb-0">Admin Dashboard</h1>
                     </div>
                     <div class="btn-toolbar mb-2 mb-md-0">
+                        <!-- Dark/Light Mode Toggle -->
+                        <button class="btn btn-sm btn-outline-secondary me-2" type="button" id="themeToggle">
+                            <i class="fas fa-moon me-1"></i> <span>Dark Mode</span>
+                        </button>
+                        
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user me-1"></i> <?php echo $_SESSION['user_name']; ?>
@@ -477,6 +575,76 @@ if (isset($_SESSION['user_id'])) {
                     };
                 </script>
                 <script>
+                    // Theme Toggle Functionality
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const themeToggle = document.getElementById('themeToggle');
+                        const icon = themeToggle.querySelector('i');
+                        const text = themeToggle.querySelector('span');
+                        
+                        // Check for saved user preference, if any
+                        let currentTheme = localStorage.getItem('theme') || 'light';
+                        
+                        // Apply the saved theme
+                        function applyTheme(theme) {
+                            if (theme === 'dark') {
+                                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                                document.body.style.color = '#f8f9fa';
+                                document.body.style.backgroundColor = '#212529';
+                                
+                                // Update all text colors
+                                document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, td, th, label, input, select, textarea').forEach(el => {
+                                    const style = getComputedStyle(el);
+                                    if (style.color === 'rgb(33, 37, 41)' || 
+                                        style.color === 'rgb(0, 0, 0)' ||
+                                        style.color === 'rgb(108, 117, 125)') {
+                                        el.style.color = '#f8f9fa';
+                                    }
+                                });
+                                
+                                icon.classList.remove('fa-moon');
+                                icon.classList.add('fa-sun');
+                                text.textContent = 'Light Mode';
+                            } else {
+                                document.documentElement.removeAttribute('data-bs-theme');
+                                document.body.style.color = '#212529';
+                                document.body.style.backgroundColor = '#ffffff';
+                                
+                                // Force black text in light mode
+                                document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, td, th, label, input, select, textarea, .text-body, .text-dark, .table, .table th, .table td, .card, .card-header, .card-body').forEach(el => {
+                                    el.style.color = '#212529';
+                                    if (el.classList.contains('text-muted')) {
+                                        el.style.color = '#6c757d';
+                                    }
+                                });
+                                
+                                icon.classList.remove('fa-sun');
+                                icon.classList.add('fa-moon');
+                                text.textContent = 'Dark Mode';
+                            }
+                            // Force update of all text colors
+                            document.querySelectorAll('body, body *').forEach(el => {
+                                if (theme === 'dark') {
+                                    if (getComputedStyle(el).color === 'rgb(33, 37, 41)') {
+                                        el.style.color = '#f8f9fa';
+                                    }
+                                    if (getComputedStyle(el).backgroundColor === 'rgb(255, 255, 255)') {
+                                        el.style.backgroundColor = '#2c3034';
+                                    }
+                                }
+                            });
+                        }
+                        
+                        // Apply the current theme
+                        applyTheme(currentTheme);
+                        
+                        // Toggle between light and dark theme
+                        themeToggle.addEventListener('click', function() {
+                            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                            localStorage.setItem('theme', currentTheme);
+                            applyTheme(currentTheme);
+                        });
+                    });
+                    
                     // Preserve sidebar scroll position across page loads
                     (function() {
                         const KEY = 'admin_sidebar_scrollTop_v1';

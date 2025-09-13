@@ -15,8 +15,6 @@ class Purchase {
         } else {
             $this->db = new Database();
         }
-
-<<<<<<< HEAD
         // Fallback to singular table names if plural tables are missing
         try {
             if (method_exists($this->db, 'tableExists')) {
@@ -33,7 +31,6 @@ class Purchase {
         } catch (Exception $e) {
             // ignore
         }
-=======
     }
 
     /**
@@ -58,7 +55,6 @@ class Purchase {
         if (is_array($row)) return (int)($row['id'] ?? 0);
         if (is_object($row)) return (int)($row->id ?? 0);
         return 0;
->>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
     }
 
     private function getTableColumns($tableName) {
@@ -564,7 +560,6 @@ class Purchase {
         return $this->db->resultSet();
     }
 
-<<<<<<< HEAD
     // ---------- Payment Due utilities required by PaymentDueController ----------
     /**
      * Returns purchases with outstanding due amounts. Optional $search filters by supplier name or purchase_no.
@@ -685,7 +680,8 @@ class Purchase {
         $this->db->bind(':start', $startDate);
         $this->db->bind(':end', $endDate);
         return $this->db->resultSet();
-=======
+    }
+
     /**
      * Get the quantity from the most recent purchase entry for a product.
      * Prefers purchases with status 'received' when the status column exists.
@@ -720,6 +716,5 @@ class Purchase {
             // Swallow and return 0 on any error
             return 0.0;
         }
->>>>>>> 71d7102bec8e1db790abcdc804a8841627571e60
     }
 }
