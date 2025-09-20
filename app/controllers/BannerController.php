@@ -11,7 +11,8 @@ class BannerController {
     // Default action to display all banners
     public function index() {
         $banners = $this->bannerModel->getAll();
-        require_once __DIR__ . '/../views/banner/index.php';
+        // Load the admin view so the Admin Dashboard layout (sidebar) is shown
+        require_once __DIR__ . '/../views/admin/banners/index.php';
     }
 
     // Handle banner creation
@@ -53,7 +54,8 @@ class BannerController {
                 exit;
             }
         }
-        require_once __DIR__ . '/../views/banner/create.php';
+        // Show admin create form with Admin Dashboard layout
+        require_once __DIR__ . '/../views/admin/banners/create.php';
     }
 
     // Handle banner edit display

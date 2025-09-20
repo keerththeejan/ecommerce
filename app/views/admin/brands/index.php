@@ -49,7 +49,7 @@
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle responsive-table">
                         <thead>
                             <tr>
                                 <th style="width: 80px;">ID</th>
@@ -64,8 +64,8 @@
                         <tbody>
                             <?php foreach($brands['data'] as $brand): ?>
                                 <tr>
-                                    <td><?php echo $brand['id']; ?></td>
-                                    <td class="align-middle">
+                                    <td data-label="ID"><?php echo $brand['id']; ?></td>
+                                    <td class="align-middle" data-label="Logo">
                                         <div class="brand-logo-container" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                             <?php 
                                             $logoUrl = !empty($brand['logo']) ? $brand['logo'] : '';
@@ -78,17 +78,17 @@
                                                  onerror="this.onerror=null; this.src='<?php echo $defaultLogo; ?>';">
                                         </div>
                                     </td>
-                                    <td><?php echo $brand['name']; ?></td>
-                                    <td><?php echo $brand['slug']; ?></td>
-                                    <td>
+                                    <td data-label="Name"><?php echo $brand['name']; ?></td>
+                                    <td data-label="Slug"><?php echo $brand['slug']; ?></td>
+                                    <td data-label="Status">
                                         <?php if($brand['status'] == 'active'): ?>
                                             <span class="badge bg-success">Active</span>
                                         <?php else: ?>
                                             <span class="badge bg-secondary">Inactive</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?php echo date('M d, Y', strtotime($brand['created_at'])); ?></td>
-                                    <td>
+                                    <td data-label="Created"><?php echo date('M d, Y', strtotime($brand['created_at'])); ?></td>
+                                    <td data-label="Actions">
                                         <div class="btn-group">
                                             <a href="<?php echo BASE_URL; ?>?controller=brand&action=edit&id=<?php echo $brand['id']; ?>" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-edit"></i> Edit

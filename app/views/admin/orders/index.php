@@ -60,8 +60,39 @@
                     <?php if(empty($orders['data'])): ?>
                         <div class="alert alert-info">No orders found.</div>
                     <?php else: ?>
+                        <style>
+                        /* Mobile-first responsive table styling */
+                        @media (max-width: 576.98px) {
+                            table.responsive-table thead { display: none; }
+                            table.responsive-table,
+                            table.responsive-table tbody,
+                            table.responsive-table tr,
+                            table.responsive-table td { display: block; width: 100%; }
+                            table.responsive-table tr {
+                                margin-bottom: 1rem;
+                                border: 1px solid rgba(0,0,0,.075);
+                                border-radius: .5rem;
+                                overflow: hidden;
+                                background: var(--bg-color, #fff);
+                            }
+                            table.responsive-table td {
+                                padding: .5rem .75rem;
+                                border: none;
+                                border-bottom: 1px solid rgba(0,0,0,.05);
+                            }
+                            table.responsive-table td:last-child { border-bottom: 0; }
+                            table.responsive-table td::before {
+                                content: attr(data-label);
+                                font-weight: 600;
+                                display: block;
+                                margin-bottom: .25rem;
+                                opacity: .8;
+                            }
+                            .order-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+                        }
+                        </style>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover">
+                            <table class="table table-striped table-hover responsive-table">
                                 <thead>
                                     <tr>
                                         <th>Order ID</th>
@@ -76,11 +107,11 @@
                                 <tbody>
                                     <?php foreach($orders['data'] as $order): ?>
                                         <tr>
-                                            <td>#<?php echo $order['id']; ?></td>
-                                            <td><?php echo $order['first_name'] . ' ' . $order['last_name']; ?></td>
-                                            <td><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></td>
-                                            <td><?php echo formatPrice($order['total_amount']); ?></td>
-                                            <td>
+                                            <td data-label="Order ID">#<?php echo $order['id']; ?></td>
+                                            <td data-label="Customer"><?php echo $order['first_name'] . ' ' . $order['last_name']; ?></td>
+                                            <td data-label="Date"><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></td>
+                                            <td data-label="Total"><?php echo formatPrice($order['total_amount']); ?></td>
+                                            <td data-label="Status">
                                                 <?php
                                                 $statusClass = '';
                                                 switch($order['status']) {
@@ -103,7 +134,7 @@
                                                 ?>
                                                 <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($order['status']); ?></span>
                                             </td>
-                                            <td>
+                                            <td data-label="Payment">
                                                 <?php
                                                 $paymentClass = '';
                                                 switch($order['payment_status']) {
@@ -123,19 +154,21 @@
                                                 ?>
                                                 <span class="badge <?php echo $paymentClass; ?>"><?php echo ucfirst($order['payment_status']); ?></span>
                                             </td>
-                                            <td>
-                                                <a href="<?php echo BASE_URL; ?>?controller=order&action=adminShow&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-primary" title="View Order">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="<?php echo BASE_URL; ?>?controller=order&action=updateStatus&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-secondary" title="Update Status">
-                                                    <i class="fas fa-sync-alt"></i>
-                                                </a>
-                                                <a href="<?php echo BASE_URL; ?>?controller=order&action=updatePaymentStatus&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info" title="Update Payment">
-                                                    <i class="fas fa-credit-card"></i>
-                                                </a>
-                                                <a href="<?php echo BASE_URL; ?>?controller=order&action=delete&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-danger delete-order" title="Delete Order" data-id="<?php echo $order['id']; ?>">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </a>
+                                            <td data-label="Actions">
+                                                <div class="order-actions">
+                                                    <a href="<?php echo BASE_URL; ?>?controller=order&action=adminShow&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-primary" title="View Order">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="<?php echo BASE_URL; ?>?controller=order&action=updateStatus&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-secondary" title="Update Status">
+                                                        <i class="fas fa-sync-alt"></i>
+                                                    </a>
+                                                    <a href="<?php echo BASE_URL; ?>?controller=order&action=updatePaymentStatus&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info" title="Update Payment">
+                                                        <i class="fas fa-credit-card"></i>
+                                                    </a>
+                                                    <a href="<?php echo BASE_URL; ?>?controller=order&action=delete&id=<?php echo $order['id']; ?>" class="btn btn-sm btn-danger delete-order" title="Delete Order" data-id="<?php echo $order['id']; ?>">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

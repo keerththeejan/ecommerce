@@ -50,7 +50,38 @@
                 <div class="card-header">Subscribers</div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-striped mb-0 align-middle">
+                        <style>
+                        /* Mobile-first responsive table styling */
+                        @media (max-width: 576.98px) {
+                            table.responsive-table thead { display: none; }
+                            table.responsive-table,
+                            table.responsive-table tbody,
+                            table.responsive-table tr,
+                            table.responsive-table td { display: block; width: 100%; }
+                            table.responsive-table tr {
+                                margin-bottom: 1rem;
+                                border: 1px solid rgba(0,0,0,.075);
+                                border-radius: .5rem;
+                                overflow: hidden;
+                                background: var(--bg-color, #fff);
+                            }
+                            table.responsive-table td {
+                                padding: .5rem .75rem;
+                                border: none;
+                                border-bottom: 1px solid rgba(0,0,0,.05);
+                            }
+                            table.responsive-table td:last-child { border-bottom: 0; }
+                            table.responsive-table td::before {
+                                content: attr(data-label);
+                                font-weight: 600;
+                                display: block;
+                                margin-bottom: .25rem;
+                                opacity: .8;
+                            }
+                            .newsletter-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+                        }
+                        </style>
+                        <table class="table table-striped mb-0 align-middle responsive-table">
                             <thead>
                                 <tr>
                                     <th style="width: 70px;">ID</th>
@@ -70,20 +101,22 @@
                                             $created = is_array($row) ? ($row['created_at'] ?? '') : ($row->created_at ?? '');
                                         ?>
                                         <tr>
-                                            <td><?php echo (int)$id; ?></td>
-                                            <td><?php echo htmlspecialchars($email); ?></td>
-                                            <td><?php echo htmlspecialchars($active); ?></td>
-                                            <td><?php echo htmlspecialchars($created); ?></td>
-                                            <td class="d-flex gap-2">
-                                                <a class="btn btn-sm btn-secondary" href="?controller=newsletter&action=adminEdit&id=<?php echo (int)$id; ?>">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                                <form action="?controller=newsletter&action=adminDelete" method="post" onsubmit="return confirm('Delete subscriber?');">
-                                                    <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
-                                                    <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                            <td data-label="ID"><?php echo (int)$id; ?></td>
+                                            <td data-label="Email"><?php echo htmlspecialchars($email); ?></td>
+                                            <td data-label="Active"><?php echo htmlspecialchars($active); ?></td>
+                                            <td data-label="Created"><?php echo htmlspecialchars($created); ?></td>
+                                            <td data-label="Actions">
+                                                <div class="newsletter-actions">
+                                                    <a class="btn btn-sm btn-secondary" href="?controller=newsletter&action=adminEdit&id=<?php echo (int)$id; ?>">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </a>
+                                                    <form action="?controller=newsletter&action=adminDelete" method="post" onsubmit="return confirm('Delete subscriber?');">
+                                                        <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

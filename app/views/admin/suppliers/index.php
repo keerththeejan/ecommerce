@@ -54,8 +54,40 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                     <?php flash('supplier_success'); ?>
                     <?php flash('supplier_error'); ?>
                     
+                    <style>
+                      /* Mobile responsive table for suppliers */
+                      @media (max-width: 576.98px) {
+                        table.responsive-table thead { display: none; }
+                        table.responsive-table,
+                        table.responsive-table tbody,
+                        table.responsive-table tr,
+                        table.responsive-table td { display: block; width: 100%; }
+                        table.responsive-table tr {
+                          margin-bottom: 1rem;
+                          border: 1px solid rgba(0,0,0,.075);
+                          border-radius: .5rem;
+                          overflow: hidden;
+                          background: var(--bg-color, #fff);
+                        }
+                        table.responsive-table td {
+                          padding: .5rem .75rem;
+                          border: none;
+                          border-bottom: 1px solid rgba(0,0,0,.05);
+                        }
+                        table.responsive-table td:last-child { border-bottom: 0; }
+                        table.responsive-table td::before {
+                          content: attr(data-label);
+                          font-weight: 600;
+                          display: block;
+                          margin-bottom: .25rem;
+                          opacity: .8;
+                        }
+                        .supplier-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+                      }
+                    </style>
+
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover responsive-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -70,13 +102,13 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                                 <?php if (!empty($data['suppliers'])): ?>
                                     <?php foreach ($data['suppliers'] as $supplier): ?>
                                         <tr style="cursor: pointer;" onclick="loadSupplierDetails('<?php echo BASE_URL; ?>?controller=supplier&action=details&id=<?php echo $supplier['id']; ?>')">
-                                            <td><?php echo $supplier['id']; ?></td>
-                                            <td><?php echo htmlspecialchars($supplier['name']); ?></td>
-                                            <td><?php echo !empty($supplier['product_name']) ? htmlspecialchars($supplier['product_name']) : '-'; ?></td>
-                                            <td><?php echo $supplier['email'] ? htmlspecialchars($supplier['email']) : '-'; ?></td>
-                                            <td><?php echo $supplier['phone'] ? htmlspecialchars($supplier['phone']) : '-'; ?></td>
-                                            <td class="text-nowrap">
-                                                <div class="btn-group btn-group-sm" role="group" aria-label="Supplier Actions" onclick="event.stopPropagation();">
+                                            <td data-label="ID"><?php echo $supplier['id']; ?></td>
+                                            <td data-label="Supplier Name"><?php echo htmlspecialchars($supplier['name']); ?></td>
+                                            <td data-label="Product Name"><?php echo !empty($supplier['product_name']) ? htmlspecialchars($supplier['product_name']) : '-'; ?></td>
+                                            <td data-label="Email"><?php echo $supplier['email'] ? htmlspecialchars($supplier['email']) : '-'; ?></td>
+                                            <td data-label="Phone"><?php echo $supplier['phone'] ? htmlspecialchars($supplier['phone']) : '-'; ?></td>
+                                            <td data-label="Actions">
+                                                <div class="btn-group btn-group-sm supplier-actions" role="group" aria-label="Supplier Actions" onclick="event.stopPropagation();">
                                                     <button type="button" 
                                                             class="btn btn-outline-primary edit-supplier" 
                                                             data-id="<?php echo $supplier['id']; ?>"

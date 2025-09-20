@@ -25,7 +25,7 @@
                         <div class="alert alert-info">No categories found.</div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover">
+                            <table class="table table-striped table-hover responsive-table">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -40,8 +40,8 @@
                                 <tbody id="categories-table-body">
                                     <?php foreach($categories['data'] as $category): ?>
                                         <tr id="category-row-<?php echo $category['id']; ?>">
-                                            <td><?php echo $category['id']; ?></td>
-                                            <td>
+                                            <td data-label="ID"><?php echo $category['id']; ?></td>
+                                            <td data-label="Image">
                                                 <?php 
                                                     $thumb = !empty($category['image']) 
                                                         ? (strpos($category['image'], 'uploads/') === 0 
@@ -51,29 +51,29 @@
                                                 ?>
                                                 <img src="<?php echo $thumb; ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" style="width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #dee2e6;">
                                             </td>
-                                            <td><?php echo htmlspecialchars($category['name']); ?></td>
-                                            <td>
+                                            <td data-label="Name"><?php echo htmlspecialchars($category['name']); ?></td>
+                                            <td data-label="Parent">
                                                 <?php if(!empty($category['parent_name'])): ?>
                                                     <?php echo htmlspecialchars($category['parent_name']); ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">None</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Tax Rate">
                                                 <?php if(!empty($category['tax_name'])): ?>
                                                     <?php echo htmlspecialchars($category['tax_name'] . ' (' . $category['tax_rate'] . '%)'); ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">Not set</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Status">
                                                 <?php if($category['status'] == 1): ?>
                                                     <span class="badge bg-success">Active</span>
                                                 <?php else: ?>
                                                     <span class="badge bg-secondary">Inactive</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Actions">
                                                 <a href="<?php echo BASE_URL; ?>?controller=category&action=edit&id=<?php echo $category['id']; ?>" class="btn btn-sm btn-primary">
                                                     <i class="fas fa-edit"></i> Edit
                                                 </a>

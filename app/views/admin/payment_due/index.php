@@ -32,6 +32,38 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
                     <?php flash('payment_message'); ?>
                     <?php flash('payment_error', null, 'alert alert-danger'); ?>
                     
+                    <style>
+                        /* Mobile-first responsive table styling */
+                        @media (max-width: 576.98px) {
+                            table.responsive-table thead { display: none; }
+                            table.responsive-table,
+                            table.responsive-table tbody,
+                            table.responsive-table tr,
+                            table.responsive-table td { display: block; width: 100%; }
+                            table.responsive-table tr {
+                                margin-bottom: 1rem;
+                                border: 1px solid rgba(0,0,0,.075);
+                                border-radius: .5rem;
+                                overflow: hidden;
+                                background: var(--bg-color, #fff);
+                            }
+                            table.responsive-table td {
+                                padding: .5rem .75rem;
+                                border: none;
+                                border-bottom: 1px solid rgba(0,0,0,.05);
+                            }
+                            table.responsive-table td:last-child { border-bottom: 0; }
+                            table.responsive-table td::before {
+                                content: attr(data-label);
+                                font-weight: 600;
+                                display: block;
+                                margin-bottom: .25rem;
+                                opacity: .8;
+                            }
+                            .payment-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+                        }
+                    </style>
+
                     <!-- Due Type Filter with Custom Styled Checkboxes -->
                     <div class="mb-4 p-3 border rounded-3" style="background-color: #f8f9fa; border-color: #e9ecef !important;">
                         <div class="d-flex flex-wrap align-items-center gap-4">
@@ -107,7 +139,7 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
                     </div>
                     
                     <div class="table-responsive" id="paymentDueTable">
-                        <table class="table table-striped table-hover" id="paymentDuesTable">
+                        <table class="table table-striped table-hover responsive-table" id="paymentDuesTable">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -125,14 +157,14 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
                                 <?php if (!empty($data['purchases'])): ?>
                                     <?php foreach ($data['purchases'] as $index => $purchase): ?>
                                         <tr>
-                                            <td><?php echo $index + 1; ?></td>
-                                            <td><?php echo $purchase->invoice_no; ?></td>
-                                            <td><?php echo $purchase->supplier_name; ?></td>
-                                            <td><?php echo date('d M Y', strtotime($purchase->purchase_date)); ?></td>
-                                            <td class="text-end"><?php echo formatPrice($purchase->total_amount); ?></td>
-                                            <td class="text-end"><?php echo formatPrice($purchase->paid_amount); ?></td>
-                                            <td class="text-end fw-bold"><?php echo formatPrice($purchase->due_amount); ?></td>
-                                            <td>
+                                            <td data-label="#"><?php echo $index + 1; ?></td>
+                                            <td data-label="Invoice No"><?php echo $purchase->invoice_no; ?></td>
+                                            <td data-label="Supplier"><?php echo $purchase->supplier_name; ?></td>
+                                            <td data-label="Purchase Date"><?php echo date('d M Y', strtotime($purchase->purchase_date)); ?></td>
+                                            <td data-label="Total Amount" class="text-end"><?php echo formatPrice($purchase->total_amount); ?></td>
+                                            <td data-label="Paid Amount" class="text-end"><?php echo formatPrice($purchase->paid_amount); ?></td>
+                                            <td data-label="Due Amount" class="text-end fw-bold"><?php echo formatPrice($purchase->due_amount); ?></td>
+                                            <td data-label="Status">
                                                 <span class="badge bg-<?php 
                                                     echo $purchase->payment_status === 'paid' ? 'success' : 
                                                         ($purchase->payment_status === 'partial' ? 'warning' : 'danger'); 
@@ -140,27 +172,29 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
                                                     <?php echo ucfirst($purchase->payment_status); ?>
                                                 </span>
                                             </td>
-                                            <td class="text-nowrap">
-                                                <a href="<?php echo URLROOT; ?>/paymentdue/view/<?php echo $purchase->id; ?>" 
-                                                   class="btn btn-sm btn-primary" 
-                                                   title="View Details">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <?php if ($purchase->due_amount > 0): ?>
-                                                    <button type="button" 
-                                                            class="btn btn-sm btn-success make-payment" 
-                                                            data-id="<?php echo $purchase->id; ?>"
-                                                            data-due="<?php echo $purchase->due_amount; ?>"
-                                                            title="Record Payment">
-                                                        <i class="fas fa-money-bill-wave"></i>
-                                                    </button>
-                                                    <a href="<?php echo URLROOT; ?>/paymentdue/clearDue/<?php echo $purchase->id; ?>" 
-                                                       class="btn btn-sm btn-warning clear-due" 
-                                                       title="Clear Due"
-                                                       onclick="return confirm('Are you sure you want to clear the full due amount of <?php echo number_format($purchase->due_amount, 2); ?>?')">
-                                                        <i class="fas fa-check-circle"></i> Clear Due
+                                            <td data-label="Actions" class="text-nowrap">
+                                                <div class="payment-actions">
+                                                    <a href="<?php echo URLROOT; ?>/paymentdue/view/<?php echo $purchase->id; ?>" 
+                                                       class="btn btn-sm btn-primary" 
+                                                       title="View Details">
+                                                        <i class="fas fa-eye"></i>
                                                     </a>
-                                                <?php endif; ?>
+                                                    <?php if ($purchase->due_amount > 0): ?>
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-success make-payment" 
+                                                                data-id="<?php echo $purchase->id; ?>"
+                                                                data-due="<?php echo $purchase->due_amount; ?>"
+                                                                title="Record Payment">
+                                                            <i class="fas fa-money-bill-wave"></i>
+                                                        </button>
+                                                        <a href="<?php echo URLROOT; ?>/paymentdue/clearDue/<?php echo $purchase->id; ?>" 
+                                                           class="btn btn-sm btn-warning clear-due" 
+                                                           title="Clear Due"
+                                                           onclick="return confirm('Are you sure you want to clear the full due amount of <?php echo number_format($purchase->due_amount, 2); ?>?')">
+                                                            <i class="fas fa-check-circle"></i> Clear Due
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -175,7 +209,7 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
 
                     <!-- Customer Dues Table -->
                     <div class="table-responsive" id="customerDueTableWrapper" style="display: none;">
-                        <table class="table table-striped table-hover" id="customerDuesTable">
+                        <table class="table table-striped table-hover responsive-table" id="customerDuesTable">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -195,47 +229,49 @@ require_once APPROOT . '/app/views/admin/layouts/header.php';
                                 <?php if (!empty($data['customer_dues'])): ?>
                                     <?php foreach ($data['customer_dues'] as $index => $cd): ?>
                                         <tr>
-                                            <td><?php echo $index + 1; ?></td>
-                                            <td><?php echo htmlspecialchars($cd->invoice_no ?? ($cd['invoice_no'] ?? '')); ?></td>
-                                            <td><?php echo htmlspecialchars($cd->customer_name ?? ($cd['customer_name'] ?? '')); ?></td>
-                                            <td><?php echo htmlspecialchars($cd->phone ?? ($cd['phone'] ?? '')); ?></td>
-                                            <td><?php 
+                                            <td data-label="#"><?php echo $index + 1; ?></td>
+                                            <td data-label="Invoice No"><?php echo htmlspecialchars($cd->invoice_no ?? ($cd['invoice_no'] ?? '')); ?></td>
+                                            <td data-label="Customer Name"><?php echo htmlspecialchars($cd->customer_name ?? ($cd['customer_name'] ?? '')); ?></td>
+                                            <td data-label="Phone No"><?php echo htmlspecialchars($cd->phone ?? ($cd['phone'] ?? '')); ?></td>
+                                            <td data-label="Purchase Date"><?php 
                                                 $pd = $cd->purchase_date ?? ($cd['purchase_date'] ?? '');
                                                 echo $pd ? date('d M Y', strtotime($pd)) : '';
                                             ?></td>
-                                            <td class="text-end"><?php 
+                                            <td data-label="Total" class="text-end"><?php 
                                                 $total = $cd->total_amount ?? ($cd['total_amount'] ?? 0);
                                                 echo function_exists('formatPrice') ? formatPrice($total) : number_format((float)$total, 2);
                                             ?></td>
-                                            <td class="text-end"><?php 
+                                            <td data-label="Amount Paid" class="text-end"><?php 
                                                 $paid = $cd->paid_amount ?? ($cd['paid_amount'] ?? 0);
                                                 echo function_exists('formatPrice') ? formatPrice($paid) : number_format((float)$paid, 2);
                                             ?></td>
-                                            <td class="text-end"><?php 
+                                            <td data-label="Amount" class="text-end"><?php 
                                                 $amount = $cd->amount ?? ($cd['amount'] ?? 0);
                                                 echo function_exists('formatPrice') ? formatPrice($amount) : number_format((float)$amount, 2);
                                             ?></td>
-                                            <td class="text-end fw-bold"><?php 
+                                            <td data-label="Due Amount" class="text-end fw-bold"><?php 
                                                 $due = $cd->due_amount ?? ($cd['due_amount'] ?? 0);
                                                 echo function_exists('formatPrice') ? formatPrice($due) : number_format((float)$due, 2);
                                             ?></td>
-                                            <td>
+                                            <td data-label="Status">
                                                 <?php $status = ($cd->payment_status ?? ($cd['payment_status'] ?? 'unpaid')); ?>
                                                 <span class="badge bg-<?php 
                                                     echo $status === 'paid' ? 'success' : ($status === 'partial' ? 'warning' : 'danger');
                                                 ?>"><?php echo ucfirst($status); ?></span>
                                             </td>
-                                            <td class="text-nowrap">
+                                            <td data-label="Actions" class="text-nowrap">
                                                 <?php $pid = $cd->id ?? ($cd['id'] ?? null); ?>
                                                 <?php if ($pid): ?>
-                                                    <a href="<?php echo URLROOT; ?>/paymentdue/view/<?php echo $pid; ?>" class="btn btn-sm btn-primary" title="View Details">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <?php if (($cd->due_amount ?? ($cd['due_amount'] ?? 0)) > 0): ?>
-                                                        <button type="button" class="btn btn-sm btn-success make-payment" data-id="<?php echo $pid; ?>" data-due="<?php echo $cd->due_amount ?? ($cd['due_amount'] ?? 0); ?>" title="Record Payment">
-                                                            <i class="fas fa-money-bill-wave"></i>
-                                                        </button>
-                                                    <?php endif; ?>
+                                                    <div class="payment-actions">
+                                                        <a href="<?php echo URLROOT; ?>/paymentdue/view/<?php echo $pid; ?>" class="btn btn-sm btn-primary" title="View Details">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <?php if (($cd->due_amount ?? ($cd['due_amount'] ?? 0)) > 0): ?>
+                                                            <button type="button" class="btn btn-sm btn-success make-payment" data-id="<?php echo $pid; ?>" data-due="<?php echo $cd->due_amount ?? ($cd['due_amount'] ?? 0); ?>" title="Record Payment">
+                                                                <i class="fas fa-money-bill-wave"></i>
+                                                            </button>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>

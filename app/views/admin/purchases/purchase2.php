@@ -119,7 +119,7 @@ $_SESSION['purchase_submit_token'] = $submitToken;
                 .qty-col { padding-left: .25rem !important; padding-right: .25rem !important; }
                 .qty-col input { max-width: 72px; }
               </style>
-              <table class="table table-bordered align-middle">
+              <table class="table table-bordered align-middle purchase-items-table responsive-table">
                 <thead class="table-success">
                   <tr>
                     <th style="width: 3%">#</th>
@@ -336,8 +336,8 @@ function addProductRow(p) {
   tr.setAttribute('data-product-id', p.id);
   tr.setAttribute('data-base-stock', isFinite(baseStock)?baseStock:0);
   tr.innerHTML = `
-    <td class="row-index"></td>
-    <td>
+    <td class="row-index" data-label="#" data-col="index"></td>
+    <td data-label="Product Name" data-col="name">
       <strong>${p.name || 'Unnamed'}</strong>
       <div class="small text-muted">${p.code ? ('SKU: ' + p.code) : ''}</div>
       <div class="small">
@@ -351,35 +351,35 @@ function addProductRow(p) {
       <input type="hidden" name="items[${p.id}][product_id]" value="${p.id}">
       <input type="hidden" name="items[${p.id}][base_stock]" value="${isFinite(baseStock)?baseStock:0}">
     </td>
-    <td class="price-col text-end text-nowrap">${currency(unit)}</td>
-    <td class="price-col text-end text-nowrap">${sale > 0 ? currency(sale) : '-'}</td>
-    <td class="price-col text-end text-nowrap">${price2 > 0 ? currency(price2) : '-'}</td>
-    <td class="price-col text-end text-nowrap">${price3 > 0 ? currency(price3) : '-'}</td>
-    <td class="qty-col">
+    <td class="price-col text-end text-nowrap" data-label="Buying" data-col="buying">${currency(unit)}</td>
+    <td class="price-col text-end text-nowrap" data-label="Incl. Tax" data-col="incl_tax">${sale > 0 ? currency(sale) : '-'}</td>
+    <td class="price-col text-end text-nowrap" data-label="Sales" data-col="sales">${price2 > 0 ? currency(price2) : '-'}</td>
+    <td class="price-col text-end text-nowrap" data-label="Wholesale" data-col="wholesale">${price3 > 0 ? currency(price3) : '-'}</td>
+    <td class="qty-col" data-label="Purchase Qty" data-col="qty">
       <input type="number" min="1" class="form-control form-control-sm qty-input" name="items[${p.id}][quantity]" value="1" required>
     </td>
-    <td>
+    <td data-label="Unit Cost" data-col="unit_cost">
       <div class="input-group input-group-sm">
         <span class="input-group-text">${CURRENCY_SYMBOL}</span>
         <input type="number" step="0.01" min="0" class="form-control price-input" name="items[${p.id}][unit_price]" value="${unitStr}" required>
       </div>
     </td>
-    <td>
+    <td data-label="Discount %" data-col="discount">
       <div class="input-group input-group-sm">
         <input type="number" step="0.01" min="0" class="form-control discount-input" name="items[${p.id}][discount_percent]" value="${discount}">
         <span class="input-group-text">%</span>
       </div>
     </td>
-    <td class="before-tax">${currency(beforeTax)}</td>
-    <td class="row-total">${currency(lineTotal)}</td>
-    <td class="margin-display">0.00%</td>
-    <td>
+    <td class="before-tax" data-label="Cost (After Disc)" data-col="cost_after_disc">${currency(beforeTax)}</td>
+    <td class="row-total" data-label="Line Total" data-col="line_total">${currency(lineTotal)}</td>
+    <td class="margin-display" data-label="Profit Margin %" data-col="profit_margin">0.00%</td>
+    <td data-label="Unit Selling (Inc. tax)" data-col="unit_selling">
       <div class="input-group input-group-sm">
         <span class="input-group-text">${CURRENCY_SYMBOL}</span>
         <input type="number" step="0.01" min="0" class="form-control sell-input" name="items[${p.id}][selling_price]" value="${sellInitStr}">
       </div>
     </td>
-    <td class="text-center">
+    <td class="text-center" data-label="Remove" data-col="actions">
       <button type="button" class="btn btn-link text-danger p-0 remove-row" title="Remove">
         <i class="fas fa-trash"></i>
       </button>

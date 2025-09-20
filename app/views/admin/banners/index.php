@@ -2,20 +2,56 @@
 // Set the current page for the active menu highlighting
 $current_page = 'banners';
 $page_title = 'Banner Management';
-ob_start();
+// Use the admin layout header
+require_once APP_PATH . 'views/admin/layouts/header.php';
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
     <h1 class="h2">Banner Management</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="<?php echo BASE_URL; ?>admin/banners/create" class="btn btn-sm btn-primary">
+        <a href="<?php echo BASE_URL; ?>?controller=banner&action=create" class="btn btn-sm btn-primary">
             <i class="fas fa-plus"></i> Add New Banner
         </a>
     </div>
 </div>
 
+<style>
+  /* Mobile-first responsive table that stacks rows on small screens */
+  @media (max-width: 576.98px) {
+    table.responsive-table thead { display: none; }
+    table.responsive-table, 
+    table.responsive-table tbody, 
+    table.responsive-table tr, 
+    table.responsive-table td { display: block; width: 100%; }
+    table.responsive-table tr { 
+      margin-bottom: 1rem; 
+      border: 1px solid rgba(0,0,0,.075);
+      border-radius: .5rem; 
+      overflow: hidden; 
+      background: var(--bg-color, #fff);
+    }
+    table.responsive-table td { 
+      padding: .5rem .75rem; 
+      border: none; 
+      border-bottom: 1px solid rgba(0,0,0,.05);
+    }
+    table.responsive-table td:last-child { border-bottom: 0; }
+    table.responsive-table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      display: block;
+      margin-bottom: .25rem;
+      opacity: .8;
+    }
+    /* Image size on mobile */
+    .banner-thumb { width: 80px !important; height: 48px !important; }
+    /* Actions wrap nicely */
+    .actions-wrap { display: flex; gap: .5rem; flex-wrap: wrap; }
+  }
+</style>
+
 <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-striped table-hover responsive-table">
         <thead>
             <tr>
                 <th>#</th>
@@ -30,36 +66,38 @@ ob_start();
             <?php if (!empty($banners)): ?>
                 <?php foreach ($banners as $index => $banner): ?>
                     <tr>
-                        <td><?php echo $index + 1; ?></td>
-                        <td>
-                            <img src="<?php echo BASE_URL . ltrim($banner['image_url'], '/'); ?>" 
+                        <td data-label="#"><?php echo $index + 1; ?></td>
+                        <td data-label="Image">
+                            <img class="banner-thumb" src="<?php echo BASE_URL . ltrim($banner['image_url'], '/'); ?>" 
                                  alt="<?php echo htmlspecialchars($banner['title']); ?>" 
                                  style="width: 100px; height: 60px; object-fit: cover; border-radius: 4px;">
                         </td>
-                        <td><?php echo htmlspecialchars($banner['title']); ?></td>
-                        <td><?php echo htmlspecialchars(substr($banner['description'], 0, 50)) . '...'; ?></td>
-                        <td>
+                        <td data-label="Title"><?php echo htmlspecialchars($banner['title']); ?></td>
+                        <td data-label="Description"><?php echo htmlspecialchars(substr($banner['description'], 0, 50)) . '...'; ?></td>
+                        <td data-label="Status">
                             <span class="badge bg-<?php echo $banner['status'] === 'active' ? 'success' : 'secondary'; ?>">
                                 <?php echo ucfirst($banner['status']); ?>
                             </span>
                         </td>
-                        <td>
-                            <a href="<?php echo BASE_URL; ?>admin/banners/edit/<?php echo $banner['id']; ?>" 
-                               class="btn btn-sm btn-warning" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button type="button" 
-                                    class="btn btn-sm btn-danger delete-banner" 
-                                    data-id="<?php echo $banner['id']; ?>"
-                                    title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <td data-label="Actions">
+                            <div class="actions-wrap">
+                                <a href="<?php echo BASE_URL; ?>?controller=banner&action=edit&id=<?php echo $banner['id']; ?>" 
+                                   class="btn btn-sm btn-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-sm btn-danger delete-banner" 
+                                        data-id="<?php echo $banner['id']; ?>"
+                                        title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="6" class="text-center">No banners found. <a href="<?php echo BASE_URL; ?>admin/banners/create">Add your first banner</a></td>
+                    <td colspan="6" class="text-center">No banners found. <a href="<?php echo BASE_URL; ?>?controller=banner&action=create">Add your first banner</a></td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -85,12 +123,6 @@ ob_start();
     </div>
 </div>
 
-<?php
-$content = ob_get_clean();
-// Include the admin layout with sidebar
-require_once __DIR__ . '/../../layouts/admin.php';
-?>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Handle delete button click
@@ -109,8 +141,10 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmDeleteBtn.addEventListener('click', function(e) {
         e.preventDefault();
         if (bannerIdToDelete) {
-            window.location.href = `<?php echo BASE_URL; ?>admin/banners/delete/${bannerIdToDelete}`;
+            window.location.href = `<?php echo BASE_URL; ?>?controller=banner&action=delete&id=${bannerIdToDelete}`;
         }
     });
 });
 </script>
+
+<?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

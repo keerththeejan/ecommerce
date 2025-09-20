@@ -55,8 +55,38 @@
                     <?php if(empty($topProducts)): ?>
                         <div class="alert alert-info">No product sales data available.</div>
                     <?php else: ?>
+                        <style>
+                            /* Mobile-first responsive table styling for reports */
+                            @media (max-width: 576.98px) {
+                                table.responsive-table thead { display: none; }
+                                table.responsive-table,
+                                table.responsive-table tbody,
+                                table.responsive-table tr,
+                                table.responsive-table td { display: block; width: 100%; }
+                                table.responsive-table tr {
+                                    margin-bottom: 1rem;
+                                    border: 1px solid rgba(0,0,0,.075);
+                                    border-radius: .5rem;
+                                    overflow: hidden;
+                                    background: var(--bg-color, #fff);
+                                }
+                                table.responsive-table td {
+                                    padding: .5rem .75rem;
+                                    border: none;
+                                    border-bottom: 1px solid rgba(0,0,0,.05);
+                                }
+                                table.responsive-table td:last-child { border-bottom: 0; }
+                                table.responsive-table td::before {
+                                    content: attr(data-label);
+                                    font-weight: 600;
+                                    display: block;
+                                    margin-bottom: .25rem;
+                                    opacity: .8;
+                                }
+                            }
+                        </style>
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped responsive-table">
                                 <thead>
                                     <tr>
                                         <th>Product</th>
@@ -68,10 +98,10 @@
                                 <tbody>
                                     <?php foreach($topProducts as $product): ?>
                                         <tr>
-                                            <td><?php echo $product['name']; ?></td>
-                                            <td><?php echo $product['category_name']; ?></td>
-                                            <td><?php echo formatCurrency($product['price']); ?></td>
-                                            <td><?php echo $product['total_sold'] ?? 0; ?></td>
+                                            <td data-label="Product"><?php echo $product['name']; ?></td>
+                                            <td data-label="Category"><?php echo $product['category_name']; ?></td>
+                                            <td data-label="Price"><?php echo formatCurrency($product['price']); ?></td>
+                                            <td data-label="Sold"><?php echo $product['total_sold'] ?? 0; ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -94,7 +124,7 @@
                         <div class="alert alert-info">No recent orders.</div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped responsive-table">
                                 <thead>
                                     <tr>
                                         <th>Order #</th>
@@ -106,14 +136,14 @@
                                 <tbody>
                                     <?php foreach($recentOrders as $order): ?>
                                         <tr>
-                                            <td>
+                                            <td data-label="Order #">
                                                 <a href="<?php echo BASE_URL; ?>?controller=order&action=adminShow&id=<?php echo $order['id']; ?>">
                                                     #<?php echo $order['id']; ?>
                                                 </a>
                                             </td>
-                                            <td><?php echo $order['first_name'] . ' ' . $order['last_name']; ?></td>
-                                            <td><?php echo formatCurrency($order['total_amount']); ?></td>
-                                            <td>
+                                            <td data-label="Customer"><?php echo $order['first_name'] . ' ' . $order['last_name']; ?></td>
+                                            <td data-label="Amount"><?php echo formatCurrency($order['total_amount']); ?></td>
+                                            <td data-label="Status">
                                                 <?php
                                                 $statusClass = '';
                                                 switch($order['status']) {

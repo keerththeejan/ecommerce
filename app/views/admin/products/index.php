@@ -84,7 +84,7 @@
                         <div class="alert alert-info">No products found.</div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover table-compact products-table no-stack">
+                            <table class="table table-striped table-hover table-compact products-table responsive-table">
                                 <thead>
                                     <tr>
                                         <th>ID</th>

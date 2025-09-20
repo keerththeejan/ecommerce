@@ -12,7 +12,38 @@
 
   <div class="card shadow-sm">
     <div class="card-body table-responsive">
-      <table class="table table-striped align-middle">
+      <style>
+        /* Mobile-first responsive table styling */
+        @media (max-width: 576.98px) {
+          table.responsive-table thead { display: none; }
+          table.responsive-table,
+          table.responsive-table tbody,
+          table.responsive-table tr,
+          table.responsive-table td { display: block; width: 100%; }
+          table.responsive-table tr {
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0,0,0,.075);
+            border-radius: .5rem;
+            overflow: hidden;
+            background: var(--bg-color, #fff);
+          }
+          table.responsive-table td {
+            padding: .5rem .75rem;
+            border: none;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+          }
+          table.responsive-table td:last-child { border-bottom: 0; }
+          table.responsive-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            display: block;
+            margin-bottom: .25rem;
+            opacity: .8;
+          }
+          .contact-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+        }
+      </style>
+      <table class="table table-striped align-middle responsive-table">
         <thead>
           <tr>
             <th>#</th>
@@ -28,21 +59,23 @@
         <?php if (!empty($items)): ?>
           <?php foreach ($items as $item): ?>
             <tr>
-              <td><?php echo (int)$item['id']; ?></td>
-              <td class="text-break" style="max-width:260px;"><?php echo htmlspecialchars($item['address']); ?></td>
-              <td><?php echo htmlspecialchars($item['phone']); ?></td>
-              <td><?php echo htmlspecialchars($item['email']); ?></td>
-              <td><?php echo htmlspecialchars($item['hours_weekdays']); ?></td>
-              <td><?php echo htmlspecialchars($item['hours_weekends']); ?></td>
-              <td>
-                <a href="<?php echo BASE_URL; ?>?controller=contactinfo&action=edit&id=<?php echo (int)$item['id']; ?>" class="btn btn-sm btn-warning">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form action="<?php echo BASE_URL; ?>?controller=contactinfo&action=delete&id=<?php echo (int)$item['id']; ?>" method="post" class="d-inline" onsubmit="return confirm('Delete this record?');">
-                  <button type="submit" class="btn btn-sm btn-danger">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
+              <td data-label="#"><?php echo (int)$item['id']; ?></td>
+              <td data-label="Address" class="text-break" style="max-width:260px;"><?php echo htmlspecialchars($item['address']); ?></td>
+              <td data-label="Phone"><?php echo htmlspecialchars($item['phone']); ?></td>
+              <td data-label="Email"><?php echo htmlspecialchars($item['email']); ?></td>
+              <td data-label="Weekdays"><?php echo htmlspecialchars($item['hours_weekdays']); ?></td>
+              <td data-label="Weekends"><?php echo htmlspecialchars($item['hours_weekends']); ?></td>
+              <td data-label="Actions">
+                <div class="contact-actions">
+                  <a href="<?php echo BASE_URL; ?>?controller=contactinfo&action=edit&id=<?php echo (int)$item['id']; ?>" class="btn btn-sm btn-warning">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <form action="<?php echo BASE_URL; ?>?controller=contactinfo&action=delete&id=<?php echo (int)$item['id']; ?>" method="post" class="d-inline" onsubmit="return confirm('Delete this record?');">
+                    <button type="submit" class="btn btn-sm btn-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
           <?php endforeach; ?>

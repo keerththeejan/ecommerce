@@ -126,7 +126,7 @@
         <div class="tab-pane fade show active" id="tab-products" role="tabpanel">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="purchase-toolbar d-flex flex-wrap gap-2 align-items-center mb-3">
                         <div class="d-flex align-items-center">
                             <label class="me-2">Show</label>
                             <select class="form-select form-select-sm" style="width: 80px;">
@@ -143,13 +143,13 @@
                             <button class="btn btn-outline-secondary btn-sm">Column visibility</button>
                             <button class="btn btn-outline-secondary btn-sm">Export PDF</button>
                         </div>
-                        <div style="width:240px">
+                        <div class="search-wrap" style="width:240px">
                             <input type="text" class="form-control form-control-sm" placeholder="Search ...">
                         </div>
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped align-middle" id="productsTable">
+                        <table class="table table-bordered table-striped align-middle responsive-table" id="productsTable">
                             <thead class="table-light">
                                 <tr>
                                     <th style="width:32px"><input type="checkbox"></th>
@@ -186,15 +186,15 @@
                                             $taxDisplay = '—';
                                         ?>
                                         <tr data-product-id="<?php echo htmlspecialchars($p['id']); ?>">
-                                            <td><input type="checkbox"></td>
-                                            <td>
+                                            <td data-label="#"><input type="checkbox"></td>
+                                            <td data-label="Product image">
                                                 <?php if ($img): ?>
                                                     <img src="<?php echo htmlspecialchars($img); ?>" alt="<?php echo htmlspecialchars($name); ?>" style="width:48px;height:48px;object-fit:cover" class="rounded border" />
                                                 <?php else: ?>
                                                     <div class="bg-light border rounded" style="width:48px;height:48px"></div>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Action">
                                                 <div class="btn-group">
                                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button>
                                                     <ul class="dropdown-menu">
@@ -242,19 +242,19 @@
                                                     </ul>
                                                 </div>
                                             </td>
-                                            <td>
+                                            <td data-label="Product">
                                                 <?php echo htmlspecialchars($name); ?>
                                                 <?php if (!empty($highlightId) && (int)$highlightId === (int)$p['id']): ?>
                                                     <span class="badge bg-info ms-2">Returned</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>S.N PASUMAI KALANJIYAM</td>
-                                            <td><?php echo isset($purchase) ? htmlspecialchars(formatPrice($purchase)) : '—'; ?></td>
-                                            <td><?php echo isset($sell) ? htmlspecialchars(formatPrice($sell)) : '—'; ?></td>
-                                            <td title="Total stock: <?php echo number_format($stockQty, 2); ?>">
+                                            <td data-label="Business Location">S.N PASUMAI KALANJIYAM</td>
+                                            <td data-label="Unit Purchase Price"><?php echo isset($purchase) ? htmlspecialchars(formatPrice($purchase)) : '—'; ?></td>
+                                            <td data-label="Selling Price"><?php echo isset($sell) ? htmlspecialchars(formatPrice($sell)) : '—'; ?></td>
+                                            <td data-label="Stock" title="Total stock: <?php echo number_format($stockQty, 2); ?>">
                                                 <?php echo number_format($lastPurchaseQty > 0 ? $lastPurchaseQty : 0, 2) . ' ' . $unitLabel; ?>
                                             </td>
-                                            <td>
+                                            <td data-label="Stock Status">
                                                 <?php
                                                     $badge = '<span class="badge bg-success">In Stock</span>';
                                                     if ($stockQty <= 0) {
@@ -266,11 +266,11 @@
                                                     echo $badge;
                                                 ?>
                                             </td>
-                                            <td><?php echo htmlspecialchars($type); ?></td>
-                                            <td><?php echo htmlspecialchars($categoryName); ?></td>
-                                            <td><?php echo htmlspecialchars($brandName); ?></td>
-                                            <td><?php echo htmlspecialchars($taxDisplay); ?></td>
-                                            <td><?php echo htmlspecialchars($sku); ?></td>
+                                            <td data-label="Product Type"><?php echo htmlspecialchars($type); ?></td>
+                                            <td data-label="Category"><?php echo htmlspecialchars($categoryName); ?></td>
+                                            <td data-label="Brand"><?php echo htmlspecialchars($brandName); ?></td>
+                                            <td data-label="Tax"><?php echo htmlspecialchars($taxDisplay); ?></td>
+                                            <td data-label="SKU"><?php echo htmlspecialchars($sku); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>

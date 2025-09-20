@@ -206,7 +206,7 @@ require_once APP_PATH . 'models/Supplier.php';
                             
                             if (!empty($recentPurchases)): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm responsive-table">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -220,12 +220,12 @@ require_once APP_PATH . 'models/Supplier.php';
                                         <tbody>
                                             <?php foreach($recentPurchases as $purchase): ?>
                                                 <tr>
-                                                    <td><a href="<?php echo BASE_URL; ?>?controller=purchase&action=view&id=<?php echo $purchase['id']; ?>">#<?php echo $purchase['id']; ?></a></td>
-                                                    <td><?php echo date('M d, Y', strtotime($purchase['purchase_date'])); ?></td>
-                                                    <td><?php echo htmlspecialchars($purchase['supplier_name']); ?></td>
-                                                    <td><?php echo $purchase['total_items']; ?></td>
-                                                    <td><?php echo formatPrice($purchase['total_amount']); ?></td>
-                                                    <td><span class="badge bg-<?php echo $purchase['status'] === 'received' ? 'success' : 'warning'; ?>">
+                                                    <td data-label="#"><a href="<?php echo BASE_URL; ?>?controller=purchase&action=view&id=<?php echo $purchase['id']; ?>">#<?php echo $purchase['id']; ?></a></td>
+                                                    <td data-label="Date"><?php echo date('M d, Y', strtotime($purchase['purchase_date'])); ?></td>
+                                                    <td data-label="Supplier"><?php echo htmlspecialchars($purchase['supplier_name']); ?></td>
+                                                    <td data-label="Items"><?php echo $purchase['total_items']; ?></td>
+                                                    <td data-label="Total"><?php echo formatPrice($purchase['total_amount']); ?></td>
+                                                    <td data-label="Status"><span class="badge bg-<?php echo $purchase['status'] === 'received' ? 'success' : 'warning'; ?>">
                                                         <?php echo ucfirst($purchase['status']); ?>
                                                     </span></td>
                                                 </tr>
@@ -271,7 +271,7 @@ require_once APP_PATH . 'models/Supplier.php';
                             
                             if (!empty($recentInvoices)): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm responsive-table">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -284,11 +284,11 @@ require_once APP_PATH . 'models/Supplier.php';
                                         <tbody>
                                             <?php foreach($recentInvoices as $invoice): ?>
                                                 <tr>
-                                                    <td><a href="<?php echo BASE_URL; ?>?controller=invoice&action=view&id=<?php echo $invoice['id']; ?>">#<?php echo $invoice['invoice_number']; ?></a></td>
-                                                    <td><?php echo date('M d, Y', strtotime($invoice['invoice_date'])); ?></td>
-                                                    <td><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
-                                                    <td><?php echo formatPrice($invoice['total_amount']); ?></td>
-                                                    <td>
+                                                    <td data-label="#"><a href="<?php echo BASE_URL; ?>?controller=invoice&action=view&id=<?php echo $invoice['id']; ?>">#<?php echo $invoice['invoice_number']; ?></a></td>
+                                                    <td data-label="Date"><?php echo date('M d, Y', strtotime($invoice['invoice_date'])); ?></td>
+                                                    <td data-label="Customer"><?php echo htmlspecialchars($invoice['customer_name']); ?></td>
+                                                    <td data-label="Amount"><?php echo formatPrice($invoice['total_amount']); ?></td>
+                                                    <td data-label="Status">
                                                         <span class="badge bg-<?php 
                                                             echo $invoice['status'] === 'paid' ? 'success' : 
                                                                 ($invoice['status'] === 'overdue' ? 'danger' : 'warning'); 
@@ -438,22 +438,22 @@ require_once APP_PATH . 'models/Supplier.php';
                     
                     if ($hasOrdersTable && !empty($recentOrders)) : ?>
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped responsive-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Customer</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
+                                        <th data-label="ID">ID</th>
+                                        <th data-label="Customer">Customer</th>
+                                        <th data-label="Amount">Amount</th>
+                                        <th data-label="Status">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach($recentOrders as $order) : ?>
                                         <tr>
-                                            <td><?php echo $order['id']; ?></td>
-                                            <td><?php echo $order['first_name'] . ' ' . $order['last_name']; ?></td>
-                                            <td><?php echo formatPrice($order['total_amount']); ?></td>
-                                            <td>
+                                            <td data-label="ID"><?php echo $order['id']; ?></td>
+                                            <td data-label="Customer"><?php echo $order['first_name'] . ' ' . $order['last_name']; ?></td>
+                                            <td data-label="Amount"><?php echo formatPrice($order['total_amount']); ?></td>
+                                            <td data-label="Status">
                                                 <?php if($order['status'] == 'pending') : ?>
                                                     <span class="badge bg-warning">Pending</span>
                                                 <?php elseif($order['status'] == 'processing') : ?>
@@ -503,30 +503,30 @@ require_once APP_PATH . 'models/Supplier.php';
                     
                     if ($hasProductsTable && !empty($lowStockProducts)) : ?>
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped responsive-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>SKU</th>
-                                        <th>Category</th>
-                                        <th>Price</th>
-                                        <th>Stock</th>
-                                        <th>Action</th>
+                                        <th data-label="ID">ID</th>
+                                        <th data-label="Name">Name</th>
+                                        <th data-label="SKU">SKU</th>
+                                        <th data-label="Category">Category</th>
+                                        <th data-label="Price">Price</th>
+                                        <th data-label="Stock">Stock</th>
+                                        <th data-label="Action">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach($lowStockProducts as $product) : ?>
                                         <tr>
-                                            <td><?php echo $product['id']; ?></td>
-                                            <td><?php echo $product['name']; ?></td>
-                                            <td><?php echo $product['sku']; ?></td>
-                                            <td><?php echo $product['category_name']; ?></td>
-                                            <td><?php echo formatPrice($product['price']); ?></td>
-                                            <td>
+                                            <td data-label="ID"><?php echo $product['id']; ?></td>
+                                            <td data-label="Name"><?php echo $product['name']; ?></td>
+                                            <td data-label="SKU"><?php echo $product['sku']; ?></td>
+                                            <td data-label="Category"><?php echo $product['category_name']; ?></td>
+                                            <td data-label="Price"><?php echo formatPrice($product['price']); ?></td>
+                                            <td data-label="Stock">
                                                 <span class="badge bg-danger"><?php echo $product['stock_quantity']; ?></span>
                                             </td>
-                                            <td>
+                                            <td data-label="Action">
                                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&param=<?php echo $product['id']; ?>" class="btn btn-primary btn-sm">Edit</a>
                                             </td>
                                         </tr>

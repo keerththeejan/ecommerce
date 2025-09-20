@@ -1,0 +1,188 @@
+/* Admin-specific styles */
+
+/* Compact badges and buttons on small screens */
+@media (max-width: 768px) {
+  .badge { font-size: 0.75rem; }
+  .btn { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
+  .img-thumbnail { max-width: 64px; height: auto; }
+}
+
+/* Responsive stacked table pattern for admin lists */
+@media (max-width: 768px) {
+  .responsive-table thead {
+    display: none;
+  }
+  .responsive-table,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table tr {
+    margin-bottom: 1rem;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .responsive-table td {
+    border: none !important;
+    padding: 0.75rem 1rem;
+    position: relative;
+  }
+  .responsive-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+  .responsive-table td {
+    padding-left: 9rem; /* space for the labels */
+    min-height: 2.25rem;
+  }
+
+  /* Make action buttons row look tidy */
+  .responsive-table td[data-label="Actions"] .btn-group { width: 100%; }
+  .responsive-table td[data-label="Actions"] .btn-group .btn { width: auto; }
+}
+
+/* Avoid horizontal scroll for long values */
+.text-nowrap { white-space: nowrap; }
+
+/* Products table specific tweaks */
+.products-table td[data-label="Image"] img { max-width: 64px; height: auto; }
+
+/* ListPurchaseController table mobile refinements */
+@media (max-width: 768px) {
+  #productsTable.responsive-table td {
+    white-space: normal;
+    word-break: break-word;
+    padding-left: 7.5rem; /* space for labels */
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  /* Keep only key columns visible on phones */
+  #productsTable.responsive-table td[data-label="Business Location"],
+  #productsTable.responsive-table td[data-label="Product Type"],
+  #productsTable.responsive-table td[data-label="Category"],
+  #productsTable.responsive-table td[data-label="Brand"],
+  #productsTable.responsive-table td[data-label="Tax"],
+  #productsTable.responsive-table td[data-label="SKU"] {
+    display: none;
+  }
+  /* Make actions group wrap neatly */
+  #productsTable.responsive-table td[data-label="Action"] .btn-group {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  /* Tighter leading columns */
+  #productsTable.responsive-table td[data-label="#"],
+  #productsTable.responsive-table td[data-label="Product image"] {
+    padding-left: 1rem;
+  }
+
+  /* Purchase page toolbar */
+  .purchase-toolbar {
+    gap: 0.5rem !important;
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .purchase-toolbar > .btn-group {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .purchase-toolbar > .btn-group .btn {
+    flex: 1 0 48%;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  .purchase-toolbar .search-wrap { width: 100% !important; }
+  .purchase-toolbar .form-select { min-width: 100px; }
+
+  /* Mobile-only toolbar dropdown button spacing */
+  .purchase-toolbar .dropdown-toggle { width: 100%; }
+}
+
+/* Extra-small screens: make toolbar buttons single column */
+@media (max-width: 576px) {
+  .purchase-toolbar > .btn-group .btn {
+    flex: 1 0 100%;
+  }
+}
+
+/* Purchase2 items table: mobile responsive stacked layout */
+@media (max-width: 768px) {
+  /* Hide header and stack rows */
+  .purchase-items-table.responsive-table thead { display: none; }
+  .purchase-items-table.responsive-table,
+  .purchase-items-table.responsive-table tbody,
+  .purchase-items-table.responsive-table tr,
+  .purchase-items-table.responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  .purchase-items-table.responsive-table tr {
+    margin-bottom: 1rem;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .purchase-items-table.responsive-table td {
+    border: none !important;
+    padding: 0.75rem 1rem;
+    position: relative;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .purchase-items-table.responsive-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+  .purchase-items-table.responsive-table td { padding-left: 9rem; min-height: 2.25rem; }
+
+  /* Tighten certain cells */
+  .purchase-items-table.responsive-table td[data-col="index"] { padding-left: 1rem; }
+  .purchase-items-table.responsive-table td[data-col="actions"] { padding-left: 1rem; text-align: right; }
+
+  /* Hide low-priority columns on phones */
+  .purchase-items-table.responsive-table td[data-col="incl_tax"],
+  .purchase-items-table.responsive-table td[data-col="sales"],
+  .purchase-items-table.responsive-table td[data-col="wholesale"],
+  .purchase-items-table.responsive-table td[data-col="profit_margin"] {
+    display: none;
+  }
+}
+
+/* Purchases index table mobile refinements */
+@media (max-width: 768px) {
+  #purchasesTable.responsive-table td {
+    white-space: normal;
+    word-break: break-word;
+    padding-left: 7.5rem; /* space for labels */
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  /* Hide low-priority columns on phones */
+  #purchasesTable.responsive-table td[data-label="Stock"],
+  #purchasesTable.responsive-table td[data-label="Advance"],
+  #purchasesTable.responsive-table td[data-label="Payment"] {
+    display: none;
+  }
+  /* Tighter ID and Actions cells */
+  #purchasesTable.responsive-table td[data-label="ID"],
+  #purchasesTable.responsive-table td[data-label="Actions"] { padding-left: 1rem; }
+  /* Make action buttons wrap neatly */
+  #purchasesTable.responsive-table td[data-label="Actions"] .btn { margin-right: .25rem; margin-bottom: .25rem; }
+}
