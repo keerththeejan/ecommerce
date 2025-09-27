@@ -39,11 +39,11 @@ require_once APP_PATH . 'views/customer/layouts/header.php';
                         <?php endif; ?>
                         
                         <div class="mb-3">
-                            <label for="product_sku" class="form-label">Product SKU</label>
-                            <input type="text" name="product_sku" class="form-control <?php echo (!empty($data['product_sku_error'])) ? 'is-invalid' : ''; ?>" 
-                                   value="<?php echo htmlspecialchars($data['product_sku']); ?>" placeholder="Enter product SKU" autofocus>
-                            <div class="invalid-feedback"><?php echo $data['product_sku_error']; ?></div>
-                            <div class="form-text">Enter the SKU of the product you want to order</div>
+                            <label for="product_name" class="form-label">Product Name</label>
+                            <input type="text" name="product_name" class="form-control <?php echo (!empty($data['product_name_error'])) ? 'is-invalid' : ''; ?>" 
+                                   value="<?php echo htmlspecialchars($data['product_name']); ?>" placeholder="Enter product name" autofocus>
+                            <div class="invalid-feedback"><?php echo $data['product_name_error']; ?></div>
+                            <div class="form-text">Enter the name of the product you want to order</div>
                         </div>
                         
                         <div class="mb-3">

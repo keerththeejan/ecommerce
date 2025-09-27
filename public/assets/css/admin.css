@@ -17,6 +17,28 @@
   table.table-compact .badge { font-size: 10px; padding: 4px 6px; }
   table.table-compact .btn-group { gap: 4px; }
 
+  /* Allow full visibility for Status (14) and Actions (15) columns */
+  table.table-compact.products-table td:nth-child(12),
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(14),
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(15),
+  table.table-compact.products-table th:nth-child(15) {
+    overflow: visible;
+    text-overflow: initial;
+    white-space: nowrap;
+  }
+
+  /* Give image, stock, status, actions some breathing room */
+  table.table-compact.products-table th:nth-child(2),
+  table.table-compact.products-table td:nth-child(2) { min-width: 40px; }
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(12) { min-width: 56px; }
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(14) { min-width: 70px; }
+  table.table-compact.products-table th:nth-child(15),
+  table.table-compact.products-table td:nth-child(15) { min-width: 84px; }
+
   /* Specific width allocation for Products table (15 columns) */
   table.table-compact.products-table th:nth-child(1),
   table.table-compact.products-table td:nth-child(1) { width: 3%; }
@@ -154,7 +176,7 @@
  
 /* Mobile stacked table to avoid horizontal scroll */
 @media (max-width: 768px) {
-  .table-responsive { overflow-x: visible !important; overflow-y: visible; }
+  .table-responsive { overflow-x: auto !important; overflow-y: visible; }
   table.responsive-table,
   table.responsive-table thead,
   table.responsive-table tbody,

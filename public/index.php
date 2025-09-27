@@ -44,10 +44,44 @@ spl_autoload_register(function($className) {
 $db = isset($GLOBALS['db']) ? $GLOBALS['db'] : new Database();
 
 // Simple router
-$controllerParam = isset($_GET['controller']) ? $_GET['controller'] : 'Home';
-$action = isset($_GET['action']) ? $_GET['action'] : 'index';
-// Check for both 'param' and 'id' in the URL
-$param = isset($_GET['param']) ? $_GET['param'] : (isset($_GET['id']) ? $_GET['id'] : null);
+// Support both pretty URLs via .htaccess (index.php?url=controller/action/param)
+// and traditional query parameters (?controller=...&action=...&param=...)
+// Parse pretty URL first but do not override explicitly provided query params
+$urlController = null;
+$urlAction = null;
+$urlParam = null;
+if (isset($_GET['url'])) {
+    $segments = array_values(array_filter(explode('/', trim($_GET['url'], '/'))));
+    if (!empty($segments)) {
+        $urlController = $segments[0];
+        if (isset($segments[1]) && $segments[1] !== '') {
+            $urlAction = $segments[1];
+        }
+        if (isset($segments[2]) && $segments[2] !== '') {
+            $urlParam = $segments[2];
+        }
+    }
+}
+
+$controllerParam = isset($_GET['controller']) ? $_GET['controller'] : ($urlController ?: 'Home');
+
+// Normalize common plural aliases to singular controller names
+$aliasMap = [
+    'orders' => 'Order',
+    'invoices' => 'Invoice',
+    'addresses' => 'Address',
+    'brands' => 'Brand',
+    'countries' => 'Country',
+    'categories' => 'Category',
+    'products' => 'Product',
+    'users' => 'User'
+];
+if (isset($aliasMap[strtolower($controllerParam)])) {
+    $controllerParam = $aliasMap[strtolower($controllerParam)];
+}
+$action = isset($_GET['action']) ? $_GET['action'] : ($urlAction ?: 'index');
+// Check for both 'param' and 'id' in the URL, falling back to pretty URL param
+$param = isset($_GET['param']) ? $_GET['param'] : (isset($_GET['id']) ? $_GET['id'] : $urlParam);
 
 // Format controller name, but do not double-append if already provided with suffix
 if (preg_match('/Controller$/i', $controllerParam)) {
@@ -56,24 +90,43 @@ if (preg_match('/Controller$/i', $controllerParam)) {
     $controllerName = ucfirst($controllerParam) . 'Controller';
 }
 
-// Check if controller exists
-if(file_exists(APP_PATH . 'controllers/' . $controllerName . '.php')) {
-    // Create controller instance (uses global DB in base Controller)
-    $controllerInstance = new $controllerName();
-    
-    // Check if action exists
-    if(method_exists($controllerInstance, $action)) {
-        // Call action with parameter
-        if($param !== null) {
-            $controllerInstance->$action($param);
-        } else {
-            $controllerInstance->$action();
+// Attempt to resolve and include the controller file explicitly
+$controllerFile = APP_PATH . 'controllers/' . $controllerName . '.php';
+if (!file_exists($controllerFile)) {
+    // Try a couple of fallback name variants just in case
+    $alt1 = APP_PATH . 'controllers/' . ucfirst(strtolower($controllerParam)) . 'Controller' . '.php';
+    $alt2 = APP_PATH . 'controllers/' . strtolower($controllerParam) . 'Controller' . '.php';
+    $alt3 = APP_PATH . 'controllers/' . ucfirst($controllerParam) . 'Controller' . '.php';
+    foreach ([$alt1, $alt2, $alt3] as $alt) {
+        if (file_exists($alt)) {
+            $controllerFile = $alt;
+            break;
         }
+    }
+}
+
+if (file_exists($controllerFile)) {
+    require_once $controllerFile;
+}
+
+// If class still doesn't exist, report not found
+if (!class_exists($controllerName)) {
+    echo '404 - Controller not found';
+    return;
+}
+
+// Create controller instance (uses global DB in base Controller)
+$controllerInstance = new $controllerName();
+
+// Check if action exists
+if (method_exists($controllerInstance, $action)) {
+    // Call action with parameter
+    if ($param !== null) {
+        $controllerInstance->$action($param);
     } else {
-        // Action not found
-        echo '404 - Action not found';
+        $controllerInstance->$action();
     }
 } else {
-    // Controller not found
-    echo '404 - Controller not found';
+    // Action not found
+    echo '404 - Action not found';
 }

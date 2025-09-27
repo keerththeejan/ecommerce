@@ -26,9 +26,9 @@ class Invoice {
             if ($this->debug) {
                 error_log('Database connection initialized in Invoice model');
             }
-
-            // Ensure invoices table exists
+            // Ensure invoices table exists and has required columns
             $this->ensureInvoicesTable();
+            $this->ensureAdditionalColumns();
         } catch (Exception $e) {
             // Log the error
             error_log('Error initializing database in Invoice model: ' . $e->getMessage());
@@ -41,6 +41,97 @@ class Invoice {
             
             // In production, you might want to show a generic error
             throw new Exception('Failed to initialize database connection');
+        }
+    }
+
+    /**
+     * Update invoice snapshot fields from order data.
+     * Ensures invoice reflects order totals, addresses and payment method.
+     *
+     * @param int $orderId
+     * @return bool
+     */
+    public function updateFromOrder($orderId) {
+        try {
+            // Fetch order summary
+            $sql = 'SELECT id, total_amount, payment_method, shipping_address, billing_address, shipping_fee, tax
+                    FROM orders WHERE id = :id LIMIT 1';
+            $this->db->query($sql);
+            $this->db->bind(':id', (int)$orderId);
+            $row = $this->db->single();
+            if (!$row) {
+                return false;
+            }
+            if (is_object($row)) { $row = (array)$row; }
+
+            $total = (float)($row['total_amount'] ?? 0);
+            $shipping = (float)($row['shipping_fee'] ?? 0);
+            $taxAmount = (float)($row['tax'] ?? 0);
+            $baseForTax = max(0.0, $total - $shipping);
+            $taxRate = $baseForTax > 0 ? round(($taxAmount / $baseForTax) * 100, 3) : 0.0;
+
+            $update = 'UPDATE ' . $this->table . ' 
+                       SET payment_method = :payment_method,
+                           shipping_fee = :shipping_fee,
+                           tax_rate = :tax_rate,
+                           tax_amount = :tax_amount,
+                           total_amount = :total_amount,
+                           billing_address = :billing_address,
+                           shipping_address = :shipping_address
+                       WHERE order_id = :order_id';
+            $this->db->query($update);
+            $this->db->bind(':payment_method', $row['payment_method'] ?? null);
+            $this->db->bind(':shipping_fee', $shipping);
+            $this->db->bind(':tax_rate', $taxRate);
+            $this->db->bind(':tax_amount', $taxAmount);
+            $this->db->bind(':total_amount', $total);
+            $this->db->bind(':billing_address', $row['billing_address'] ?? null);
+            $this->db->bind(':shipping_address', $row['shipping_address'] ?? null);
+            $this->db->bind(':order_id', (int)$orderId);
+            return (bool)$this->db->execute();
+        } catch (Exception $e) {
+            error_log('Error updating invoice from order: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create invoices for all orders of a user that are missing invoices.
+     * Returns number of invoices created.
+     *
+     * @param int $userId
+     * @return int
+     */
+    public function createMissingInvoicesForUser($userId) {
+        try {
+            // Ensure required tables exist
+            if (method_exists($this->db, 'tableExists')) {
+                if (!$this->db->tableExists('orders')) {
+                    return 0;
+                }
+            }
+
+            // Find orders for user that have no invoice yet
+            $sql = 'SELECT o.id
+                    FROM orders o
+                    LEFT JOIN ' . $this->table . ' i ON i.order_id = o.id
+                    WHERE o.user_id = :user_id AND i.id IS NULL';
+
+            $this->db->query($sql);
+            $this->db->bind(':user_id', (int)$userId);
+            $orders = $this->db->resultSet();
+
+            $created = 0;
+            foreach ($orders as $row) {
+                $orderId = is_array($row) ? (int)$row['id'] : (int)$row->id;
+                if ($this->createOrGetInvoiceId($orderId)) {
+                    $created++;
+                }
+            }
+            return $created;
+        } catch (Exception $e) {
+            error_log('Error in createMissingInvoicesForUser: ' . $e->getMessage());
+            return 0;
         }
     }
     
@@ -111,6 +202,38 @@ class Invoice {
     }
     
     /**
+     * Ensure additional columns exist on invoices for storing snapshot data.
+     */
+    private function ensureAdditionalColumns() {
+        $columns = [
+            ['name' => 'payment_method', 'definition' => "VARCHAR(50) NULL AFTER `status`"],
+            ['name' => 'shipping_fee', 'definition' => "DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER `payment_method`"],
+            ['name' => 'tax_rate', 'definition' => "DECIMAL(6,3) NOT NULL DEFAULT 0 AFTER `shipping_fee`"],
+            ['name' => 'tax_amount', 'definition' => "DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER `tax_rate`"],
+            ['name' => 'total_amount', 'definition' => "DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER `tax_amount`"],
+            ['name' => 'amount_paid', 'definition' => "DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER `total_amount`"],
+            ['name' => 'billing_address', 'definition' => "TEXT NULL AFTER `amount_paid`"],
+            ['name' => 'shipping_address', 'definition' => "TEXT NULL AFTER `billing_address`"],
+        ];
+
+        foreach ($columns as $col) {
+            try {
+                if (method_exists($this->db, 'columnExists') && !$this->db->columnExists($this->table, $col['name'])) {
+                    $sql = "ALTER TABLE `{$this->table}` ADD COLUMN `{$col['name']}` {$col['definition']};";
+                    $this->db->query($sql);
+                    $this->db->execute();
+                    if ($this->debug) {
+                        error_log("Added column {$col['name']} to invoices");
+                    }
+                }
+            } catch (Exception $e) {
+                // Log and continue; not fatal for runtime
+                error_log('Failed to add column ' . $col['name'] . ' to invoices: ' . $e->getMessage());
+            }
+        }
+    }
+    
+    /**
      * Get all invoices for a user
      * 
      * @param int $userId User ID
@@ -118,7 +241,19 @@ class Invoice {
      */
     public function getInvoicesByUser($userId) {
         try {
-            $sql = 'SELECT i.*, o.order_number, o.total_amount, o.status as order_status 
+            // If required tables are missing, return empty gracefully
+            if (method_exists($this->db, 'tableExists')) {
+                $invoicesTableExists = $this->db->tableExists($this->table);
+                $ordersTableExists = $this->db->tableExists('orders');
+                if (!$invoicesTableExists || !$ordersTableExists) {
+                    if ($this->debug) {
+                        error_log('Invoices or orders table missing. Returning empty list for getInvoicesByUser');
+                    }
+                    return [];
+                }
+            }
+
+            $sql = 'SELECT i.*, o.id AS order_number, o.total_amount, o.status as order_status 
                    FROM ' . $this->table . ' i 
                    JOIN orders o ON i.order_id = o.id 
                    WHERE o.user_id = :user_id 
@@ -154,11 +289,16 @@ class Invoice {
             if (!empty($errorInfo[2])) {
                 $errorMsg .= ': ' . $errorInfo[2];
             }
-            throw new Exception($errorMsg);
+            // Be forgiving for the customer page: just return empty instead of throwing
+            if ($this->debug) {
+                error_log('Returning empty due to DB error in getInvoicesByUser');
+            }
+            return [];
         } catch (Exception $e) {
             // Log other errors
             error_log('Error in getInvoicesByUser: ' . $e->getMessage());
-            throw $e; // Re-throw to be handled by the controller
+            // Return empty to avoid breaking the invoices page
+            return [];
         }
     }
     

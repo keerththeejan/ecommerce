@@ -84,7 +84,7 @@
                         <div class="alert alert-info">No products found.</div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover table-compact products-table responsive-table">
+                            <table class="table table-striped table-hover products-table">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -101,7 +101,6 @@
                                         <th>Stock</th>
                                         <th>Stock Value</th>
                                         <th>Status</th>
-                                        <th>History</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>

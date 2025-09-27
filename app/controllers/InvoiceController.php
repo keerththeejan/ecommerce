@@ -71,6 +71,11 @@ class InvoiceController extends Controller {
         }
         
         try {
+            // Auto-create missing invoices for this user (from existing orders)
+            if (method_exists($this->invoiceModel, 'createMissingInvoicesForUser') && isset($_SESSION['user_id'])) {
+                $this->invoiceModel->createMissingInvoicesForUser($_SESSION['user_id']);
+            }
+
             // Get invoices
             $invoices = $this->invoiceModel->getInvoicesByUser($_SESSION['user_id']);
             

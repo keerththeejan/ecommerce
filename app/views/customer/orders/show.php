@@ -30,7 +30,7 @@
                     <i class="fas fa-arrow-left me-2"></i> Back to Orders
                 </a>
                 
-                <?php if($order['order']['status'] == 'pending' && $order['order']['payment_status'] == 'pending'): ?>
+                <?php if(in_array($order['order']['status'], ['pending','processing']) && $order['order']['payment_status'] == 'pending'): ?>
                     <a href="<?php echo BASE_URL; ?>?controller=order&action=cancel&id=<?php echo $order['order']['id']; ?>" class="btn btn-danger">
                         <i class="fas fa-times me-2"></i> Cancel Order
                     </a>
@@ -40,6 +40,14 @@
                     <a href="<?php echo BASE_URL; ?>?controller=order&action=payment&id=<?php echo $order['order']['id']; ?>" class="btn btn-success">
                         <i class="fas fa-credit-card me-2"></i> Make Payment
                     </a>
+                <?php endif; ?>
+
+                <?php if($order['order']['status'] == 'cancelled'): ?>
+                    <form action="<?php echo BASE_URL; ?>?controller=order&action=reconfirm&id=<?php echo $order['order']['id']; ?>" method="post" style="display:inline-block;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-undo me-2"></i> Re-confirm Order
+                        </button>
+                    </form>
                 <?php endif; ?>
             </div>
             
@@ -132,11 +140,11 @@
                                 </tr>
                                 <tr>
                                     <th>Shipping Address:</th>
-                                    <td><?php echo nl2br($order['order']['shipping_address']); ?></td>
+                                    <td><?php echo nl2br((string)($order['order']['shipping_address'] ?? '')); ?></td>
                                 </tr>
                                 <tr>
                                     <th>Billing Address:</th>
-                                    <td><?php echo nl2br($order['order']['billing_address']); ?></td>
+                                    <td><?php echo nl2br((string)($order['order']['billing_address'] ?? '')); ?></td>
                                 </tr>
                             </table>
                         </div>

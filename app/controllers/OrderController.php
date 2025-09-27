@@ -184,6 +184,17 @@ class OrderController extends Controller {
                 $orderId = $this->orderModel->createOrder($orderData);
                 
                 if($orderId) {
+                    // Create or update invoice snapshot for this order
+                    try {
+                        $invoiceModel = $this->model('Invoice');
+                        $invoiceId = $invoiceModel->createOrGetInvoiceId($orderId);
+                        if ($invoiceId) {
+                            $invoiceModel->updateFromOrder($orderId);
+                        }
+                    } catch (Exception $e) {
+                        error_log('Failed to create/update invoice for order ' . $orderId . ': ' . $e->getMessage());
+                    }
+
                     // Clear cart
                     $this->cartModel->clearCart($_SESSION['user_id']);
                     
@@ -321,6 +332,46 @@ class OrderController extends Controller {
             $this->view('customer/orders/cancel', [
                 'order' => $order
             ]);
+        }
+    }
+
+    /**
+     * Re-confirm a previously cancelled order (customer action)
+     * Sets status back to 'processing' to indicate confirmation
+     *
+     * @param int $orderId Order ID
+     */
+    public function reconfirm($orderId) {
+        // Require login
+        if(!isLoggedIn()) {
+            redirect('user/login');
+        }
+
+        // Fetch order and verify ownership
+        $order = $this->orderModel->getById($orderId);
+        if(!$order || $order['user_id'] != $_SESSION['user_id']) {
+            flash('order_error', 'Order not found', 'alert alert-danger');
+            redirect('orders');
+        }
+
+        // Only allow reconfirm if currently cancelled
+        if($order['status'] !== 'cancelled') {
+            flash('order_error', 'Only cancelled orders can be re-confirmed', 'alert alert-danger');
+            redirect('orders/show/' . $orderId);
+        }
+
+        // Only process on POST to avoid accidental state changes
+        if($this->isPost()) {
+            // Move order back to processing (acts as confirmed state)
+            if($this->orderModel->updateOrderStatus($orderId, 'processing')) {
+                flash('order_success', 'Order re-confirmed successfully', 'alert alert-success');
+            } else {
+                flash('order_error', 'Failed to re-confirm order', 'alert alert-danger');
+            }
+            redirect('orders/show/' . $orderId);
+        } else {
+            // Simple confirmation view could be added; for now redirect back
+            redirect('orders/show/' . $orderId);
         }
     }
     
@@ -574,7 +625,7 @@ class OrderController extends Controller {
         
         // Initialize data array
         $data = [
-            'product_sku' => '',
+            'product_name' => '',
             'quantity' => 1,
             'customer_id' => '',
             'shipping_id' => '',
@@ -582,7 +633,7 @@ class OrderController extends Controller {
             'products' => [],
             'customers' => [],
             'shipping_methods' => [],
-            'product_sku_error' => '',
+            'product_name_error' => '',
             'quantity_error' => '',
             'customer_id_error' => '',
             'shipping_id_error' => ''
@@ -614,21 +665,21 @@ class OrderController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Gather and sanitize POST data without deprecated filters (PHP 8+)
             $productData = [
-                'product_sku' => sanitize($this->post('product_sku') ?? ''),
+                'product_name' => sanitize($this->post('product_name') ?? ''),
                 'quantity' => (int)($this->post('quantity') ?? 1),
                 'customer_id' => isAdmin() ? (int)($this->post('customer_id') ?? 0) : (int)($_SESSION['user_id'] ?? 0),
                 'shipping_id' => (int)($this->post('shipping_id') ?? 0),
                 'payment_method' => sanitize($this->post('payment_method') ?? 'cod'),
             ];
             
-            // Validate product SKU
-            if (empty($productData['product_sku'])) {
-                $data['product_sku_error'] = 'Please enter a product SKU';
+            // Validate product name
+            if (empty($productData['product_name'])) {
+                $data['product_name_error'] = 'Please enter a product name';
             } else {
                 // Check if product exists
-                $product = $this->productModel->getProductBySku($productData['product_sku']);
+                $product = $this->productModel->getProductByName($productData['product_name']);
                 if (!$product) {
-                    $data['product_sku_error'] = 'Product not found';
+                    $data['product_name_error'] = 'Product not found';
                 } else {
                     $available = is_object($product) ? ($product->stock_quantity ?? 0) : (is_array($product) ? ($product['stock_quantity'] ?? 0) : 0);
                     if ((int)$available < (int)$productData['quantity']) {
@@ -653,12 +704,12 @@ class OrderController extends Controller {
             }
             
             // If no errors, process the order
-            if (empty($data['product_sku_error']) && empty($data['quantity_error']) && 
+            if (empty($data['product_name_error']) && empty($data['quantity_error']) && 
                 empty($data['customer_id_error']) && empty($data['shipping_id_error'])) {
                 
                 try {
                     // Get product details
-                    $product = $this->productModel->getProductBySku($productData['product_sku']);
+                    $product = $this->productModel->getProductByName($productData['product_name']);
                     if (!$product) {
                         throw new Exception('Product not found');
                     }
@@ -721,6 +772,17 @@ class OrderController extends Controller {
                         throw new Exception('Failed to create order: ' . ($this->orderModel->getError() ?? ''));
                     }
 
+                    // Create invoice and update from order snapshot
+                    try {
+                        $invoiceModel = $this->model('Invoice');
+                        $invoiceId = $invoiceModel->createOrGetInvoiceId($orderId);
+                        if ($invoiceId) {
+                            $invoiceModel->updateFromOrder($orderId);
+                        }
+                    } catch (Exception $e) {
+                        throw new Exception('Order created but failed to create invoice: ' . $e->getMessage());
+                    }
+
                     // Update product stock to new absolute value
                     if (!$this->productModel->updateStock($productId, $newStock)) {
                         throw new Exception('Failed to update product stock: ' . ($this->productModel->getError() ?? ''));
@@ -746,7 +808,7 @@ class OrderController extends Controller {
                     flash('order_error', 'Failed to place order: ' . $e->getMessage(), 'alert alert-danger');
                     
                     // Reload the form with previous input
-                    $data['product_sku'] = $productData['product_sku'];
+                    $data['product_name'] = $productData['product_name'];
                     $data['quantity'] = $productData['quantity'];
                     $data['shipping_id'] = $productData['shipping_id'];
                     $data['payment_method'] = $productData['payment_method'];

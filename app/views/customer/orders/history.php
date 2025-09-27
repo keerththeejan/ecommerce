@@ -28,6 +28,9 @@
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">My Orders</h4>
+                    <a href="<?php echo BASE_URL; ?>?controller=order&action=speed" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus me-2"></i> Add Order
+                    </a>
                 </div>
                 <div class="card-body">
                     <?php flash('order_success'); ?>
@@ -37,9 +40,12 @@
                         <div class="alert alert-info">
                             <p class="mb-0">You haven't placed any orders yet.</p>
                         </div>
-                        <div class="text-center mt-4">
-                            <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="btn btn-primary">
+                        <div class="text-center mt-4 d-flex justify-content-center gap-2">
+                            <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="btn btn-outline-light">
                                 <i class="fas fa-shopping-cart me-2"></i> Start Shopping
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>?controller=order&action=speed" class="btn btn-light">
+                                <i class="fas fa-plus me-2"></i> Add Order
                             </a>
                         </div>
                     <?php else: ?>
