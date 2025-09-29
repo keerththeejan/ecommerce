@@ -40,8 +40,15 @@ require_once APP_PATH . 'views/customer/layouts/header.php';
                         
                         <div class="mb-3">
                             <label for="product_name" class="form-label">Product Name</label>
-                            <input type="text" name="product_name" class="form-control <?php echo (!empty($data['product_name_error'])) ? 'is-invalid' : ''; ?>" 
-                                   value="<?php echo htmlspecialchars($data['product_name']); ?>" placeholder="Enter product name" autofocus>
+                            <div class="input-group">
+                                <input type="text" id="product_name" name="product_name" list="productSuggestions"
+                                       class="form-control <?php echo (!empty($data['product_name_error'])) ? 'is-invalid' : ''; ?>"
+                                       value="<?php echo htmlspecialchars($data['product_name']); ?>" placeholder="Enter product name" autocomplete="off" autofocus>
+                                <span class="input-group-text" id="availability-badge">
+                                    <span class="badge bg-secondary" id="availability-text">-</span>
+                                </span>
+                                <datalist id="productSuggestions"></datalist>
+                            </div>
                             <div class="invalid-feedback"><?php echo $data['product_name_error']; ?></div>
                             <div class="form-text">Enter the name of the product you want to order</div>
                         </div>
@@ -109,6 +116,79 @@ require_once APP_PATH . 'views/customer/layouts/header.php';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('product_name');
+    const datalist = document.getElementById('productSuggestions');
+    const availText = document.getElementById('availability-text');
+    const cache = new Map(); // name -> {available, stock}
+
+    function updateBadge(name) {
+        const item = cache.get(name && name.trim());
+        if (!item) {
+            availText.textContent = '-';
+            availText.className = 'badge bg-secondary';
+            return;
+        }
+        if (item.available) {
+            availText.textContent = 'Available';
+            availText.className = 'badge bg-success';
+        } else {
+            availText.textContent = 'Unavailable';
+            availText.className = 'badge bg-danger';
+        }
+    }
+
+    let lastQuery = '';
+    let inflight = null;
+    async function fetchSuggestions(q = '') {
+        try {
+            if (inflight) { /* allow overlapping; browser will abort most recent on nav */ }
+            const url = `<?php echo BASE_URL; ?>?controller=product&action=suggest&q=${encodeURIComponent(q)}&limit=15`;
+            const res = await fetch(url, {credentials: 'same-origin'});
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data || !data.success || !Array.isArray(data.data)) return;
+            // Clear datalist
+            datalist.innerHTML = '';
+            data.data.forEach(row => {
+                const name = row.name || '';
+                if (!name) return;
+                cache.set(name, {available: !!row.available, stock: Number(row.stock||0)});
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.label = row.available ? `${name} — Available` : `${name} — Unavailable`;
+                datalist.appendChild(opt);
+            });
+            // refresh badge for current value
+            updateBadge(input.value);
+        } catch (e) {
+            // ignore network errors
+        }
+    }
+
+    // Initial fetch on focus to show list
+    input.addEventListener('focus', () => {
+        if (datalist.options.length === 0) fetchSuggestions('');
+    });
+    // Fetch on input with debouncing
+    let t = null;
+    input.addEventListener('input', (e) => {
+        const val = e.target.value || '';
+        updateBadge(val);
+        if (t) clearTimeout(t);
+        t = setTimeout(() => {
+            if (val !== lastQuery) {
+                lastQuery = val;
+                fetchSuggestions(val);
+            }
+        }, 150);
+    });
+    // Update badge on change as well (e.g., selecting from list)
+    input.addEventListener('change', () => updateBadge(input.value));
+});
+</script>
 
 <?php 
 // Include customer layout footer

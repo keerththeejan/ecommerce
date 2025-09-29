@@ -15,6 +15,60 @@ class ProductController extends Controller {
     }
 
     /**
+     * Suggest product names with availability for autocomplete
+     * Returns JSON: [{ name, available, stock }]
+     */
+    public function suggest() {
+        // Allow both admins and logged-in customers to fetch suggestions
+        if (!isLoggedIn() && !isAdmin()) {
+            $this->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            return;
+        }
+
+        $q = trim((string)$this->get('q', ''));
+        $limit = (int)$this->get('limit', 10);
+        if ($limit <= 0 || $limit > 50) { $limit = 10; }
+
+        $results = [];
+        try {
+            if ($q === '') {
+                // Default: first N active products ordered by name
+                $all = $this->productModel->getActiveProducts();
+                foreach ($all as $row) {
+                    $r = is_object($row) ? (array)$row : (array)$row;
+                    $stock = (int)($r['stock_quantity'] ?? 0);
+                    $status = (string)($r['status'] ?? 'inactive');
+                    $results[] = [
+                        'name' => (string)($r['name'] ?? ''),
+                        'available' => ($status === 'active' && $stock > 0),
+                        'stock' => $stock,
+                    ];
+                    if (count($results) >= $limit) break;
+                }
+            } else {
+                // Simple name LIKE search among active products
+                // Reuse searchProducts but filter active already
+                $matched = $this->productModel->searchProducts($q);
+                foreach ($matched as $row) {
+                    $r = is_object($row) ? (array)$row : (array)$row;
+                    $stock = (int)($r['stock_quantity'] ?? 0);
+                    $status = (string)($r['status'] ?? 'inactive');
+                    $results[] = [
+                        'name' => (string)($r['name'] ?? ''),
+                        'available' => ($status === 'active' && $stock > 0),
+                        'stock' => $stock,
+                    ];
+                    if (count($results) >= $limit) break;
+                }
+            }
+
+            $this->json(['success' => true, 'data' => $results]);
+        } catch (Exception $e) {
+            $this->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Quick create a product (for use inside Purchase -> purchase2)
      * Accepts minimal fields and auto-fills the rest. Returns JSON.
      */
