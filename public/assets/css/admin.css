@@ -1,0 +1,878 @@
+/* Admin Dashboard Styles */
+
+/* Sidebar */
+.sidebar {
+    min-height: 100vh;
+    background: #343a40;
+    padding-top: 20px;
+}
+
+/* Products admin: ensure desktop-style and avoid vertical wrapping */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #productsTable th, #productsTable td { white-space: nowrap !important; word-break: normal !important; overflow-wrap: normal !important; }
+  #productsTable td[data-label="Name"],
+  #productsTable td[data-label="Supplier"] { min-width: 220px; }
+  #productsTable td[data-label="Image"] img { width: 48px; height: 48px; object-fit: cover; }
+  #productsTable td[data-label="Actions"] .btn-group { display: inline-flex; gap: .35rem; flex-wrap: nowrap; }
+}
+
+/* Dashboard mobile tightening */
+@media (max-width: 768px) {
+  .container-fluid { padding-left: 8px; padding-right: 8px; }
+  .card { margin-bottom: 12px; }
+  .card-body { padding: .75rem; }
+  .card-header { padding: .6rem .75rem; }
+  .card-footer { padding: .5rem .75rem; }
+  .card h2 { font-size: 1.25rem; }
+  .card .text-uppercase { font-size: .75rem; letter-spacing: .02em; }
+  /* Two cards per row in the first stats row */
+  .container-fluid > .row.mb-4:first-of-type > [class*="col-md-3"] { flex: 0 0 50%; max-width: 50%; }
+}
+
+/* Admin Dashboard tables: keep desktop-style on mobile */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  /* Recent Purchases */
+  #dashboardRecentPurchases { display: table !important; width: 100% !important; table-layout: auto !important; }
+  #dashboardRecentPurchases thead { display: table-header-group !important; }
+  #dashboardRecentPurchases tbody { display: table-row-group !important; }
+  #dashboardRecentPurchases tr { display: table-row !important; }
+  #dashboardRecentPurchases th, #dashboardRecentPurchases td { display: table-cell !important; white-space: nowrap !important; word-break: normal !important; overflow-wrap: normal !important; writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important; }
+  #dashboardRecentPurchases td::before { content: none !important; display: none !important; }
+  #dashboardRecentPurchases th, #dashboardRecentPurchases td { padding-top: .4rem; padding-bottom: .4rem; }
+  /* Keep long supplier names on one line; allow scroll */
+  #dashboardRecentPurchases td[data-label="Supplier"] { white-space: nowrap !important; word-break: normal !important; min-width: 160px; }
+
+  /* Recent Invoices */
+  #dashboardRecentInvoices { display: table !important; width: 100% !important; table-layout: auto !important; }
+  #dashboardRecentInvoices thead { display: table-header-group !important; }
+  #dashboardRecentInvoices tr { display: table-row !important; }
+  #dashboardRecentInvoices th, #dashboardRecentInvoices td { display: table-cell !important; white-space: nowrap !important; word-break: normal !important; overflow-wrap: normal !important; writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important; }
+  #dashboardRecentInvoices td::before { content: none !important; display: none !important; }
+  #dashboardRecentInvoices th, #dashboardRecentInvoices td { padding-top: .4rem; padding-bottom: .4rem; }
+  /* Keep customer name in one line; ensure scroll */
+  #dashboardRecentInvoices td:nth-child(3) { white-space: nowrap !important; word-break: normal !important; overflow-wrap: normal !important; min-width: 200px; }
+
+  /* Recent Orders */
+  #dashboardRecentOrders { display: table !important; width: 100% !important; table-layout: auto !important; }
+  #dashboardRecentOrders thead { display: table-header-group !important; }
+  #dashboardRecentOrders tr { display: table-row !important; }
+  #dashboardRecentOrders th, #dashboardRecentOrders td { display: table-cell !important; white-space: nowrap !important; word-break: normal !important; overflow-wrap: normal !important; writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important; }
+  #dashboardRecentOrders td::before { content: none !important; display: none !important; }
+  #dashboardRecentOrders th, #dashboardRecentOrders td { padding-top: .4rem; padding-bottom: .4rem; }
+  /* Keep customer name in one line; ensure scroll */
+  #dashboardRecentOrders td[data-label="Customer"] { white-space: nowrap !important; word-break: normal !important; overflow-wrap: normal !important; min-width: 200px; }
+
+  /* Low Stock */
+  #dashboardLowStock { display: table !important; width: 100% !important; table-layout: auto !important; }
+  #dashboardLowStock thead { display: table-header-group !important; }
+  #dashboardLowStock tr { display: table-row !important; }
+  #dashboardLowStock th, #dashboardLowStock td { display: table-cell !important; white-space: nowrap !important; writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important; }
+  #dashboardLowStock td::before { content: none !important; display: none !important; }
+  #dashboardLowStock th, #dashboardLowStock td { padding-top: .4rem; padding-bottom: .4rem; }
+  #dashboardLowStock td[data-label="Name"], #dashboardLowStock td[data-label="Category"] { white-space: normal !important; word-break: break-word; }
+}
+
+/* Contact Info: keep table desktop-style on mobile */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #contactInfoTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #contactInfoTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #contactInfoTable tbody { display: table-row-group !important; }
+  #contactInfoTable tr { display: table-row !important; }
+  #contactInfoTable th, #contactInfoTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #contactInfoTable td::before { content: none !important; display: none !important; }
+  /* Compact + wrapping */
+  #contactInfoTable th, #contactInfoTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #contactInfoTable td[data-label="Address"] { white-space: normal !important; word-break: break-word; min-width: 220px; }
+  #contactInfoTable td[data-label="Actions"] .contact-actions { display: inline-flex; flex-wrap: nowrap; gap: .35rem; }
+}
+
+/* About Store: keep table desktop-style on mobile */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #aboutStoreTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #aboutStoreTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #aboutStoreTable tbody { display: table-row-group !important; }
+  #aboutStoreTable tr { display: table-row !important; }
+  #aboutStoreTable th, #aboutStoreTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #aboutStoreTable td::before { content: none !important; display: none !important; }
+  #aboutStoreTable th, #aboutStoreTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #aboutStoreTable td[data-label="Title"] { white-space: normal !important; word-break: break-word; }
+  #aboutStoreTable td[data-label="Image"] img { width: 80px !important; height: 48px !important; object-fit: cover !important; border-radius: 4px; }
+  #aboutStoreTable td[data-label="Actions"] .about-actions { display: inline-flex; flex-wrap: nowrap; gap: .35rem; }
+}
+
+/* Tax admin: keep desktop table on mobile and persistent */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #taxTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #taxTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #taxTable tbody { display: table-row-group !important; }
+  #taxTable tr { display: table-row !important; }
+  #taxTable th, #taxTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #taxTable td::before { content: none !important; display: none !important; }
+  /* Compact + keep actions inline */
+  #taxTable th, #taxTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #taxTable td:nth-child(1) { white-space: normal !important; word-break: break-word; }
+  #taxTable td:nth-child(4) { white-space: nowrap !important; }
+}
+
+/* Report: Customers table desktop-style on mobile */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #reportCustomersTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #reportCustomersTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #reportCustomersTable tbody { display: table-row-group !important; }
+  #reportCustomersTable tr { display: table-row !important; }
+  #reportCustomersTable th, #reportCustomersTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #reportCustomersTable td::before { content: none !important; display: none !important; }
+  /* Compact + wrap long text */
+  #reportCustomersTable th, #reportCustomersTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #reportCustomersTable td:nth-child(2),
+  #reportCustomersTable td:nth-child(3) { white-space: normal !important; word-break: break-word; }
+}
+
+/* Report: Products table desktop-style on mobile */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #reportProductsTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #reportProductsTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #reportProductsTable tbody { display: table-row-group !important; }
+  #reportProductsTable tr { display: table-row !important; }
+  #reportProductsTable th, #reportProductsTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #reportProductsTable td::before { content: none !important; display: none !important; }
+  /* Compact + wrap long text */
+  #reportProductsTable th, #reportProductsTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #reportProductsTable td:nth-child(2),
+  #reportProductsTable td:nth-child(3) { white-space: normal !important; word-break: break-word; }
+}
+
+/* Customers admin: keep desktop table on mobile and persistent */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #customersTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #customersTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #customersTable tbody { display: table-row-group !important; }
+  #customersTable tr { display: table-row !important; }
+  #customersTable th, #customersTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #customersTable td::before { content: none !important; display: none !important; }
+  /* Compact + wrapping */
+  #customersTable th, #customersTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #customersTable td[data-label="Name"],
+  #customersTable td[data-label="Username"],
+  #customersTable td[data-label="Email"] { white-space: normal !important; word-break: break-word; }
+  /* Keep actions inline */
+  #customersTable td[data-label="Actions"] { white-space: nowrap !important; min-width: 170px; }
+  #customersTable td[data-label="Actions"] .customer-actions { display: inline-flex !important; flex-wrap: nowrap !important; align-items: center; gap: .35rem; }
+}
+
+@media (max-width: 480px) {
+  #customersTable { font-size: .9rem; }
+  #customersTable th, #customersTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  #customersTable td[data-label="Actions"] { min-width: 140px; }
+}
+
+/* Users admin: keep desktop table on mobile and persistent */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #usersTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #usersTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #usersTable tbody { display: table-row-group !important; }
+  #usersTable tr { display: table-row !important; }
+  #usersTable th, #usersTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #usersTable td::before { content: none !important; display: none !important; }
+  /* Compact + wrapping for text columns */
+  #usersTable th, #usersTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #usersTable td[data-label="Username"],
+  #usersTable td[data-label="Email"],
+  #usersTable td[data-label="Name"] { white-space: normal !important; word-break: break-word; }
+  /* Keep actions inline */
+  #usersTable td[data-label="Actions"] { white-space: nowrap !important; min-width: 170px; }
+  #usersTable td[data-label="Actions"] .user-actions { display: inline-flex !important; flex-wrap: nowrap !important; align-items: center; gap: .35rem; }
+}
+
+@media (max-width: 480px) {
+  #usersTable { font-size: .9rem; }
+  #usersTable th, #usersTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  #usersTable td[data-label="Actions"] { min-width: 140px; }
+}
+
+/* Orders admin: keep desktop table on mobile and persistent */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #ordersTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #ordersTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #ordersTable tbody { display: table-row-group !important; }
+  #ordersTable tr { display: table-row !important; }
+  #ordersTable th, #ordersTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #ordersTable td::before { content: none !important; display: none !important; }
+  /* Compact + wrapping for Customer */
+  #ordersTable th, #ordersTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #ordersTable td[data-label="Customer"] { white-space: normal !important; word-break: break-word; min-width: 180px; }
+  #ordersTable td[data-label="Actions"] { white-space: nowrap !important; min-width: 170px; }
+  /* Keep actions in one straight line */
+  #ordersTable td[data-label="Actions"] .order-actions { display: inline-flex !important; flex-wrap: nowrap !important; align-items: center; gap: .35rem; }
+  #ordersTable td[data-label="Actions"] .btn { display: inline-flex; align-items: center; padding: .35rem .5rem; font-size: .85rem; }
+  #ordersTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+}
+
+/* Extra compact for very small phones (Orders) */
+@media (max-width: 480px) {
+  #ordersTable { font-size: .9rem; }
+  #ordersTable th, #ordersTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  #ordersTable td[data-label="Customer"] { min-width: 160px; }
+  #ordersTable td[data-label="Actions"] { min-width: 140px; }
+  #ordersTable td[data-label="Actions"] .btn { padding: .28rem .4rem; font-size: .8rem; }
+}
+
+/* Suppliers admin: keep desktop table on mobile and persistent */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #suppliersTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #suppliersTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #suppliersTable tbody { display: table-row-group !important; }
+  #suppliersTable tr { display: table-row !important; }
+  #suppliersTable th, #suppliersTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #suppliersTable td::before { content: none !important; display: none !important; }
+  /* Compact + wrapping for long text */
+  #suppliersTable th, #suppliersTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #suppliersTable td[data-label="Supplier Name"],
+  #suppliersTable td[data-label="Product Name"],
+  #suppliersTable td[data-label="Email"],
+  #suppliersTable td[data-label="Phone"] { white-space: normal !important; word-break: break-word; }
+  /* Keep actions in one line */
+  #suppliersTable td[data-label="Actions"] { white-space: nowrap !important; min-width: 170px; }
+  #suppliersTable td[data-label="Actions"] .supplier-actions { display: inline-flex !important; flex-wrap: nowrap !important; align-items: center; gap: .35rem; }
+}
+
+@media (max-width: 480px) {
+  #suppliersTable { font-size: .9rem; }
+  #suppliersTable th, #suppliersTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  #suppliersTable td[data-label="Actions"] { min-width: 140px; }
+}
+
+/* Banners admin: keep desktop table on mobile and persistent */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #bannersTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #bannersTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #bannersTable tbody { display: table-row-group !important; }
+  #bannersTable tr { display: table-row !important; }
+  #bannersTable th, #bannersTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #bannersTable td::before { content: none !important; display: none !important; }
+  /* Compact */
+  #bannersTable th, #bannersTable td { padding-top: .45rem; padding-bottom: .45rem; }
+  #bannersTable td:nth-child(2) img { width: 80px !important; height: 48px !important; object-fit: cover; }
+  #bannersTable td:nth-child(3), #bannersTable td:nth-child(4) { white-space: normal !important; word-break: break-word; }
+  #bannersTable td:nth-child(6) { white-space: nowrap !important; min-width: 150px; }
+  #bannersTable td:nth-child(6) .btn { display: inline-flex; align-items: center; margin-right: .35rem; padding: .35rem .5rem; font-size: .85rem; }
+  #bannersTable td:nth-child(6) .btn:last-child { margin-right: 0; }
+}
+
+/* Extra-compact tweaks for very small phones */
+@media (max-width: 480px) {
+  /* Smoother horizontal scroll */
+  .table-responsive { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+
+  /* Categories table tighter sizing */
+  #categoriesTable { font-size: 0.9rem; }
+  #categoriesTable th, #categoriesTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  #categoriesTable td[data-label="Image"] img { width: 32px !important; height: 32px !important; }
+  #categoriesTable td[data-label="Actions"] { min-width: 140px; }
+  #categoriesTable td[data-label="Actions"] .btn { padding: .28rem .4rem; font-size: .78rem; }
+}
+
+/* Purchases index table: keep desktop layout on mobile and actions inline */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  /* Force proper table semantics and reset transforms to avoid stacked layout after back */
+  #purchasesTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #purchasesTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #purchasesTable tbody { display: table-row-group !important; }
+  #purchasesTable tr { display: table-row !important; }
+  #purchasesTable th, #purchasesTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  /* Disable any stacked layout labels */
+  #purchasesTable td::before { content: none !important; display: none !important; }
+
+  /* Compact spacing */
+  #purchasesTable td, #purchasesTable th { padding-top: .5rem; padding-bottom: .5rem; }
+  #purchasesTable td[data-label="Products"] { max-width: 260px; white-space: normal !important; word-break: break-word; }
+  /* Keep actions inline */
+  #purchasesTable td[data-label="Actions"] { white-space: nowrap !important; min-width: 170px; }
+  #purchasesTable td[data-label="Actions"] .btn { display: inline-flex; align-items: center; margin-right: .35rem; margin-bottom: 0; padding: .35rem .5rem; font-size: .85rem; }
+  #purchasesTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+}
+
+/* Extra-compact tweaks for very small phones (Purchases) */
+@media (max-width: 480px) {
+  #purchasesTable { font-size: .9rem; }
+  #purchasesTable th, #purchasesTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  #purchasesTable td[data-label="Products"] { max-width: 220px; }
+  #purchasesTable td[data-label="Actions"] { min-width: 150px; }
+  #purchasesTable td[data-label="Actions"] .btn { padding: .28rem .4rem; font-size: .8rem; }
+}
+
+/* Categories admin table: harden desktop layout on mobile (prevents accidental stacked state on back navigation) */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; }
+  /* Force proper table semantics */
+  #categoriesTable { display: table !important; width: 100% !important; }
+  #categoriesTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #categoriesTable tbody { display: table-row-group !important; }
+  #categoriesTable tr { display: table-row !important; }
+  #categoriesTable th, #categoriesTable td { display: table-cell !important; width: auto !important; }
+  /* Keep actions in one row */
+  #categoriesTable td[data-label="Actions"] { white-space: nowrap; min-width: 160px; }
+  #categoriesTable td[data-label="Actions"] .btn { display: inline-flex; align-items: center; margin-right: .35rem; margin-bottom: 0; padding: .35rem .5rem; font-size: .85rem; }
+  #categoriesTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+  /* Tighter layout for small screens */
+  #categoriesTable td, #categoriesTable th { padding-top: .45rem; padding-bottom: .45rem; }
+  #categoriesTable td[data-label="Image"] img { width: 36px !important; height: 36px !important; object-fit: cover; }
+  #categoriesTable td[data-label="Name"],
+  #categoriesTable td[data-label="Parent"] { white-space: normal; word-break: break-word; }
+  #categoriesTable td[data-label="Tax Rate"] { white-space: nowrap; }
+  #categoriesTable td[data-label="Actions"] .btn { padding: .3rem .45rem; font-size: .8rem; }
+}
+
+/* Brands admin table: harden desktop layout on mobile (prevents stacked state on back) */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  /* Force proper table semantics + reset transforms */
+  #brandsTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #brandsTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #brandsTable tbody { display: table-row-group !important; }
+  #brandsTable tr { display: table-row !important; }
+  #brandsTable th, #brandsTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  /* Disable stacked layout labels */
+  #brandsTable td::before { content: none !important; display: none !important; }
+  /* Inline actions + compact */
+  #brandsTable td[data-label="Actions"] { white-space: nowrap !important; min-width: 160px; }
+  #brandsTable td[data-label="Actions"] .btn { display: inline-flex; align-items: center; margin-right: .35rem; margin-bottom: 0; padding: .35rem .5rem; font-size: .85rem; }
+  #brandsTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+  /* Tighter layout */
+  #brandsTable td, #brandsTable th { padding-top: .45rem; padding-bottom: .45rem; }
+  #brandsTable td[data-label="Logo"] img { max-width: 36px; max-height: 36px; width: 36px; height: 36px; object-fit: contain; }
+  /* Allow wrapping on text columns */
+  #brandsTable td[data-label="Name"],
+  #brandsTable td[data-label="Slug"] { white-space: normal !important; word-break: break-word; }
+}
+
+/* Extra-compact tweaks for very small phones (Brands) */
+@media (max-width: 480px) {
+  #brandsTable { font-size: 0.9rem; }
+  #brandsTable th, #brandsTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  #brandsTable td[data-label="Actions"] { min-width: 140px; }
+  #brandsTable td[data-label="Actions"] .btn { padding: .28rem .4rem; font-size: .78rem; }
+}
+
+/* Countries admin: keep desktop table on mobile and compact */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  /* Force table semantics to avoid stacked mode */
+  #countriesTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #countriesTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #countriesTable tbody { display: table-row-group !important; }
+  #countriesTable tr { display: table-row !important; }
+  #countriesTable th, #countriesTable td {
+    display: table-cell !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    line-height: 1.25 !important;
+  }
+  /* Disable stacked layout labels that use td::before */
+  #countriesTable td::before { content: none !important; display: none !important; }
+  /* Compact spacing */
+  #countriesTable { font-size: .95rem; }
+  #countriesTable th, #countriesTable td { padding-top: .4rem; padding-bottom: .4rem; }
+  /* Flag size */
+  #countriesTable td:nth-child(2) img { width: 24px !important; height: 16px !important; object-fit: cover; }
+  /* Wrap long names, keep others tight */
+  #countriesTable td:nth-child(3) { white-space: normal; word-break: break-word; min-width: 160px; }
+  #countriesTable td:nth-child(5) { white-space: nowrap; min-width: 150px; }
+  #countriesTable td:nth-child(5) .btn { display: inline-flex; align-items: center; margin-right: .3rem; padding: .32rem .46rem; font-size: .82rem; }
+  #countriesTable td:nth-child(5) .btn:last-child { margin-right: 0; }
+}
+
+@media (max-width: 480px) {
+  #countriesTable { font-size: .85rem; }
+  #countriesTable th, #countriesTable td { padding-top: .35rem; padding-bottom: .35rem; }
+  #countriesTable td:nth-child(2) img { width: 20px !important; height: 14px !important; }
+  #countriesTable td:nth-child(3) { min-width: 140px; }
+  #countriesTable td:nth-child(5) { min-width: 130px; }
+  #countriesTable td:nth-child(5) .btn { padding: .26rem .38rem; font-size: .76rem; }
+}
+
+/* Products table image: show full image in fixed square (override inline styles) */
+#productsTable td[data-label="Product image"] img {
+  width: 64px !important;
+  height: 64px !important;
+  object-fit: contain !important;
+  background-color: #fff;
+}
+
+/* Purchase3 selected product image: fixed square, show full image */
+.purchase3-product-img {
+  width: 64px !important;
+  height: 64px !important;
+  object-fit: contain !important;
+  background-color: #fff;
+}
+
+/* Purchase3: keep selected product details table desktop-style on mobile */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #purchase3ProductTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #purchase3ProductTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #purchase3ProductTable tbody { display: table-row-group !important; }
+  #purchase3ProductTable tr { display: table-row !important; }
+  #purchase3ProductTable th, #purchase3ProductTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  #purchase3ProductTable td::before { content: none !important; display: none !important; }
+  #purchase3ProductTable th, #purchase3ProductTable td { padding-top: .5rem; padding-bottom: .5rem; }
+  #purchase3ProductTable td:first-child img { width: 48px !important; height: 48px !important; object-fit: contain !important; }
+}
+
+/* Compact table that fits many columns on one screen (no stacking) */
+@media (max-width: 992px) {
+  table.table-compact { table-layout: fixed; width: 100%; font-size: 11px; }
+  table.table-compact th,
+  table.table-compact td { padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table.table-compact .img-thumbnail { width: 24px !important; height: 24px !important; object-fit: cover; }
+  table.table-compact .btn { padding: 2px 6px; font-size: 10px; }
+  table.table-compact .badge { font-size: 10px; padding: 4px 6px; }
+  table.table-compact .btn-group { gap: 4px; }
+
+  /* Allow full visibility for Status (14) and Actions (15) columns */
+  table.table-compact.products-table td:nth-child(12),
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(14),
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(15),
+  table.table-compact.products-table th:nth-child(15) {
+    overflow: visible;
+    text-overflow: initial;
+    white-space: nowrap;
+  }
+
+  /* Give image, stock, status, actions some breathing room */
+  table.table-compact.products-table th:nth-child(2),
+  table.table-compact.products-table td:nth-child(2) { min-width: 40px; }
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(12) { min-width: 56px; }
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(14) { min-width: 70px; }
+  table.table-compact.products-table th:nth-child(15),
+  table.table-compact.products-table td:nth-child(15) { min-width: 84px; }
+
+  /* Specific width allocation for Products table (15 columns) */
+  table.table-compact.products-table th:nth-child(1),
+  table.table-compact.products-table td:nth-child(1) { width: 3%; }
+  table.table-compact.products-table th:nth-child(2),
+  table.table-compact.products-table td:nth-child(2) { width: 6%; }
+  table.table-compact.products-table th:nth-child(3),
+  table.table-compact.products-table td:nth-child(3) { width: 10%; }
+  table.table-compact.products-table th:nth-child(4),
+  table.table-compact.products-table td:nth-child(4) { width: 7%; }
+  table.table-compact.products-table th:nth-child(5),
+  table.table-compact.products-table td:nth-child(5) { width: 7%; }
+  table.table-compact.products-table th:nth-child(6),
+  table.table-compact.products-table td:nth-child(6) { width: 9%; }
+  table.table-compact.products-table th:nth-child(7),
+  table.table-compact.products-table td:nth-child(7) { width: 7%; }
+  table.table-compact.products-table th:nth-child(8),
+  table.table-compact.products-table td:nth-child(8) { width: 7%; }
+  table.table-compact.products-table th:nth-child(9),
+  table.table-compact.products-table td:nth-child(9) { width: 7%; }
+  table.table-compact.products-table th:nth-child(10),
+  table.table-compact.products-table td:nth-child(10) { width: 6%; }
+  table.table-compact.products-table th:nth-child(11),
+  table.table-compact.products-table td:nth-child(11) { width: 7%; }
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(12) { width: 5%; }
+  table.table-compact.products-table th:nth-child(13),
+  table.table-compact.products-table td:nth-child(13) { width: 7%; }
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(14) { width: 6%; }
+  table.table-compact.products-table th:nth-child(15),
+  table.table-compact.products-table td:nth-child(15) { width: 6%; }
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    padding: 8px 20px;
+    margin: 2px 10px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.sidebar .nav-link:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background-color: #007bff;
+}
+
+.sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Content Area */
+.main-content {
+    padding: 20px;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    font-weight: 600;
+}
+
+/* Tables */
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+/* Forms */
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Buttons */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Global compact tweaks for very small phones */
+@media (max-width: 480px) {
+  .table { font-size: .9rem; }
+  .table th, .table td { padding-top: .35rem; padding-bottom: .35rem; }
+  .table .btn, .table .btn-sm { padding: .28rem .4rem; font-size: .8rem; }
+  .badge { font-size: .75rem; }
+}
+
+/* Global: enforce desktop-style tables on mobile for all admin tables using ...Table IDs */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .table-responsive [id$="Table"] { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  .table-responsive [id$="Table"] thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  .table-responsive [id$="Table"] tbody { display: table-row-group !important; }
+  .table-responsive [id$="Table"] tr { display: table-row !important; }
+  .table-responsive [id$="Table"] th,
+  .table-responsive [id$="Table"] td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  .table-responsive [id$="Table"] td::before { content: none !important; display: none !important; }
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-left: 4px solid transparent;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-left-color: #28a745;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+/* Footer Section Management */
+.footer-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.footer-section h4 {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+    }
+    
+    .main-content {
+        padding: 15px;
+    }
+}
+ 
+/* Mobile stacked table to avoid horizontal scroll */
+@media (max-width: 768px) {
+  .table-responsive { overflow-x: auto !important; overflow-y: visible; }
+  table.responsive-table,
+  table.responsive-table thead,
+  table.responsive-table tbody,
+  table.responsive-table th,
+  table.responsive-table td,
+  table.responsive-table tr { display: block !important; width: 100% !important; }
+  table.responsive-table { width: 100% !important; }
+  table.responsive-table thead { position: absolute !important; top: -9999px !important; left: -9999px !important; height: 0 !important; overflow: hidden !important; }
+  table.responsive-table tr {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+  }
+  table.responsive-table td {
+    border: none;
+    border-bottom: 1px solid #f1f3f5;
+    padding: 8px 10px;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    white-space: normal;
+    word-break: break-word;
+  }
+  table.responsive-table td:last-child { border-bottom: none; }
+  table.responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6c757d;
+  }
+  table.responsive-table .img-thumbnail { width: 44px; height: 44px; object-fit: cover; }
+  table.responsive-table .text-nowrap { white-space: normal !important; }
+  table.responsive-table .btn-group { display: flex; gap: 8px; }
+}
+
+/* Compact non-stacked table style and fixed column widths for the products table */
+@media (max-width: 992px) {
+  table.table-compact.products-table {
+    table-layout: fixed;
+    width: 100%;
+    font-size: 11px;
+  }
+  table.table-compact.products-table th:nth-child(1),
+  table.table-compact.products-table td:nth-child(1) { width: 3%; }
+  table.table-compact.products-table th:nth-child(2),
+  table.table-compact.products-table td:nth-child(2) { width: 6%; }
+  table.table-compact.products-table th:nth-child(3),
+  table.table-compact.products-table td:nth-child(3) { width: 10%; }
+  table.table-compact.products-table th:nth-child(4),
+  table.table-compact.products-table td:nth-child(4) { width: 7%; }
+  table.table-compact.products-table th:nth-child(5),
+  table.table-compact.products-table td:nth-child(5) { width: 7%; }
+  table.table-compact.products-table th:nth-child(6),
+  table.table-compact.products-table td:nth-child(6) { width: 9%; }
+  table.table-compact.products-table th:nth-child(7),
+  table.table-compact.products-table td:nth-child(7) { width: 7%; }
+  table.table-compact.products-table th:nth-child(8),
+  table.table-compact.products-table td:nth-child(8) { width: 7%; }
+  table.table-compact.products-table th:nth-child(9),
+  table.table-compact.products-table td:nth-child(9) { width: 7%; }
+  table.table-compact.products-table th:nth-child(10),
+  table.table-compact.products-table td:nth-child(10) { width: 6%; }
+  table.table-compact.products-table th:nth-child(11),
+  table.table-compact.products-table td:nth-child(11) { width: 7%; }
+  table.table-compact.products-table th:nth-child(12),
+  table.table-compact.products-table td:nth-child(12) { width: 5%; }
+  table.table-compact.products-table th:nth-child(13),
+  table.table-compact.products-table td:nth-child(13) { width: 7%; }
+  table.table-compact.products-table th:nth-child(14),
+  table.table-compact.products-table td:nth-child(14) { width: 6%; }
+  table.table-compact.products-table th:nth-child(15),
+  table.table-compact.products-table td:nth-child(15) { width: 6%; }
+}
+
+/* Force stacked layout on tablet and below (<= 992px) */
+@media (max-width: 992px) {
+  table.force-stacked,
+  table.force-stacked thead,
+  table.force-stacked tbody,
+  table.force-stacked th,
+  table.force-stacked td,
+  table.force-stacked tr { display: block !important; width: 100% !important; }
+  table.force-stacked { width: 100% !important; }
+  table.force-stacked thead { position: absolute !important; top: -9999px !important; left: -9999px !important; height: 0 !important; overflow: hidden !important; }
+  table.force-stacked tr {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+  }
+  table.force-stacked td {
+    border: none;
+    border-bottom: 1px solid #f1f3f5;
+    padding: 8px 10px;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    white-space: normal;
+    word-break: break-word;
+  }
+  table.force-stacked td:last-child { border-bottom: none; }
+  table.force-stacked td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6c757d;
+  }
+  table.force-stacked .img-thumbnail { width: 44px; height: 44px; object-fit: cover; }
+  table.force-stacked .text-nowrap { white-space: normal !important; }
+  table.force-stacked .btn-group { display: flex; gap: 8px; }
+}
+
+/* Categories admin table: keep Actions buttons inline on mobile */
+@media (max-width: 768px) {
+  /* Ensure horizontal scroll works when needed */
+  .table-responsive { overflow-x: auto; }
+
+  /* Keep Edit + Delete on one line */
+  #categoriesTable td[data-label="Actions"] { white-space: nowrap; min-width: 160px; }
+  #categoriesTable td[data-label="Actions"] .btn {
+    display: inline-flex;
+    align-items: center;
+    margin-right: .35rem;
+    margin-bottom: 0;
+    padding: .35rem .5rem;
+    font-size: .85rem;
+  }
+  #categoriesTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+
+  /* Brands admin: keep desktop layout and inline actions */
+  #brandsTable { width: 100%; }
+  #brandsTable td, #brandsTable th { padding-top: .5rem; padding-bottom: .5rem; }
+  #brandsTable td[data-label="Actions"] { white-space: nowrap; min-width: 160px; }
+  #brandsTable td[data-label="Actions"] .btn {
+    display: inline-flex;
+    align-items: center;
+    margin-right: .35rem;
+    margin-bottom: 0;
+    padding: .35rem .5rem;
+    font-size: .85rem;
+  }
+  #brandsTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+  #brandsTable td[data-label="Logo"] img { max-width: 48px; height: auto; }
+}
+
+/* ListPurchaseController products table: keep desktop layout on mobile */
+@media (max-width: 768px) {
+  /* Ensure horizontal scroll is available */
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+
+  /* Enforce table semantics and reset transforms to avoid stacked layout after back */
+  #productsTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #productsTable thead { display: table-header-group !important; position: static !important; height: auto !important; }
+  #productsTable tbody { display: table-row-group !important; }
+  #productsTable tr { display: table-row !important; }
+  #productsTable th, #productsTable td {
+    display: table-cell !important; width: auto !important;
+    white-space: nowrap !important; word-break: normal !important;
+    writing-mode: horizontal-tb !important; transform: none !important; line-height: 1.25 !important;
+  }
+  /* Disable any stacked layout labels */
+  #productsTable td::before { content: none !important; display: none !important; }
+
+  /* Slightly compact cells */
+  #productsTable td, #productsTable th { padding-top: .5rem; padding-bottom: .5rem; }
+  #productsTable td[data-label="Product image"] img { max-width: 48px; height: auto; }
+
+  /* Keep Action controls tidy on one line */
+  #productsTable td[data-label="Action"] { white-space: nowrap !important; min-width: 170px; }
+  #productsTable td[data-label="Action"] .btn,
+  #productsTable td[data-label="Action"] .dropdown-toggle {
+    display: inline-flex; align-items: center; margin-right: .35rem; margin-bottom: 0; padding: .35rem .5rem; font-size: .85rem;
+  }
+  #productsTable td[data-label="Action"] .btn:last-child,
+  #productsTable td[data-label="Action"] .dropdown-toggle:last-child { margin-right: 0; }
+
+  /* Column sizing to mimic desktop */
+  #productsTable th:first-child, #productsTable td[data-label="#"] { min-width: 44px; white-space: nowrap; }
+  #productsTable th:nth-child(2), #productsTable td[data-label="Product image"] { min-width: 64px; white-space: nowrap; }
+  #productsTable td[data-label="Product"] { min-width: 220px; white-space: normal !important; word-break: break-word; }
+  #productsTable td[data-label="Business Location"] { min-width: 160px; white-space: normal; }
+  #productsTable td[data-label="Unit Purchase Price"],
+  #productsTable td[data-label="Selling Price"],
+  #productsTable td[data-label="Stock"],
+  #productsTable td[data-label="Stock Status"],
+  #productsTable td[data-label="Product Type"],
+  #productsTable td[data-label="Category"],
+  #productsTable td[data-label="Brand"],
+  #productsTable td[data-label="Tax"],
+  #productsTable td[data-label="SKU"] { white-space: nowrap; }
+}
