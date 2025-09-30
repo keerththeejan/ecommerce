@@ -1,0 +1,31 @@
+<?php
+// Create a 300x150 image with a light gray background
+$width = 300;
+$height = 150;
+$image = imagecreatetruecolor($width, $height);
+
+// Colors
+$bgColor = imagecolorallocate($image, 240, 240, 240);
+$textColor = imagecolorallocate($image, 120, 120, 120);
+$borderColor = imagecolorallocate($image, 200, 200, 200);
+
+// Fill background and add border
+imagefilledrectangle($image, 0, 0, $width-1, $height-1, $bgColor);
+
+// Add border
+imagerectangle($image, 0, 0, $width-1, $height-1, $borderColor);
+
+// Add text
+$text = 'Brand Logo';
+$fontSize = 5;
+$textWidth = imagefontwidth($fontSize) * strlen($text);
+$textX = ($width - $textWidth) / 2;
+$textY = ($height - imagefontheight($fontSize)) / 2;
+
+imagestring($image, $fontSize, $textX, $textY, $text, $textColor);
+
+// Output the image
+header('Content-Type: image/png');
+imagepng($image);
+imagedestroy($image);
+?>

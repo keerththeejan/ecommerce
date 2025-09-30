@@ -1,0 +1,353 @@
+/* Main CSS for E-Commerce Store */
+
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* Header Styles */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 60px 0;
+    background-color: #f8f9fa;
+}
+
+/* Product Card Styles */
+.card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+/* Product Details */
+.product-details .product-image {
+    height: 400px;
+    object-fit: contain;
+}
+
+.product-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+
+/* Cart Styles */
+.cart-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+
+.cart-total {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Footer Styles */
+footer {
+    background-color: #343a40;
+    color: #fff;
+    padding: 50px 0 20px;
+}
+
+footer a {
+    color: #fff;
+}
+
+footer a:hover {
+    color: #f8f9fa;
+    text-decoration: underline;
+}
+
+.social-links a {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 36px;
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+}
+
+/* Form Styles */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .hero-section {
+        text-align: center;
+        padding: 30px 0;
+    }
+    
+    .card-img-top {
+        height: 150px;
+    }
+    
+    .product-details .product-image {
+        height: 300px;
+    }
+    
+    /* Mobile Navbar Improvements */
+    .navbar-collapse {
+        padding: 1rem 0;
+    }
+    
+    .navbar-nav .nav-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .navbar-nav .nav-item:last-child {
+        border-bottom: none;
+    }
+    
+    .navbar-nav .dropdown-menu {
+        background-color: rgba(0, 0, 0, 0.05);
+        border: none;
+        padding-left: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .navbar-dark .navbar-nav .dropdown-menu .dropdown-item {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .navbar-dark .navbar-nav .dropdown-menu .dropdown-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .card-img-top {
+        height: 130px;
+    }
+}
+
+/* Flash Messages */
+#msg-flash {
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    border-radius: 4px;
+}
+
+/* Category Sidebar */
+.category-sidebar {
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+}
+
+.category-sidebar .list-group-item {
+    border: none;
+    padding: 8px 0;
+}
+
+.category-sidebar .list-group-item.active {
+    background-color: transparent;
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Pagination */
+.pagination {
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* Order Status Badges */
+.badge-pending {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-processing {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.badge-shipped {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.badge-delivered {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.badge-cancelled {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* Features Section */
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(0, 123, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* Product Quantity Input */
+.quantity-input {
+    width: 120px;
+}
+
+/* Checkout Steps */
+.checkout-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.checkout-step {
+    text-align: center;
+    flex: 1;
+    position: relative;
+}
+
+.checkout-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background-color: #dee2e6;
+    z-index: 1;
+}
+
+.checkout-step.active:not(:last-child)::after {
+    background-color: #007bff;
+}
+
+.checkout-step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.checkout-step.active .checkout-step-icon {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.checkout-step-text {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.checkout-step.active .checkout-step-text {
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Responsive Admin Tables */
+@media (max-width: 768px) {
+  .responsive-table thead {
+    display: none;
+  }
+  .responsive-table, 
+  .responsive-table tbody, 
+  .responsive-table tr, 
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table tr {
+    margin-bottom: 1rem;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .responsive-table td {
+    border: none !important;
+    padding: 0.75rem 1rem;
+    position: relative;
+  }
+  .responsive-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+  .responsive-table td {
+    padding-left: 9rem; /* space for labels */
+    min-height: 2.25rem;
+  }
+}
