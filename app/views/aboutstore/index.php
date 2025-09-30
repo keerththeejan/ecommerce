@@ -51,7 +51,7 @@
               .about-thumb { width: 100px; height: 60px; object-fit: cover; border-radius: 4px; }
             }
           </style>
-          <table class="table table-striped align-middle responsive-table">
+          <table id="aboutStoreTable" class="table table-striped align-middle">
             <thead>
               <tr>
                 <th>#</th>

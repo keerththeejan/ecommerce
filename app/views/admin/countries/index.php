@@ -551,7 +551,7 @@ $(document).ready(function() {
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table id="countriesTable" class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>

@@ -65,7 +65,37 @@ class BannerController {
             if (!$banner) {
                 throw new Exception('Banner not found');
             }
-            require_once __DIR__ . '/../views/banner/edit.php';
+            // Normalize to objects expected by the admin edit view
+            if (is_array($banner)) {
+                $bannerObj = (object)$banner;
+            } else {
+                $bannerObj = $banner; // already object
+            }
+            // Map common keys to what the admin view expects
+            // Ensure an 'id' property exists
+            if (!isset($bannerObj->id) && isset($bannerObj->ID)) { $bannerObj->id = $bannerObj->ID; }
+            // Some implementations store path in image_url; admin view may reference ->image
+            if (!isset($bannerObj->image) && isset($bannerObj->image_url)) {
+                // keep just the filename if possible
+                $filename = basename($bannerObj->image_url);
+                $bannerObj->image = $filename;
+            }
+
+            // Build a $data object with safe defaults for form fields used by the view
+            $data = new stdClass();
+            $data->title = isset($bannerObj->title) ? (string)$bannerObj->title : '';
+            $data->subtitle = isset($bannerObj->subtitle) ? (string)$bannerObj->subtitle : '';
+            $data->sort_order = isset($bannerObj->sort_order) ? (int)$bannerObj->sort_order : 0;
+            $data->status = isset($bannerObj->status) ? (string)$bannerObj->status : 'active';
+
+            // Provide $errors variable used by the view if not set
+            if (!isset($errors)) { $errors = []; }
+
+            // Reassign normalized object to $banner for the view
+            $banner = $bannerObj;
+
+            // Load ADMIN edit view so the admin dashboard layout (sidebar) is visible
+            require_once __DIR__ . '/../views/admin/banners/edit.php';
         } catch (Exception $e) {
             $_SESSION['error'] = $e->getMessage();
             header('Location: ?controller=banner');

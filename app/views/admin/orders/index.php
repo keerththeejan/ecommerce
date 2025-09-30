@@ -92,7 +92,7 @@
                         }
                         </style>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover responsive-table">
+                            <table id="ordersTable" class="table table-striped table-hover">
                                 <thead>
                                     <tr>
                                         <th>Order ID</th>

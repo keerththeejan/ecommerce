@@ -34,7 +34,7 @@ if ($start && $end) {
     <div class="alert alert-info d-flex align-items-center justify-content-between" role="alert">
       <div class="d-flex align-items-center">
         <?php if (!empty($selectedProduct['image'])): ?>
-          <img src="<?php echo htmlspecialchars($selectedProduct['image']); ?>" alt="<?php echo htmlspecialchars($selectedProduct['name'] ?? 'Product'); ?>" style="width:48px;height:48px;object-fit:cover" class="rounded border me-3" />
+          <img src="<?php echo htmlspecialchars($selectedProduct['image']); ?>" alt="<?php echo htmlspecialchars($selectedProduct['name'] ?? 'Product'); ?>" style="width:48px;height:48px;object-fit:cover" class="rounded border me-3 purchase3-product-img" />
         <?php endif; ?>
         <div>
           <div class="fw-bold">Returning: <?php echo htmlspecialchars($selectedProduct['name'] ?? ('#' . ($selectedProduct['id'] ?? ''))); ?></div>
@@ -96,7 +96,7 @@ if ($start && $end) {
         </div>
       </div>
         <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle mb-0">
+          <table id="purchase3ProductTable" class="table table-bordered table-striped align-middle mb-0">
             <thead class="table-light">
               <tr>
                 <th style="width:48px">Image</th>
@@ -116,7 +116,7 @@ if ($start && $end) {
               <tr>
                 <td>
                   <?php if (!empty($selectedProduct['image'])): ?>
-                    <img src="<?php echo htmlspecialchars($selectedProduct['image']); ?>" alt="<?php echo htmlspecialchars($selectedProduct['name'] ?? 'Product'); ?>" style="width:48px;height:48px;object-fit:cover" class="rounded border" />
+                    <img src="<?php echo htmlspecialchars($selectedProduct['image']); ?>" alt="<?php echo htmlspecialchars($selectedProduct['name'] ?? 'Product'); ?>" style="width:48px;height:48px;object-fit:cover" class="rounded border purchase3-product-img" />
                   <?php else: ?>
                     <div class="bg-light border rounded" style="width:48px;height:48px"></div>
                   <?php endif; ?>

@@ -49,7 +49,7 @@
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle responsive-table">
+                    <table id="brandsTable" class="table table-hover align-middle">
                         <thead>
                             <tr>
                                 <th style="width: 80px;">ID</th>

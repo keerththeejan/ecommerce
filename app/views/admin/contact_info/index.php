@@ -43,7 +43,7 @@
           .contact-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
         }
       </style>
-      <table class="table table-striped align-middle responsive-table">
+      <table id="contactInfoTable" class="table table-striped align-middle">
         <thead>
           <tr>
             <th>#</th>

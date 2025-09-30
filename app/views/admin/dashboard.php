@@ -206,7 +206,7 @@ require_once APP_PATH . 'models/Supplier.php';
                             
                             if (!empty($recentPurchases)): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-sm responsive-table">
+                                    <table id="dashboardRecentPurchases" class="table table-sm">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -271,7 +271,7 @@ require_once APP_PATH . 'models/Supplier.php';
                             
                             if (!empty($recentInvoices)): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-sm responsive-table">
+                                    <table id="dashboardRecentInvoices" class="table table-sm">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -438,7 +438,7 @@ require_once APP_PATH . 'models/Supplier.php';
                     
                     if ($hasOrdersTable && !empty($recentOrders)) : ?>
                         <div class="table-responsive">
-                            <table class="table table-striped responsive-table">
+                            <table id="dashboardRecentOrders" class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th data-label="ID">ID</th>
@@ -503,7 +503,7 @@ require_once APP_PATH . 'models/Supplier.php';
                     
                     if ($hasProductsTable && !empty($lowStockProducts)) : ?>
                         <div class="table-responsive">
-                            <table class="table table-striped responsive-table">
+                            <table id="dashboardLowStock" class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th data-label="ID">ID</th>

@@ -149,7 +149,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped align-middle responsive-table" id="productsTable">
+                        <table class="table table-bordered table-striped align-middle" id="productsTable">
                             <thead class="table-light">
                                 <tr>
                                     <th style="width:32px"><input type="checkbox"></th>

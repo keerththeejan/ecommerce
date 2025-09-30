@@ -25,7 +25,7 @@
                         <div class="alert alert-info">No categories found.</div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover responsive-table">
+                            <table id="categoriesTable" class="table table-striped table-hover">
                                 <thead>
                                     <tr>
                                         <th>ID</th>

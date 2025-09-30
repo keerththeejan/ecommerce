@@ -87,7 +87,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                     </style>
 
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover responsive-table">
+                        <table id="suppliersTable" class="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>

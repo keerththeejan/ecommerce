@@ -14,7 +14,7 @@
             Edit Banner #<?php echo $banner->id; ?>
         </div>
         <div class="card-body">
-            <form action="<?php echo BASE_URL; ?>?controller=banner&action=edit&id=<?php echo $banner->id; ?>" method="post" enctype="multipart/form-data">
+            <form action="<?php echo BASE_URL; ?>?controller=banner&action=update&id=<?php echo $banner->id; ?>" method="post" enctype="multipart/form-data">
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="mb-3">
@@ -31,6 +31,8 @@
                             <label for="subtitle" class="form-label">Subtitle <span class="text-danger">*</span></label>
                             <input type="text" class="form-control <?php echo isset($errors['subtitle']) ? 'is-invalid' : ''; ?>" 
                                    id="subtitle" name="subtitle" value="<?php echo $data->subtitle; ?>" required>
+                            <!-- Controller expects 'description'; map subtitle to description -->
+                            <input type="hidden" name="description" value="<?php echo htmlspecialchars($data->subtitle); ?>">
                             <?php if (isset($errors['subtitle'])) : ?>
                                 <div class="invalid-feedback"><?php echo $errors['subtitle']; ?></div>
                             <?php endif; ?>
@@ -45,9 +47,9 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="banner_image" class="form-label">Banner Image</label>
+                            <label for="image" class="form-label">Banner Image</label>
                             <input type="file" class="form-control <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" 
-                                   id="banner_image" name="banner_image">
+                                   id="image" name="image">
                             <?php if (isset($errors['image'])) : ?>
                                 <div class="invalid-feedback"><?php echo $errors['image']; ?></div>
                             <?php endif; ?>
@@ -58,6 +60,8 @@
                                     <p>Current image:</p>
                                     <img src="<?php echo BASE_URL; ?>public/assets/images/banners/<?php echo $banner->image; ?>" 
                                          alt="Current Banner" class="img-thumbnail" style="max-height: 100px;">
+                                    <!-- Provide current_image for controller update() -->
+                                    <input type="hidden" name="current_image" value="<?php echo 'uploads/banners/' . $banner->image; ?>">
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -93,8 +97,10 @@
                 </div>
                 
                 <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="status" name="status" 
-                           <?php echo (isset($data->status) ? $data->status : (isset($data['status']) ? $data['status'] : 0)) ? 'checked' : ''; ?>>
+                    <!-- Hidden default 'inactive' so unchecked sends inactive -->
+                    <input type="hidden" name="status" value="inactive">
+                    <input type="checkbox" class="form-check-input" id="status" name="status" value="active"
+                           <?php echo (!empty($data->status) && $data->status === 'active') ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="status">Active</label>
                 </div>
                 

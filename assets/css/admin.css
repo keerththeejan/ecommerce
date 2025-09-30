@@ -110,6 +110,49 @@
   .purchase-toolbar .dropdown-toggle { width: 100%; }
 }
 
+/* Products admin table mobile refinements */
+@media (max-width: 768px) {
+  /* Improve readability and spacing */
+  .products-table.responsive-table td {
+    white-space: normal;
+    word-break: break-word;
+    padding-left: 7.5rem; /* space for labels */
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Hide low-priority columns on small screens */
+  .products-table.responsive-table td[data-label="Batch No."],
+  .products-table.responsive-table td[data-label="Including Tax Price"],
+  .products-table.responsive-table td[data-label="Wholesale Price (SP)"],
+  .products-table.responsive-table td[data-label="Stock Value"],
+  .products-table.responsive-table td[data-label="History"] {
+    display: none;
+  }
+
+  /* Optional: if the table feels crowded, also hide Buying Price on phones */
+  .products-table.responsive-table td[data-label="Buying Price"] { display: none; }
+
+  /* Make action buttons wrap neatly and fill width */
+  .products-table.responsive-table td[data-label="Actions"] {
+    padding-left: 1rem; /* no label offset for actions row */
+  }
+  .products-table.responsive-table td[data-label="Actions"] .btn-group {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-start;
+  }
+  .products-table.responsive-table td[data-label="Actions"] .btn-group .btn {
+    flex: 0 1 auto;
+  }
+
+  /* Tighten ID and Image cells */
+  .products-table.responsive-table td[data-label="ID"],
+  .products-table.responsive-table td[data-label="Image"] { padding-left: 1rem; }
+}
+
 /* Extra-small screens: make toolbar buttons single column */
 @media (max-width: 576px) {
   .purchase-toolbar > .btn-group .btn {
@@ -185,4 +228,67 @@
   #purchasesTable.responsive-table td[data-label="Actions"] { padding-left: 1rem; }
   /* Make action buttons wrap neatly */
   #purchasesTable.responsive-table td[data-label="Actions"] .btn { margin-right: .25rem; margin-bottom: .25rem; }
+}
+
+/* Categories admin table mobile refinements */
+@media (max-width: 768px) {
+  /* Allow horizontal scroll container to show full table */
+  #categoriesTable { width: 100%; }
+
+  /* Keep most cells compact to fit more content */
+  #categoriesTable td, #categoriesTable th {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Let long text wrap only in specific columns */
+  #categoriesTable td[data-label="Name"],
+  #categoriesTable td[data-label="Parent"],
+  #categoriesTable td[data-label="Tax Rate"] {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Ensure actions stay on one line on phones */
+  #categoriesTable td[data-label="Actions"] {
+    white-space: nowrap; /* keep Edit + Delete in a single row */
+    min-width: 160px; /* room for both buttons */
+  }
+  #categoriesTable td[data-label="Actions"] .btn {
+    display: inline-flex;
+    align-items: center;
+    margin-right: .35rem;
+    margin-bottom: 0; /* avoid stacking gap */
+    padding: 0.35rem 0.5rem; /* compact */
+    font-size: 0.85rem;
+  }
+  #categoriesTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+
+  /* Tighter index and image columns */
+  #categoriesTable td[data-label="ID"] { min-width: 60px; }
+  #categoriesTable td[data-label="Image"] img { max-width: 40px; height: auto; }
+}
+
+/* Keep Actions column visible on phones (sticky right) */
+@media (max-width: 768px) {
+  /* Ensure the scroll container provides the scrolling, not the table */
+  .table-responsive { overflow-x: auto; }
+
+  /* Make last column sticky to the right */
+  #categoriesTable th:last-child,
+  #categoriesTable td:last-child {
+    position: sticky;
+    right: 0;
+    background: #fff; /* light mode */
+    z-index: 2; /* above other cells */
+  }
+  /* Dark mode background for sticky cells */
+  [data-bs-theme="dark"] #categoriesTable th:last-child,
+  [data-bs-theme="dark"] #categoriesTable td:last-child {
+    background: #2c3034;
+  }
+
+  /* Visual separation for sticky column */
+  #categoriesTable td:last-child { border-left: 1px solid #dee2e6; }
+  [data-bs-theme="dark"] #categoriesTable td:last-child { border-left: 1px solid #495057; }
 }
