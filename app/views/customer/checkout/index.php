@@ -1,5 +1,14 @@
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
+<style>
+/* Fixed-size images for checkout order summary */
+.checkout-item-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+</style>
+
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-8">
@@ -8,7 +17,7 @@
                     <h5 class="mb-0">Shipping Address</h5>
                 </div>
                 <div class="card-body">
-                    <form action="<?php echo BASE_URL; ?>checkout/process" method="POST">
+                    <form id="checkout-form" action="<?php echo BASE_URL; ?>checkout/process" method="POST">
                         <div class="mb-3">
                             <label for="full_name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($_SESSION['user_name']); ?>" required>
@@ -61,11 +70,18 @@
                 <div class="card-body">
                     <?php foreach($cart_items as $item): ?>
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h6 class="mb-0"><?php echo htmlspecialchars($item['name']); ?></h6>
-                                <small class="text-muted">Quantity: <?php echo $item['quantity']; ?></small>
+                            <div class="d-flex align-items-center gap-2">
+                                <?php if (!empty($item['image'])): ?>
+                                    <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="checkout-item-img rounded border">
+                                <?php else: ?>
+                                    <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo htmlspecialchars($item['name']); ?>" class="checkout-item-img rounded border">
+                                <?php endif; ?>
+                                <div>
+                                    <h6 class="mb-0"><?php echo htmlspecialchars($item['name']); ?></h6>
+                                    <small class="text-muted">Quantity: <?php echo (int)$item['quantity']; ?></small>
+                                </div>
                             </div>
-                            <span class="fw-bold"><?php echo formatCurrency($item['price'] * $item['quantity']); ?></span>
+                            <span class="fw-bold"><?php echo formatCurrency(($item['price'] ?? 0) * (int)$item['quantity']); ?></span>
                         </div>
                     <?php endforeach; ?>
                     <hr>

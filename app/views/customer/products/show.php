@@ -1,6 +1,27 @@
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
-<div class="container py-5">
+<style>
+/* Compact product detail layout */
+.compact-product {
+    --cp-image-w: 180px;
+    --cp-image-h: 190px;
+}
+.compact-product .breadcrumb { margin-bottom: .5rem; }
+.compact-product h1, .compact-product h2, .compact-product h3 {
+    margin-bottom: .5rem !important;
+}
+.compact-product .product-title { font-size: 1rem; line-height: 1.2; }
+.compact-product .price-main { font-size: 1.15rem; }
+.compact-product .price-sale { font-size: 1.2rem; }
+.compact-product .description { font-size: .9rem; line-height: 1.45; margin-bottom: .75rem; }
+.compact-product .card { box-shadow: none !important; border: 1px solid #eee; }
+.compact-product .quantity-input .btn,
+.compact-product .quantity-input .form-control { height: 28px; padding: 0 .5rem; font-size: .9rem; }
+.compact-product .btn { padding: .3rem .6rem; font-size: .9rem; }
+.compact-product .small-text { font-size: .85rem; }
+</style>
+
+<div class="container py-3 compact-product">
     <div class="row">
         <!-- Breadcrumb -->
         <div class="col-12 mb-3">
@@ -17,9 +38,9 @@
         </div>
         
         <!-- Product details -->
-        <div class="col-md-5 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="product-image-container" style="width: 230px; height: 250px; margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <div class="col-md-5 mb-3">
+            <div class="card border-0">
+                <div class="product-image-container" style="width: var(--cp-image-w); height: var(--cp-image-h); margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                     <?php if(!empty($product['image'])): ?>
                         <img src="<?php echo BASE_URL . $product['image']; ?>" class="card-img-top img-fluid" alt="<?php echo $product['name']; ?>" style="width: 100%; height: 100%; object-fit: contain;">
                     <?php else: ?>
@@ -29,23 +50,23 @@
             </div>
         </div>
         
-        <div class="col-md-7 mb-4">
-            <h1 class="mb-3 fs-2"><?php echo $product['name']; ?></h1>
+        <div class="col-md-7 mb-3">
+            <h2 class="product-title mb-2 h5"><?php echo $product['name']; ?></h2>
             
             <?php if(isLoggedIn()): ?>
                 <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                    <div class="mb-3">
-                        <span class="text-decoration-line-through text-muted me-2">
+                    <div class="mb-2">
+                        <span class="text-decoration-line-through text-muted me-2 small-text">
                             <?php echo formatCurrency($product['price']); ?>
                         </span>
-                        <span class="fw-bold fs-4 text-danger">
+                        <span class="fw-bold price-sale text-danger">
                             <?php echo formatCurrency($product['sale_price']); ?>
                         </span>
-                        <span class="badge bg-danger ms-2">Sale!</span>
+                        <span class="badge bg-danger ms-2">Sale</span>
                     </div>
                 <?php else: ?>
-                    <div class="mb-3">
-                        <span class="fw-bold fs-4">
+                    <div class="mb-2">
+                        <span class="fw-bold price-main">
                             <?php echo formatCurrency($product['price']); ?>
                         </span>
                     </div>
@@ -56,7 +77,7 @@
                 </div>
             <?php endif; ?>
             
-            <div class="mb-3">
+            <div class="mb-2">
                 <div class="d-flex align-items-center gap-3">
                     <span class="badge <?php echo $product['stock_quantity'] > 0 ? 'bg-success' : 'bg-danger'; ?>">
                         <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
@@ -81,21 +102,19 @@
                                         Total Stock Value: <?php echo formatCurrency($product['stock_quantity'] * ($product['sale_price'] ?? $product['price'])); ?>
                                     </small>
                                 <?php endif; ?>
-                            </div>
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
             
-            <div class="mb-4">
-                <p class="small"><?php echo nl2br($product['description']); ?></p>
+            <div class="mb-2">
+                <p class="description mb-0" style="font-size: .85rem;"><?php echo nl2br($product['description']); ?></p>
             </div>
             
             <?php if($product['stock_quantity'] > 0): ?>
-                <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mb-4">
+                <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mb-2">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                    
-                    <div class="row g-2 align-items-center mb-3">
+                    <div class="row g-2 align-items-center mb-2">
                         <div class="col-auto">
                             <label for="quantity" class="col-form-label">Quantity:</label>
                         </div>
@@ -117,7 +136,7 @@
                         </div>
                     </div>
                     
-                    <div class="d-grid gap-2 d-md-block">
+                    <div class="d-grid gap-2 d-md-inline-flex">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                         </button>
@@ -127,7 +146,7 @@
                     </div>
                 </form>
             <?php else: ?>
-                <div class="d-grid mb-4">
+                <div class="d-grid mb-3">
                     <button class="btn btn-secondary" disabled>
                         <i class="fas fa-times-circle me-2"></i>Out of Stock
                     </button>
@@ -167,8 +186,8 @@
             </div>
         </div>
         
-        <!-- Related products -->
-        <?php if(!empty($relatedProducts)): ?>
+        <!-- Related products (disabled to show only the selected product) -->
+        <?php if(false && !empty($relatedProducts)): ?>
             <div class="col-12 mt-4">
                 <h3 class="mb-4 fs-4">Related Products</h3>
                 <div class="row row-cols-2 row-cols-md-4 g-3">

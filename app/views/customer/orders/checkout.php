@@ -1,5 +1,17 @@
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
+<style>
+/* Fixed-size images for checkout (order items) */
+.checkout-item-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+@media (max-width: 767.98px) {
+    .checkout-item-img { width: 64px; height: 64px; }
+}
+</style>
+
 <div class="container py-5">
     <h1 class="mb-4 fs-2">Checkout</h1>
     
@@ -131,9 +143,9 @@
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <?php if(!empty($item['image'])): ?>
-                                                        <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="img-thumbnail me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                                        <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="img-thumbnail me-3 checkout-item-img">
                                                     <?php else: ?>
-                                                        <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="img-thumbnail me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                                        <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="img-thumbnail me-3 checkout-item-img">
                                                     <?php endif; ?>
                                                     <div>
                                                         <h6 class="mb-0 small"><?php echo $item['name']; ?></h6>
@@ -172,11 +184,11 @@
                             <div class="card mb-3 border">
                                 <div class="card-body p-3">
                                     <div class="row g-2">
-                                        <div class="col-4">
+                                        <div class="col-4 d-flex align-items-center">
                                             <?php if(!empty($item['image'])): ?>
-                                                <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="img-fluid rounded" style="width: 100%; height: 80px; object-fit: cover;">
+                                                <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="rounded checkout-item-img">
                                             <?php else: ?>
-                                                <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="img-fluid rounded" style="width: 100%; height: 80px; object-fit: cover;">
+                                                <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="rounded checkout-item-img">
                                             <?php endif; ?>
                                         </div>
                                         <div class="col-8">
