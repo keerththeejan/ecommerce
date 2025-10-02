@@ -3,6 +3,21 @@ require_once APP_PATH . 'views/customer/layouts/header.php';
 $settingModel = new Setting();
 ?>
 
+<style>
+/* Fixed-size cart item images for consistent display */
+.cart-item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+@media (max-width: 767.98px) {
+    .cart-item-img {
+        width: 80px;
+        height: 80px;
+    }
+}
+</style>
+
 <div class="container py-5">
     <h1 class="mb-4 fs-2">Shopping Cart</h1>
     
@@ -39,24 +54,23 @@ $settingModel = new Setting();
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th style="width: 100px;">Image</th>
                                             <th>Product</th>
                                             <th>Price</th>
                                             <th>Quantity</th>
                                             <th class="text-end">Total</th>
                                             <th style="width: 50px;"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                                        <tbody>
                                         <?php foreach($cartItems as $item): ?>
                                             <tr>
+                                                <!-- Image -->
                                                 <td>
                                                     <?php if(!empty($item['image'])): ?>
-                                                        <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
+                                                        <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="img-thumbnail cart-item-img fixed-size">
                                                     <?php else: ?>
-                                                        <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
+                                                        <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="img-thumbnail cart-item-img fixed-size">
                                                     <?php endif; ?>
                                                 </td>
+                                                <!-- Product info -->
                                                 <td>
                                                     <h6 class="mb-1"><?php echo $item['name']; ?></h6>
                                                     <?php if(!empty($item['sku'])): ?>
@@ -66,6 +80,7 @@ $settingModel = new Setting();
                                                         <div><small class="text-danger">Only <?php echo $item['stock_quantity']; ?> left in stock</small></div>
                                                     <?php endif; ?>
                                                 </td>
+                                                <!-- Price -->
                                                 <td>
                                                     <?php if(!empty($item['sale_price'])): ?>
                                                         <span class="text-decoration-line-through text-muted"><?php echo formatCurrency($item['price']); ?></span><br>
@@ -74,6 +89,7 @@ $settingModel = new Setting();
                                                         <?php echo formatCurrency($item['price']); ?>
                                                     <?php endif; ?>
                                                 </td>
+                                                <!-- Quantity -->
                                                 <td>
                                                     <form action="<?php echo BASE_URL; ?>?controller=cart&action=update" method="POST" class="quantity-form">
                                                         <input type="hidden" name="cart_id" value="<?php echo $item['id']; ?>">
@@ -88,6 +104,7 @@ $settingModel = new Setting();
                                                         </div>
                                                     </form>
                                                 </td>
+                                                <!-- Total -->
                                                 <td class="text-end">
                                                     <?php 
                                                         $itemPrice = !empty($item['sale_price']) ? $item['sale_price'] : $item['price'];
@@ -95,11 +112,13 @@ $settingModel = new Setting();
                                                         echo formatCurrency($itemTotal);
                                                     ?>
                                                 </td>
+                                                <!-- Remove -->
                                                 <td>
                                                     <a href="<?php echo BASE_URL; ?>?controller=cart&action=remove&param=<?php echo $item['id']; ?>" class="text-danger remove-item" data-cart-id="<?php echo $item['id']; ?>">
                                                         <i class="fas fa-times"></i>
                                                     </a>
                                                 </td>
+{{ ... }}
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
@@ -113,11 +132,11 @@ $settingModel = new Setting();
                                 <div class="card mb-3 border">
                                     <div class="card-body p-3">
                                         <div class="row g-2">
-                                            <div class="col-4">
+                                            <div class="col-4 d-flex align-items-center">
                                                 <?php if(!empty($item['image'])): ?>
-                                                    <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="img-fluid rounded" style="width: 100%; height: 100px; object-fit: cover;">
+                                                    <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="rounded cart-item-img">
                                                 <?php else: ?>
-                                                    <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="img-fluid rounded" style="width: 100%; height: 100px; object-fit: cover;">
+                                                    <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="rounded cart-item-img">
                                                 <?php endif; ?>
                                             </div>
                                             <div class="col-8">

@@ -84,6 +84,11 @@ You can modify the application settings in the `config/config.php` file:
 
 This project is licensed under the MIT License.
 
+<<<<<<< HEAD
 ## Credits
+=======
+## vkitnet
+
+>>>>>>> ba33dc000209ba890d3a07be2b45f4110ccc8e1c
 
 Developed by [Your Name]
