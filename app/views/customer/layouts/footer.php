@@ -27,13 +27,6 @@
         position: relative;
         z-index: 10;
     }
-
-    /* Constrain inner content to align with site layout */
-    .max-width-1400 {
-        max-width: 1400px;
-        margin-left: auto;
-        margin-right: auto;
-    }
     
     /* Footer Top Section with Wave */
     .footer-top {
@@ -100,8 +93,8 @@
     
     .footer-widget h4 {
         color: #fff;
-        margin-bottom: 20px;
-        font-size: 1.25rem;
+        margin-bottom: 25px;
+        font-size: 1.5rem;
         font-weight: 600;
         position: relative;
         padding-bottom: 15px;
@@ -175,7 +168,6 @@
         position: relative;
         padding-left: 15px;
         display: block;
-        font-size: 0.95rem;
     }
     
     .footer-links a:before {
@@ -296,7 +288,7 @@
     /* Copyright Section */
     .footer-bottom {
         background: #1A1D24;
-        padding: 20px 0;
+        padding: 25px 0;
         position: relative;
         overflow: hidden;
     }
@@ -356,11 +348,6 @@
     }
     
     @media (max-width: 767px) {
-        .footer-top { padding: 56px 0 34px; }
-        .footer-bottom { padding: 14px 0; }
-        .footer-widget h4 { font-size: 1.1rem; margin-bottom: 12px; }
-        .footer-widget p { font-size: 0.95rem; }
-        .footer-links a { font-size: 0.95rem; }
         .footer-bottom-content {
             justify-content: center;
             text-align: center;
@@ -379,18 +366,27 @@
         .newsletter-form { margin-top: 16px; }
         .newsletter-form input { height: 48px; }
         .newsletter-form button { height: 40px; width: 40px; top: 4px; right: 4px; }
-    }
 
-    /* Ensure sections like the footer can span full viewport width across all pages */
-    .full-width-section {
-        width: 100vw;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        overflow: hidden;
-        background-color: transparent;
+        /* Keep footer widgets in one horizontal row on mobile */
+        .footer-row {
+            display: flex;
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            gap: 12px; /* space between cards */
+            margin-right: -12px; /* slight edge bleed like native carousels */
+            padding-bottom: 6px; /* room for scrollbar */
+            scroll-snap-type: x mandatory;
+        }
+        .footer-row > [class*="col-"] {
+            flex: 0 0 auto;
+            min-width: 280px; /* card width on small screens */
+            scroll-snap-align: start;
+        }
+        /* Slightly narrower for very small phones */
+        @media (max-width: 360px) {
+            .footer-row > [class*="col-"] { min-width: 250px; }
+        }
     }
 </style>
 
@@ -402,7 +398,7 @@
         <div class="footer-decoration circle-2"></div>
         
         <div class="container-fluid px-4 px-xl-5 max-width-1400">
-            <div class="row gx-2 gx-md-4 gy-4">
+            <div class="row gx-2 gx-md-4 gy-4 footer-row">
                 <!-- About Store Widget -->
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">

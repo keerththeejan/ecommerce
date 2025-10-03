@@ -8,22 +8,30 @@ class BrandController extends Controller {
     private $productModel;
     
     public function __construct() {
-        parent::__construct(); // Call parent constructor to initialize database connection
+        parent::__construct();
         $this->brandModel = $this->model('Brand');
         $this->productModel = $this->model('Product');
     }
-    
+
     /**
      * Display brands for customers
      */
     public function index() {
-        // Get brands
+        // Get active brands
         $brands = $this->brandModel->getActiveBrands();
         
         // Load view
         $this->view('customer/brands/index', [
             'brands' => $brands
         ]);
+    }
+
+    /**
+     * Backward compatibility: some views may link to action=all
+     * Forward to index() to prevent 404 - Action not found
+     */
+    public function all() {
+        return $this->index();
     }
     
     /**
