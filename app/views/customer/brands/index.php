@@ -84,20 +84,22 @@
 <style>
 .brands-wrapper {
     width: 100%;
-    padding: 10px 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 16px;
+    justify-items: stretch;
 }
 
 .brand-card {
     width: 100%;
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: hidden;
-    background: white;
+    background: #fff;
     box-shadow: 0 2px 15px rgba(0,0,0,0.05);
     transition: all 0.3s ease;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .brand-card:hover {
@@ -118,7 +120,12 @@
 .brand-image {
     max-height: 100%;
     max-width: 100%;
+}
+.brand-image img {
+    max-height: 100%;
+    max-width: 100%;
     object-fit: contain;
+    display: block;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -147,10 +154,12 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .brand-image-container { height: 120px; padding: 15px; }
+    .brands-wrapper { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 8px 6px; }
+    .brand-image-container { height: 120px; padding: 12px; }
 }
 
 @media (max-width: 480px) {
+    .brands-wrapper { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 6px 4px; }
     .brand-image-container { height: 100px; padding: 10px; }
     .brand-card h5 { font-size: 0.95rem; }
     .brand-card .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
