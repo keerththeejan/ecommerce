@@ -25,6 +25,7 @@
 
     <?php 
         $fromPos = isset($_GET['from']) && $_GET['from'] === 'pos';
+<<<<<<< HEAD
         $prefillEmail = isset($_GET['email']) ? trim($_GET['email']) : '';
         $prefillSubject = '';
         if ($fromPos && !empty($_GET['order_id'])) {
@@ -107,6 +108,9 @@
             $lines[] = 'Support Team';
             $prefillMessage = implode("\n", $lines);
         }
+=======
+        $prefill = isset($prefill) && is_array($prefill) ? $prefill : ['email'=>'','subject'=>'','message'=>''];
+>>>>>>> b7638e1feaafda8b1993fc691dd1aeed9e6b179f
     ?>
 
     
@@ -196,7 +200,16 @@
                 <?php endif; ?>
                 <div class="row g-3">
                     <div class="col-md-6">
+                        <label class="form-label">From (Email)</label>
+                        <input type="email" name="from_email" class="form-control" placeholder="sender@example.com" value="<?php echo htmlspecialchars($prefill['from_email'] ?? ''); ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">From (Name)</label>
+                        <input type="text" name="from_name" class="form-control" placeholder="Store / Admin" value="<?php echo htmlspecialchars($prefill['from_name'] ?? ''); ?>">
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">To (Email)</label>
+<<<<<<< HEAD
                         <input type="email" name="email" class="form-control" placeholder="customer@example.com" value="<?php echo htmlspecialchars($prefillEmail); ?>" required>
                     </div>
                     <div class="col-md-6">
@@ -206,6 +219,17 @@
                     <div class="col-12">
                         <label class="form-label">Message</label>
                         <textarea name="message" class="form-control" rows="10" placeholder="Write your message here..." required><?php echo htmlspecialchars($prefillMessage); ?></textarea>
+=======
+                        <input type="email" name="email" class="form-control" placeholder="customer@example.com" value="<?php echo htmlspecialchars($prefill['email'] ?? ''); ?>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Subject</label>
+                        <input type="text" name="subject" class="form-control" placeholder="Invoice / Receipt" value="<?php echo htmlspecialchars($prefill['subject'] ?? ''); ?>" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Message</label>
+                        <textarea name="message" class="form-control" rows="10" placeholder="Write your message here..." required><?php echo htmlspecialchars($prefill['message'] ?? ''); ?></textarea>
+>>>>>>> b7638e1feaafda8b1993fc691dd1aeed9e6b179f
                     </div>
                 </div>
                 <div class="mt-3 d-flex justify-content-end gap-2">
