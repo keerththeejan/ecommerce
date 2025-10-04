@@ -13,8 +13,21 @@ class MailController extends Controller {
 
     // GET: /?controller=mail&action=index
     public function index() {
+        // Optional: when coming from Order page, prefetch order details
+        $order = null;
+        $orderId = (int)($this->get('order_id') ?? 0);
+        if ($orderId > 0) {
+            try {
+                $orderModel = $this->model('Order');
+                $order = $orderModel->getOrderWithItems($orderId);
+            } catch (Exception $e) {
+                // ignore if fails, page will still render
+            }
+        }
+
         $this->view('admin/mail/index', [
-            'title' => 'Mail'
+            'title' => 'Mail',
+            'order' => $order
         ]);
     }
 
