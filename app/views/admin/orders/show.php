@@ -46,10 +46,6 @@
                                onclick="return confirm('Create invoice for this order?');">
                                 <i class="fas fa-file-invoice-dollar me-1"></i> Make Bill & Invoice
                             </a>
-                            <a href="<?php echo BASE_URL; ?>?controller=mail&action=index&from=pos&order_id=<?php echo (int)$order['order']['id']; ?>&email=<?php echo urlencode($order['order']['email']); ?>"
-                               class="btn btn-light">
-                                <i class="fas fa-envelope me-1"></i> Mail
-                            </a>
                         </div>
                     </div>
                 </div>
