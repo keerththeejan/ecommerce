@@ -8,25 +8,6 @@
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Categories</h5>
                 </div>
-            <?php
-            // Optional: filter to a single selected product on the category page
-            $selectedProductId = null;
-            if (isset($_GET['product']) || isset($_GET['product_id']) || isset($_GET['pid'])) {
-                $selectedProductId = (int)($_GET['product'] ?? $_GET['product_id'] ?? $_GET['pid']);
-                if (!empty($products)) {
-                    $products = array_values(array_filter($products, function($p) use ($selectedProductId) {
-                        return isset($p['id']) && (int)$p['id'] === $selectedProductId;
-                    }));
-                }
-            }
-            ?>
-
-            <?php if ($selectedProductId): ?>
-                <div class="alert alert-info py-2 d-flex justify-content-between align-items-center">
-                    <span class="small mb-0">Showing only the selected product (ID: <?php echo (int)$selectedProductId; ?>) in this category.</span>
-                    <a class="btn btn-sm btn-outline-primary" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo (int)$category['id']; ?>">Clear filter</a>
-                </div>
-            <?php endif; ?>
                 <div class="list-group list-group-flush">
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="list-group-item list-group-item-action">
                         All Products
@@ -193,9 +174,6 @@
                                 <div class="card-footer d-flex justify-content-between p-2" style="background-color: #f8f9fa;">
                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=show&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary py-1" style="font-size: 0.7rem; padding-left: 0.5rem; padding-right: 0.5rem;">
                                         <i class="fas fa-eye me-1"></i>View
-                                    </a>
-                                    <a href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo (int)$category['id']; ?>&product=<?php echo (int)$product['id']; ?>" class="btn btn-sm btn-outline-secondary py-1" style="font-size: 0.7rem; padding-left: 0.5rem; padding-right: 0.5rem;">
-                                        Only this
                                     </a>
                                     
                                     <?php if($product['stock_quantity'] > 0): ?>
