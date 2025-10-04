@@ -41,3 +41,15 @@ date_default_timezone_set('Asia/Kolkata');
 if (!defined('CURRENCY_SYMBOL')) define('CURRENCY_SYMBOL', 'CHF');
 if (!defined('CURRENCY_CODE')) define('CURRENCY_CODE', 'CHF');
 if (!defined('CURRENCY_FORMAT')) define('CURRENCY_FORMAT', 'CHF%s');  // %s will be replaced with the amount
+
+// SMTP Mail settings (leave empty to use PHP mail())
+// Gmail SMTP configuration
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);
+define('SMTP_ENCRYPTION', 'tls');
+define('SMTP_USERNAME', 'sivakamych@gmail.com');
+define('SMTP_PASSWORD', 'mlfv qjsq rhis nlxw');
+
+// Default "From" email
+define('MAIL_FROM_ADDRESS', 'sivakamych@gmail.com');
+define('MAIL_FROM_NAME', 'Ecommerce Admin');
