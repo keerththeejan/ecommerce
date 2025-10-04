@@ -38,6 +38,9 @@
                             <button type="button" class="btn btn-outline-light" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
                             <a href="<?php echo BASE_URL; ?>?controller=order&action=updateStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Status</a>
                             <a href="<?php echo BASE_URL; ?>?controller=order&action=updatePaymentStatus&id=<?php echo $order['order']['id']; ?>" class="btn btn-light">Update Payment</a>
+                            <a href="<?php echo BASE_URL; ?>?controller=mail&action=index&from=pos&order_id=<?php echo (int)$order['order']['id']; ?>" class="btn btn-light">
+                               <i class="fas fa-envelope me-1"></i> Mail
+                            </a>
                             <a href="<?php echo BASE_URL; ?>?controller=invoice&action=create&order_id=<?php echo (int)$order['order']['id']; ?>"
                                class="btn btn-warning text-dark"
                                onclick="return confirm('Create invoice for this order?');">
