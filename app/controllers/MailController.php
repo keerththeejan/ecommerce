@@ -16,7 +16,7 @@ class MailController extends Controller {
     public function test() {
         if (!isAdmin()) { redirect('user/login'); }
 
-        require_once ROOT_PATH . 'config/mail.php';
+        require_once CONFIG_PATH . 'config.php';
         if (!file_exists(ROOT_PATH . 'vendor/autoload.php')) {
             $_SESSION['mail_error'] = 'PHPMailer not installed. Run: composer require phpmailer/phpmailer';
             return $this->redirect(BASE_URL . '?controller=mail&action=index&status=error');
@@ -52,18 +52,6 @@ class MailController extends Controller {
 
     // 🔹 GET: /?controller=mail&action=index
     public function index() {
-<<<<<<< HEAD
-        // Optional: when coming from Order page, prefetch order details
-        $order = null;
-        $orderId = (int)($this->get('order_id') ?? 0);
-        if ($orderId > 0) {
-            try {
-                $orderModel = $this->model('Order');
-                $order = $orderModel->getOrderWithItems($orderId);
-            } catch (Exception $e) {
-                // ignore if fails, page will still render
-            }
-=======
         $orderId = (int)$this->get('order_id', 0);
         $prefill = [
             'email' => '',
@@ -114,16 +102,11 @@ class MailController extends Controller {
                     $prefill['message'] = implode("\n", $lines);
                 }
             } catch (Exception $e) {}
->>>>>>> b7638e1feaafda8b1993fc691dd1aeed9e6b179f
         }
 
         $this->view('admin/mail/index', [
             'title' => 'Mail',
-<<<<<<< HEAD
-            'order' => $order
-=======
             'prefill' => $prefill,
->>>>>>> b7638e1feaafda8b1993fc691dd1aeed9e6b179f
         ]);
     }
 
@@ -133,7 +116,7 @@ class MailController extends Controller {
             return $this->redirect(BASE_URL . '?controller=mail&action=index');
         }
 
-        require_once ROOT_PATH . 'config/mail.php';
+        require_once CONFIG_PATH . 'config.php';
 
         $email     = trim($this->post('email', ''));
         $subject   = trim($this->post('subject', ''));
