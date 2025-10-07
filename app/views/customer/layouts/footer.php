@@ -125,10 +125,10 @@
     }
     
     .footer-widget p {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
         color: #EEEEEE;
-        font-size: 0.95rem;
-        line-height: 1.6;
+        font-size: 0.9rem; /* slightly more compact */
+        line-height: 1.55;
     }
     
     .contact-info {
@@ -140,7 +140,7 @@
     .contact-info li {
         position: relative;
         padding-left: 30px;
-        margin-bottom: 15px;
+        margin-bottom: 8px; /* tighter */
         color: #EEEEEE;
     }
     
@@ -158,7 +158,7 @@
     }
     
     .footer-links li {
-        margin-bottom: 12px;
+        margin-bottom: 8px; /* tighter like screenshot */
     }
     
     .footer-links a {
@@ -166,17 +166,18 @@
         text-decoration: none;
         transition: all 0.3s ease;
         position: relative;
-        padding-left: 15px;
+        padding-left: 16px; /* room for hyphen */
         display: block;
     }
     
     .footer-links a:before {
-        content: '→';
+        content: '\2013'; /* en dash like in screenshot */
         position: absolute;
         left: 0;
         top: 0;
-        color: #00ADB5;
+        color: #9fdbe0; /* softer teal */
         transition: transform 0.3s ease;
+        line-height: 1.2;
     }
     
     .footer-links a:hover {
@@ -367,26 +368,48 @@
         .newsletter-form input { height: 48px; }
         .newsletter-form button { height: 40px; width: 40px; top: 4px; right: 4px; }
 
-        /* Keep footer widgets in one horizontal row on mobile */
+        /* Mobile: no horizontal scroll — stack widgets vertically */
         .footer-row {
             display: flex;
-            flex-wrap: nowrap !important;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            gap: 12px; /* space between cards */
-            margin-right: -12px; /* slight edge bleed like native carousels */
-            padding-bottom: 6px; /* room for scrollbar */
-            scroll-snap-type: x mandatory;
+            flex-wrap: wrap !important;
+            overflow-x: hidden;
+            gap: 12px;
+            margin-right: 0;
+            padding-bottom: 0;
         }
         .footer-row > [class*="col-"] {
-            flex: 0 0 auto;
-            min-width: 280px; /* card width on small screens */
-            scroll-snap-align: start;
+            flex: 0 0 100%;
+            max-width: 100%;
         }
-        /* Slightly narrower for very small phones */
-        @media (max-width: 360px) {
-            .footer-row > [class*="col-"] { min-width: 250px; }
-        }
+    }
+
+    /* Small tablets (≥577px and ≤991px): show two columns per row */
+    @media (min-width: 577px) and (max-width: 991px) {
+        .footer-row { display: flex; flex-wrap: wrap; gap: 16px; }
+        .footer-row > [class*="col-"] { flex: 0 0 calc(50% - 8px); max-width: calc(50% - 8px); }
+    }
+</style>
+
+<!-- Ensure full-width helper is available globally (used by footer) -->
+<style>
+    .full-width-section {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        overflow: hidden;
+        background-color: transparent;
+    }
+
+    /* Center inner content and control max width */
+    .max-width-1400 { max-width: 1400px; margin-left: auto; margin-right: auto; }
+
+    /* Ensure symmetric inner padding within footer */
+    footer .container-fluid { padding-left: 1.5rem; padding-right: 1.5rem; }
+    @media (min-width: 1200px) {
+        footer .container-fluid { padding-left: 3rem; padding-right: 3rem; }
     }
 </style>
 
