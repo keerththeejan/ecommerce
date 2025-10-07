@@ -1,5 +1,24 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
+<style>
+/* Admin products table responsive tweaks */
+.products-table .admin-product-img { width: 50px; height: auto; object-fit: contain; }
+
+@media (max-width: 576px) {
+  /* Card-like rows on mobile */
+  #productsTable thead { display: none; }
+  #productsTable tbody tr { display: block; margin-bottom: 12px; border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden; background: #fff; }
+  #productsTable tbody td { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f1f3f5; }
+  #productsTable tbody td:last-child { border-bottom: 0; }
+  #productsTable tbody td::before { content: attr(data-label); font-weight: 600; color: #6c757d; margin-right: 10px; }
+
+  /* Image row: show full image on top */
+  #productsTable tbody td[data-label="Image"] { display: block; padding: 0; }
+  #productsTable tbody td[data-label="Image"]::before { content: none; }
+  #productsTable tbody td[data-label="Image"] img.admin-product-img { width: 100% !important; height: auto !important; display: block; border-radius: 0; border: 0; }
+}
+</style>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
@@ -110,9 +129,9 @@
                                             <td data-label="ID"><?php echo $product['id']; ?></td>
                                             <td data-label="Image">
                                                 <?php if(!empty($product['image'])): ?>
-                                                    <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" width="50" class="img-thumbnail">
+                                                    <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-thumbnail admin-product-img">
                                                 <?php else: ?>
-                                                    <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" alt="No Image" width="50" class="img-thumbnail">
+                                                    <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" alt="No Image" class="img-thumbnail admin-product-img">
                                                 <?php endif; ?>
                                             </td>
                                             <td data-label="Name"><?php echo htmlspecialchars($product['name']); ?></td>
