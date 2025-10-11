@@ -876,3 +876,473 @@
   #productsTable td[data-label="Tax"],
   #productsTable td[data-label="SKU"] { white-space: nowrap; }
 }
+
+/* Extra small phones: stack stats to single column and make charts fluid */
+@media (max-width: 575.98px) {
+  /* First stats row cards -> single column */
+  .container-fluid > .row.mb-4:first-of-type > [class*="col-md-3"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  /* Make dashboard charts responsive */
+  #salesChart {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Extra compact typography and spacing */
+  .card h2 { font-size: 1rem !important; }
+  .card h5, .card .card-title { font-size: .95rem !important; }
+  .card .text-uppercase { font-size: .68rem !important; }
+  .card-body { padding: .5rem !important; }
+  .card-header, .card-footer { padding: .45rem .5rem !important; }
+
+  /* Buttons/badges smaller */
+  .btn { padding: .3rem .5rem !important; font-size: .8rem !important; }
+  .btn-sm { padding: .24rem .4rem !important; font-size: .78rem !important; }
+  .badge { font-size: .65rem !important; padding: .3em .5em !important; }
+
+  /* Icon sizes used in stat cards */
+  .fa-2x { font-size: 1.5em !important; }
+
+  /* Tables tighter */
+  table.table th, table.table td { padding: .4rem .45rem !important; font-size: .85rem !important; }
+
+  /* Reduce gutters for columns */
+  .row > [class^="col-"], .row > [class*=" col-"] { padding-left: 8px; padding-right: 8px; }
+
+/* Compact overall spacing and typography on mobile */
+@media (max-width: 768px) {
+  /* Main content breathing room */
+  .main-content { padding: 12px !important; }
+
+  /* Cards */
+  .card { margin-bottom: 10px; }
+  .card-header, .card-footer { padding: .5rem .6rem; }
+  .card-body { padding: .6rem; }
+  .card .text-uppercase { font-size: .7rem; letter-spacing: .02em; }
+  .card h2 { font-size: 1.1rem; }
+  .card h5, .card .card-title { font-size: 1rem; }
+
+  /* Buttons */
+  .btn { padding: .35rem .6rem; font-size: .85rem; }
+  .btn-sm { padding: .28rem .45rem; font-size: .8rem; }
+
+  /* Badges */
+  .badge { font-size: .7rem; padding: .35em .55em; }
+
+  /* Tables */
+  table.table th, table.table td { padding: .45rem .5rem; font-size: .9rem; }
+
+  /* Sidebar nav (admin) */
+  #sidebar .nav-link { padding: .5rem .75rem; font-size: .95rem; }
+
+  /* Charts: tighten height on small devices */
+  #salesChart { height: 220px !important; }
+}
+
+/* Admin headers inline on mobile
+   Keep section headers (e.g., Stock & Purchases) aligned like desktop
+*/
+@media (max-width: 768px) {
+  /* Prevent wrapping into two rows */
+  .card > .card-header.d-flex,
+  .card-header.d-flex {
+    flex-wrap: nowrap !important;
+    gap: 0.5rem;
+  }
+
+  /* Title truncates to leave room for actions */
+  .card-header > h5.card-title,
+  .card-header h5.card-title {
+    margin-bottom: 0 !important;
+    font-size: 0.82rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 34% !important;
+  }
+
+  /* Action buttons stay in a single line, right aligned */
+  .card-header > div:last-child {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.3rem !important;
+    flex-wrap: nowrap !important;
+    flex: 1 1 auto !important;
+    white-space: nowrap !important;
+  }
+
+  /* Compact buttons */
+  .card-header .btn {
+    padding: 0.18rem 0.34rem !important;
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
+    flex: 0 0 auto !important;
+  }
+  .card-header .btn-sm {
+    padding: 0.16rem 0.3rem !important;
+    font-size: 0.66rem !important;
+  }
+  .card-header .btn i { margin-right: 0.14rem !important; font-size: 0.9em !important; }
+}
+
+/* Extra-small phones: shrink a bit more */
+@media (max-width: 575.98px) {
+  .card-header > h5.card-title,
+  .card-header h5.card-title { font-size: 0.78rem !important; max-width: 32% !important; }
+  .card-header .btn { padding: 0.16rem 0.3rem !important; font-size: 0.66rem !important; }
+  .card-header .btn-sm { padding: 0.14rem 0.28rem !important; font-size: 0.62rem !important; }
+}
+
+}
+
+/* Admin page top headers (e.g., Manage Brands): keep title left and buttons inline on mobile */
+@media (max-width: 768px) {
+  /* The top page header row used by many pages */
+  .container-fluid > .d-flex.justify-content-between.align-items-center {
+    flex-wrap: nowrap !important;
+    gap: 0.5rem;
+  }
+
+  /* Shrink/truncate big titles */
+  .container-fluid > .d-flex.justify-content-between.align-items-center h1,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h1,
+  .container-fluid > .d-flex.justify-content-between.align-items-center h2,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h2,
+  .container-fluid > .d-flex.justify-content-between.align-items-center h3,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h3 {
+    margin-bottom: 0 !important;
+    font-size: 0.96rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 42% !important;
+  }
+
+  /* Actions wrapper (the right-side .d-flex) */
+  .container-fluid > .d-flex.justify-content-between.align-items-center > .d-flex {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    flex: 1 1 auto !important;
+    min-width: 0;
+  }
+
+  /* Compact the buttons */
+  .container-fluid > .d-flex.justify-content-between.align-items-center .btn {
+    padding: 0.22rem 0.42rem !important;
+    font-size: 0.76rem !important;
+    white-space: nowrap !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center .btn i {
+    margin-right: 0.22rem !important;
+    font-size: 0.9em !important;
+  }
+}
+
+/* Extra-small phones: further tighten top admin header */
+@media (max-width: 575.98px) {
+  .container-fluid > .d-flex.justify-content-between.align-items-center h1,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h1,
+  .container-fluid > .d-flex.justify-content-between.align-items-center h2,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h2,
+  .container-fluid > .d-flex.justify-content-between.align-items-center h3,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h3 {
+    font-size: 0.9rem !important;
+    max-width: 38% !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center .btn {
+    padding: 0.2rem 0.38rem !important;
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Purchases list header (ListPurchaseController): tighten left block on mobile */
+@media (max-width: 768px) {
+  /* Limit the left block (title + subtitle) so buttons fit on the right */
+  .container-fluid > .d-flex.justify-content-between.align-items-center > div:first-child {
+    max-width: 38% !important;
+    min-width: 0;
+  }
+  /* Truncate subtitle and slightly reduce its size */
+  .container-fluid > .d-flex.justify-content-between.align-items-center > div:first-child small {
+    display: block;
+    font-size: 0.68rem !important;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  /* Smaller title inside header */
+  .container-fluid > .d-flex.justify-content-between.align-items-center h1.h3,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h3.h1 {
+    font-size: 0.9rem !important;
+  }
+  /* Compact header buttons further for this header */
+  .container-fluid > .d-flex.justify-content-between.align-items-center .btn {
+    padding: 0.18rem 0.36rem !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+/* XS: hide subtitle to guarantee single-line header with actions */
+@media (max-width: 575.98px) {
+  .container-fluid > .d-flex.justify-content-between.align-items-center > div:first-child {
+    max-width: 40% !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center > div:first-child small {
+    display: block !important;
+    font-size: 0.62rem !important;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  /* Even smaller title and buttons on XS */
+  .container-fluid > .d-flex.justify-content-between.align-items-center h1.h3,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h3.h1 {
+    font-size: 0.82rem !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center .btn {
+    padding: 0.15rem 0.3rem !important;
+    font-size: 0.64rem !important;
+  }
+}
+
+/* Extra-narrow phones: make header ultra-compact while keeping inline */
+@media (max-width: 420px) {
+  .container-fluid > .d-flex.justify-content-between.align-items-center > div:first-child {
+    max-width: 38% !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center h1.h3,
+  .container-fluid > .d-flex.justify-content-between.align-items-center .h3.h1 {
+    font-size: 0.78rem !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center > div:first-child small {
+    font-size: 0.6rem !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center > .d-flex {
+    gap: 0.25rem !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center .btn {
+    padding: 0.14rem 0.28rem !important;
+    font-size: 0.6rem !important;
+  }
+  .container-fluid > .d-flex.justify-content-between.align-items-center .btn i {
+    margin-right: 0.18rem !important;
+  }
+}
+
+/* Purchase Return (purchase3) alert: keep desktop-like inline layout on mobile */
+@media (max-width: 768px) {
+  /* Keep single row, no wrap */
+  .alert.d-flex.align-items-center.justify-content-between { flex-wrap: nowrap !important; gap: 0.5rem; }
+  /* Left info cluster (image + texts) flexes, right action stays auto */
+  .alert.d-flex.align-items-center.justify-content-between > .d-flex.align-items-center { flex: 1 1 auto; min-width: 0; }
+  /* Ensure inner text wrapper inside left cluster can shrink */
+  .alert.d-flex.align-items-center.justify-content-between > .d-flex.align-items-center > div { min-width: 0; }
+  .alert.d-flex.align-items-center.justify-content-between > .ms-3 { flex: 0 0 auto; margin-left: 0.5rem !important; margin-top: 0 !important; }
+  /* Image smaller */
+  img.purchase3-product-img { width: 36px !important; height: 36px !important; }
+  /* Truncate text */
+  .alert .fw-bold { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .alert .fw-bold + small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Compact button */
+  .alert .ms-3 .btn { padding: 0.26rem 0.48rem; font-size: 0.76rem; }
+}
+@media (max-width: 575.98px) {
+  .alert.d-flex.align-items-center.justify-content-between { gap: 0.4rem; }
+  img.purchase3-product-img { width: 32px !important; height: 32px !important; }
+  /* Slightly smaller text to avoid overlap */
+  .alert .fw-bold { font-size: 0.95rem !important; }
+  .alert .fw-bold + small { font-size: 0.76rem !important; }
+  .alert .ms-3 .btn { padding: 0.24rem 0.44rem !important; font-size: 0.7rem !important; }
+}
+@media (max-width: 420px) {
+  .alert.d-flex.align-items-center.justify-content-between { gap: 0.35rem; }
+  img.purchase3-product-img { width: 28px !important; height: 28px !important; }
+  .alert .fw-bold { font-size: 0.9rem !important; }
+  .alert .fw-bold + small { font-size: 0.72rem !important; }
+  .alert .ms-3 .btn { padding: 0.22rem 0.4rem !important; font-size: 0.66rem !important; }
+}
+
+/* Countries admin: header + table responsive */
+@media (max-width: 768px) {
+  /* Keep the blue header inline like desktop */
+  .card-header.bg-primary.text-white.d-flex { flex-wrap: nowrap !important; gap: 0.5rem; }
+  .card-header.bg-primary.text-white.d-flex h5 { 
+    margin-bottom: 0 !important; 
+    font-size: 0.86rem !important; 
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+    max-width: 38% !important; 
+  }
+  .card-header.bg-primary.text-white.d-flex > .d-flex { 
+    display: inline-flex; align-items: center; justify-content: flex-end; 
+    gap: 0.35rem !important; flex-wrap: nowrap !important; flex: 1 1 auto !important; min-width: 0; 
+  }
+  .card-header.bg-primary.text-white.d-flex .btn { 
+    padding: 0.22rem 0.42rem !important; font-size: 0.72rem !important; 
+  }
+
+  /* Countries table: keep Actions inline */
+  #countriesTable td, #countriesTable th { padding-top: .5rem; padding-bottom: .5rem; }
+  #countriesTable td[data-label="Actions"] { white-space: nowrap; min-width: 160px; }
+  #countriesTable td[data-label="Actions"] .btn { 
+    display: inline-flex; align-items: center; margin-right: .35rem; margin-bottom: 0; 
+    padding: .35rem .5rem; font-size: .85rem; 
+  }
+  #countriesTable td[data-label="Actions"] .btn:last-child { margin-right: 0; }
+}
+
+@media (max-width: 575.98px) {
+  .card-header.bg-primary.text-white.d-flex h5 { font-size: 0.82rem !important; max-width: 36% !important; }
+  .card-header.bg-primary.text-white.d-flex .btn { padding: 0.2rem 0.38rem !important; font-size: 0.66rem !important; }
+}
+
+@media (max-width: 420px) {
+  .card-header.bg-primary.text-white.d-flex h5 { font-size: 0.78rem !important; max-width: 34% !important; }
+  .card-header.bg-primary.text-white.d-flex .btn { padding: 0.18rem 0.34rem !important; font-size: 0.62rem !important; }
+  .card-header.bg-primary.text-white.d-flex .btn i { margin-right: 0.18rem !important; }
+}
+
+/* Banners admin: header + table mobile tweaks */
+@media (max-width: 768px) {
+  /* Top header row used in banners index */
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 {
+    flex-wrap: nowrap !important;
+    gap: 0.5rem;
+  }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 h1.h2 {
+    margin-bottom: 0 !important;
+    font-size: 0.9rem !important;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 38% !important;
+  }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 .btn-toolbar {
+    display: inline-flex; align-items: center; justify-content: flex-end;
+    gap: 0.35rem !important; flex-wrap: nowrap !important; flex: 1 1 auto !important; min-width: 0;
+  }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 .btn-toolbar .btn {
+    padding: 0.24rem 0.46rem !important; font-size: 0.72rem !important;
+  }
+
+  /* Table compactness */
+  #bannersTable th, #bannersTable td { padding-top: .5rem; padding-bottom: .5rem; }
+  #bannersTable td:nth-child(3), /* Title */
+  #bannersTable td:nth-child(4)  /* Description */ { 
+    max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+  }
+  #bannersTable td:nth-child(2) .banner-thumb { width: 88px !important; height: 52px !important; }
+  #bannersTable td:nth-child(6) .actions-wrap { display: inline-flex; gap: .35rem; flex-wrap: nowrap; }
+}
+
+@media (max-width: 575.98px) {
+  /* Banner header: keep title + button on the same line */
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 {
+    flex-wrap: nowrap !important;
+    gap: 0.5rem;
+  }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 h1.h2 {
+    font-size: 0.86rem !important;
+    max-width: 36% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin-bottom: 0 !important;
+  }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 .btn-toolbar {
+    display: inline-flex; align-items: center; justify-content: flex-end;
+    gap: 0.3rem !important; flex-wrap: nowrap !important; flex: 1 1 auto !important; min-width: 0;
+    width: auto !important;
+  }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 .btn-toolbar .btn {
+    padding: 0.2rem 0.38rem !important; font-size: 0.64rem !important;
+  }
+  #bannersTable td:nth-child(3), #bannersTable td:nth-child(4) { max-width: 180px; }
+  #bannersTable td:nth-child(2) .banner-thumb { width: 80px !important; height: 48px !important; }
+}
+
+@media (max-width: 420px) {
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 { gap: 0.3rem; }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 h1.h2 {
+    font-size: 0.86rem !important; max-width: 100% !important;
+  }
+  .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3 .btn-toolbar .btn {
+    padding: 0.18rem 0.34rem !important; font-size: 0.6rem !important;
+  }
+}
+
+/* Orders admin (adminIndex): mobile responsiveness to mimic desktop */
+@media (max-width: 768px) {
+  /* Header title smaller */
+  .card-header.bg-primary.text-white .card-title.mb-0,
+  .card-header.bg-primary.text-white h3.card-title {
+    font-size: 1rem !important;
+    margin: 0 !important;
+  }
+
+  /* Filters form: two columns on tablets */
+  form.row.g-3.mb-3 > [class^="col-md-"],
+  form.row.g-3.mb-3 > [class*=" col-md-"] {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+  form.row.g-3.mb-3 .form-label { font-size: .85rem !important; margin-bottom: .25rem !important; }
+  form.row.g-3.mb-3 .form-control,
+  form.row.g-3.mb-3 .form-select { padding: .4rem .55rem !important; font-size: .9rem !important; }
+  form.row.g-3.mb-3 .btn { padding: .4rem .55rem !important; font-size: .9rem !important; }
+
+  /* Table semantics preserved; allow horizontal scroll */
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #ordersTable { display: table !important; width: 100% !important; table-layout: auto !important; border-collapse: separate !important; }
+  #ordersTable thead { display: table-header-group !important; }
+  #ordersTable tbody { display: table-row-group !important; }
+  #ordersTable tr { display: table-row !important; }
+  #ordersTable th, #ordersTable td { display: table-cell !important; white-space: nowrap !important; line-height: 1.25 !important; }
+  #ordersTable td::before { content: none !important; display: none !important; }
+
+  /* Actions keep inline */
+  .order-actions { display: inline-flex !important; align-items: center; gap: .35rem; flex-wrap: nowrap !important; }
+  .order-actions .btn { padding: .35rem .5rem !important; font-size: .85rem !important; }
+}
+
+@media (max-width: 575.98px) {
+  /* Filters form: single column on phones */
+  form.row.g-3.mb-3 > [class^="col-md-"],
+  form.row.g-3.mb-3 > [class*=" col-md-"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  .card-header.bg-primary.text-white h3.card-title { font-size: .95rem !important; }
+  #ordersTable th, #ordersTable td { padding-top: .42rem !important; padding-bottom: .42rem !important; font-size: .9rem !important; }
+  .order-actions .btn { padding: .3rem .45rem !important; font-size: .8rem !important; }
+}
+
+/* Keep Orders filters in one row with horizontal scroll on small screens */
+@media (max-width: 768px) {
+  form.row.g-3.mb-3 {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: .4rem !important;
+  }
+  form.row.g-3.mb-3 > [class^="col-md-"],
+  form.row.g-3.mb-3 > [class*=" col-md-"] {
+    flex: 0 0 auto !important;
+    width: 200px !important;
+    max-width: none !important;
+  }
+  form.row.g-3.mb-3 .btn.w-100 { width: auto !important; }
+
+  /* Table slight compaction */
+  #ordersTable th, #ordersTable td { padding: .45rem .5rem !important; font-size: .92rem !important; }
+  .badge { font-size: .7rem !important; padding: .35em .5em !important; }
+}

@@ -351,3 +351,93 @@ footer a:hover {
     min-height: 2.25rem;
   }
 }
+
+/* ============================
+   Product Pages - Responsive
+   ============================ */
+/* General product imagery */
+.product-image-container img,
+.product-image,
+.card-img-top {
+  width: 100%;
+  height: auto;
+}
+
+/* Product detail page image sizing */
+.product-image-container {
+  background: #f8f9fa;
+}
+
+@media (min-width: 992px) {
+  /* Larger viewports: keep image area generous */
+  .product-image-container {
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 991.98px) {
+  /* Tablet and below: reduce image height */
+  .product-image-container {
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Small phones: tighter image area */
+  .product-image-container {
+    min-height: 240px;
+  }
+}
+
+/* Product price sizing */
+.product-price {
+  line-height: 1.2;
+}
+@media (max-width: 768px) {
+  .product-price {
+    font-size: 1.25rem;
+  }
+}
+
+/* Quantity input and buttons on mobile */
+.quantity-input {
+  max-width: 140px;
+}
+@media (max-width: 576px) {
+  .quantity-input {
+    max-width: 120px;
+  }
+  .input-group .btn {
+    min-width: 36px;
+  }
+}
+
+/* CTA button groups: allow wrapping on small screens */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+.button-group > * {
+  flex: 1 1 48%;
+}
+@media (max-width: 480px) {
+  .button-group > * {
+    flex-basis: 100%;
+  }
+}
+
+/* Utility adjustments for cards on very small screens */
+@media (max-width: 480px) {
+  .card-body {
+    padding: 0.75rem;
+  }
+  .card-title {
+    font-size: 0.95rem;
+  }
+}

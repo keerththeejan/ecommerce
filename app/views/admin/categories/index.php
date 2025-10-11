@@ -1,17 +1,108 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
+<style>
+    /* Responsive tweaks for header action buttons */
+    @media (max-width: 576px) {
+        .card-header {
+            flex-wrap: nowrap;          /* keep everything on one line */
+            gap: .25rem .25rem;
+        }
+        .card-header .card-title {
+            flex: 1 1 auto;             /* title can shrink */
+            min-width: 0;               /* allow ellipsis */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: .95rem;          /* smaller title saves space */
+            margin-bottom: 0;
+        }
+        .admin-actions {
+            flex-wrap: nowrap;           /* keep buttons on one line */
+            overflow: hidden;            /* no scrollbar */
+            gap: .25rem;                 /* tighter spacing */
+            width: auto;                 /* stay inline with title */
+            justify-content: flex-end;   /* align buttons to right */
+        }
+        .admin-actions .btn {
+            white-space: nowrap;
+            padding: .2rem .35rem;      /* smaller padding */
+            font-size: .75rem;          /* smaller text */
+            border-radius: .3rem;
+        }
+        .admin-actions .btn i {
+            font-size: .8em;            /* smaller icon */
+            margin-right: .25rem;       /* compact spacing */
+        }
+
+        /* Categories table -> stacked cards on mobile */
+        #categoriesTable thead {
+            display: none;
+        }
+        #categoriesTable tbody tr {
+            display: block;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: .5rem;
+            margin-bottom: .75rem;
+        }
+        #categoriesTable tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .75rem;
+            padding: .5rem .75rem;
+            border: 0 !important;
+        }
+        #categoriesTable tbody td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6c757d;
+        }
+        #categoriesTable tbody td[data-label="Actions"] {
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+        #categoriesTable tbody td[data-label="Actions"] .btn {
+            padding: .25rem .5rem;
+            font-size: .8rem;
+        }
+        #categoriesTable tbody td img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+    }
+    /* Extra-tight sizes to avoid horizontal scroll on very small devices */
+    @media (max-width: 420px) {
+        .admin-actions { gap: .2rem; }
+        .admin-actions .btn { padding: .18rem .3rem; font-size: .72rem; }
+        .admin-actions .btn i { font-size: .75em; margin-right: .22rem; }
+    }
+    @media (max-width: 360px) {
+        .admin-actions { gap: .15rem; }
+        .admin-actions .btn { padding: .16rem .26rem; font-size: .68rem; }
+        .admin-actions .btn i { font-size: .7em; margin-right: .2rem; }
+    }
+</style>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h3 class="card-title mb-0">Categories</h3>
-                    <div class="d-flex gap-2">
+                    <div class="admin-actions d-flex gap-2">
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light">
-                            <i class="fas fa-arrow-left me-1"></i> Back to Product
+                            <i class="fas fa-arrow-left me-1"></i>
+                            <span class="d-none d-sm-inline">Back to Product</span>
+                            <span class="d-inline d-sm-none">Back</span>
                         </a>
                         <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-light">
-                            <i class="fas fa-plus me-1"></i> Add New Category
+                            <i class="fas fa-plus me-1"></i>
+                            <span class="d-none d-sm-inline">Add New Category</span>
+                            <span class="d-inline d-sm-none">Add</span>
                         </a>
                     </div>
                 </div>
