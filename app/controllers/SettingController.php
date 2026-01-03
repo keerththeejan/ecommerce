@@ -46,6 +46,21 @@ class SettingController extends Controller {
         
         // Get other settings by group
         $generalSettings = $this->settingModel->getSettingsByGroup('general');
+        $generalSettings['home_categories_bg_color'] = $this->settingModel->getSetting('home_categories_bg_color', '#fff');
+        $generalSettings['header_bg_color'] = $this->settingModel->getSetting('header_bg_color', '#ffffff');
+        $generalSettings['header_width'] = $this->settingModel->getSetting('header_width', 'boxed');
+        $generalSettings['banner_width_percent'] = $this->settingModel->getSetting('banner_width_percent', '100');
+        $generalSettings['banner_height_desktop'] = $this->settingModel->getSetting('banner_height_desktop', '600');
+        $generalSettings['banner_height_mobile'] = $this->settingModel->getSetting('banner_height_mobile', '250');
+        $generalSettings['theme_primary_color'] = $this->settingModel->getSetting('theme_primary_color', '#0d6efd');
+        $generalSettings['theme_secondary_color'] = $this->settingModel->getSetting('theme_secondary_color', '#6c757d');
+        $generalSettings['theme_background_color'] = $this->settingModel->getSetting('theme_background_color', '#ffffff');
+        $generalSettings['theme_text_color'] = $this->settingModel->getSetting('theme_text_color', '#212529');
+        $generalSettings['theme_default_mode'] = $this->settingModel->getSetting('theme_default_mode', 'light');
+        $generalSettings['theme_dark_primary_color'] = $this->settingModel->getSetting('theme_dark_primary_color', '#4dabf7');
+        $generalSettings['theme_dark_secondary_color'] = $this->settingModel->getSetting('theme_dark_secondary_color', '#adb5bd');
+        $generalSettings['theme_dark_background_color'] = $this->settingModel->getSetting('theme_dark_background_color', '#0b1220');
+        $generalSettings['theme_dark_text_color'] = $this->settingModel->getSetting('theme_dark_text_color', '#e9ecef');
         $paymentSettings = $this->settingModel->getSettingsByGroup('payment');
         $emailSettings = $this->settingModel->getSettingsByGroup('email');
         
@@ -85,7 +100,22 @@ class SettingController extends Controller {
                 'site_email' => sanitize($this->post('site_email')),
                 'site_phone' => sanitize($this->post('site_phone')),
                 'site_address' => sanitize($this->post('site_address')),
-                'site_favicon' => sanitize($this->post('site_favicon'))
+                'site_favicon' => sanitize($this->post('site_favicon')),
+                'home_categories_bg_color' => trim($this->post('home_categories_bg_color')),
+                'header_bg_color' => trim($this->post('header_bg_color')),
+                'header_width' => trim($this->post('header_width')),
+                'banner_width_percent' => trim($this->post('banner_width_percent')),
+                'banner_height_desktop' => trim($this->post('banner_height_desktop')),
+                'banner_height_mobile' => trim($this->post('banner_height_mobile')),
+                'theme_primary_color' => trim($this->post('theme_primary_color')),
+                'theme_secondary_color' => trim($this->post('theme_secondary_color')),
+                'theme_background_color' => trim($this->post('theme_background_color')),
+                'theme_text_color' => trim($this->post('theme_text_color')),
+                'theme_default_mode' => trim($this->post('theme_default_mode')),
+                'theme_dark_primary_color' => trim($this->post('theme_dark_primary_color')),
+                'theme_dark_secondary_color' => trim($this->post('theme_dark_secondary_color')),
+                'theme_dark_background_color' => trim($this->post('theme_dark_background_color')),
+                'theme_dark_text_color' => trim($this->post('theme_dark_text_color'))
             ];
             
             // Also update store_name for consistency
@@ -135,6 +165,118 @@ class SettingController extends Controller {
                 'site_name' => 'required',
                 'site_email' => 'required|email'
             ]);
+
+            if (!empty($data['home_categories_bg_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['home_categories_bg_color'])) {
+                $errors['home_categories_bg_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+
+            if (empty($data['home_categories_bg_color'])) {
+                $data['home_categories_bg_color'] = '#fff';
+            }
+
+            if (!empty($data['header_bg_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['header_bg_color'])) {
+                $errors['header_bg_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+
+            if (empty($data['header_bg_color'])) {
+                $data['header_bg_color'] = '#ffffff';
+            }
+
+            if (empty($data['header_width'])) {
+                $data['header_width'] = 'boxed';
+            }
+
+            if (!in_array($data['header_width'], ['boxed', 'full'], true)) {
+                $errors['header_width'] = 'Invalid header width option.';
+            }
+
+            $bannerWidthPercent = (int)$data['banner_width_percent'];
+            if ($bannerWidthPercent < 10 || $bannerWidthPercent > 100) {
+                $errors['banner_width_percent'] = 'Banner width must be between 10 and 100.';
+            }
+            if (empty($data['banner_width_percent'])) {
+                $data['banner_width_percent'] = '100';
+            }
+
+            $bannerHeightDesktop = (int)$data['banner_height_desktop'];
+            if ($bannerHeightDesktop < 150 || $bannerHeightDesktop > 1200) {
+                $errors['banner_height_desktop'] = 'Banner desktop height must be between 150 and 1200.';
+            }
+            if (empty($data['banner_height_desktop'])) {
+                $data['banner_height_desktop'] = '600';
+            }
+
+            $bannerHeightMobile = (int)$data['banner_height_mobile'];
+            if ($bannerHeightMobile < 120 || $bannerHeightMobile > 800) {
+                $errors['banner_height_mobile'] = 'Banner mobile height must be between 120 and 800.';
+            }
+            if (empty($data['banner_height_mobile'])) {
+                $data['banner_height_mobile'] = '250';
+            }
+
+            if (!empty($data['theme_primary_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_primary_color'])) {
+                $errors['theme_primary_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_primary_color'])) {
+                $data['theme_primary_color'] = '#0d6efd';
+            }
+
+            if (!empty($data['theme_secondary_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_secondary_color'])) {
+                $errors['theme_secondary_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_secondary_color'])) {
+                $data['theme_secondary_color'] = '#6c757d';
+            }
+
+            if (!empty($data['theme_background_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_background_color'])) {
+                $errors['theme_background_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_background_color'])) {
+                $data['theme_background_color'] = '#ffffff';
+            }
+
+            if (!empty($data['theme_text_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_text_color'])) {
+                $errors['theme_text_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_text_color'])) {
+                $data['theme_text_color'] = '#212529';
+            }
+
+            if (empty($data['theme_default_mode'])) {
+                $data['theme_default_mode'] = 'light';
+            }
+
+            if (!in_array($data['theme_default_mode'], ['light', 'dark'], true)) {
+                $errors['theme_default_mode'] = 'Invalid theme mode.';
+            }
+
+            if (!empty($data['theme_dark_primary_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_dark_primary_color'])) {
+                $errors['theme_dark_primary_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_dark_primary_color'])) {
+                $data['theme_dark_primary_color'] = '#4dabf7';
+            }
+
+            if (!empty($data['theme_dark_secondary_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_dark_secondary_color'])) {
+                $errors['theme_dark_secondary_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_dark_secondary_color'])) {
+                $data['theme_dark_secondary_color'] = '#adb5bd';
+            }
+
+            if (!empty($data['theme_dark_background_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_dark_background_color'])) {
+                $errors['theme_dark_background_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_dark_background_color'])) {
+                $data['theme_dark_background_color'] = '#0b1220';
+            }
+
+            if (!empty($data['theme_dark_text_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['theme_dark_text_color'])) {
+                $errors['theme_dark_text_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['theme_dark_text_color'])) {
+                $data['theme_dark_text_color'] = '#e9ecef';
+            }
             
             // Make sure there are no errors
             if(empty($errors)) {

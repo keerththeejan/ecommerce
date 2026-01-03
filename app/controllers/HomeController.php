@@ -29,6 +29,10 @@ class HomeController extends Controller {
             
             // Get categories
             $categories = $this->categoryModel->getActiveCategories();
+
+            // Get appearance settings
+            $settingModel = $this->model('Setting');
+            $homeCategoriesBgColor = $settingModel->getSetting('home_categories_bg_color', '#fff');
             
             // Get brands (use processed active brands so logos have proper URLs)
             $brandModel = $this->model('Brand');
@@ -46,6 +50,7 @@ class HomeController extends Controller {
                 'saleProducts' => $saleProducts,
                 'newProducts' => $newProducts,
                 'categories' => $categories,
+                'homeCategoriesBgColor' => $homeCategoriesBgColor,
                 'brands' => $brands,
                 'aboutLatest' => $aboutLatest
             ]);
@@ -59,6 +64,7 @@ class HomeController extends Controller {
                 'saleProducts' => [],
                 'newProducts' => [],
                 'categories' => [],
+                'homeCategoriesBgColor' => '#fff',
                 'brands' => [],
                 'banners' => []
             ]);

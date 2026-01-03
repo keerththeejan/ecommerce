@@ -4,6 +4,15 @@ $db = new Database();
 $bannerModel = new Banner($db);
 $banners = $bannerModel->getAll('active');
 
+$settingModel = new Setting();
+$bannerWidthPercent = (int)$settingModel->getSetting('banner_width_percent', '100');
+$bannerHeightDesktop = (int)$settingModel->getSetting('banner_height_desktop', '600');
+$bannerHeightMobile = (int)$settingModel->getSetting('banner_height_mobile', '250');
+
+$bannerWidthPercent = ($bannerWidthPercent >= 10 && $bannerWidthPercent <= 100) ? $bannerWidthPercent : 100;
+$bannerHeightDesktop = ($bannerHeightDesktop >= 150 && $bannerHeightDesktop <= 1200) ? $bannerHeightDesktop : 600;
+$bannerHeightMobile = ($bannerHeightMobile >= 120 && $bannerHeightMobile <= 800) ? $bannerHeightMobile : 250;
+
 // If no active banners, show a default banner
 if (empty($banners)) {
     $banners = [
@@ -61,11 +70,11 @@ if (empty($banners)) {
 
         <!-- Controls -->
         <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <img class="carousel-control-icon" alt="Previous" aria-hidden="true" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'/%3E%3C/svg%3E" />
             <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <img class="carousel-control-icon" alt="Next" aria-hidden="true" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E" />
             <span class="visually-hidden">Next</span>
         </button>
     </div>
@@ -87,9 +96,15 @@ if (empty($banners)) {
     max-width: none;
 }
 
+.banner-carousel .carousel-inner {
+    width: <?php echo (int)$bannerWidthPercent; ?>%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .carousel-item,
 .banner-image-container {
-    height: 600px; /* Adjust height here if needed */
+    height: <?php echo (int)$bannerHeightDesktop; ?>px;
 }
 
 .banner-image {
@@ -151,6 +166,16 @@ if (empty($banners)) {
     transition: opacity 0.3s ease;
 }
 
+.carousel-control-icon {
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
 .banner-carousel:hover .carousel-control-prev,
 .banner-carousel:hover .carousel-control-next {
     opacity: 1;
@@ -161,7 +186,7 @@ if (empty($banners)) {
     .carousel-inner,
     .carousel-item,
     .banner-image-container {
-        height: 250px;
+        height: <?php echo (int)$bannerHeightMobile; ?>px;
     }
 
     .carousel-caption {

@@ -12,14 +12,185 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
+
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('theme_mode');
+                if (saved === 'dark' || saved === 'light') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
-<body style="background-color: #fff;" class="mobile-nav-fixed d-flex flex-column min-vh-100">
+<body class="mobile-nav-fixed d-flex flex-column min-vh-100">
     <?php
     // Get site settings
     $settingModel = new Setting();
     $siteLogo = $settingModel->getSetting('site_logo');
     $siteName = $settingModel->getSetting('site_name') ?: 'Sivakamy';
+    $headerBgColor = $settingModel->getSetting('header_bg_color', '#ffffff');
+    $headerWidth = $settingModel->getSetting('header_width', 'boxed');
+    $headerBgColor = (!empty($headerBgColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $headerBgColor)) ? $headerBgColor : '#ffffff';
+    $headerWidth = in_array($headerWidth, ['boxed', 'full'], true) ? $headerWidth : 'boxed';
+    $headerContainerClass = $headerWidth === 'full' ? 'container-fluid' : 'container';
+
+    $themePrimaryColor = $settingModel->getSetting('theme_primary_color', '#0d6efd');
+    $themeSecondaryColor = $settingModel->getSetting('theme_secondary_color', '#6c757d');
+    $themeBackgroundColor = $settingModel->getSetting('theme_background_color', '#ffffff');
+    $themeTextColor = $settingModel->getSetting('theme_text_color', '#212529');
+    $themeDefaultMode = $settingModel->getSetting('theme_default_mode', 'light');
+    $themeDarkPrimaryColor = $settingModel->getSetting('theme_dark_primary_color', '#4dabf7');
+    $themeDarkSecondaryColor = $settingModel->getSetting('theme_dark_secondary_color', '#adb5bd');
+    $themeDarkBackgroundColor = $settingModel->getSetting('theme_dark_background_color', '#0b1220');
+    $themeDarkTextColor = $settingModel->getSetting('theme_dark_text_color', '#e9ecef');
+    $themePrimaryColor = (!empty($themePrimaryColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themePrimaryColor)) ? $themePrimaryColor : '#0d6efd';
+    $themeSecondaryColor = (!empty($themeSecondaryColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themeSecondaryColor)) ? $themeSecondaryColor : '#6c757d';
+    $themeBackgroundColor = (!empty($themeBackgroundColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themeBackgroundColor)) ? $themeBackgroundColor : '#ffffff';
+    $themeTextColor = (!empty($themeTextColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themeTextColor)) ? $themeTextColor : '#212529';
+    $themeDefaultMode = in_array($themeDefaultMode, ['light', 'dark'], true) ? $themeDefaultMode : 'light';
+    $themeDarkPrimaryColor = (!empty($themeDarkPrimaryColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themeDarkPrimaryColor)) ? $themeDarkPrimaryColor : '#4dabf7';
+    $themeDarkSecondaryColor = (!empty($themeDarkSecondaryColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themeDarkSecondaryColor)) ? $themeDarkSecondaryColor : '#adb5bd';
+    $themeDarkBackgroundColor = (!empty($themeDarkBackgroundColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themeDarkBackgroundColor)) ? $themeDarkBackgroundColor : '#0b1220';
+    $themeDarkTextColor = (!empty($themeDarkTextColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $themeDarkTextColor)) ? $themeDarkTextColor : '#e9ecef';
     ?>
+
+    <style>
+        :root {
+            --theme-primary: <?php echo htmlspecialchars($themePrimaryColor); ?>;
+            --theme-secondary: <?php echo htmlspecialchars($themeSecondaryColor); ?>;
+            --theme-bg: <?php echo htmlspecialchars($themeBackgroundColor); ?>;
+            --theme-text: <?php echo htmlspecialchars($themeTextColor); ?>;
+        }
+
+        html[data-theme="light"] {
+            --theme-text: #000000;
+        }
+
+        html[data-theme="dark"] {
+            --theme-primary: <?php echo htmlspecialchars($themeDarkPrimaryColor); ?>;
+            --theme-secondary: <?php echo htmlspecialchars($themeDarkSecondaryColor); ?>;
+            --theme-bg: <?php echo htmlspecialchars($themeDarkBackgroundColor); ?>;
+            --theme-text: <?php echo htmlspecialchars($themeDarkTextColor); ?>;
+        }
+
+        body {
+            background-color: var(--theme-bg) !important;
+            color: var(--theme-text);
+        }
+
+        /* Ensure Brands section inherits page background (remove white strip) */
+        #brands {
+            background: transparent !important;
+        }
+
+        html[data-theme="dark"] .navbar,
+        html[data-theme="dark"] .mobile-top-bar,
+        html[data-theme="dark"] .mobile-bottom-nav,
+        html[data-theme="dark"] #mobileNavbar,
+        html[data-theme="dark"] .dropdown-menu,
+        html[data-theme="dark"] .card,
+        html[data-theme="dark"] .modal-content,
+        html[data-theme="dark"] .list-group-item {
+            background-color: var(--theme-bg) !important;
+            color: var(--theme-text) !important;
+        }
+
+        html[data-theme="dark"] .nav-link,
+        html[data-theme="dark"] .dropdown-item,
+        html[data-theme="dark"] .navbar-brand,
+        html[data-theme="dark"] .form-control,
+        html[data-theme="dark"] .form-select,
+        html[data-theme="dark"] .input-group-text,
+        html[data-theme="dark"] .btn,
+        html[data-theme="dark"] .table,
+        html[data-theme="dark"] .table td,
+        html[data-theme="dark"] .table th {
+            color: var(--theme-text) !important;
+        }
+
+        html[data-theme="dark"] .form-control,
+        html[data-theme="dark"] .form-select,
+        html[data-theme="dark"] .input-group-text {
+            background-color: rgba(255, 255, 255, 0.06) !important;
+            border-color: rgba(255, 255, 255, 0.18) !important;
+        }
+
+        html[data-theme="dark"] .dropdown-item:hover,
+        html[data-theme="dark"] .dropdown-item:focus {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        html[data-theme="dark"] .text-dark,
+        html[data-theme="dark"] .text-muted,
+        html[data-theme="dark"] .text-secondary {
+            color: var(--theme-text) !important;
+        }
+
+        html[data-theme="dark"] .bg-white,
+        html[data-theme="dark"] .bg-light {
+            background-color: var(--theme-bg) !important;
+        }
+
+        html[data-theme="light"] body,
+        html[data-theme="light"] h1,
+        html[data-theme="light"] h2,
+        html[data-theme="light"] h3,
+        html[data-theme="light"] h4,
+        html[data-theme="light"] h5,
+        html[data-theme="light"] h6,
+        html[data-theme="light"] p,
+        html[data-theme="light"] span,
+        html[data-theme="light"] small,
+        html[data-theme="light"] li,
+        html[data-theme="light"] label,
+        html[data-theme="light"] .nav-link,
+        html[data-theme="light"] .navbar,
+        html[data-theme="light"] .dropdown-item {
+            color: var(--theme-text) !important;
+        }
+
+        html[data-theme="light"] .text-dark,
+        html[data-theme="light"] .text-muted,
+        html[data-theme="light"] .text-secondary {
+            color: var(--theme-text) !important;
+        }
+
+        a {
+            color: var(--theme-primary);
+        }
+
+        .theme-toggle-btn {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.08);
+            color: inherit;
+        }
+
+        html[data-theme="dark"] .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-primary {
+            background-color: var(--theme-primary) !important;
+            border-color: var(--theme-primary) !important;
+        }
+
+        .btn-secondary {
+            background-color: var(--theme-secondary) !important;
+            border-color: var(--theme-secondary) !important;
+        }
+
+        .text-primary { color: var(--theme-primary) !important; }
+        .text-secondary { color: var(--theme-secondary) !important; }
+        .bg-primary { background-color: var(--theme-primary) !important; }
+        .bg-secondary { background-color: var(--theme-secondary) !important; }
+    </style>
     
     <!-- Mobile Header -->
     <style>
@@ -67,9 +238,9 @@
     </style>
     
     <!-- Mobile Top Bar -->
-    <div class="d-md-none border-bottom mobile-top-bar">
+    <div class="d-md-none border-bottom mobile-top-bar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
         <!-- Top Bar -->
-        <div class="container py-2">
+        <div class="<?php echo $headerContainerClass; ?> py-2">
             <div class="d-flex align-items-center justify-content-between">
                 <a href="<?php echo BASE_URL; ?>" class="text-decoration-none">
                     <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
@@ -113,6 +284,10 @@
                             </div>
                         </div>
                         <?php endif; ?>
+
+                        <button class="btn p-0 border-0 ms-2 theme-toggle-btn theme-toggle" type="button" aria-label="Toggle dark mode">
+                            <i class="fas fa-moon"></i>
+                        </button>
                         
                         <button class="btn p-0 border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavbar" aria-expanded="false" aria-controls="mobileNavbar">
                             <i class="fas fa-bars fs-4"></i>
@@ -137,8 +312,8 @@
         </div>
         
         <!-- Mobile Navigation -->
-        <div class="collapse bg-white" id="mobileNavbar">
-            <div class="container py-2">
+        <div class="collapse" id="mobileNavbar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
+            <div class="<?php echo $headerContainerClass; ?> py-2">
                 <ul class="navbar-nav">
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=product&action=index">
@@ -377,8 +552,8 @@
             margin-top: 20px;
         }
     </style>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom d-none d-md-block">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom d-none d-md-block" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
+        <div class="<?php echo $headerContainerClass; ?>">
             <a class="navbar-brand fw-bold" href="<?php echo BASE_URL; ?>">
                 <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
                     <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: 40px;">
@@ -520,6 +695,11 @@
                         <button class="btn btn-outline-dark" type="submit">Search</button>
                     </form>
                     <ul class="navbar-nav ms-lg-2">
+                        <li class="nav-item d-flex align-items-center me-2">
+                            <button class="btn p-0 border-0 theme-toggle-btn theme-toggle" type="button" aria-label="Toggle dark mode">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                        </li>
                         <?php if(isLoggedIn()) : ?>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -598,31 +778,42 @@
         <?php flash('newsletter_error'); ?>
     </div>
 
-    <!-- Main Content -->
-    <main class="container py-4">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var root = document.documentElement;
+            if (!root.getAttribute('data-theme')) {
+                root.setAttribute('data-theme', '<?php echo htmlspecialchars($themeDefaultMode); ?>');
+            }
 
-        </div>
-    </nav>
+            function setIcon(mode) {
+                var buttons = document.querySelectorAll('.theme-toggle');
+                if (!buttons || !buttons.length) return;
+                buttons.forEach(function(btn) {
+                    var icon = btn.querySelector('i');
+                    if (!icon) return;
+                    icon.className = (mode === 'dark') ? 'fas fa-sun' : 'fas fa-moon';
+                });
+            }
 
-    <!-- Flash Messages -->
-    <div class="container mt-3">
-        <?php flash('register_success'); ?>
-        <?php flash('login_success'); ?>
-        <?php flash('user_error'); ?>
-        <?php flash('cart_success'); ?>
-        <?php flash('cart_error'); ?>
-        <?php flash('order_success'); ?>
-        <?php flash('order_error'); ?>
-        <?php flash('product_success'); ?>
-        <?php flash('product_error'); ?>
-        <?php flash('profile_success'); ?>
-        <?php flash('password_success'); ?>
-        <?php flash('contact_success'); ?>
-        <?php flash('pos_success'); ?>
-        <?php flash('pos_error'); ?>
-        <?php flash('newsletter_success'); ?>
-        <?php flash('newsletter_error'); ?>
-    </div>
+            function setMode(mode) {
+                root.setAttribute('data-theme', mode);
+                try { localStorage.setItem('theme_mode', mode); } catch (e) {}
+                setIcon(mode);
+            }
+
+            setIcon(root.getAttribute('data-theme'));
+
+            var toggles = document.querySelectorAll('.theme-toggle');
+            if (toggles && toggles.length) {
+                toggles.forEach(function(toggle) {
+                    toggle.addEventListener('click', function() {
+                        var current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                        setMode(current === 'dark' ? 'light' : 'dark');
+                    });
+                });
+            }
+        });
+    </script>
 
     <!-- Main Content -->
     <main class="container py-4">

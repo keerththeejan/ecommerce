@@ -89,6 +89,129 @@
                                 <input type="text" class="form-control" id="site_logo" name="site_logo" value="<?php echo isset($generalSettings['site_logo']) ? $generalSettings['site_logo'] : ''; ?>">
                             </div>
                         </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="home_categories_bg_color" class="form-label">Homepage Categories Background Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['home_categories_bg_color']) ? 'is-invalid' : ''; ?>" id="home_categories_bg_color" name="home_categories_bg_color" value="<?php echo isset($generalSettings['home_categories_bg_color']) ? htmlspecialchars($generalSettings['home_categories_bg_color']) : '#ffffff'; ?>" title="Choose color">
+                                <?php if (isset($errors['home_categories_bg_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['home_categories_bg_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="header_bg_color" class="form-label">Header Background Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['header_bg_color']) ? 'is-invalid' : ''; ?>" id="header_bg_color" name="header_bg_color" value="<?php echo isset($generalSettings['header_bg_color']) ? htmlspecialchars($generalSettings['header_bg_color']) : '#ffffff'; ?>" title="Choose color">
+                                <?php if (isset($errors['header_bg_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['header_bg_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="header_width" class="form-label">Header Width</label>
+                                <select class="form-select <?php echo isset($errors['header_width']) ? 'is-invalid' : ''; ?>" id="header_width" name="header_width">
+                                    <option value="boxed" <?php echo (isset($generalSettings['header_width']) ? $generalSettings['header_width'] : 'boxed') === 'boxed' ? 'selected' : ''; ?>>Boxed</option>
+                                    <option value="full" <?php echo (isset($generalSettings['header_width']) ? $generalSettings['header_width'] : 'boxed') === 'full' ? 'selected' : ''; ?>>Full width</option>
+                                </select>
+                                <?php if (isset($errors['header_width'])): ?>
+                                    <div class="invalid-feedback"><?php echo $errors['header_width']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="banner_width_percent" class="form-label">Banner Width (%)</label>
+                                <input type="number" class="form-control <?php echo isset($errors['banner_width_percent']) ? 'is-invalid' : ''; ?>" id="banner_width_percent" name="banner_width_percent" min="10" max="100" value="<?php echo isset($generalSettings['banner_width_percent']) ? htmlspecialchars($generalSettings['banner_width_percent']) : '100'; ?>">
+                                <?php if (isset($errors['banner_width_percent'])): ?>
+                                    <div class="invalid-feedback"><?php echo $errors['banner_width_percent']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="banner_height_desktop" class="form-label">Banner Height Desktop (px)</label>
+                                <input type="number" class="form-control <?php echo isset($errors['banner_height_desktop']) ? 'is-invalid' : ''; ?>" id="banner_height_desktop" name="banner_height_desktop" min="150" max="1200" value="<?php echo isset($generalSettings['banner_height_desktop']) ? htmlspecialchars($generalSettings['banner_height_desktop']) : '600'; ?>">
+                                <?php if (isset($errors['banner_height_desktop'])): ?>
+                                    <div class="invalid-feedback"><?php echo $errors['banner_height_desktop']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="banner_height_mobile" class="form-label">Banner Height Mobile (px)</label>
+                                <input type="number" class="form-control <?php echo isset($errors['banner_height_mobile']) ? 'is-invalid' : ''; ?>" id="banner_height_mobile" name="banner_height_mobile" min="120" max="800" value="<?php echo isset($generalSettings['banner_height_mobile']) ? htmlspecialchars($generalSettings['banner_height_mobile']) : '250'; ?>">
+                                <?php if (isset($errors['banner_height_mobile'])): ?>
+                                    <div class="invalid-feedback"><?php echo $errors['banner_height_mobile']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="theme_primary_color" class="form-label">Theme Primary Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_primary_color']) ? 'is-invalid' : ''; ?>" id="theme_primary_color" name="theme_primary_color" value="<?php echo isset($generalSettings['theme_primary_color']) ? htmlspecialchars($generalSettings['theme_primary_color']) : '#0d6efd'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_primary_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_primary_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="theme_secondary_color" class="form-label">Theme Secondary Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_secondary_color']) ? 'is-invalid' : ''; ?>" id="theme_secondary_color" name="theme_secondary_color" value="<?php echo isset($generalSettings['theme_secondary_color']) ? htmlspecialchars($generalSettings['theme_secondary_color']) : '#6c757d'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_secondary_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_secondary_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="theme_background_color" class="form-label">Theme Background Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_background_color']) ? 'is-invalid' : ''; ?>" id="theme_background_color" name="theme_background_color" value="<?php echo isset($generalSettings['theme_background_color']) ? htmlspecialchars($generalSettings['theme_background_color']) : '#ffffff'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_background_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_background_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="theme_text_color" class="form-label">Theme Text Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_text_color']) ? 'is-invalid' : ''; ?>" id="theme_text_color" name="theme_text_color" value="<?php echo isset($generalSettings['theme_text_color']) ? htmlspecialchars($generalSettings['theme_text_color']) : '#212529'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_text_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_text_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="theme_default_mode" class="form-label">Default Theme Mode</label>
+                                <select class="form-select <?php echo isset($errors['theme_default_mode']) ? 'is-invalid' : ''; ?>" id="theme_default_mode" name="theme_default_mode">
+                                    <option value="light" <?php echo (isset($generalSettings['theme_default_mode']) ? $generalSettings['theme_default_mode'] : 'light') === 'light' ? 'selected' : ''; ?>>Light</option>
+                                    <option value="dark" <?php echo (isset($generalSettings['theme_default_mode']) ? $generalSettings['theme_default_mode'] : 'light') === 'dark' ? 'selected' : ''; ?>>Dark</option>
+                                </select>
+                                <?php if (isset($errors['theme_default_mode'])): ?>
+                                    <div class="invalid-feedback"><?php echo $errors['theme_default_mode']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="theme_dark_primary_color" class="form-label">Dark Primary Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_dark_primary_color']) ? 'is-invalid' : ''; ?>" id="theme_dark_primary_color" name="theme_dark_primary_color" value="<?php echo isset($generalSettings['theme_dark_primary_color']) ? htmlspecialchars($generalSettings['theme_dark_primary_color']) : '#4dabf7'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_dark_primary_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_dark_primary_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="theme_dark_secondary_color" class="form-label">Dark Secondary Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_dark_secondary_color']) ? 'is-invalid' : ''; ?>" id="theme_dark_secondary_color" name="theme_dark_secondary_color" value="<?php echo isset($generalSettings['theme_dark_secondary_color']) ? htmlspecialchars($generalSettings['theme_dark_secondary_color']) : '#adb5bd'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_dark_secondary_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_dark_secondary_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="theme_dark_background_color" class="form-label">Dark Background Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_dark_background_color']) ? 'is-invalid' : ''; ?>" id="theme_dark_background_color" name="theme_dark_background_color" value="<?php echo isset($generalSettings['theme_dark_background_color']) ? htmlspecialchars($generalSettings['theme_dark_background_color']) : '#0b1220'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_dark_background_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_dark_background_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="theme_dark_text_color" class="form-label">Dark Text Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['theme_dark_text_color']) ? 'is-invalid' : ''; ?>" id="theme_dark_text_color" name="theme_dark_text_color" value="<?php echo isset($generalSettings['theme_dark_text_color']) ? htmlspecialchars($generalSettings['theme_dark_text_color']) : '#e9ecef'; ?>" title="Choose color">
+                                <?php if (isset($errors['theme_dark_text_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['theme_dark_text_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label for="site_address" class="form-label">Address</label>
                             <textarea class="form-control" id="site_address" name="site_address" rows="3"><?php echo isset($generalSettings['site_address']) ? $generalSettings['site_address'] : ''; ?></textarea>

@@ -5,14 +5,25 @@
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
 <!-- Featured Categories - Improved responsive grid -->
-<section id="categories" class="featured-categories py-5" style="width: 100%; background: #fff; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px;">
+<section id="categories" class="featured-categories py-5" style="width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); background: <?php echo !empty($homeCategoriesBgColor) ? htmlspecialchars($homeCategoriesBgColor) : '#fff'; ?>; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px;">
 
     <div class="container-fluid" style="padding: 0; margin: 0 auto; max-width: 100%; position: relative; z-index: 1;">
         <h2 id="categories-heading" class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
 
-        <!-- 🔹 Category Slider -->
+        <!-- Category Slider -->
+        <?php
+            $activeCategories = [];
+            if (!empty($categories)) {
+                $activeCategories = array_values(array_filter($categories, function($cat) {
+                    return $cat['status'] == 1;
+                }));
+                $activeCategories = array_slice($activeCategories, 0, 8);
+            }
+            $centerCategories = !empty($activeCategories) && count($activeCategories) <= 8;
+        ?>
+
         <div id="categorySlider"
-             style="display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 10px 30px; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
+             style="display: flex; justify-content: <?php echo $centerCategories ? 'center' : 'flex-start'; ?>; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 10px 30px; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
              
             <style>
                 #categorySlider::-webkit-scrollbar {
@@ -24,36 +35,32 @@
                 }
             </style>
 
-            <?php 
-            if (!empty($categories)) :
-                $activeCategories = array_values(array_filter($categories, function($cat) {
-                    return $cat['status'] == 1;
-                }));
-                foreach($activeCategories as $index => $category): 
-            ?>
-                <div style="flex: 0 0 auto; width: 200px;">
-                    <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
-                       style="text-decoration: none; color: inherit;">
-                        <div style="text-align: center;">
-                            <div style="padding: 0; width: 150px; height: 150px; margin: 0 auto;">
-                                <?php if (!empty($category['image'])) : ?>
-                                    <img src="<?php echo BASE_URL . $category['image']; ?>" 
-                                         alt="<?php echo htmlspecialchars($category['name']); ?>" 
-                                         loading="lazy"
-                                         style="width: 100%; height: 100%; object-fit: contain;">
-                                <?php else : ?>
-                                    <div><i class="fas fa-box fa-3x"></i></div>
-                                <?php endif; ?>
-                            </div>
-                            <h3 style="font-size: 16px; margin-top: 10px;"><?php echo $category['name']; ?></h3>
+            <div id="categoryTrack" style="display: flex; gap: 10px;">
+                <?php if (!empty($activeCategories)) : ?>
+                    <?php foreach($activeCategories as $index => $category): ?>
+                        <div style="flex: 0 0 auto; width: 200px;">
+                            <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
+                               style="text-decoration: none; color: inherit;">
+                                <div style="text-align: center;">
+                                    <div style="padding: 0; width: 150px; height: 150px; margin: 0 auto;">
+                                        <?php if (!empty($category['image'])) : ?>
+                                            <img src="<?php echo BASE_URL . $category['image']; ?>" 
+                                                 alt="<?php echo htmlspecialchars($category['name']); ?>" 
+                                                 loading="lazy"
+                                                 style="width: 100%; height: 100%; object-fit: contain;">
+                                        <?php else : ?>
+                                            <div><i class="fas fa-box fa-3x"></i></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <h3 style="font-size: 16px; margin-top: 10px;"><?php echo $category['name']; ?></h3>
+                                </div>
+                            </a>
                         </div>
-                    </a>
-                </div>
-            <?php endforeach; ?>
-            <?php if (empty($activeCategories)): ?>
-                <div style="padding: 20px;">No categories available</div>
-            <?php endif; ?>
-            <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div style="padding: 20px;">No categories available</div>
+                <?php endif; ?>
+            </div>
         </div>
 
         <!-- 🔹 Dot Navigation (horizontal like loading gif) -->
@@ -73,6 +80,67 @@
                 var scrollAmount = 300 * direction;
                 slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
             }
+
+            (function() {
+                var slider = document.getElementById("categorySlider");
+                var track = document.getElementById("categoryTrack");
+                if (!slider) return;
+                if (!track) return;
+
+                var isPaused = false;
+                var rafId = null;
+                var speedPxPerFrame = 0.6;
+
+                function ensureOverflow() {
+                    var maxLoops = 3;
+                    var loops = 0;
+                    while (slider.scrollWidth <= slider.clientWidth + 1 && track.children.length > 0 && loops < maxLoops) {
+                        var children = Array.prototype.slice.call(track.children);
+                        children.forEach(function(node) {
+                            track.appendChild(node.cloneNode(true));
+                        });
+                        loops++;
+                    }
+
+                    if (slider.scrollWidth > slider.clientWidth + 1) {
+                        slider.style.justifyContent = 'flex-start';
+                    }
+                }
+
+                ensureOverflow();
+
+                function maxScrollLeft() {
+                    return Math.max(0, slider.scrollWidth - slider.clientWidth);
+                }
+
+                function tick() {
+                    if (!isPaused) {
+                        var max = maxScrollLeft();
+                        if (max > 0) {
+                            slider.scrollLeft += speedPxPerFrame;
+                            if (slider.scrollLeft >= max - 1) {
+                                slider.scrollLeft = 0;
+                            }
+                        }
+                    }
+                    rafId = window.requestAnimationFrame(tick);
+                }
+
+                function pause() { isPaused = true; }
+                function resume() { isPaused = false; }
+
+                slider.addEventListener('mouseenter', pause);
+                slider.addEventListener('mouseleave', resume);
+                slider.addEventListener('touchstart', pause, { passive: true });
+                slider.addEventListener('touchend', resume, { passive: true });
+                slider.addEventListener('touchcancel', resume, { passive: true });
+
+                window.addEventListener('beforeunload', function() {
+                    if (rafId) window.cancelAnimationFrame(rafId);
+                });
+
+                tick();
+            })();
         </script>
     </div>
 </section>
