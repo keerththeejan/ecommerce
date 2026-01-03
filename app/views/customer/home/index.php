@@ -17,9 +17,9 @@
                 $activeCategories = array_values(array_filter($categories, function($cat) {
                     return $cat['status'] == 1;
                 }));
-                $activeCategories = array_slice($activeCategories, 0, 8);
+                $activeCategories = array_slice($activeCategories, 0, 7);
             }
-            $centerCategories = !empty($activeCategories) && count($activeCategories) <= 8;
+            $centerCategories = !empty($activeCategories) && count($activeCategories) <= 7;
         ?>
 
         <div id="categorySlider"
@@ -107,11 +107,15 @@
                     }
                 }
 
-                ensureOverflow();
+                if (slider.scrollWidth > slider.clientWidth + 1) {
+                    slider.style.justifyContent = 'flex-start';
+                }
 
                 function maxScrollLeft() {
                     return Math.max(0, slider.scrollWidth - slider.clientWidth);
                 }
+
+                ensureOverflow();
 
                 function tick() {
                     if (!isPaused) {

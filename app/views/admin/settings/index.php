@@ -212,6 +212,124 @@
                                 <?php endif; ?>
                             </div>
                         </div>
+                        <hr>
+                        <h5 class="mb-3">Footer Typography</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="footer_text_color" class="form-label">Footer Text Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['footer_text_color']) ? 'is-invalid' : ''; ?>" id="footer_text_color" name="footer_text_color" value="<?php echo isset($generalSettings['footer_text_color']) ? htmlspecialchars($generalSettings['footer_text_color']) : '#EEEEEE'; ?>" title="Choose color">
+                                <?php if (isset($errors['footer_text_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_text_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_accent_color" class="form-label">Footer Accent Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['footer_accent_color']) ? 'is-invalid' : ''; ?>" id="footer_accent_color" name="footer_accent_color" value="<?php echo isset($generalSettings['footer_accent_color']) ? htmlspecialchars($generalSettings['footer_accent_color']) : '#00ADB5'; ?>" title="Choose color">
+                                <?php if (isset($errors['footer_accent_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_accent_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_heading_color" class="form-label">Footer Heading Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['footer_heading_color']) ? 'is-invalid' : ''; ?>" id="footer_heading_color" name="footer_heading_color" value="<?php echo isset($generalSettings['footer_heading_color']) ? htmlspecialchars($generalSettings['footer_heading_color']) : '#FFFFFF'; ?>" title="Choose color">
+                                <?php if (isset($errors['footer_heading_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_heading_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_font_size" class="form-label">Footer Font Size</label>
+                                <input type="text" class="form-control <?php echo isset($errors['footer_font_size']) ? 'is-invalid' : ''; ?>" id="footer_font_size" name="footer_font_size" placeholder="e.g. 14px or 0.95rem" value="<?php echo isset($generalSettings['footer_font_size']) ? htmlspecialchars($generalSettings['footer_font_size']) : '0.95rem'; ?>">
+                                <?php if (isset($errors['footer_font_size'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_font_size']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="footer_font_family" class="form-label">Footer Font Family</label>
+                                <select class="form-select <?php echo isset($errors['footer_font_family']) ? 'is-invalid' : ''; ?>" id="footer_font_family" name="footer_font_family">
+                                    <?php
+                                        $families = [
+                                            'inherit' => 'Inherit (default)',
+                                            'Arial, Helvetica, sans-serif' => 'Arial / Helvetica / Sans-Serif',
+                                            'Roboto, Arial, sans-serif' => 'Roboto',
+                                            'Georgia, serif' => 'Georgia / Serif',
+                                            'Times New Roman, Times, serif' => 'Times New Roman / Serif',
+                                            'Courier New, Courier, monospace' => 'Courier New / Monospace',
+                                            'system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif' => 'System UI'
+                                        ];
+                                        $currentFamily = isset($generalSettings['footer_font_family']) ? $generalSettings['footer_font_family'] : 'inherit';
+                                        foreach ($families as $val => $label) {
+                                            $sel = ($currentFamily === $val) ? 'selected' : '';
+                                            echo '<option value="' . htmlspecialchars($val) . '" ' . $sel . '>' . htmlspecialchars($label) . '</option>';
+                                        }
+                                    ?>
+                                </select>
+                                <?php if (isset($errors['footer_font_family'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_font_family']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="footer_heading_about" class="form-label">Footer Heading: About</label>
+                                <input type="text" class="form-control" id="footer_heading_about" name="footer_heading_about" value="<?php echo isset($generalSettings['footer_heading_about']) ? htmlspecialchars($generalSettings['footer_heading_about']) : 'About store'; ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_heading_quick_links" class="form-label">Footer Heading: Quick Links</label>
+                                <input type="text" class="form-control" id="footer_heading_quick_links" name="footer_heading_quick_links" value="<?php echo isset($generalSettings['footer_heading_quick_links']) ? htmlspecialchars($generalSettings['footer_heading_quick_links']) : 'Quick Links'; ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_heading_contact_info" class="form-label">Footer Heading: Contact Info</label>
+                                <input type="text" class="form-control" id="footer_heading_contact_info" name="footer_heading_contact_info" value="<?php echo isset($generalSettings['footer_heading_contact_info']) ? htmlspecialchars($generalSettings['footer_heading_contact_info']) : 'Contact Info'; ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_heading_newsletter" class="form-label">Footer Heading: Newsletter</label>
+                                <input type="text" class="form-control" id="footer_heading_newsletter" name="footer_heading_newsletter" value="<?php echo isset($generalSettings['footer_heading_newsletter']) ? htmlspecialchars($generalSettings['footer_heading_newsletter']) : 'Newsletter'; ?>">
+                            </div>
+                        </div>
+                        <h6 class="mb-2">Footer Bottom Bar</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="footer_bottom_text" class="form-label">Footer Bottom Text</label>
+                                <input type="text" class="form-control" id="footer_bottom_text" name="footer_bottom_text" value="<?php echo isset($generalSettings['footer_bottom_text']) ? htmlspecialchars($generalSettings['footer_bottom_text']) : 'E-Store. All rights reserved.'; ?>">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Footer Bottom Links Text</label>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="footer_bottom_link_privacy" name="footer_bottom_link_privacy" value="<?php echo isset($generalSettings['footer_bottom_link_privacy']) ? htmlspecialchars($generalSettings['footer_bottom_link_privacy']) : 'Privacy Policy'; ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="footer_bottom_link_terms" name="footer_bottom_link_terms" value="<?php echo isset($generalSettings['footer_bottom_link_terms']) ? htmlspecialchars($generalSettings['footer_bottom_link_terms']) : 'Terms of Service'; ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="footer_bottom_link_faq" name="footer_bottom_link_faq" value="<?php echo isset($generalSettings['footer_bottom_link_faq']) ? htmlspecialchars($generalSettings['footer_bottom_link_faq']) : 'FAQ'; ?>">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="footer_bottom_link_color" class="form-label">Bottom Links Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['footer_bottom_link_color']) ? 'is-invalid' : ''; ?>" id="footer_bottom_link_color" name="footer_bottom_link_color" value="<?php echo isset($generalSettings['footer_bottom_link_color']) ? htmlspecialchars($generalSettings['footer_bottom_link_color']) : '#EEEEEE'; ?>" title="Choose color">
+                                <?php if (isset($errors['footer_bottom_link_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_bottom_link_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_bottom_text_color" class="form-label">Bottom Text Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['footer_bottom_text_color']) ? 'is-invalid' : ''; ?>" id="footer_bottom_text_color" name="footer_bottom_text_color" value="<?php echo isset($generalSettings['footer_bottom_text_color']) ? htmlspecialchars($generalSettings['footer_bottom_text_color']) : '#EEEEEE'; ?>" title="Choose color">
+                                <?php if (isset($errors['footer_bottom_text_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_bottom_text_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="footer_bottom_link_hover_color" class="form-label">Bottom Links Hover Color</label>
+                                <input type="color" class="form-control form-control-color <?php echo isset($errors['footer_bottom_link_hover_color']) ? 'is-invalid' : ''; ?>" id="footer_bottom_link_hover_color" name="footer_bottom_link_hover_color" value="<?php echo isset($generalSettings['footer_bottom_link_hover_color']) ? htmlspecialchars($generalSettings['footer_bottom_link_hover_color']) : '#00ADB5'; ?>" title="Choose color">
+                                <?php if (isset($errors['footer_bottom_link_hover_color'])): ?>
+                                    <div class="invalid-feedback d-block"><?php echo $errors['footer_bottom_link_hover_color']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label for="site_address" class="form-label">Address</label>
                             <textarea class="form-control" id="site_address" name="site_address" rows="3"><?php echo isset($generalSettings['site_address']) ? $generalSettings['site_address'] : ''; ?></textarea>

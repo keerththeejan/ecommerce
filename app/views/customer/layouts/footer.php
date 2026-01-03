@@ -1,5 +1,46 @@
 </main>
 
+<?php
+// Load footer typography settings
+try {
+    require_once APP_PATH . 'models/Setting.php';
+    $__settingModel = new Setting();
+    $__footerTextColor = $__settingModel->getSetting('footer_text_color', '#EEEEEE');
+    $__footerFontSize = $__settingModel->getSetting('footer_font_size', '0.95rem');
+    $__footerFontFamily = $__settingModel->getSetting('footer_font_family', 'inherit');
+    $__footerAccentColor = $__settingModel->getSetting('footer_accent_color', '#00ADB5');
+    $__footerHeadingColor = $__settingModel->getSetting('footer_heading_color', '#FFFFFF');
+    $__footerHeadingAbout = $__settingModel->getSetting('footer_heading_about', 'About store');
+    $__footerHeadingQuickLinks = $__settingModel->getSetting('footer_heading_quick_links', 'Quick Links');
+    $__footerHeadingContactInfo = $__settingModel->getSetting('footer_heading_contact_info', 'Contact Info');
+    $__footerHeadingNewsletter = $__settingModel->getSetting('footer_heading_newsletter', 'Newsletter');
+    $__footerBottomText = $__settingModel->getSetting('footer_bottom_text', 'E-Store. All rights reserved.');
+    $__footerBottomLinkPrivacy = $__settingModel->getSetting('footer_bottom_link_privacy', 'Privacy Policy');
+    $__footerBottomLinkTerms = $__settingModel->getSetting('footer_bottom_link_terms', 'Terms of Service');
+    $__footerBottomLinkFaq = $__settingModel->getSetting('footer_bottom_link_faq', 'FAQ');
+    $__footerBottomTextColor = $__settingModel->getSetting('footer_bottom_text_color', '#FFFFFF');
+    $__footerBottomLinkColor = $__settingModel->getSetting('footer_bottom_link_color', '#EEEEEE');
+    $__footerBottomLinkHoverColor = $__settingModel->getSetting('footer_bottom_link_hover_color', '#00ADB5');
+} catch (Exception $e) {
+    $__footerTextColor = '#EEEEEE';
+    $__footerFontSize = '0.95rem';
+    $__footerFontFamily = 'inherit';
+    $__footerAccentColor = '#00ADB5';
+    $__footerHeadingColor = '#FFFFFF';
+    $__footerHeadingAbout = 'About store';
+    $__footerHeadingQuickLinks = 'Quick Links';
+    $__footerHeadingContactInfo = 'Contact Info';
+    $__footerHeadingNewsletter = 'Newsletter';
+    $__footerBottomText = 'E-Store. All rights reserved.';
+    $__footerBottomLinkPrivacy = 'Privacy Policy';
+    $__footerBottomLinkTerms = 'Terms of Service';
+    $__footerBottomLinkFaq = 'FAQ';
+    $__footerBottomTextColor = '#FFFFFF';
+    $__footerBottomLinkColor = '#EEEEEE';
+    $__footerBottomLinkHoverColor = '#00ADB5';
+}
+?>
+
 <!-- Footer -->
 <style>
     /* Footer Styles */
@@ -26,6 +67,10 @@
         padding: 0;
         position: relative;
         z-index: 10;
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+        overflow: hidden;
     }
     
     /* Footer Top Section with Wave */
@@ -292,6 +337,9 @@
         padding: 25px 0;
         position: relative;
         overflow: hidden;
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
     }
     
     .footer-bottom-content {
@@ -390,6 +438,52 @@
     }
 </style>
 
+<!-- Footer Typography Overrides from Settings -->
+<style>
+    footer, 
+    footer * {
+        font-family: <?php echo htmlspecialchars($__footerFontFamily); ?> !important;
+    }
+    footer .footer-widget p,
+    footer .footer-links a,
+    footer .contact-info li,
+    footer .footer-bottom-links a {
+        color: <?php echo htmlspecialchars($__footerTextColor); ?> !important;
+        font-size: <?php echo htmlspecialchars($__footerFontSize); ?> !important;
+    }
+
+    footer .copyright-text {
+        color: <?php echo htmlspecialchars($__footerBottomTextColor); ?> !important;
+        font-size: <?php echo htmlspecialchars($__footerFontSize); ?> !important;
+    }
+
+    footer .footer-widget h4::after {
+        background: linear-gradient(90deg, <?php echo htmlspecialchars($__footerAccentColor); ?> 0%, rgba(0, 173, 181, 0.2) 100%) !important;
+    }
+
+    footer .footer-widget h4 {
+        color: <?php echo htmlspecialchars($__footerHeadingColor); ?> !important;
+    }
+
+    footer .footer-bottom-links a {
+        color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;
+    }
+
+    footer .footer-bottom-links a:hover {
+        color: <?php echo htmlspecialchars($__footerBottomLinkHoverColor); ?> !important;
+    }
+
+    footer .footer-widget h4::before,
+    footer .contact-info i,
+    footer .footer-links a:hover {
+        color: <?php echo htmlspecialchars($__footerAccentColor); ?> !important;
+    }
+
+    footer .footer-widget h4::before {
+        background: <?php echo htmlspecialchars($__footerAccentColor); ?> !important;
+    }
+</style>
+
 <!-- Ensure full-width helper is available globally (used by footer) -->
 <style>
     .full-width-section {
@@ -450,7 +544,7 @@
                             }
                         }
                         ?>
-                        <h4><a href="<?php echo BASE_URL; ?>?controller=about&action=index" style="color: inherit; text-decoration: none;"><?php echo $aboutTitle; ?></a></h4>
+                        <h4><a href="<?php echo BASE_URL; ?>?controller=about&action=index" style="color: inherit; text-decoration: none;"><?php echo htmlspecialchars($__footerHeadingAbout); ?></a></h4>
                         <div class="about-content">
                             <?php 
                             // Display first 150 characters of content with proper HTML formatting
@@ -472,7 +566,7 @@
                 <!-- Quick Links Widget -->
                 <div class="col-lg-3 col-md-6 col-6">
                     <div class="footer-widget">
-                        <h4>Quick Links</h4>
+                        <h4><?php echo htmlspecialchars($__footerHeadingQuickLinks); ?></h4>
                         <ul class="footer-links">
                             <li><a href="<?php echo BASE_URL; ?>#banner">Home Banner</a></li>
                             <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
@@ -485,7 +579,7 @@
                 <!-- Contact Info Widget -->
                 <div class="col-lg-3 col-md-6 col-6">
                     <div class="footer-widget">
-                        <h4>Contact Info</h4>
+                        <h4><?php echo htmlspecialchars($__footerHeadingContactInfo); ?></h4>
                         <?php
                         $ci = null;
                         try {
@@ -547,7 +641,7 @@
                             error_log('Footer newsletter settings load failed: ' . $e->getMessage());
                         }
                         ?>
-                        <h4><?php echo htmlspecialchars($newsletterTitle); ?></h4>
+                        <h4><?php echo htmlspecialchars($__footerHeadingNewsletter); ?></h4>
                         <p><?php echo htmlspecialchars($newsletterDesc); ?></p>
                         <form class="newsletter-form" method="post" action="<?php echo BASE_URL; ?>?controller=newsletter&action=subscribe">
                             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
@@ -564,16 +658,26 @@
     <div class="footer-bottom">
         <div class="container-fluid px-4 px-xl-5 max-width-1400">
             <div class="footer-bottom-content">
-                <p class="copyright-text">&copy; <?php echo date('Y'); ?> E-Store. All rights reserved.</p>
+                <p class="copyright-text" style="color: <?php echo htmlspecialchars($__footerBottomTextColor); ?> !important;">&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($__footerBottomText); ?></p>
                 <div class="footer-bottom-links">
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy">Privacy Policy</a>
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=terms">Terms of Service</a>
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=faq">FAQ</a>
+                    <a style="color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;" href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a>
+                    <a style="color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;" href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a>
+                    <a style="color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;" href="<?php echo BASE_URL; ?>?controller=page&action=faq"><?php echo htmlspecialchars($__footerBottomLinkFaq); ?></a>
                 </div>
             </div>
         </div>
     </div>
 </footer>
+
+<style>
+    footer.full-width-section {
+        margin-bottom: -2px;
+    }
+
+    footer .footer-bottom {
+        margin-bottom: -2px;
+    }
+</style>
 
     <!-- Policy Modal -->
     <style>

@@ -65,6 +65,19 @@ class SettingController extends Controller {
         $generalSettings['footer_text_color'] = $this->settingModel->getSetting('footer_text_color', '#EEEEEE');
         $generalSettings['footer_font_size'] = $this->settingModel->getSetting('footer_font_size', '0.95rem');
         $generalSettings['footer_font_family'] = $this->settingModel->getSetting('footer_font_family', 'inherit');
+        $generalSettings['footer_accent_color'] = $this->settingModel->getSetting('footer_accent_color', '#00ADB5');
+        $generalSettings['footer_heading_color'] = $this->settingModel->getSetting('footer_heading_color', '#FFFFFF');
+        $generalSettings['footer_heading_about'] = $this->settingModel->getSetting('footer_heading_about', 'About store');
+        $generalSettings['footer_heading_quick_links'] = $this->settingModel->getSetting('footer_heading_quick_links', 'Quick Links');
+        $generalSettings['footer_heading_contact_info'] = $this->settingModel->getSetting('footer_heading_contact_info', 'Contact Info');
+        $generalSettings['footer_heading_newsletter'] = $this->settingModel->getSetting('footer_heading_newsletter', 'Newsletter');
+        $generalSettings['footer_bottom_text'] = $this->settingModel->getSetting('footer_bottom_text', 'E-Store. All rights reserved.');
+        $generalSettings['footer_bottom_link_privacy'] = $this->settingModel->getSetting('footer_bottom_link_privacy', 'Privacy Policy');
+        $generalSettings['footer_bottom_link_terms'] = $this->settingModel->getSetting('footer_bottom_link_terms', 'Terms of Service');
+        $generalSettings['footer_bottom_link_faq'] = $this->settingModel->getSetting('footer_bottom_link_faq', 'FAQ');
+        $generalSettings['footer_bottom_text_color'] = $this->settingModel->getSetting('footer_bottom_text_color', '#EEEEEE');
+        $generalSettings['footer_bottom_link_color'] = $this->settingModel->getSetting('footer_bottom_link_color', '#EEEEEE');
+        $generalSettings['footer_bottom_link_hover_color'] = $this->settingModel->getSetting('footer_bottom_link_hover_color', '#00ADB5');
         $paymentSettings = $this->settingModel->getSettingsByGroup('payment');
         $emailSettings = $this->settingModel->getSettingsByGroup('email');
         
@@ -123,7 +136,20 @@ class SettingController extends Controller {
                 // Footer typography
                 'footer_text_color' => trim($this->post('footer_text_color')),
                 'footer_font_size' => trim($this->post('footer_font_size')),
-                'footer_font_family' => trim($this->post('footer_font_family'))
+                'footer_font_family' => trim($this->post('footer_font_family')),
+                'footer_accent_color' => trim($this->post('footer_accent_color')),
+                'footer_heading_color' => trim($this->post('footer_heading_color')),
+                'footer_heading_about' => sanitize($this->post('footer_heading_about')),
+                'footer_heading_quick_links' => sanitize($this->post('footer_heading_quick_links')),
+                'footer_heading_contact_info' => sanitize($this->post('footer_heading_contact_info')),
+                'footer_heading_newsletter' => sanitize($this->post('footer_heading_newsletter')),
+                'footer_bottom_text' => sanitize($this->post('footer_bottom_text')),
+                'footer_bottom_link_privacy' => sanitize($this->post('footer_bottom_link_privacy')),
+                'footer_bottom_link_terms' => sanitize($this->post('footer_bottom_link_terms')),
+                'footer_bottom_link_faq' => sanitize($this->post('footer_bottom_link_faq')),
+                'footer_bottom_text_color' => trim($this->post('footer_bottom_text_color')),
+                'footer_bottom_link_color' => trim($this->post('footer_bottom_link_color')),
+                'footer_bottom_link_hover_color' => trim($this->post('footer_bottom_link_hover_color'))
             ];
             
             // Also update store_name for consistency
@@ -316,6 +342,67 @@ class SettingController extends Controller {
                 $data['footer_font_family'] = 'inherit';
             } elseif (!in_array($data['footer_font_family'], $allowedFamilies, true)) {
                 $errors['footer_font_family'] = 'Invalid font family selection.';
+            }
+
+            if (!empty($data['footer_accent_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['footer_accent_color'])) {
+                $errors['footer_accent_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['footer_accent_color'])) {
+                $data['footer_accent_color'] = '#00ADB5';
+            }
+
+            if (!empty($data['footer_heading_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['footer_heading_color'])) {
+                $errors['footer_heading_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['footer_heading_color'])) {
+                $data['footer_heading_color'] = '#FFFFFF';
+            }
+
+            if (empty($data['footer_heading_about'])) {
+                $data['footer_heading_about'] = 'About store';
+            }
+            if (empty($data['footer_heading_quick_links'])) {
+                $data['footer_heading_quick_links'] = 'Quick Links';
+            }
+            if (empty($data['footer_heading_contact_info'])) {
+                $data['footer_heading_contact_info'] = 'Contact Info';
+            }
+            if (empty($data['footer_heading_newsletter'])) {
+                $data['footer_heading_newsletter'] = 'Newsletter';
+            }
+
+            if (empty($data['footer_bottom_text'])) {
+                $data['footer_bottom_text'] = 'E-Store. All rights reserved.';
+            }
+            if (empty($data['footer_bottom_link_privacy'])) {
+                $data['footer_bottom_link_privacy'] = 'Privacy Policy';
+            }
+            if (empty($data['footer_bottom_link_terms'])) {
+                $data['footer_bottom_link_terms'] = 'Terms of Service';
+            }
+            if (empty($data['footer_bottom_link_faq'])) {
+                $data['footer_bottom_link_faq'] = 'FAQ';
+            }
+
+            if (!empty($data['footer_bottom_text_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['footer_bottom_text_color'])) {
+                $errors['footer_bottom_text_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['footer_bottom_text_color'])) {
+                $data['footer_bottom_text_color'] = '#EEEEEE';
+            }
+
+            if (!empty($data['footer_bottom_link_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['footer_bottom_link_color'])) {
+                $errors['footer_bottom_link_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['footer_bottom_link_color'])) {
+                $data['footer_bottom_link_color'] = '#EEEEEE';
+            }
+
+            if (!empty($data['footer_bottom_link_hover_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['footer_bottom_link_hover_color'])) {
+                $errors['footer_bottom_link_hover_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['footer_bottom_link_hover_color'])) {
+                $data['footer_bottom_link_hover_color'] = '#00ADB5';
             }
             
             // Make sure there are no errors
