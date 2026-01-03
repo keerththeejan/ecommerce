@@ -815,5 +815,134 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var brandsSection = document.querySelector('#brands');
+            if (!brandsSection) return;
+
+            // Find current grid row inside brands section
+            var gridRow = brandsSection.querySelector('.row.g-2.g-md-3.justify-content-center');
+            if (!gridRow) return;
+
+            // Collect brand item columns
+            var items = Array.prototype.slice.call(gridRow.children).filter(function (el) {
+                return el.classList && el.classList.contains('col-4');
+            });
+
+            if (!items.length) return;
+
+            // Build slider container + track
+            var slider = document.createElement('div');
+            slider.id = 'brandsSlider';
+            slider.style.display = 'flex';
+            slider.style.justifyContent = items.length <= 8 ? 'center' : 'flex-start';
+            slider.style.overflowX = 'auto';
+            slider.style.scrollBehavior = 'smooth';
+            slider.style.gap = '10px';
+            slider.style.padding = '10px 30px';
+            slider.style.cursor = 'grab';
+            slider.style.msOverflowStyle = 'none';
+            slider.style.scrollbarWidth = 'none';
+
+            // Hide scrollbar (webkit)
+            var styleEl = document.createElement('style');
+            styleEl.textContent = '#brandsSlider::-webkit-scrollbar{display:none;}';
+            brandsSection.appendChild(styleEl);
+
+            var track = document.createElement('div');
+            track.id = 'brandsTrack';
+            track.style.display = 'flex';
+            track.style.gap = '10px';
+
+            // Move items into track and normalize tile width/background
+            items.forEach(function (col) {
+                var tile = document.createElement('div');
+                tile.style.flex = '0 0 auto';
+                tile.style.width = '160px';
+
+                // Find inner link/tile
+                var link = col.querySelector('a');
+                if (link) {
+                    // Remove grid column padding/structure by moving the existing link
+                    tile.appendChild(link);
+
+                    var card = link.querySelector('.brand-card');
+                    if (card) {
+                        card.style.background = 'transparent';
+                    }
+
+                    var logoBox = link.querySelector('.brand-logo-container');
+                    if (logoBox) {
+                        logoBox.style.width = '100%';
+                        logoBox.style.height = '80px';
+                        logoBox.style.display = 'flex';
+                        logoBox.style.alignItems = 'center';
+                        logoBox.style.justifyContent = 'center';
+                    }
+                }
+
+                track.appendChild(tile);
+            });
+
+            // Replace grid with slider
+            gridRow.parentNode.replaceChild(slider, gridRow);
+            slider.appendChild(track);
+
+            // Auto-scroll behavior with overflow duplication
+            var isPaused = false;
+            var rafId = null;
+            var speedPxPerFrame = 0.6;
+
+            function ensureOverflow() {
+                var maxLoops = 3;
+                var loops = 0;
+                while (slider.scrollWidth <= slider.clientWidth + 1 && track.children.length > 0 && loops < maxLoops) {
+                    var children = Array.prototype.slice.call(track.children);
+                    children.forEach(function (node) {
+                        track.appendChild(node.cloneNode(true));
+                    });
+                    loops++;
+                }
+
+                if (slider.scrollWidth > slider.clientWidth + 1) {
+                    slider.style.justifyContent = 'flex-start';
+                }
+            }
+
+            function maxScrollLeft() {
+                return Math.max(0, slider.scrollWidth - slider.clientWidth);
+            }
+
+            function tick() {
+                if (!isPaused) {
+                    var max = maxScrollLeft();
+                    if (max > 0) {
+                        slider.scrollLeft += speedPxPerFrame;
+                        if (slider.scrollLeft >= max - 1) {
+                            slider.scrollLeft = 0;
+                        }
+                    }
+                }
+                rafId = window.requestAnimationFrame(tick);
+            }
+
+            function pause() { isPaused = true; }
+            function resume() { isPaused = false; }
+
+            ensureOverflow();
+            slider.addEventListener('mouseenter', pause);
+            slider.addEventListener('mouseleave', resume);
+            slider.addEventListener('touchstart', pause, { passive: true });
+            slider.addEventListener('touchend', resume, { passive: true });
+            slider.addEventListener('touchcancel', resume, { passive: true });
+
+            window.addEventListener('beforeunload', function () {
+                if (rafId) window.cancelAnimationFrame(rafId);
+            });
+
+            tick();
+        });
+    </script>
+
     <!-- Main Content -->
     <main class="container py-4">

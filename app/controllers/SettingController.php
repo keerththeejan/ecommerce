@@ -61,6 +61,10 @@ class SettingController extends Controller {
         $generalSettings['theme_dark_secondary_color'] = $this->settingModel->getSetting('theme_dark_secondary_color', '#adb5bd');
         $generalSettings['theme_dark_background_color'] = $this->settingModel->getSetting('theme_dark_background_color', '#0b1220');
         $generalSettings['theme_dark_text_color'] = $this->settingModel->getSetting('theme_dark_text_color', '#e9ecef');
+        // Footer typography settings
+        $generalSettings['footer_text_color'] = $this->settingModel->getSetting('footer_text_color', '#EEEEEE');
+        $generalSettings['footer_font_size'] = $this->settingModel->getSetting('footer_font_size', '0.95rem');
+        $generalSettings['footer_font_family'] = $this->settingModel->getSetting('footer_font_family', 'inherit');
         $paymentSettings = $this->settingModel->getSettingsByGroup('payment');
         $emailSettings = $this->settingModel->getSettingsByGroup('email');
         
@@ -115,7 +119,11 @@ class SettingController extends Controller {
                 'theme_dark_primary_color' => trim($this->post('theme_dark_primary_color')),
                 'theme_dark_secondary_color' => trim($this->post('theme_dark_secondary_color')),
                 'theme_dark_background_color' => trim($this->post('theme_dark_background_color')),
-                'theme_dark_text_color' => trim($this->post('theme_dark_text_color'))
+                'theme_dark_text_color' => trim($this->post('theme_dark_text_color')),
+                // Footer typography
+                'footer_text_color' => trim($this->post('footer_text_color')),
+                'footer_font_size' => trim($this->post('footer_font_size')),
+                'footer_font_family' => trim($this->post('footer_font_family'))
             ];
             
             // Also update store_name for consistency
@@ -276,6 +284,38 @@ class SettingController extends Controller {
             }
             if (empty($data['theme_dark_text_color'])) {
                 $data['theme_dark_text_color'] = '#e9ecef';
+            }
+
+            // Footer typography validation
+            if (!empty($data['footer_text_color']) && !preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $data['footer_text_color'])) {
+                $errors['footer_text_color'] = 'Invalid color. Use hex like #fff or #ffffff.';
+            }
+            if (empty($data['footer_text_color'])) {
+                $data['footer_text_color'] = '#EEEEEE';
+            }
+
+            // Accept sizes like 14px, 0.95rem, 1em, 95% (basic safety)
+            if (!empty($data['footer_font_size']) && !preg_match('/^\d+(px|rem|em|%)$/', $data['footer_font_size'])) {
+                $errors['footer_font_size'] = 'Invalid size. Use values like 14px, 0.95rem, 1em, or 95%.';
+            }
+            if (empty($data['footer_font_size'])) {
+                $data['footer_font_size'] = '0.95rem';
+            }
+
+            // Whitelist common families; fallback to inherit
+            $allowedFamilies = [
+                'inherit',
+                'Arial, Helvetica, sans-serif',
+                'Roboto, Arial, sans-serif',
+                'Georgia, serif',
+                'Times New Roman, Times, serif',
+                'Courier New, Courier, monospace',
+                'system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'
+            ];
+            if (empty($data['footer_font_family'])) {
+                $data['footer_font_family'] = 'inherit';
+            } elseif (!in_array($data['footer_font_family'], $allowedFamilies, true)) {
+                $errors['footer_font_family'] = 'Invalid font family selection.';
             }
             
             // Make sure there are no errors
