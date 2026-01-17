@@ -353,16 +353,18 @@ class Product extends Model {
                 return [];
             }
             
-            // Get only active products with the exact fields needed by POS
+            // Get only active products with all necessary fields
             $sql = "SELECT 
                         p.id,
                         p.name,
+                        p.description,
                         p.category_id,
                         p.price,
                         p.sale_price,
                         p.stock_quantity,
                         p.image,
                         p.status,
+                        p.sku,
                         IFNULL(c.name, 'Uncategorized') as category_name
                     FROM {$this->table} p
                     LEFT JOIN categories c ON p.category_id = c.id

@@ -21,6 +21,9 @@ class HomeController extends Controller {
             // Get featured products
             $featuredProducts = $this->productModel->getFeaturedProducts(8);
             
+            // Get trending products (top selling)
+            $trendingProducts = $this->productModel->getTopSellingProducts(8);
+            
             // Get products on sale
             $saleProducts = $this->productModel->getProductsOnSale();
             
@@ -47,6 +50,7 @@ class HomeController extends Controller {
             // Load view
             $this->view('customer/home/index', [
                 'featuredProducts' => $featuredProducts,
+                'trendingProducts' => $trendingProducts,
                 'saleProducts' => $saleProducts,
                 'newProducts' => $newProducts,
                 'categories' => $categories,
@@ -61,6 +65,7 @@ class HomeController extends Controller {
             // Load view with empty data
             $this->view('customer/home/index', [
                 'featuredProducts' => [],
+                'trendingProducts' => [],
                 'saleProducts' => [],
                 'newProducts' => [],
                 'categories' => [],

@@ -81,7 +81,8 @@ if (isset($aliasMap[strtolower($controllerParam)])) {
 }
 $action = isset($_GET['action']) ? $_GET['action'] : ($urlAction ?: 'index');
 // Check for both 'param' and 'id' in the URL, falling back to pretty URL param
-$param = isset($_GET['param']) ? $_GET['param'] : (isset($_GET['id']) ? $_GET['id'] : $urlParam);
+// Prioritize 'id' over 'param' for product category routes
+$param = isset($_GET['id']) ? $_GET['id'] : (isset($_GET['param']) ? $_GET['param'] : $urlParam);
 
 // Format controller name, but do not double-append if already provided with suffix
 if (preg_match('/Controller$/i', $controllerParam)) {
@@ -121,7 +122,8 @@ $controllerInstance = new $controllerName();
 // Check if action exists
 if (method_exists($controllerInstance, $action)) {
     // Call action with parameter
-    if ($param !== null) {
+    // Convert param to string for consistent handling, but pass as-is
+    if ($param !== null && $param !== '') {
         $controllerInstance->$action($param);
     } else {
         $controllerInstance->$action();

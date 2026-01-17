@@ -3,6 +3,14 @@
  */
 
 $(document).ready(function() {
+    // Wait for jQuery to be fully loaded
+    if (typeof $ === 'undefined' || typeof jQuery === 'undefined') {
+        console.error('jQuery is not loaded! Add to cart functionality will not work.');
+        return;
+    }
+    
+    console.log('✅ main.js loaded - Add to cart handlers will be attached');
+    
     // Initialize Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -84,19 +92,86 @@ $(document).ready(function() {
 
     // Add to cart via FORM (prevents full page refresh)
     // Handles forms like the product card in `app/views/customer/home/index.php`
-    $(document).on('submit', 'form[action*="controller=cart&action=add"]', function(e) {
+    // Primary handler - intercepts form submission
+    $(document).on('submit', '.add-to-cart-form, form[action*="controller=cart"][action*="action=add"], form[action*="cart&action=add"]', function(e) {
         e.preventDefault();
+        e.stopPropagation();
 
         const $form = $(this);
-        const url = $form.attr('action');
+        let url = $form.attr('action');
+        
+        // Validate form has required fields
+        const productId = $form.find('input[name="product_id"]').val();
+        if (!productId) {
+            console.error('Add to cart: Product ID is missing!');
+            alert('Error: Product ID is missing. Please refresh the page and try again.');
+            return false;
+        }
+        
+        // Fallback: construct URL from baseUrl if needed
+        if (!url && window.baseUrl) {
+            url = window.baseUrl + '?controller=cart&action=add';
+        }
+        
+        // Ensure quantity input is included even if readonly
+        const quantityInput = $form.find('.quantity-input, input[name="quantity"]');
+        let quantity = 1;
+        
+        if (quantityInput.length) {
+            if (quantityInput.attr('readonly')) {
+                // Temporarily remove readonly for serialization
+                quantityInput.removeAttr('readonly');
+            }
+            quantity = quantityInput.val() || 1;
+        }
+        
         const formData = $form.serialize();
+        
+        // Restore readonly if it was there
+        if (quantityInput.length && quantityInput.attr('readonly') === undefined) {
+            quantityInput.attr('readonly', 'readonly');
+        }
+        
+        // Find submit button
+        const $submitBtn = $form.find('.add-to-cart-btn, .btn-add-to-cart, button[type="submit"]');
+        
+        // Debug logging
+        console.log('Add to cart form submitted:', {
+            url: url,
+            formData: formData,
+            productId: productId,
+            quantity: quantity,
+            formClass: $form.attr('class'),
+            buttonClass: $submitBtn.attr('class'),
+            formExists: $form.length > 0,
+            buttonExists: $submitBtn.length > 0
+        });
+        
+        // Disable button to prevent double submission
+        const originalBtnHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Adding...');
 
         $.ajax({
             url: url,
             type: 'POST',
             data: formData,
             dataType: 'json',
-            success: function(response) {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response, textStatus, jqXHR) {
+                console.log('Add to cart AJAX success:', {
+                    response: response,
+                    status: textStatus,
+                    statusCode: jqXHR.status
+                });
+                
+                // Handle redirect if needed (e.g., login required)
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                    return;
+                }
+                
                 if (response.success) {
                     // Update cart count if provided; otherwise fetch
                     if (typeof response.cartCount !== 'undefined') {
@@ -110,7 +185,7 @@ $(document).ready(function() {
                         <div class="toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
                             <div class="d-flex">
                                 <div class="toast-body">
-                                    <i class="fas fa-check-circle me-2"></i> Product added to cart
+                                    <i class="fas fa-check-circle me-2"></i> ${response.message || 'Product added to cart'}
                                 </div>
                                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                             </div>
@@ -122,13 +197,49 @@ $(document).ready(function() {
                     toastInstance.show();
                     toastEl.addEventListener('hidden.bs.toast', function() { $(this).remove(); });
                 } else {
-                    alert('Failed to add product to cart.');
+                    alert(response.message || 'Failed to add product to cart.');
                 }
             },
-            error: function() {
-                alert('An error occurred. Please try again.');
+            error: function(xhr, status, error) {
+                console.error('Add to cart AJAX error:', {
+                    status: status,
+                    error: error,
+                    statusCode: xhr.status,
+                    responseText: xhr.responseText.substring(0, 200),
+                    readyState: xhr.readyState
+                });
+                
+                // Try to parse error message if available
+                try {
+                    if (xhr.responseText) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.message) {
+                            alert(response.message);
+                        } else {
+                            alert('Failed to add product to cart. Please try again.');
+                        }
+                    } else {
+                        alert('No response from server. Please check your connection and try again.');
+                    }
+                } catch(e) {
+                    console.error('Failed to parse error response:', e);
+                    // If JSON parse fails, server might have returned HTML (redirect)
+                    if (xhr.status === 0) {
+                        alert('Network error. Please check your internet connection.');
+                    } else if (xhr.status >= 500) {
+                        alert('Server error. Please try again later.');
+                    } else {
+                        alert('An error occurred. Please refresh the page and try again. Status: ' + xhr.status);
+                    }
+                }
+            },
+            complete: function() {
+                // Re-enable button after request completes
+                $submitBtn.prop('disabled', false).html(originalBtnHtml);
             }
         });
+        
+        return false; // Prevent form submission
     });
 
     // Update cart quantity AJAX

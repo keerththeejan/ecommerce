@@ -198,6 +198,43 @@ class ProductController extends Controller {
     }
     
     /**
+     * Display all products (alternative route for /all)
+     */
+    public function all() {
+        // Get page number
+        $page = $this->get('page', 1);
+        $limit = 12;
+        
+        // Get all active products (without pagination restrictions)
+        $allProducts = $this->productModel->getActiveProducts();
+        
+        // Apply pagination manually
+        $total = count($allProducts);
+        $totalPages = ceil($total / $limit);
+        $offset = ($page - 1) * $limit;
+        $products = array_slice($allProducts, $offset, $limit);
+        
+        // Ensure products is an array of arrays
+        $productsArray = [];
+        foreach ($products as $product) {
+            $productsArray[] = is_object($product) ? (array)$product : $product;
+        }
+        
+        // Get categories for filter
+        $categories = $this->categoryModel->getActiveCategories();
+        
+        // Load view
+        $this->view('customer/product/all', [
+            'products' => $productsArray,
+            'categories' => $categories,
+            'total' => $total,
+            'limit' => $limit,
+            'page' => $page,
+            'totalPages' => $totalPages
+        ]);
+    }
+    
+    /**
      * Display product details
      * 
      * @param int $id Product ID
@@ -227,24 +264,76 @@ class ProductController extends Controller {
      * @param int $categoryId Category ID
      */
     public function category($categoryId = null) {
-        // Check if category ID is provided
-        if(!$categoryId) {
-            $categoryId = $this->get('param');
+        // First, try to get category ID from function parameter (passed by router)
+        // If not provided or is invalid, try GET parameters directly
+        if($categoryId === null || $categoryId === '' || $categoryId === '0' || $categoryId === 0) {
+            // Try 'id' first (used in URL: ?controller=product&action=category&id=63)
+            $categoryId = $this->get('id');
             
-            if(!$categoryId) {
-                redirect('product/index');
-                return;
+            // Fall back to 'param' if 'id' is not found
+            if($categoryId === null || $categoryId === '' || $categoryId === '0' || $categoryId === 0) {
+                $categoryId = $this->get('param');
             }
         }
         
-        // Get category
-        $category = $this->categoryModel->getById($categoryId);
-        
-        // Check if category exists
-        if(!$category) {
+        // Validate we have a category ID (check for null, empty string, '0', or 0)
+        if($categoryId === null || $categoryId === '' || $categoryId === '0' || $categoryId === 0) {
             redirect('product/index');
             return;
         }
+        
+        // Ensure categoryId is numeric and valid
+        $categoryId = (int)$categoryId;
+        
+        // Log for debugging (remove in production if needed)
+        // error_log("CategoryController::category() - Processing category ID: {$categoryId}");
+        
+        // Validate category ID is positive
+        if($categoryId <= 0) {
+            redirect('product/index');
+            return;
+        }
+        
+        // Get category - ensure we're using the correct ID
+        // Force integer type to avoid any type coercion issues
+        $categoryIdInt = (int)$categoryId;
+        $category = $this->categoryModel->getById($categoryIdInt);
+        
+        // Check if category exists
+        if(!$category) {
+            error_log("Category not found for ID: {$categoryIdInt}");
+            redirect('product/index');
+            return;
+        }
+        
+        // Ensure category is an array
+        if(is_object($category)) {
+            $category = (array)$category;
+        }
+        
+        // Validate category data structure
+        if(!is_array($category) || empty($category)) {
+            error_log("Invalid category data structure for ID: {$categoryIdInt}");
+            redirect('product/index');
+            return;
+        }
+        
+        // Double-check the category ID matches what we requested
+        $fetchedCategoryId = isset($category['id']) ? (int)$category['id'] : 0;
+        if($fetchedCategoryId !== $categoryIdInt) {
+            error_log("Category ID mismatch: Requested {$categoryIdInt}, but got category ID {$fetchedCategoryId}");
+            redirect('product/index');
+            return;
+        }
+        
+        // Verify category name exists
+        if(empty($category['name'])) {
+            error_log("Category name is empty for ID: {$categoryIdInt}");
+            // Don't redirect, but log the issue - category might have empty name
+        }
+        
+        // Update categoryId to the validated integer value
+        $categoryId = $categoryIdInt;
         
         // Get products
         $products = $this->productModel->getProductsByCategory($categoryId);

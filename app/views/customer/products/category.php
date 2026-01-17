@@ -34,9 +34,7 @@
         
         <!-- Main content -->
         <div class="col-md-9">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0"><?php echo $category['name']; ?></h2>
-                
+            <div class="d-flex justify-content-end align-items-center mb-4">
                 <!-- Search form -->
                 <form action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" class="d-flex">
                     <input type="hidden" name="controller" value="product">

@@ -40,13 +40,33 @@ class CartController extends Controller {
      * @param int $productId Product ID
      */
     public function add($productId = null) {
+        // Check if AJAX request early
+        $isAjax = $this->isAjax();
+        
         // Check if logged in
         if(!isLoggedIn()) {
+            if($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Please log in to add products to cart',
+                    'redirect' => BASE_URL . '?controller=user&action=login'
+                ]);
+                exit;
+            }
             redirect('user/login');
         }
         
         // Check if product ID is provided
         if(!$productId && !$this->isPost()) {
+            if($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Product ID is required'
+                ]);
+                exit;
+            }
             redirect('products');
         }
         
@@ -58,11 +78,32 @@ class CartController extends Controller {
         // Get quantity from POST
         $quantity = $this->post('quantity', 1);
         
+        // Validate product ID
+        if(empty($productId)) {
+            if($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Product ID is missing'
+                ]);
+                exit;
+            }
+            redirect('products');
+        }
+        
         // Get product
         $product = $this->productModel->getById($productId);
         
         // Check if product exists and is active
         if(!$product || $product['status'] != 'active') {
+            if($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Product not available'
+                ]);
+                exit;
+            }
             flash('cart_error', 'Product not available', 'alert alert-danger');
             redirect('products');
         }
@@ -74,30 +115,38 @@ class CartController extends Controller {
         
         // Check if quantity is available
         if($quantity > $product['stock_quantity']) {
+            if($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Not enough stock available. Only ' . $product['stock_quantity'] . ' units in stock.'
+                ]);
+                exit;
+            }
             flash('cart_error', 'Not enough stock available', 'alert alert-danger');
             redirect('products/show/' . $productId);
         }
         
-        // Add to cart - no success message
+        // Add to cart
         $success = $this->cartModel->addToCart($_SESSION['user_id'], $productId, $quantity);
         
-        // Only show error message if failed
+        // Check if AJAX request - return JSON response
+        if($isAjax) {
+            $cartCount = $this->cartModel->getCartCount($_SESSION['user_id']);
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => $success,
+                'cartCount' => $cartCount,
+                'message' => $success ? 'Product added to cart successfully' : 'Failed to add product to cart'
+            ]);
+            exit;
+        }
+        
+        // Non-AJAX response
         if (!$success) {
             flash('cart_error', 'Failed to add product to cart', 'alert alert-danger');
         }
-        
-        // Check if AJAX request
-        if($this->isAjax()) {
-            // Return JSON response
-            $cartCount = $this->cartModel->getCartCount($_SESSION['user_id']);
-            $this->json([
-                'success' => $success,
-                'cartCount' => $cartCount
-            ]);
-        } else {
-            // Redirect to cart
-            redirect('cart');
-        }
+        redirect('cart');
     }
     
     /**
@@ -136,11 +185,13 @@ class CartController extends Controller {
             $cartTotal = $this->cartModel->getCartTotal($_SESSION['user_id']);
             
             // Return JSON response
-            $this->json([
+            header('Content-Type: application/json');
+            echo json_encode([
                 'success' => true,
                 'cartTotal' => $cartTotal,
                 'itemCount' => count($cartItems)
             ]);
+            exit;
         } else {
             // Redirect to cart
             redirect('cart');
@@ -183,11 +234,13 @@ class CartController extends Controller {
             $cartTotal = $this->cartModel->getCartTotal($_SESSION['user_id']);
             
             // Return JSON response
-            $this->json([
+            header('Content-Type: application/json');
+            echo json_encode([
                 'success' => $success,
                 'cartTotal' => $cartTotal,
                 'itemCount' => count($cartItems)
             ]);
+            exit;
         } else {
             // Redirect to cart
             redirect('cart');
@@ -229,6 +282,8 @@ class CartController extends Controller {
         $count = $this->cartModel->getCartCount($_SESSION['user_id']);
         
         // Return JSON response
-        $this->json(['count' => $count]);
+        header('Content-Type: application/json');
+        echo json_encode(['count' => $count]);
+        exit;
     }
 }

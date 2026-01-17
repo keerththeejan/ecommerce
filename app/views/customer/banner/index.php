@@ -35,9 +35,10 @@ if (empty($banners)) {
 }
 ?>
 
-<!-- Full Width Banner Carousel with Reduced Height and No Box -->
-<section class="banner-carousel">
-    <div id="bannerCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-touch="true">
+<!-- Banner Carousel - Matching Featured Products container width -->
+<section class="banner-carousel py-2 py-md-3">
+    <div class="container-fluid px-4 px-xl-5 max-width-1400">
+        <div id="bannerCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-touch="true">
         <!-- Indicators -->
         <div class="carousel-indicators">
             <?php foreach ($banners as $index => $banner): ?>
@@ -60,8 +61,17 @@ if (empty($banners)) {
                              alt="<?php echo htmlspecialchars($banner['title']); ?>" 
                              loading="lazy">
                         <div class="carousel-caption">
-                            <h2><?php echo htmlspecialchars($banner['title']); ?></h2>
-                            <p><?php echo htmlspecialchars($banner['description']); ?></p>
+                            <div class="caption-content">
+                                <h2><?php echo htmlspecialchars($banner['title']); ?></h2>
+                                <p><?php echo htmlspecialchars($banner['description']); ?></p>
+                            </div>
+                            <?php if(!empty($banner['title'])): ?>
+                                <div class="caption-button">
+                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=all" class="btn btn-light btn-banner mt-2">
+                                        Shop Now <i class="fas fa-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -70,41 +80,42 @@ if (empty($banners)) {
 
         <!-- Controls -->
         <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
-            <img class="carousel-control-icon" alt="Previous" aria-hidden="true" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'/%3E%3C/svg%3E" />
+            <span class="carousel-control-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2d3436" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </span>
             <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
-            <img class="carousel-control-icon" alt="Next" aria-hidden="true" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E" />
+            <span class="carousel-control-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2d3436" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </span>
             <span class="visually-hidden">Next</span>
         </button>
+        </div>
     </div>
 </section>
 
 <style>
-/* Full Width Reduced Height Carousel */
+/* Modern Banner Carousel Theme */
 .banner-carousel {
     margin: 0;
-    padding: 0;
     height: auto;
     position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    margin-top: -30px; /* Even more reduced top margin */
-    width: 100vw;
-    max-width: none;
-}
-
-.banner-carousel .carousel-inner {
-    width: <?php echo (int)$bannerWidthPercent; ?>%;
-    margin-left: auto;
-    margin-right: auto;
+    background: transparent;
+    padding: 1.5rem 0;
 }
 
 .carousel-item,
 .banner-image-container {
     height: <?php echo (int)$bannerHeightDesktop; ?>px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    position: relative;
 }
 
 .banner-image {
@@ -112,68 +123,151 @@ if (empty($banners)) {
     height: 100%;
     object-fit: cover;
     object-position: center;
-    transition: transform 0.5s ease-in-out;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .carousel-item:hover .banner-image {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
-/* Remove background box behind caption */
+/* Modern Caption Styling */
 .carousel-caption {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    background: none;
-    padding: 0;
-    border-radius: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+    padding: 3rem 2.5rem 6rem;
+    border-radius: 0 0 16px 16px;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
 }
 
-/* Caption Text Styling */
+.caption-content {
+    flex: 1;
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.caption-button {
+    flex-shrink: 0;
+    text-align: right;
+}
+
 .carousel-caption h2 {
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
     color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* improve visibility */
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
 }
 
 .carousel-caption p {
-    font-size: 1rem;
-    color: #f8f9fa;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    font-size: 1.15rem;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 1.5rem;
+    font-weight: 400;
 }
 
+/* Banner CTA Button */
+.btn-banner {
+    background: #ffffff;
+    color: #2d3436;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 50px;
+    border: none;
+    font-size: 1rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn-banner:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Modern Carousel Indicators */
 .carousel-indicators {
-    bottom: 15px;
+    bottom: 25px;
+    margin: 0;
+    padding: 0 2rem;
+    justify-content: flex-start;
+    gap: 0.5rem;
 }
 
 .carousel-indicators button {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    background-color: rgba(255,255,255,0.6);
-    border: none;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    margin: 0;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.carousel-indicators button:hover {
+    opacity: 1;
+    transform: scale(1.2);
 }
 
 .carousel-indicators .active {
-    background-color: #fff;
+    background-color: #ffffff;
+    border-color: #ffffff;
+    width: 32px;
+    border-radius: 6px;
+    opacity: 1;
 }
 
+/* Modern Control Buttons */
 .carousel-control-prev,
 .carousel-control-next {
-    width: 5%;
+    width: 50px;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.carousel-control-prev {
+    left: 20px;
+}
+
+.carousel-control-next {
+    right: 20px;
 }
 
 .carousel-control-icon {
-    width: 44px;
-    height: 44px;
-    padding: 10px;
+    width: 50px;
+    height: 50px;
+    padding: 12px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.carousel-control-icon svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.carousel-control-prev:hover .carousel-control-icon,
+.carousel-control-next:hover .carousel-control-icon {
+    background: #ffffff;
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .banner-carousel:hover .carousel-control-prev,
@@ -183,27 +277,78 @@ if (empty($banners)) {
 
 /* Mobile adjustments */
 @media (max-width: 767.98px) {
+    .banner-carousel {
+        padding: 1rem 0;
+    }
+    
     .carousel-inner,
     .carousel-item,
     .banner-image-container {
         height: <?php echo (int)$bannerHeightMobile; ?>px;
+        border-radius: 12px;
     }
 
     .carousel-caption {
-        bottom: 10px;
+        padding: 2rem 1.5rem 4.5rem;
+        border-radius: 0 0 12px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .caption-content {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .caption-button {
+        width: 100%;
+        text-align: left;
     }
 
     .carousel-caption h2 {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .carousel-caption p {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-banner {
+        padding: 0.625rem 1.5rem;
         font-size: 0.9rem;
+    }
+
+    .carousel-indicators {
+        bottom: 15px;
+        padding: 0 1rem;
+    }
+    
+    .carousel-indicators button {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .carousel-indicators .active {
+        width: 24px;
     }
 
     .carousel-control-prev,
     .carousel-control-next {
         display: none;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .carousel-caption h2 {
+        font-size: 2rem;
+    }
+    
+    .carousel-caption p {
+        font-size: 1rem;
     }
 }
 </style>

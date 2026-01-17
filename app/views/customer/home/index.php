@@ -4,159 +4,191 @@
 <div id="banner"></div>
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
-<!-- Featured Categories - Improved responsive grid -->
-<section id="categories" class="featured-categories py-5" style="width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); background: <?php echo !empty($homeCategoriesBgColor) ? htmlspecialchars($homeCategoriesBgColor) : '#fff'; ?>; position: relative; overflow: hidden; padding-top: 0px; padding-bottom: 150px;">
+<!-- Featured Categories - Grid layout matching Featured Products -->
+<section id="categories" class="featured-categories py-3 py-md-4" style="background: <?php echo !empty($homeCategoriesBgColor) ? htmlspecialchars($homeCategoriesBgColor) : '#fff'; ?>;" data-theme-aware>
+    <div class="container-fluid px-4 px-xl-5 max-width-1400">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 mb-md-4">
+            <h2 id="categories-heading" class="section-title mb-0">Shop by Category</h2>
+            <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="text-decoration-none d-none d-md-inline-block mt-2 mt-md-0 category-show-all">
+                <span class="category-show-all-text">Show All <i class="fas fa-arrow-right ms-1"></i></span>
+            </a>
+        </div>
 
-    <div class="container-fluid" style="padding: 0; margin: 0 auto; max-width: 100%; position: relative; z-index: 1;">
-        <h2 id="categories-heading" class="mb-5" style="font-size: 32px; font-weight: bold; text-align: center;">YOUR CATEGORIES</h2>
-
-        <!-- Category Slider -->
         <?php
             $activeCategories = [];
             if (!empty($categories)) {
                 $activeCategories = array_values(array_filter($categories, function($cat) {
                     return $cat['status'] == 1;
                 }));
-                $activeCategories = array_slice($activeCategories, 0, 7);
+                $activeCategories = array_slice($activeCategories, 0, 6);
             }
-            $centerCategories = !empty($activeCategories) && count($activeCategories) <= 7;
         ?>
 
-        <div id="categorySlider"
-             style="display: flex; justify-content: <?php echo $centerCategories ? 'center' : 'flex-start'; ?>; overflow-x: auto; scroll-behavior: smooth; gap: 10px; padding: 10px 30px; cursor: grab; scrollbar-width: none; -ms-overflow-style: none;">
-             
-            <style>
-                #categorySlider::-webkit-scrollbar {
-                    display: none;
-                }
-                @keyframes bounce {
-                    0%, 80%, 100% { transform: scale(0.9); opacity: 0.6; }
-                    40% { transform: scale(1.2); opacity: 1; }
-                }
-            </style>
-
-            <div id="categoryTrack" style="display: flex; gap: 10px;">
-                <?php if (!empty($activeCategories)) : ?>
-                    <?php foreach($activeCategories as $index => $category): ?>
-                        <div style="flex: 0 0 auto; width: 200px;">
-                            <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
-                               style="text-decoration: none; color: inherit;">
-                                <div style="text-align: center;">
-                                    <div style="padding: 0; width: 150px; height: 150px; margin: 0 auto;">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-2 g-md-4">
+            <?php if (!empty($activeCategories)) : ?>
+                <?php foreach($activeCategories as $index => $category): ?>
+                    <div class="col">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
+                           class="text-decoration-none text-dark">
+                            <div class="card h-100 category-card transition-all d-flex flex-column text-center">
+                                <div class="category-media position-relative d-flex justify-content-center align-items-center">
+                                    <div class="category-image-box">
                                         <?php if (!empty($category['image'])) : ?>
                                             <img src="<?php echo BASE_URL . $category['image']; ?>" 
                                                  alt="<?php echo htmlspecialchars($category['name']); ?>" 
                                                  loading="lazy"
-                                                 style="width: 100%; height: 100%; object-fit: contain;">
+                                                 class="category-image">
                                         <?php else : ?>
-                                            <div><i class="fas fa-box fa-3x"></i></div>
+                                            <div class="no-image-box d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-box-open fa-2x text-muted"></i>
+                                            </div>
                                         <?php endif; ?>
                                     </div>
-                                    <h3 style="font-size: 16px; margin-top: 10px;"><?php echo $category['name']; ?></h3>
                                 </div>
-                            </a>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div style="padding: 20px;">No categories available</div>
-                <?php endif; ?>
-            </div>
+                                <div class="card-body p-0">
+                                    <h3 class="category-title card-title mb-0"><?php echo $category['name']; ?></h3>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="alert alert-info mb-0">No categories available</div>
+                </div>
+            <?php endif; ?>
         </div>
-
-        <!-- 🔹 Dot Navigation (horizontal like loading gif) -->
-        <div style="text-align: center; margin-top: 30px;">
-            <div style="display: flex; justify-content: center; gap: 20px;">
-                <span onclick="scrollSlider(1)" style="width: 20px; height: 20px; border-radius: 50%; background: #FFC107; animation: bounce 1.2s infinite ease-in-out; animation-delay: 0s; cursor: pointer;"></span>
-                <span onclick="scrollSlider(1)" style="width: 20px; height: 20px; border-radius: 50%; background: #F44336; animation: bounce 1.2s infinite ease-in-out; animation-delay: 0.2s; cursor: pointer;"></span>
-                <span onclick="scrollSlider(1)" style="width: 20px; height: 20px; border-radius: 50%; background: #00BCD4; animation: bounce 1.2s infinite ease-in-out; animation-delay: 0.4s; cursor: pointer;"></span>
-                <span onclick="scrollSlider(1)" style="width: 20px; height: 20px; border-radius: 50%; background: #E040FB; animation: bounce 1.2s infinite ease-in-out; animation-delay: 0.6s; cursor: pointer;"></span>
-            </div>
-        </div>
-
-        <!-- 🔹 Scroll Function -->
-        <script>
-            function scrollSlider(direction) {
-                var slider = document.getElementById("categorySlider");
-                var scrollAmount = 300 * direction;
-                slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-            }
-
-            (function() {
-                var slider = document.getElementById("categorySlider");
-                var track = document.getElementById("categoryTrack");
-                if (!slider) return;
-                if (!track) return;
-
-                var isPaused = false;
-                var rafId = null;
-                var speedPxPerFrame = 0.6;
-
-                function ensureOverflow() {
-                    var maxLoops = 3;
-                    var loops = 0;
-                    while (slider.scrollWidth <= slider.clientWidth + 1 && track.children.length > 0 && loops < maxLoops) {
-                        var children = Array.prototype.slice.call(track.children);
-                        children.forEach(function(node) {
-                            track.appendChild(node.cloneNode(true));
-                        });
-                        loops++;
-                    }
-
-                    if (slider.scrollWidth > slider.clientWidth + 1) {
-                        slider.style.justifyContent = 'flex-start';
-                    }
-                }
-
-                if (slider.scrollWidth > slider.clientWidth + 1) {
-                    slider.style.justifyContent = 'flex-start';
-                }
-
-                function maxScrollLeft() {
-                    return Math.max(0, slider.scrollWidth - slider.clientWidth);
-                }
-
-                ensureOverflow();
-
-                function tick() {
-                    if (!isPaused) {
-                        var max = maxScrollLeft();
-                        if (max > 0) {
-                            slider.scrollLeft += speedPxPerFrame;
-                            if (slider.scrollLeft >= max - 1) {
-                                slider.scrollLeft = 0;
-                            }
-                        }
-                    }
-                    rafId = window.requestAnimationFrame(tick);
-                }
-
-                function pause() { isPaused = true; }
-                function resume() { isPaused = false; }
-
-                slider.addEventListener('mouseenter', pause);
-                slider.addEventListener('mouseleave', resume);
-                slider.addEventListener('touchstart', pause, { passive: true });
-                slider.addEventListener('touchend', resume, { passive: true });
-                slider.addEventListener('touchcancel', resume, { passive: true });
-
-                window.addEventListener('beforeunload', function() {
-                    if (rafId) window.cancelAnimationFrame(rafId);
-                });
-
-                tick();
-            })();
-        </script>
     </div>
 </section>
 
+<!-- Trending Products - Top Selling Products -->
+<section id="trending-products" class="trending-products py-4 py-md-5 position-relative">
+    <div class="trending-section-bg"></div>
+    <div class="container-fluid px-4 px-xl-5 max-width-1400 position-relative">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mb-md-5">
+            <div class="d-flex align-items-center gap-3">
+                <div class="trending-icon-wrapper">
+                    <i class="fas fa-fire trending-icon"></i>
+                </div>
+                <div>
+                    <h2 class="section-title mb-0 trending-title">Trending Products</h2>
+                    <p class="text-muted small mb-0 mt-1">Most popular items right now</p>
+                </div>
+            </div>
+            <div class="trending-badge d-none d-md-flex align-items-center gap-2">
+                <span class="badge bg-primary px-3 py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; border: none;">
+                    <i class="fas fa-chart-line me-1"></i> Hot Right Now
+                </span>
+            </div>
+        </div>
 
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-4">
+            <?php if(!empty($trendingProducts)) { ?>
+                <?php foreach($trendingProducts as $product) { ?>
+                    <div class="col">
+                        <div class="card h-100 border-0 shadow-sm product-card transition-all d-flex flex-column">
+                            <!-- Image Section -->
+                            <div class="product-media position-relative d-flex justify-content-center align-items-center">
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none">
+                                    <div class="product-image-box">
+                                        <?php if(!empty($product['image'])) { ?>
+                                            <img src="<?php echo BASE_URL . $product['image']; ?>" 
+                                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                 loading="lazy"
+                                                 class="product-image">
+                                        <?php } else { ?>
+                                            <div class="no-image-box d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-box-open fa-2x text-muted"></i>
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+                                </a>
 
+                                <?php if(isLoggedIn() && $product['stock_quantity'] > 0) { ?>
+                                    <button class="btn-wishlist position-absolute top-0 end-0 m-2 bg-white rounded-circle shadow-sm p-2 d-flex align-items-center justify-content-center"
+                                            data-product-id="<?php echo $product['id']; ?>">
+                                        <i class="far fa-heart text-muted"></i>
+                                    </button>
+                                <?php } ?>
+                                
+                                <?php if(isset($product['total_sold']) && $product['total_sold'] > 0) { ?>
+                                    <div class="trending-sold-badge position-absolute top-0 start-0 m-2">
+                                        <span class="badge trending-badge-sold">
+                                            <i class="fas fa-fire me-1"></i><?php echo (int)$product['total_sold']; ?> Sold
+                                        </span>
+                                    </div>
+                                <?php } ?>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="card-body p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                                <!-- Stock badge -->
+                                <div class="mb-1">
+                                    <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?> small">
+                                        <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
+                                    </span>
+                                </div>
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
+                                    <h3 class="h6 card-title mb-0 product-title" title="<?php echo htmlspecialchars($product['name']); ?>"><?php echo $product['name']; ?></h3>
+                                    <p class="product-desc small text-muted mb-1 d-none d-md-block"><?php echo isset($product['description']) ? truncateText($product['description'], 50) : ''; ?></p>
+                                    <div class="d-flex justify-content-between align-items-center mb-1 gap-0">
+                                        <?php if(isLoggedIn()) { ?>
+                                            <span class="fw-bold"><?php echo formatCurrency(isset($product['sale_price']) ? $product['sale_price'] : $product['price']); ?></span>
+                                        <?php } else { ?>
+                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
+                                        <?php } ?>
+                                        <div class="d-flex flex-column align-items-end product-meta text-end">
+                                            <?php if($product['stock_quantity'] > 0) { ?>
+                                                <small class="text-muted">Stock: <?php echo $product['stock_quantity']; ?> units</small>
+                                                <?php if(isLoggedIn()) { ?>
+                                                    <small class="text-muted">Value: <?php echo formatCurrency($product['stock_quantity'] * (isset($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></small>
+                                                <?php } ?>
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <!-- Add to Cart -->
+                                <?php if($product['stock_quantity'] > 0) { ?>
+                                    <?php if(isLoggedIn()) { ?>
+                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mt-auto add-to-cart-form">
+                                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                            <div class="product-actions-row">
+                                                <div class="quantity-group">
+                                                    <button type="button" class="btn quantity-decrease">-</button>
+                                                    <input type="number" name="quantity" class="quantity-input" 
+                                                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
+                                                           aria-label="Quantity" readonly>
+                                                    <button type="button" class="btn quantity-increase">+</button>
+                                                </div>
+                                                <button type="submit" class="btn-add-to-cart">
+                                                    <i class="fas fa-cart-plus"></i>
+                                                    <span>Add to Cart</span>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <div class="alert alert-danger py-1 mb-0 text-center">Out of Stock</div>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } else { ?>
+                <div class="col-12">
+                    <div class="alert alert-info mb-0">No trending products available</div>
+                </div>
+            <?php } ?>
+        </div>
+    </div>
+</section>
 
 <!-- Featured Products - Enhanced filtering and responsive layout -->
-<section id="featured-products" class="featured-products py-4 py-md-5 bg-light full-width-section">
+<section id="featured-products" class="featured-products py-3 py-md-4 bg-light">
     <div class="container-fluid px-4 px-xl-5 max-width-1400">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-            <h2 class="h4 mb-3 mb-md-0">Featured Products</h2>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 mb-md-4">
+            <h2 class="section-title mb-0">Our Products</h2>
         </div>
 
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-4">
@@ -222,16 +254,17 @@
                                     <?php if(isLoggedIn()) { ?>
                                         <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mt-auto add-to-cart-form">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="input-group input-group-sm cart-quantity" role="group" aria-label="Quantity selector">
-                                                    <button class="btn btn-outline-secondary qty-minus" type="button" aria-label="Decrease quantity">−</button>
-                                                    <input type="number" class="form-control quantity-input text-center"
-                                                           name="quantity" value="1" min="1" max="<?php echo (int)$product['stock_quantity']; ?>"
-                                                           data-max="<?php echo (int)$product['stock_quantity']; ?>">
-                                                    <button class="btn btn-outline-secondary qty-plus" type="button" aria-label="Increase quantity">+</button>
+                                            <div class="product-actions-row">
+                                                <div class="quantity-group">
+                                                    <button type="button" class="btn quantity-decrease">-</button>
+                                                    <input type="number" name="quantity" class="quantity-input" 
+                                                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
+                                                           aria-label="Quantity" readonly>
+                                                    <button type="button" class="btn quantity-increase">+</button>
                                                 </div>
-                                                <button type="submit" class="btn btn-primary w-100 add-to-cart-btn">
-                                                    <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                                <button type="submit" class="btn-add-to-cart">
+                                                    <i class="fas fa-cart-plus"></i>
+                                                    <span>Add to Cart</span>
                                                 </button>
                                             </div>
                                         </form>
@@ -265,10 +298,10 @@
 
 
 <!-- Brand Showcase - Enhanced with responsive grid -->
-<section id="brands" class="brands-showcase py-4 py-md-5 bg-white">
+<section id="brands" class="brands-showcase py-3 py-md-4 bg-white">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-            <h2 class="h4 mb-0">Our Brands</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3 mb-md-3">
+            <h2 class="section-title mb-0">Our Brands</h2>
             <a href="<?php echo BASE_URL; ?>?controller=brand&action=all" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex">
                 View All <i class="fas fa-chevron-right ms-1"></i>
             </a>
@@ -340,6 +373,14 @@
     transition: all 0.3s ease;
 }
 
+/* Product actions row (matches All Products page) */
+.product-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+}
+
 /* Center the quantity and add-to-cart row and tighten the gap */
 .add-to-cart-form .d-flex {
     justify-content: center;
@@ -348,6 +389,78 @@
 
 /* Slightly reduce default cart-quantity width */
 .cart-quantity { max-width: 88px; }
+
+/* Quantity group styling (matches All Products page) */
+.quantity-group {
+    display: flex;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    min-width: 100px;
+}
+
+.quantity-group .btn {
+    background: #ffffff;
+    border: none;
+    border-right: 1px solid #dee2e6;
+    color: #495057;
+    padding: 0.375rem 0.625rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    min-width: 32px;
+}
+
+.quantity-group .btn:first-child {
+    border-right: 1px solid #dee2e6;
+}
+
+.quantity-group .btn:last-child {
+    border-left: 1px solid #dee2e6;
+    border-right: none;
+}
+
+.quantity-group .btn:hover {
+    background: #f8f9fa;
+    color: #212529;
+}
+
+.quantity-group input {
+    border: none;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+    width: 40px;
+    text-align: center;
+    padding: 0.375rem 0.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    background: #ffffff;
+}
+
+/* Add to cart button styling */
+.btn-add-to-cart {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-add-to-cart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    color: #ffffff;
+}
 
 /* Banner Styles */
 .main-banner .carousel-item img {
@@ -364,20 +477,286 @@
     }
 }
 
-/* Category Styles */
-.featured-categories {
-    padding: 60px 0;
-    background-color: #fff;
-    
+/* Modern Vegist Theme Styles */
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2d3436;
+    letter-spacing: -0.5px;
+    margin-bottom: 0;
+    line-height: 1.2;
 }
 
-.featured-categories h2 {
-    font-size: 24px;
+/* Section backgrounds */
+.featured-products {
+    background: #f8f9fa;
+    padding: 3rem 0;
+}
+
+/* Dark theme for featured products section */
+html[data-theme="dark"] .featured-products {
+    background: transparent !important;
+}
+
+.brands-showcase {
+    background: #fff;
+    padding: 3rem 0;
+}
+
+/* Buttons - Modern Style */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
     font-weight: 600;
-    color: #000;
-    text-transform: uppercase;
-    margin-bottom: 50px;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid #667eea;
+    color: #667eea;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: #667eea;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Modern Category Styles - Enhanced Theme */
+.featured-categories {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 3rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dark theme for featured categories section */
+html[data-theme="dark"] .featured-categories {
+    background: transparent !important;
+}
+
+.featured-categories::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.featured-categories .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+}
+
+.category-show-all-text {
+    color: #667eea;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.category-show-all:hover .category-show-all-text {
+    color: #764ba2;
+    transform: translateX(5px);
+}
+
+.category-show-all-text i {
+    transition: transform 0.3s ease;
+}
+
+.category-show-all:hover .category-show-all-text i {
+    transform: translateX(3px);
+}
+
+.category-card {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: visible;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #e9ecef;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark theme overrides for category cards */
+html[data-theme="dark"] .category-card {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+html[data-theme="dark"] .category-card:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--theme-primary) !important;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.category-card:hover::before {
+    opacity: 1;
+}
+
+.category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(102, 126, 234, 0.25) !important;
+    border-color: #667eea;
+}
+
+.category-image-box {
+    width: 100%;
+    height: 120px;
+    min-height: 120px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
+    border-radius: 16px 16px 8px 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+    margin: 8px 8px 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dark theme for category image box */
+html[data-theme="dark"] .category-image-box {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.category-image-box::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    transition: transform 0.6s ease;
+}
+
+.category-card:hover .category-image-box::after {
+    transform: scale(1.5);
+}
+
+.category-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    transition: all 0.4s ease;
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.1) rotate(2deg);
+    filter: drop-shadow(0 6px 12px rgba(102, 126, 234, 0.3));
+}
+
+.category-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3436 !important;
+    padding: 16px 12px;
+    position: relative;
+    z-index: 2;
+    transition: color 0.3s ease;
+    background: #ffffff !important;
+    margin: 0;
+    border-radius: 0 0 16px 16px;
+    text-align: center;
+    min-height: 1.8rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    border: none !important;
+}
+
+/* Dark theme for category title */
+html[data-theme="dark"] .category-title {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .category-card:hover .category-title {
+    color: var(--theme-primary) !important;
+}
+
+.category-card:hover .category-title {
+    color: #667eea !important;
+}
+
+.category-card .card-body {
+    background: #ffffff !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Dark theme for category card body */
+html[data-theme="dark"] .category-card .card-body {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.no-image-box {
+    color: #b2bec3;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover .no-image-box {
+    color: #667eea;
+    transform: scale(1.1);
+}
+
+/* Responsive category heading */
+@media (max-width: 767.98px) {
+    .section-title {
+        font-size: 1.35rem;
+    }
     
+    .featured-categories {
+        padding: 2rem 0;
+    }
 }
 
 /* Ensure anchor scroll aligns nicely with header for categories heading */
@@ -423,15 +802,55 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Dark theme for product cards */
+html[data-theme="dark"] .product-card {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .product-card:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--theme-primary) !important;
+}
+
+html[data-theme="dark"] .product-card .card-body {
+    background: transparent !important;
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .product-title,
+html[data-theme="dark"] .product-card .card-title {
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .product-desc {
+    color: var(--theme-text) !important;
+    opacity: 0.8;
+}
+
+html[data-theme="dark"] .product-image-box {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+html[data-theme="dark"] .no-image-box {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--theme-text) !important;
+}
 .product-title {
     font-size: 0.8rem;
     text-align: left;
     margin-bottom: 0.25rem;
-    min-height: 1.6rem;
+    min-height: 2.4rem;
+    max-height: 2.8rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.4;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 .product-desc {
     font-size: 0.7rem;
@@ -452,12 +871,23 @@
     padding-top: 0.5rem;
 }
 
+/* Category Media & Layout - Consolidated */
+.category-media {
+    padding: 0;
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
 @media (min-width: 576px) {
     .product-image-box { height: 140px; }
+    .category-image-box { height: 140px; padding: 25px 20px; }
 }
 @media (min-width: 768px) {
     .product-image-box { height: 180px; }
+    .category-image-box { height: 160px; padding: 30px 25px; }
     .product-title { font-size: 0.9rem; }
+    .category-title { font-size: 1rem; padding: 16px 12px; }
     .product-desc { font-size: 0.8rem; }
     .add-to-cart-form .btn { 
         height: 26px; 
@@ -683,10 +1113,251 @@
     
 }
 
-/* Product Card Styles */
+
+/* Product Card Styles - Modern Vegist Theme */
+.product-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+}
+
 .product-card:hover {
-    transform: translateY(-5px) !important;
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
+    border-color: #e0e0e0;
+}
+
+.product-image-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.product-title {
+    color: #2d3436;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Trending Products Enhanced Styling */
+.trending-products {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+    position: relative;
+    overflow: hidden;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    background-image: 
+        linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%),
+        linear-gradient(90deg, #ff6b6b 0%, #ff6b6b 100%);
+    background-size: 100% 100%, 100% 3px;
+    background-position: center, top;
+    background-repeat: no-repeat;
+}
+
+.trending-section-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(255, 193, 7, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.trending-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    animation: pulse-glow 2s ease-in-out infinite;
+    transition: transform 0.3s ease;
+}
+
+.trending-icon-wrapper:hover {
+    transform: scale(1.1);
+}
+
+.trending-icon {
+    color: #fff;
+    font-size: 1.75rem;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+        transform: scale(1.05);
+    }
+}
+
+.trending-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3436 !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.trending-badge-sold {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+    color: #fff !important;
+    font-weight: 700;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+    border-radius: 20px;
+}
+
+.trending-products .card {
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+/* Ensure trending products cards have proper styling */
+.trending-products .card {
+    background: #ffffff !important;
+}
+
+/* Product title improvements for trending section */
+.trending-products .product-title {
+    min-height: 2.4rem;
+    max-height: 2.8rem;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+@media (min-width: 768px) {
+    .trending-products .product-title {
+        font-size: 0.9rem;
+        min-height: 2.6rem;
+        max-height: 3.2rem;
+    }
+}
+
+.trending-products .card:hover {
+    border-color: #667eea;
+    box-shadow: 0 12px 28px rgba(102, 126, 234, 0.2) !important;
+}
+
+.trending-products .section-title,
+.featured-products .section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2d3436 !important;
+}
+
+/* Ensure trending section always has light theme regardless of dark mode */
+/* Trending Products - Light theme (default) */
+.trending-products {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+}
+
+.trending-products .text-muted {
+    color: #636e72 !important;
+}
+
+.trending-products .product-card,
+.trending-products .card {
+    background: #ffffff !important;
+    border: 1px solid #e9ecef !important;
+    color: #2d3436 !important;
+}
+
+.trending-products .product-card:hover,
+.trending-products .card:hover {
+    border-color: #667eea !important;
+}
+
+.trending-products .product-title,
+.trending-products .card-title {
+    color: #2d3436 !important;
+}
+
+/* Trending Products - Dark theme */
+html[data-theme="dark"] .trending-products {
+    background: transparent !important;
+}
+
+html[data-theme="dark"] .trending-products * {
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .trending-products .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+html[data-theme="dark"] .trending-products .product-card,
+html[data-theme="dark"] .trending-products .card {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .trending-products .product-card:hover,
+html[data-theme="dark"] .trending-products .card:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--theme-primary) !important;
+}
+
+html[data-theme="dark"] .trending-products .product-title,
+html[data-theme="dark"] .trending-products .card-title,
+html[data-theme="dark"] .trending-products .product-desc {
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .trending-products .badge {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .trending-products .btn-wishlist {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+html[data-theme="dark"] .trending-products .btn-wishlist:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+html[data-theme="dark"] .trending-products .btn-wishlist i {
+    color: var(--theme-text) !important;
+}
+
+/* Ensure product images are visible in dark theme */
+html[data-theme="dark"] .trending-products .product-image-box {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+html[data-theme="dark"] .trending-products .no-image-box {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--theme-text) !important;
+}
+
+/* Link color in dark mode */
+html[data-theme="dark"] .trending-products .product-link {
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .trending-products .product-link:hover {
+    color: var(--theme-primary) !important;
 }
 
 .product-image-container {
@@ -766,6 +1437,25 @@
     .product-card .card-text {
         font-size: 0.8rem;
     }
+    
+    /* Trending products mobile improvements */
+    .trending-title {
+        font-size: 1.4rem !important;
+    }
+    
+    .trending-icon-wrapper {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .trending-icon {
+        font-size: 1.5rem;
+    }
+    
+    /* Improved category grid on tablets */
+    .category-title {
+        font-size: 0.85rem !important;
+    }
 }
 
 @media (max-width: 575.98px) {
@@ -785,17 +1475,7 @@
     }
 }
 
-/* Full-width Section Styles */
-.full-width-section {
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    overflow: hidden;
-    background-color: transparent;
-}
+/* Removed full-width-section - using consistent container width */
 
 /* Hero Carousel Styles */
 .hero-carousel {
@@ -997,102 +1677,196 @@
     margin-right: auto;
 }
 
-/* Mobile tweaks for Categories: show 2 tiles per screen and enable smooth horizontal scroll */
-@media (max-width: 576px) {
-    /* Reduce extra space under the categories section on small phones */
-    #categories { padding-bottom: 40px !important; }
+/* Modern Vegist Theme Enhancements */
+.badge {
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+}
 
-    /* Ensure the slider shows two tiles fully within viewport */
-    #categorySlider {
-      gap: 8px !important;
-      padding: 8px 10px !important;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
+.badge.bg-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #51cf66 0%, #40c057 100%) !important;
+}
+
+.price-text {
+    color: #2d3436;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* Improved section backgrounds */
+.featured-products {
+    background: #f8f9fa;
+}
+
+.brands-showcase {
+    background: #fff;
+}
+
+/* Modern button styles */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid #667eea;
+    color: #667eea;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: #667eea;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Responsive Homepage Theme - Mobile First */
+@media (max-width: 575.98px) {
+    /* Optimize section spacing on mobile */
+    .featured-categories,
+    .trending-products,
+    .featured-products,
+    .brands-showcase {
+        padding-top: 1.25rem !important;
+        padding-bottom: 1.25rem !important;
     }
-
-    /* Each tile takes ~50% width so two are fully visible */
-    #categorySlider > div { /* category item wrapper */
-      width: calc(50% - 8px) !important;
-      flex: 0 0 calc(50% - 8px) !important;
-      scroll-snap-align: start;
+    
+    .banner-carousel {
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
     }
-
-    /* Override the fixed 150x150 inline size of the image box */
-    #categorySlider > div > a > div > div { /* image box */
-      width: 47vw !important;
-      height: 47vw !important;
-      max-width: 100% !important;
-      max-height: 100% !important;
+    
+    /* Reduce container padding on mobile */
+    .container-fluid.px-4 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
     }
-
-    /* Make sure the image itself scales nicely */
-    #categorySlider img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain !important;
+    
+    /* Mobile heading sizes */
+    .section-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 1rem !important;
     }
-
-    /* Slightly smaller category title on very small devices */
-    #categorySlider h3 { font-size: 14px !important; }
-
-    /* Mobile sizing harmony with the add-to-cart row */
+    
+    .featured-categories,
+    .trending-products,
+    .featured-products {
+        padding: 2rem 0 !important;
+    }
+    
+    /* Mobile section margins */
+    .mb-3.mb-md-4,
+    .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Mobile cart sizing */
     .add-to-cart-form .btn { height: 36px !important; }
     .cart-quantity { width: 100px !important; }
     .cart-quantity .btn,
     .cart-quantity .form-control { height: 36px !important; line-height: 36px !important; }
-}
-
-<!-- Category Slider JavaScript -->
-<script>
-let currentSlide = 0;
-const slidesPerView = 5;
-
-function slideCategories(direction) {
-    const track = document.querySelector('.categories-track');
-    const slides = document.querySelectorAll('.category-slide');
-    const totalSlides = slides.length;
-    const maxSlide = Math.ceil(totalSlides / slidesPerView) - 1;
-
-    if (direction === 'next' && currentSlide < maxSlide) {
-        currentSlide++;
-    } else if (direction === 'prev' && currentSlide > 0) {
-        currentSlide--;
+    
+    /* Trending badge mobile */
+    .trending-products .badge {
+        font-size: 0.65rem !important;
+        padding: 0.25rem 0.4rem !important;
     }
-
-    updateSlider();
+    
+    /* Card body padding on mobile */
+    .category-card .card-body {
+        padding: 0.75rem !important;
+    }
+    
+    .category-image-box {
+        padding: 15px 12px !important;
+        height: 100px !important;
+        margin: 6px 6px 0 6px !important;
+    }
+    
+    .category-title {
+        font-size: 0.85rem !important;
+        padding: 12px 8px !important;
+        background: #ffffff !important;
+    }
+    
+    .product-card .card-body {
+        padding: 0.75rem !important;
+    }
+    
+    /* Product media padding */
+    .product-media {
+        padding: 8px 0 !important;
+    }
+    
+    .category-media {
+        padding: 8px 0 !important;
+    }
+    
+    /* Remove unwanted gaps */
+    section + section {
+        margin-top: 0 !important;
+    }
 }
 
-function goToSlide(slideIndex) {
-    currentSlide = slideIndex;
-    updateSlider();
+/* Tablet Responsive */
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .featured-categories,
+    .trending-products,
+    .featured-products,
+    .brands-showcase {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    .container-fluid.px-4 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
 }
 
-function updateSlider() {
-    const track = document.querySelector('.categories-track');
-    const slides = document.querySelectorAll('.category-slide');
-    const slideWidth = 100 / slidesPerView;
-    track.style.transform = `translateX(-${currentSlide * slideWidth * slidesPerView}%)`;
-
-    // Update dots
-    const dots = document.querySelectorAll('.dot');
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === currentSlide);
-    });
-
-    // Update nav buttons
-    const prevBtn = document.querySelector('.slider-nav.prev');
-    const nextBtn = document.querySelector('.slider-nav.next');
-    const maxSlide = Math.ceil(slides.length / slidesPerView) - 1;
-
-    prevBtn.style.visibility = currentSlide === 0 ? 'hidden' : 'visible';
-    nextBtn.style.visibility = currentSlide === maxSlide ? 'hidden' : 'visible';
+/* Desktop Optimizations */
+@media (min-width: 992px) {
+    /* Ensure consistent spacing */
+    .featured-categories,
+    .trending-products,
+    .featured-products,
+    .brands-showcase {
+        padding-top: 2.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+    
+    /* Remove unwanted section gaps */
+    section {
+        margin-bottom: 0;
+    }
+    
+    section + section {
+        margin-top: 0;
+    }
 }
 
-// Initialize slider
-document.addEventListener('DOMContentLoaded', () => {
-    updateSlider();
-});
-</script>
+/* Fix spacing between sections globally */
+.featured-categories + .trending-products,
+.trending-products + .featured-products,
+.featured-products + .brands-showcase {
+    margin-top: 0 !important;
+}
 
 <!-- Product Details Modal -->
 <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
@@ -1158,53 +1932,159 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Quantity controls
-    function setupQuantityControls(container) {
-        // Support both class name variants: quantity-increase/quantity-decrease and qty-plus/qty-minus
-        const incSelectors = ['.quantity-increase', '.qty-plus'];
-        const decSelectors = ['.quantity-decrease', '.qty-minus'];
-
-        incSelectors.forEach(sel => {
-            container.querySelectorAll(sel).forEach(button => {
-                button.addEventListener('click', function() {
-                    const input = this.parentNode.querySelector('.quantity-input');
-                    const max = parseInt(input.max || input.getAttribute('data-max') || '9999');
-                    let value = parseInt(input.value || '1');
-                    if (value < max) {
-                        input.value = value + 1;
+    // Quantity controls are handled globally in footer.php
+    // This prevents duplicate handlers
+    
+    // Wishlist functionality
+    const wishlistButtons = document.querySelectorAll('.btn-wishlist');
+    wishlistButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.getAttribute('data-product-id');
+            const icon = this.querySelector('i');
+            
+            if (!productId) {
+                console.warn('Wishlist: Product ID not found');
+                return;
+            }
+            
+            // Toggle active state visually
+            this.classList.toggle('active');
+            if (icon) {
+                if (this.classList.contains('active')) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    icon.style.color = '#dc3545';
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    icon.style.color = '';
+                }
+            }
+            
+            // Send AJAX request
+            const url = '<?php echo BASE_URL; ?>?controller=wishlist&action=add&id=' + productId;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const toast = document.createElement('div');
+                    toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    toast.innerHTML = `
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="fas fa-check-circle me-2"></i> ${data.message || 'Added to wishlist'}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+                    const toastInstance = new bootstrap.Toast(toast);
+                    toastInstance.show();
+                    toast.addEventListener('hidden.bs.toast', function() {
+                        toast.remove();
+                    });
+                } else {
+                    // Revert visual state
+                    button.classList.toggle('active');
+                    if (icon) {
+                        if (button.classList.contains('active')) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas');
+                        } else {
+                            icon.classList.remove('fas');
+                            icon.classList.add('far');
+                        }
                     }
-                });
+                    alert(data.message || 'Failed to add to wishlist');
+                }
+            })
+            .catch(error => {
+                console.error('Wishlist error:', error);
+                // Revert visual state
+                button.classList.toggle('active');
+                if (icon) {
+                    if (button.classList.contains('active')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                    }
+                }
+                alert('An error occurred. Please try again.');
             });
         });
-
-        decSelectors.forEach(sel => {
-            container.querySelectorAll(sel).forEach(button => {
-                button.addEventListener('click', function() {
-                    const input = this.parentNode.querySelector('.quantity-input');
-                    const min = parseInt(input.min || '1');
-                    let value = parseInt(input.value || '1');
-                    if (value > min) {
-                        input.value = value - 1;
+    });
+    
+    // Product card hover effects
+    const productCards = document.querySelectorAll('.product-card');
+    productCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'all 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Lazy loading for product images
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        imageObserver.unobserve(img);
                     }
-                });
+                }
             });
+        });
+        
+        document.querySelectorAll('img[data-src]').forEach(function(img) {
+            imageObserver.observe(img);
         });
     }
     
-    // Setup quantity controls for both the main page and modal
-    setupQuantityControls(document);
+    // Update cart count on page load if user is logged in
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
+    }
     
-    // Handle form submission
-    document.querySelectorAll('.add-to-cart-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const quantityInput = this.querySelector('.quantity-input');
-            const maxQuantity = parseInt(quantityInput.max);
-            const quantity = parseInt(quantityInput.value);
-            
-            if (quantity > maxQuantity) {
+    // Add smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        anchor.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href !== '#' && href.length > 1) {
                 e.preventDefault();
-                alert('The requested quantity is not available in stock.');
-                quantityInput.value = maxQuantity;
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             }
         });
     });

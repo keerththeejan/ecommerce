@@ -733,8 +733,8 @@ try {
     </script>
     <!-- jQuery (required by our custom main.js) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5 JS Bundle with Popper - Latest Stable -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     
     <!-- Global config for JS -->
     <script>
@@ -786,38 +786,308 @@ try {
             });
         });
 
-        // Quantity adjuster functionality
+        // Quantity adjuster functionality - improved with better debugging
+        // Use event delegation to catch all clicks on quantity buttons
         document.addEventListener('click', function(e) {
-            // Handle quantity increase
-            if (e.target.classList.contains('quantity-increase')) {
-                const input = e.target.closest('.input-group').querySelector('.quantity-input');
-                const max = parseInt(input.getAttribute('max'));
-                let value = parseInt(input.value) || 0;
-                if (value < max) {
-                    input.value = value + 1;
+            // Handle clicks on the button itself or any child elements (like icons)
+            let targetButton = null;
+            
+            // Check if click is directly on a quantity button or parent
+            const buttonSelectors = ['.qty-plus', '.qty-minus', '.quantity-increase', '.quantity-decrease'];
+            for (const selector of buttonSelectors) {
+                if (e.target.matches(selector) || e.target.closest(selector)) {
+                    targetButton = e.target.matches(selector) ? e.target : e.target.closest(selector);
+                    break;
                 }
             }
             
-            // Handle quantity decrease
-            if (e.target.classList.contains('quantity-decrease')) {
-                const input = e.target.closest('.input-group').querySelector('.quantity-input');
-                const min = parseInt(input.getAttribute('min'));
-                let value = parseInt(input.value) || 1;
-                if (value > min) {
-                    input.value = value - 1;
-                }
+            if (!targetButton) {
+                return; // Not a quantity button click
+            }
+            
+            // Prevent default and stop propagation
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Determine if increase or decrease
+            const isIncrease = targetButton.classList.contains('qty-plus') || 
+                              targetButton.classList.contains('quantity-increase');
+            
+            // Find the input group (try multiple selectors)
+            let inputGroup = targetButton.closest('.quantity-group');
+            if (!inputGroup) {
+                inputGroup = targetButton.closest('.input-group');
+            }
+            if (!inputGroup) {
+                inputGroup = targetButton.closest('.cart-quantity');
+            }
+            if (!inputGroup) {
+                console.warn('Quantity adjuster: Could not find quantity-group, input-group, or cart-quantity');
+                return;
+            }
+            
+            // Find the quantity input (try multiple selectors)
+            let input = inputGroup.querySelector('input.quantity-input');
+            if (!input) {
+                input = inputGroup.querySelector('input[name="quantity"]');
+            }
+            if (!input) {
+                console.warn('Quantity adjuster: Could not find quantity input');
+                return;
+            }
+            
+            // Get current value and limits
+            const max = parseInt(input.getAttribute('max') || input.getAttribute('data-max') || '9999');
+            const min = parseInt(input.getAttribute('min') || '1');
+            let value = parseInt(input.value) || 1;
+            
+            // Calculate new value
+            let newValue = value;
+            if (isIncrease && value < max) {
+                newValue = value + 1;
+            } else if (!isIncrease && value > min) {
+                newValue = value - 1;
+            } else {
+                // Already at limit, don't change
+                return;
+            }
+            
+            // Temporarily remove readonly to allow value change
+            const wasReadonly = input.hasAttribute('readonly');
+            if (wasReadonly) {
+                input.removeAttribute('readonly');
+            }
+            
+            // Update value
+            input.value = newValue;
+            
+            // Trigger events
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Restore readonly
+            if (wasReadonly) {
+                input.setAttribute('readonly', 'readonly');
+            }
+            
+            console.log('Quantity ' + (isIncrease ? 'increased' : 'decreased') + ' to:', newValue);
+        }, true); // Use capture phase for better event handling
+        
+    });
+    </script>
+
+    <!-- Enhanced UX JavaScript -->
+    <script>
+    (function() {
+        'use strict';
+
+        // Page Load Animation
+        window.addEventListener('load', function() {
+            document.body.classList.remove('loading');
+            document.body.classList.add('loaded');
+            
+            // Fade in sections
+            const sections = document.querySelectorAll('section, .card, .product-card, .category-card');
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('fade-in-up');
+                            observer.unobserve(entry.target);
+                        }, index * 50);
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+
+        // Add loading class on page start
+        document.body.classList.add('loading');
+
+        // Scroll to Top Button
+        const scrollToTopBtn = document.createElement('button');
+        scrollToTopBtn.className = 'scroll-to-top';
+        scrollToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+        scrollToTopBtn.setAttribute('aria-label', 'Scroll to top');
+        scrollToTopBtn.style.display = 'none';
+        document.body.appendChild(scrollToTopBtn);
+
+        // Show/hide scroll to top button
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                scrollToTopBtn.classList.add('visible');
+                scrollToTopBtn.style.display = 'flex';
+            } else {
+                scrollToTopBtn.classList.remove('visible');
+                setTimeout(() => {
+                    if (!scrollToTopBtn.classList.contains('visible')) {
+                        scrollToTopBtn.style.display = 'none';
+                    }
+                }, 300);
             }
         });
-        
-        // Prevent form submission when clicking on quantity buttons
-        document.querySelectorAll('.add-to-cart-form').forEach(form => {
-            form.addEventListener('click', function(e) {
-                if (e.target.classList.contains('quantity-increase') || e.target.classList.contains('quantity-decrease')) {
-                    e.preventDefault();
+
+        // Scroll to top functionality
+        scrollToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Enhanced Image Lazy Loading
+        if ('loading' in HTMLImageElement.prototype) {
+            const images = document.querySelectorAll('img[loading="lazy"]');
+            images.forEach(img => {
+                if (img.complete) {
+                    img.classList.add('loaded');
+                } else {
+                    img.addEventListener('load', function() {
+                        this.classList.add('loaded');
+                    });
+                    img.addEventListener('error', function() {
+                        this.classList.add('loaded'); // Remove skeleton even on error
+                    });
+                }
+            });
+        }
+
+        // Button Loading State Enhancement
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+                if (submitBtn && !submitBtn.classList.contains('no-loading')) {
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
                 }
             });
         });
-    });
+
+        // Smooth Scroll for Anchor Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && href.length > 1) {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Enhanced Product Card Interactions
+        document.querySelectorAll('.product-card, .category-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.zIndex = '10';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.zIndex = '1';
+            });
+        });
+
+        // Keyboard Navigation Enhancement
+        document.querySelectorAll('.btn, .nav-link, .dropdown-item, .card a').forEach(element => {
+            element.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === ' ') {
+                        e.preventDefault();
+                    }
+                    this.click();
+                }
+            });
+        });
+
+        // Add ripple effect to buttons (if not already handled)
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (!this.classList.contains('no-ripple')) {
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    ripple.classList.add('ripple');
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                }
+            });
+        });
+
+        // Prevent multiple rapid clicks on buttons
+        let lastClickTime = 0;
+        document.querySelectorAll('.btn, form').forEach(element => {
+            element.addEventListener('click', function(e) {
+                const now = Date.now();
+                if (now - lastClickTime < 300) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                lastClickTime = now;
+            });
+        });
+
+        // Enhanced Carousel Controls
+        document.querySelectorAll('.carousel').forEach(carousel => {
+            const carouselInstance = bootstrap.Carousel.getInstance(carousel);
+            if (carouselInstance) {
+                carousel.addEventListener('slide.bs.carousel', function() {
+                    // Add smooth transition
+                    carousel.style.transition = 'transform 0.6s ease-in-out';
+                });
+            }
+        });
+
+        // Console message for developers
+        console.log('%c🚀 Enhanced UX Loaded', 'color: #667eea; font-size: 16px; font-weight: bold;');
+        console.log('%cSmooth scrolling, animations, and interactive elements are now active.', 'color: #636e72; font-size: 12px;');
+    })();
     </script>
+
+    <style>
+    /* Ripple Effect */
+    .btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: ripple-animation 0.6s ease-out;
+        pointer-events: none;
+    }
+
+    @keyframes ripple-animation {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    </style>
 </body>
 </html>

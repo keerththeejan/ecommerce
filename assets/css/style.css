@@ -1,267 +1,1024 @@
-/* Main CSS for E-Commerce Store */
+/* Professional E-Commerce Theme - Bootstrap 5 Enhanced */
 
-/* General Styles */
+/* ========================================
+   Bootstrap 5 CSS Variables Override
+   ======================================== */
+:root {
+    --bs-primary: #667eea;
+    --bs-primary-rgb: 102, 126, 234;
+    --bs-secondary: #764ba2;
+    --bs-secondary-rgb: 118, 75, 162;
+    --bs-success: #51cf66;
+    --bs-danger: #ff6b6b;
+    --bs-warning: #ffd93d;
+    --bs-info: #74c0fc;
+    --bs-border-radius: 0.75rem;
+    --bs-border-radius-sm: 0.5rem;
+    --bs-border-radius-lg: 1rem;
+    --bs-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    
+    /* Custom Theme Colors */
+    --primary-color: #667eea;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-color: #f093fb;
+    --accent-color: #ff6b6b;
+    --success-color: #51cf66;
+    --danger-color: #ff6b6b;
+    --warning-color: #ffd93d;
+    --info-color: #74c0fc;
+    
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+    --text-muted: #b2bec3;
+    
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-light: #ffffff;
+    --bg-dark: #2d3436;
+    
+    --border-color: #e9ecef;
+    --shadow-sm: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 0.25rem 1rem rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    
+    --border-radius: 0.75rem;
+    --border-radius-sm: 0.5rem;
+    --border-radius-lg: 1rem;
+    
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ========================================
+   Base Styles - Enhanced UX
+   ======================================== */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    background-color: #f8f9fa;
+    font-family: var(--bs-font-sans-serif);
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+    line-height: 1.6;
+    font-size: 1rem;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+/* Page Load Animation */
+body.loading {
+    overflow: hidden;
+}
+
+body.loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+}
+
+body.loaded::before {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Fade-in Animation for Sections */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.fade-in-up.delay-1 { animation-delay: 0.1s; }
+.fade-in-up.delay-2 { animation-delay: 0.2s; }
+.fade-in-up.delay-3 { animation-delay: 0.3s; }
+.fade-in-up.delay-4 { animation-delay: 0.4s; }
+
+/* Bootstrap 5 Professional Overrides */
+.container,
+.container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
 }
 
 a {
     text-decoration: none;
+    color: var(--primary-color);
+    transition: var(--transition);
 }
 
-/* Header Styles */
+a:hover {
+    color: var(--accent-color);
+}
+
+/* ========================================
+   Header & Navigation
+   ======================================== */
 .navbar {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--bg-primary) !important;
+    box-shadow: var(--shadow-sm);
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease;
+}
+
+/* Dark mode navbar background */
+html[data-theme="dark"] .navbar {
+    background: var(--theme-bg) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="dark"] .navbar[style*="background"] {
+    background: var(--theme-bg) !important;
 }
 
 .navbar-brand {
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--text-primary) !important;
+    letter-spacing: -0.5px;
 }
 
-/* Hero Section */
-.hero-section {
-    padding: 60px 0;
-    background-color: #f8f9fa;
+.navbar-nav .nav-link {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    transition: var(--transition);
+    border-radius: var(--border-radius-sm);
+    margin: 0 0.25rem;
 }
 
-/* Product Card Styles */
-.card {
-    transition: all 0.3s ease;
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:focus {
+    color: var(--primary-color) !important;
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateX(3px);
+}
+
+.navbar-nav .nav-link.active {
+    color: var(--primary-color) !important;
+    background: rgba(102, 126, 234, 0.15);
+    font-weight: 600;
+}
+
+/* Bootstrap 5 Navbar Professional Enhancements */
+.navbar-toggler {
+    border: 2px solid var(--border-color);
+    border-radius: var(--bs-border-radius-sm);
+    padding: 0.375rem 0.75rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.15);
+}
+
+.dropdown-menu {
+    --bs-dropdown-border-radius: var(--bs-border-radius-sm);
+    --bs-dropdown-box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--bs-dropdown-box-shadow);
+    padding: 0.5rem 0;
+}
+
+.dropdown-item {
+    padding: 0.625rem 1.25rem;
+    transition: var(--transition);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(102, 126, 234, 0.1);
+    color: var(--primary-color);
+}
+
+/* ========================================
+   Buttons - Bootstrap 5 Professional Style with Enhanced UX
+   ======================================== */
+.btn {
+    border-radius: var(--bs-border-radius-sm);
+    font-weight: 600;
+    padding: 0.625rem 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary {
+    --bs-btn-bg: #667eea;
+    --bs-btn-border-color: #667eea;
+    --bs-btn-hover-bg: #764ba2;
+    --bs-btn-hover-border-color: #764ba2;
+    --bs-btn-active-bg: #764ba2;
+    --bs-btn-active-border-color: #764ba2;
+    background: var(--primary-gradient);
     border: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
+    color: #fff;
+    box-shadow: 0 0.25rem 0.75rem rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 0.5rem 1.5rem rgba(102, 126, 234, 0.4);
+    background: var(--primary-gradient);
+    border: none;
+    color: #fff;
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn:disabled,
+.btn.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Loading Button State */
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    margin: auto;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #667eea;
+    --bs-btn-border-color: #667eea;
+    --bs-btn-hover-bg: #667eea;
+    --bs-btn-hover-border-color: #667eea;
+    --bs-btn-active-bg: #667eea;
+    --bs-btn-active-border-color: #667eea;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    background: var(--primary-color);
+    color: #fff;
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+}
+
+.btn-sm {
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.125rem;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+    color: #fff;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: #fff;
+}
+
+/* ========================================
+   Cards - Bootstrap 5 Professional Design
+   ======================================== */
+.card {
+    --bs-card-border-width: 1px;
+    --bs-card-border-color: var(--border-color);
+    --bs-card-border-radius: var(--bs-border-radius);
+    --bs-card-box-shadow: var(--shadow-sm);
+    border: var(--bs-card-border-width) solid var(--bs-card-border-color);
+    border-radius: var(--bs-card-border-radius);
+    background: var(--bg-primary);
+    box-shadow: var(--bs-card-box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    --bs-card-cap-padding-y: 1rem;
+    --bs-card-cap-padding-x: 1.5rem;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-footer {
+    --bs-card-cap-padding-y: 1rem;
+    --bs-card-cap-padding-x: 1.5rem;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-color);
+}
+
+.card:active {
+    transform: translateY(-4px) scale(1);
+}
+
+/* Enhanced Product Card Hover */
+.product-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+}
+
+.product-card .product-image {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.1);
+}
+
+/* Enhanced Category Card Hover */
+.category-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-card:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 0.75rem 1.5rem rgba(102, 126, 234, 0.2);
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.15);
+}
+
+.category-image {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-img-top {
     height: 200px;
     object-fit: cover;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.card-body {
+    padding: 1.5rem;
 }
 
 .card-title {
     font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
 }
 
-/* Product Details */
-.product-details .product-image {
-    height: 400px;
-    object-fit: contain;
+.card-text {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* ========================================
+   Product Cards
+   ======================================== */
+.product-card {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.product-image-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: var(--border-radius-sm);
+    padding: 15px;
 }
 
 .product-price {
     font-size: 1.5rem;
-    font-weight: bold;
-    color: #dc3545;
+    font-weight: 700;
+    color: var(--primary-color);
 }
 
 .original-price {
     text-decoration: line-through;
-    color: #6c757d;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-left: 0.5rem;
 }
 
-/* Cart Styles */
+/* ========================================
+   Badges
+   ======================================== */
+.badge {
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #51cf66 0%, #40c057 100%) !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+}
+
+.badge.bg-primary {
+    background: var(--primary-gradient) !important;
+}
+
+/* ========================================
+   Forms - Bootstrap 5 Professional
+   ======================================== */
+.form-control {
+    --bs-border-width: 2px;
+    --bs-border-color: var(--border-color);
+    --bs-border-radius: var(--bs-border-radius-sm);
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    padding: 0.625rem 1rem;
+    transition: var(--transition);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+.form-control:focus {
+    --bs-border-color: var(--primary-color);
+    --bs-focus-ring-color: rgba(102, 126, 234, 0.15);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9375rem;
+}
+
+.input-group {
+    --bs-border-radius: var(--bs-border-radius-sm);
+}
+
+.input-group-text {
+    border-radius: var(--bs-border-radius-sm);
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   Cart Styles
+   ======================================== */
 .cart-item {
-    border-bottom: 1px solid #eee;
-    padding: 15px 0;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
 }
 
 .cart-total {
-    font-size: 1.2rem;
-    font-weight: bold;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
-/* Footer Styles */
+/* ========================================
+   Footer
+   ======================================== */
 footer {
-    background-color: #343a40;
+    background: linear-gradient(135deg, #222831 0%, #393E46 100%);
     color: #fff;
-    padding: 50px 0 20px;
+    padding: 3rem 0 1.5rem;
+    margin-top: 3rem;
 }
 
 footer a {
-    color: #fff;
+    color: rgba(255, 255, 255, 0.8);
+    transition: var(--transition);
 }
 
 footer a:hover {
-    color: #f8f9fa;
-    text-decoration: underline;
+    color: #fff;
+    text-decoration: none;
 }
 
 .social-links a {
-    display: inline-block;
-    width: 36px;
-    height: 36px;
-    background-color: rgba(255, 255, 255, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
-    text-align: center;
-    line-height: 36px;
-    margin-right: 10px;
-    transition: all 0.3s ease;
+    margin-right: 0.75rem;
+    transition: var(--transition);
 }
 
 .social-links a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background: var(--primary-color);
     transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-/* Form Styles */
-.form-control:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+/* ========================================
+   Hero Section
+   ======================================== */
+.hero-section {
+    padding: 4rem 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
-/* Button Styles */
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+/* ========================================
+   Section Headings - Bootstrap 5 Typography
+   ======================================== */
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
 }
 
-.btn-primary:hover {
-    background-color: #0069d9;
-    border-color: #0062cc;
+h1, .h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .hero-section {
-        text-align: center;
-        padding: 30px 0;
-    }
-    
-    .card-img-top {
-        height: 150px;
-    }
-    
-    .product-details .product-image {
-        height: 300px;
-    }
-    
-    /* Mobile Navbar Improvements */
-    .navbar-collapse {
-        padding: 1rem 0;
-    }
-    
-    .navbar-nav .nav-item {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .navbar-nav .nav-item:last-child {
-        border-bottom: none;
-    }
-    
-    .navbar-nav .dropdown-menu {
-        background-color: rgba(0, 0, 0, 0.05);
-        border: none;
-        padding-left: 1rem;
-        margin-top: 0.5rem;
-    }
-    
-    .navbar-dark .navbar-nav .dropdown-menu .dropdown-item {
-        color: rgba(255, 255, 255, 0.8);
-    }
-    
-    .navbar-dark .navbar-nav .dropdown-menu .dropdown-item:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: #fff;
-    }
+h2, .h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.875rem;
 }
 
-@media (max-width: 576px) {
-    .navbar-brand {
-        font-size: 1.1rem;
-    }
-    
-    .card-img-top {
-        height: 130px;
-    }
+h3, .h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
 }
 
-/* Flash Messages */
-#msg-flash {
-    margin-bottom: 20px;
-    padding: 10px 15px;
-    border-radius: 4px;
+h4, .h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.625rem;
 }
 
-/* Category Sidebar */
-.category-sidebar {
-    background-color: #fff;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 20px;
+h5, .h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
 }
 
-.category-sidebar .list-group-item {
-    border: none;
-    padding: 8px 0;
+h6, .h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
 }
 
-.category-sidebar .list-group-item.active {
-    background-color: transparent;
-    color: #007bff;
-    font-weight: bold;
-}
-
-/* Pagination */
+/* ========================================
+   Pagination - Bootstrap 5 Professional
+   ======================================== */
 .pagination {
+    --bs-pagination-padding-x: 1rem;
+    --bs-pagination-padding-y: 0.625rem;
+    --bs-pagination-border-radius: var(--bs-border-radius-sm);
+    --bs-pagination-border-color: var(--border-color);
+    --bs-pagination-color: var(--text-primary);
+    --bs-pagination-hover-color: #fff;
+    --bs-pagination-hover-bg: var(--primary-color);
+    --bs-pagination-hover-border-color: var(--primary-color);
+    --bs-pagination-active-bg: var(--primary-color);
+    --bs-pagination-active-border-color: var(--primary-color);
     justify-content: center;
-    margin-top: 30px;
+    margin-top: 2rem;
+    gap: 0.25rem;
 }
 
-/* Order Status Badges */
+.page-link {
+    border-radius: var(--bs-pagination-border-radius);
+    border-color: var(--bs-pagination-border-color);
+    color: var(--bs-pagination-color);
+    padding: var(--bs-pagination-padding-y) var(--bs-pagination-padding-x);
+    transition: var(--transition);
+}
+
+.page-link:hover {
+    background: var(--bs-pagination-hover-bg);
+    border-color: var(--bs-pagination-hover-border-color);
+    color: var(--bs-pagination-hover-color);
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: var(--primary-gradient);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+/* ========================================
+   Alerts & Flash Messages
+   ======================================== */
+.alert {
+    border-radius: var(--border-radius-sm);
+    border: none;
+    padding: 1rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(81, 207, 102, 0.1) 0%, rgba(64, 192, 87, 0.1) 100%);
+    color: #2b8a3e;
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(238, 90, 111, 0.1) 100%);
+    color: #c92a2a;
+    border-left: 4px solid var(--danger-color);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(116, 192, 252, 0.1) 0%, rgba(74, 222, 128, 0.1) 100%);
+    color: #1971c2;
+    border-left: 4px solid var(--info-color);
+}
+
+/* ========================================
+   Tables
+   ======================================== */
+.table {
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table thead {
+    background: var(--bg-secondary);
+}
+
+.table th {
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem;
+}
+
+.table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+/* ========================================
+   Order Status Badges
+   ======================================== */
 .badge-pending {
-    background-color: #ffc107;
+    background: linear-gradient(135deg, #ffd93d 0%, #ffc107 100%) !important;
     color: #212529;
 }
 
 .badge-processing {
-    background-color: #17a2b8;
+    background: linear-gradient(135deg, #74c0fc 0%, #339af0 100%) !important;
     color: #fff;
 }
 
 .badge-shipped {
-    background-color: #007bff;
+    background: var(--primary-gradient) !important;
     color: #fff;
 }
 
 .badge-delivered {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #51cf66 0%, #40c057 100%) !important;
     color: #fff;
 }
 
 .badge-cancelled {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
     color: #fff;
 }
 
-/* Features Section */
-.feature-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-color: rgba(0, 123, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
+/* ========================================
+   Category Sidebar
+   ======================================== */
+.category-sidebar {
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
 }
 
-/* Product Quantity Input */
+.category-sidebar .list-group-item {
+    border: none;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.category-sidebar .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.category-sidebar .list-group-item:hover {
+    color: var(--primary-color);
+    padding-left: 0.5rem;
+}
+
+.category-sidebar .list-group-item.active {
+    background: transparent;
+    color: var(--primary-color);
+    font-weight: 700;
+    border-left: 3px solid var(--primary-color);
+    padding-left: 1rem;
+}
+
+/* ========================================
+   Bootstrap 5 Utilities Enhancement
+   ======================================== */
+.shadow-custom {
+    box-shadow: var(--shadow-md) !important;
+}
+
+.rounded-custom {
+    border-radius: var(--bs-border-radius) !important;
+}
+
+.text-gradient {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bg-gradient-primary {
+    background: var(--primary-gradient) !important;
+}
+
+.border-gradient {
+    border: 2px solid transparent;
+    border-image: var(--primary-gradient) 1;
+}
+
+/* ========================================
+   Responsive Design - Bootstrap 5 Breakpoints
+   ======================================== */
+@media (max-width: 575.98px) {
+    /* XS - Extra Small devices */
+    .container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* SM - Small devices (landscape phones) */
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .card-img-top {
+        height: 180px;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .navbar-nav .nav-link:hover {
+        transform: translateX(5px);
+    }
+    
+    .product-price {
+        font-size: 1.25rem;
+    }
+    
+    /* Better touch targets on mobile */
+    .btn,
+    .nav-link,
+    .dropdown-item {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Improved card spacing on mobile */
+    .card,
+    .product-card,
+    .category-card {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .card-img-top {
+        height: 160px;
+    }
+    
+    .section-title {
+        font-size: 1.35rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+.shadow-custom {
+    box-shadow: var(--shadow-md);
+}
+
+.text-gradient {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.border-gradient {
+    border: 2px solid;
+    border-image: var(--primary-gradient) 1;
+}
+
+/* ========================================
+   Loading & Animations
+   ======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* ========================================
+   Product Details
+   ======================================== */
+.product-details .product-image {
+    height: 400px;
+    object-fit: contain;
+    border-radius: var(--border-radius);
+    background: var(--bg-secondary);
+    padding: 1rem;
+}
+
 .quantity-input {
     width: 120px;
+    text-align: center;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
 }
 
-/* Checkout Steps */
+/* ========================================
+   Checkout Steps
+   ======================================== */
 .checkout-steps {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 30px;
+    margin-bottom: 2rem;
 }
 
 .checkout-step {
@@ -270,174 +1027,414 @@ footer a:hover {
     position: relative;
 }
 
-.checkout-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 20px;
-    right: -50%;
-    width: 100%;
-    height: 2px;
-    background-color: #dee2e6;
-    z-index: 1;
-}
-
-.checkout-step.active:not(:last-child)::after {
-    background-color: #007bff;
-}
-
 .checkout-step-icon {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background-color: #dee2e6;
-    color: #6c757d;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 10px;
-    position: relative;
-    z-index: 2;
+    margin: 0 auto 0.75rem;
+    transition: var(--transition);
 }
 
 .checkout-step.active .checkout-step-icon {
-    background-color: #007bff;
+    background: var(--primary-gradient);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* ========================================
+   Feature Icons
+   ======================================== */
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: var(--primary-color);
+    font-size: 2rem;
+    transition: var(--transition);
+}
+
+.feature-icon:hover {
+    background: var(--primary-gradient);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+/* ========================================
+   Responsive Tables - Bootstrap 5
+   ======================================== */
+@media (max-width: 767.98px) {
+    .responsive-table thead {
+        display: none;
+    }
+    
+    .responsive-table tr {
+        display: block;
+        margin-bottom: 1rem;
+        background: var(--bg-primary);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        padding: 1rem;
+    }
+    
+    .responsive-table td {
+        display: block;
+        text-align: right;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .responsive-table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+}
+
+/* ========================================
+   Bootstrap 5 Professional Utilities
+   ======================================== */
+.g-4 {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 1.5rem;
+}
+
+.g-2 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+}
+
+.row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: calc(var(--bs-gutter-y) * -1);
+    margin-right: calc(var(--bs-gutter-x) / -2);
+    margin-left: calc(var(--bs-gutter-x) / -2);
+}
+
+.row > * {
+    padding-right: calc(var(--bs-gutter-x) / 2);
+    padding-left: calc(var(--bs-gutter-x) / 2);
+    margin-top: var(--bs-gutter-y);
+}
+
+/* Professional Container */
+.max-width-1400 {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+@media (min-width: 1400px) {
+    .max-width-1400 {
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+}
+
+/* ========================================
+   Enhanced Visual Feedback & Accessibility
+   ======================================== */
+/* Focus visible for accessibility */
+*:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: var(--bs-border-radius-sm);
+}
+
+/* Improved selection color */
+::selection {
+    background: var(--primary-color);
     color: #fff;
 }
 
-.checkout-step-text {
-    font-size: 0.9rem;
-    color: #6c757d;
+::-moz-selection {
+    background: var(--primary-color);
+    color: #fff;
 }
 
-.checkout-step.active .checkout-step-text {
-    color: #007bff;
-    font-weight: bold;
+/* Enhanced hover states for interactive elements */
+button:not(:disabled):hover,
+.btn:not(:disabled):hover,
+a:not(.disabled):hover {
+    cursor: pointer;
 }
 
-/* Responsive Admin Tables */
-@media (max-width: 768px) {
-  .responsive-table thead {
-    display: none;
-  }
-  .responsive-table, 
-  .responsive-table tbody, 
-  .responsive-table tr, 
-  .responsive-table td {
-    display: block;
-    width: 100%;
-  }
-  .responsive-table tr {
-    margin-bottom: 1rem;
-    background: #fff;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    overflow: hidden;
-  }
-  .responsive-table td {
-    border: none !important;
-    padding: 0.75rem 1rem;
-    position: relative;
-  }
-  .responsive-table td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    top: 0.5rem;
-    font-weight: 600;
-    color: #6c757d;
-  }
-  .responsive-table td {
-    padding-left: 9rem; /* space for labels */
-    min-height: 2.25rem;
-  }
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
-/* ============================
-   Product Pages - Responsive
-   ============================ */
-/* General product imagery */
-.product-image-container img,
-.product-image,
-.card-img-top {
-  width: 100%;
-  height: auto;
+/* Professional Spacing */
+.py-5 {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
 }
 
-/* Product detail page image sizing */
-.product-image-container {
-  background: #f8f9fa;
+.py-4 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
 }
 
-@media (min-width: 992px) {
-  /* Larger viewports: keep image area generous */
-  .product-image-container {
-    min-height: 420px;
+.py-3 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+.mb-5 {
+    margin-bottom: 3rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 2rem !important;
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+/* Professional Badges */
+.badge {
+    --bs-badge-padding-x: 0.65em;
+    --bs-badge-padding-y: 0.35em;
+    --bs-badge-font-size: 0.75em;
+    --bs-badge-font-weight: 600;
+    --bs-badge-border-radius: var(--bs-border-radius-sm);
+    padding: var(--bs-badge-padding-y) var(--bs-badge-padding-x);
+    font-size: var(--bs-badge-font-size);
+    font-weight: var(--bs-badge-font-weight);
+    border-radius: var(--bs-badge-border-radius);
+}
+
+/* Professional Alerts */
+.alert {
+    --bs-alert-border-radius: var(--bs-border-radius-sm);
+    --bs-alert-padding-x: 1.5rem;
+    --bs-alert-padding-y: 1rem;
+    border-radius: var(--bs-alert-border-radius);
+    padding: var(--bs-alert-padding-y) var(--bs-alert-padding-x);
+}
+
+/* Bootstrap 5 Modal Professional */
+.modal-content {
+    --bs-modal-border-radius: var(--bs-border-radius-lg);
+    border-radius: var(--bs-modal-border-radius);
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    --bs-modal-header-padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+    --bs-modal-footer-padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ========================================
+   Scroll to Top Button - Enhanced UX
+   ======================================== */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 0.25rem 1rem rgba(102, 126, 234, 0.4);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-}
-
-@media (max-width: 991.98px) {
-  /* Tablet and below: reduce image height */
-  .product-image-container {
-    min-height: 320px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 576px) {
-  /* Small phones: tighter image area */
-  .product-image-container {
-    min-height: 240px;
-  }
-}
-
-/* Product price sizing */
-.product-price {
-  line-height: 1.2;
-}
-@media (max-width: 768px) {
-  .product-price {
     font-size: 1.25rem;
-  }
 }
 
-/* Quantity input and buttons on mobile */
-.quantity-input {
-  max-width: 140px;
-}
-@media (max-width: 576px) {
-  .quantity-input {
-    max-width: 120px;
-  }
-  .input-group .btn {
-    min-width: 36px;
-  }
+.scroll-to-top.visible {
+    opacity: 1;
+    visibility: visible;
 }
 
-/* CTA button groups: allow wrapping on small screens */
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-}
-.button-group > * {
-  flex: 1 1 48%;
-}
-@media (max-width: 480px) {
-  .button-group > * {
-    flex-basis: 100%;
-  }
+.scroll-to-top:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 0.5rem 1.5rem rgba(102, 126, 234, 0.5);
 }
 
-/* Utility adjustments for cards on very small screens */
-@media (max-width: 480px) {
-  .card-body {
-    padding: 0.75rem;
-  }
-  .card-title {
-    font-size: 0.95rem;
-  }
+.scroll-to-top:active {
+    transform: translateY(-3px) scale(1.05);
+}
+
+@media (max-width: 767.98px) {
+    .scroll-to-top {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+}
+
+/* ========================================
+   Enhanced Link Hover Effects
+   ======================================== */
+a:not(.btn):not(.nav-link):not(.dropdown-item) {
+    position: relative;
+    text-decoration: none;
+}
+
+a:not(.btn):not(.nav-link):not(.dropdown-item)::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background: var(--primary-gradient);
+    transition: width 0.3s ease;
+}
+
+a:not(.btn):not(.nav-link):not(.dropdown-item):hover::after {
+    width: 100%;
+}
+
+/* ========================================
+   Loading Skeleton Animation
+   ======================================== */
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: var(--bs-border-radius-sm);
+}
+
+/* ========================================
+   Enhanced Form Input Focus
+   ======================================== */
+.form-control:focus,
+.form-select:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(102, 126, 234, 0.2) !important;
+}
+
+/* ========================================
+   Image Loading Placeholder
+   ======================================== */
+img {
+    transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"] {
+    opacity: 0;
+}
+
+img[loading="lazy"].loaded {
+    opacity: 1;
+}
+
+img:not(.loaded) {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   Smooth Transitions for All Interactive Elements
+   ======================================== */
+.nav-link,
+.dropdown-item,
+.btn,
+.card,
+.product-card,
+.category-card,
+.badge,
+.alert {
+    will-change: transform;
+}
+
+/* ========================================
+   Enhanced Badge Animation
+   ======================================== */
+.badge {
+    transition: all 0.3s ease;
+}
+
+.badge:hover {
+    transform: scale(1.1);
+}
+
+/* ========================================
+   Pulse Animation for Important Elements
+   ======================================== */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========================================
+   Modern Scrollbar
+   ======================================== */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
 }

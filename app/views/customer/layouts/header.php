@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sivakamy</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 CSS - Latest Stable -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Animate.css -->
@@ -86,15 +86,130 @@
         }
 
         html[data-theme="dark"] .navbar,
+        html[data-theme="dark"] .navbar[style*="background"],
         html[data-theme="dark"] .mobile-top-bar,
+        html[data-theme="dark"] .mobile-top-bar[style*="background"],
         html[data-theme="dark"] .mobile-bottom-nav,
         html[data-theme="dark"] #mobileNavbar,
+        html[data-theme="dark"] #mobileNavbar[style*="background"],
         html[data-theme="dark"] .dropdown-menu,
         html[data-theme="dark"] .card,
         html[data-theme="dark"] .modal-content,
         html[data-theme="dark"] .list-group-item {
             background-color: var(--theme-bg) !important;
+            background: var(--theme-bg) !important;
             color: var(--theme-text) !important;
+        }
+        
+        /* Force navbar border color in dark mode */
+        html[data-theme="dark"] .navbar.border-bottom {
+            border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        html[data-theme="dark"] .mobile-top-bar.border-bottom {
+            border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        /* Ensure mobile bottom nav has dark background */
+        html[data-theme="dark"] .mobile-bottom-nav {
+            background-color: var(--theme-bg) !important;
+            background: var(--theme-bg) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        /* Override any inline background styles in dark mode for header elements */
+        html[data-theme="dark"] nav[style*="background"],
+        html[data-theme="dark"] div[style*="background"].mobile-top-bar,
+        html[data-theme="dark"] div[style*="background"]#mobileNavbar {
+            background-color: var(--theme-bg) !important;
+            background: var(--theme-bg) !important;
+        }
+        
+        /* Ensure body background matches dark theme */
+        html[data-theme="dark"] body {
+            background-color: var(--theme-bg) !important;
+            background: var(--theme-bg) !important;
+        }
+
+        /* Product Cards Dark Theme */
+        html[data-theme="dark"] .product-card,
+        html[data-theme="dark"] .product-card .card-body,
+        html[data-theme="dark"] .product-card .card-title,
+        html[data-theme="dark"] .product-card .product-title,
+        html[data-theme="dark"] .product-card .product-desc,
+        html[data-theme="dark"] .product-card .product-price,
+        html[data-theme="dark"] .product-card .product-meta,
+        html[data-theme="dark"] .product-card .product-meta small {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: var(--theme-text) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        html[data-theme="dark"] .product-card:hover {
+            background-color: rgba(255, 255, 255, 0.12) !important;
+            border-color: var(--theme-primary) !important;
+        }
+
+        /* Category Cards Dark Theme */
+        html[data-theme="dark"] .category-card,
+        html[data-theme="dark"] .category-card .card-body,
+        html[data-theme="dark"] .category-card .category-title {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: var(--theme-text) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        html[data-theme="dark"] .category-card:hover {
+            background-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        /* Product Image Box Dark Theme */
+        html[data-theme="dark"] .product-image-box,
+        html[data-theme="dark"] .category-image-box {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* Sections Background Dark Theme */
+        html[data-theme="dark"] .featured-products,
+        html[data-theme="dark"] .featured-categories,
+        html[data-theme="dark"] .brands-showcase,
+        html[data-theme="dark"] section[data-theme-aware] {
+            background: transparent !important;
+        }
+
+        /* Override inline background styles in dark mode */
+        html[data-theme="dark"] [style*="background"] {
+            background: transparent !important;
+        }
+
+        /* But keep specific overrides for cards */
+        html[data-theme="dark"] .product-card[style*="background"],
+        html[data-theme="dark"] .category-card[style*="background"] {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* All text elements in dark mode */
+        html[data-theme="dark"] h1,
+        html[data-theme="dark"] h2,
+        html[data-theme="dark"] h3,
+        html[data-theme="dark"] h4,
+        html[data-theme="dark"] h5,
+        html[data-theme="dark"] h6,
+        html[data-theme="dark"] p,
+        html[data-theme="dark"] span,
+        html[data-theme="dark"] div,
+        html[data-theme="dark"] .section-title {
+            color: var(--theme-text) !important;
+        }
+
+        /* Links in dark mode */
+        html[data-theme="dark"] a:not(.btn) {
+            color: var(--theme-primary) !important;
+        }
+
+        html[data-theme="dark"] a:not(.btn):hover {
+            color: var(--theme-secondary) !important;
         }
 
         html[data-theme="dark"] .nav-link,
@@ -799,6 +914,31 @@
                 root.setAttribute('data-theme', mode);
                 try { localStorage.setItem('theme_mode', mode); } catch (e) {}
                 setIcon(mode);
+                
+                // Force update navbar backgrounds for dark theme
+                const navbarElements = document.querySelectorAll('.navbar, .mobile-top-bar, #mobileNavbar, .mobile-bottom-nav');
+                navbarElements.forEach(element => {
+                    if (mode === 'dark') {
+                        // Remove inline background style to let CSS dark mode rules take over
+                        element.style.removeProperty('background');
+                        element.style.removeProperty('background-color');
+                    } else {
+                        // Restore light theme background if needed
+                        const bgColor = '<?php echo htmlspecialchars($headerBgColor); ?>';
+                        if (bgColor && element.classList.contains('navbar')) {
+                            element.style.background = bgColor;
+                            element.style.backgroundColor = bgColor;
+                        }
+                    }
+                });
+                
+                // Force update all cards and sections for dark theme
+                if (mode === 'dark') {
+                    document.querySelectorAll('.product-card, .category-card, .card').forEach(card => {
+                        card.style.backgroundColor = '';
+                        card.style.color = '';
+                    });
+                }
             }
 
             setIcon(root.getAttribute('data-theme'));

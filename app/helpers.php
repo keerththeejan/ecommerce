@@ -240,6 +240,10 @@ function calculateDiscountPercentage($original, $discounted) {
  * @return string
  */
 function truncateText($text, $length = 100) {
+    // Handle null, empty, or non-string values
+    if(empty($text) || !is_string($text)) {
+        return '';
+    }
     if(strlen($text) > $length) {
         return substr($text, 0, $length) . '...';
     }
