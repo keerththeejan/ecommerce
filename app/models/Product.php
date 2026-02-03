@@ -422,31 +422,45 @@ class Product extends Model {
      * @return array
      */
     public function getProductsByCategory($categoryId) {
+        $categoryId = (int) $categoryId;
+        return $this->getProductsByCategoryIds([$categoryId]);
+    }
+
+    /**
+     * Get products by category IDs (e.g. main category + subcategories)
+     *
+     * @param int[] $categoryIds Category IDs
+     * @return array
+     */
+    public function getProductsByCategoryIds(array $categoryIds) {
         // Check if tables exist
         if(!$this->db->tableExists($this->table) || !$this->db->tableExists('categories')) {
             return [];
         }
-        
+        $categoryIds = array_values(array_unique(array_map('intval', array_filter($categoryIds))));
+        if (empty($categoryIds)) {
+            return [];
+        }
+        $placeholders = [];
+        foreach ($categoryIds as $i => $id) {
+            $placeholders[] = ':cat_' . $i;
+        }
+        $inList = implode(',', $placeholders);
         $sql = "SELECT p.*, c.name as category_name 
                 FROM {$this->table} p
                 LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.category_id = :category_id AND p.status = :status";
-                
+                WHERE p.category_id IN ({$inList}) AND p.status = 'active'
+                ORDER BY p.name ASC";
         if(!$this->db->query($sql)) {
             $this->lastError = $this->db->getError();
             return [];
         }
-        
-        if(!$this->db->bind(':category_id', $categoryId)) {
-            $this->lastError = $this->db->getError();
-            return [];
+        foreach ($categoryIds as $i => $id) {
+            if(!$this->db->bind(':cat_' . $i, $id, \PDO::PARAM_INT)) {
+                $this->lastError = $this->db->getError();
+                return [];
+            }
         }
-        
-        if(!$this->db->bind(':status', 'active')) {
-            $this->lastError = $this->db->getError();
-            return [];
-        }
-        
         return $this->db->resultSet();
     }
     

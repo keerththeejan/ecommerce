@@ -26,29 +26,49 @@ class CategoryController extends Controller {
     /**
      * Display category details
      * 
-     * @param int $id Category ID
+     * @param int|string $id Category ID (from param= in URL)
      */
     public function show($id = null) {
-        // Check if ID is provided
-        if(!$id) {
+        // Check if ID is provided (from ?param= or router)
+        if ($id === null || $id === '') {
             redirect('categories');
         }
-        
+        $categoryId = (int) $id;
+        if ($categoryId <= 0) {
+            redirect('categories');
+        }
+
         // Get category
-        $category = $this->categoryModel->getCategoryWithParent($id);
-        
-        // Check if category exists
-        if(!$category) {
+        $category = $this->categoryModel->getCategoryWithParent($categoryId);
+        if (!$category) {
             redirect('categories');
         }
-        
+        // Ensure array for view
+        if (is_object($category)) {
+            $category = (array) $category;
+        }
+
         // Get subcategories
-        $subcategories = $this->categoryModel->getSubcategories($id);
-        
+        $subcategories = $this->categoryModel->getSubcategories($categoryId);
+
+        // Build list of category IDs: this category + all subcategories (filter products by category only)
+        $subcategoryIds = [];
+        foreach ($subcategories as $sub) {
+            $subId = is_array($sub) ? ($sub['id'] ?? null) : (isset($sub->id) ? $sub->id : null);
+            if ($subId !== null && $subId !== '') {
+                $subcategoryIds[] = (int) $subId;
+            }
+        }
+        $categoryIds = array_merge([$categoryId], $subcategoryIds);
+
+        $productModel = $this->model('Product');
+        $products = $productModel->getProductsByCategoryIds($categoryIds);
+
         // Load view
         $this->view('customer/categories/show', [
             'category' => $category,
-            'subcategories' => $subcategories
+            'subcategories' => $subcategories,
+            'products' => $products
         ]);
     }
     

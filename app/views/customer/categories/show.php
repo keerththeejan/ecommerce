@@ -5,32 +5,9 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>">Home</a></li>
-            <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>?controller=category&action=index">Categories</a></li>
-            <?php if(!empty($category['parent_name'])) : ?>
-                <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['parent_id']; ?>"><?php echo $category['parent_name']; ?></a></li>
-            <?php endif; ?>
-            <li class="breadcrumb-item active" aria-current="page"><?php echo $category['name']; ?></li>
+            <li class="breadcrumb-item active" aria-current="page"><a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="text-decoration-none">Categories</a></li>
         </ol>
     </nav>
-
-    <!-- Category Header -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h1 class="mb-0"><?php echo $category['name']; ?></h1>
-                        <?php if(!empty($category['parent_name'])) : ?>
-                            <span class="badge bg-secondary">Parent: <?php echo $category['parent_name']; ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <?php if(!empty($category['description'])) : ?>
-                        <p class="mt-3 mb-0"><?php echo $category['description']; ?></p>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Subcategories -->
     <?php if(!empty($subcategories)) : ?>
@@ -60,16 +37,13 @@
         </div>
     <?php endif; ?>
 
-    <!-- Products in this category -->
+    <!-- Products in this category (and subcategories); filtered by category only -->
     <div class="row">
         <div class="col-md-12">
-            <h2 class="mb-4">Products in <?php echo $category['name']; ?></h2>
+            <h2 class="mb-4">Products</h2>
             
             <?php 
-            // Get products in this category
-            $productModel = new Product();
-            $products = $productModel->getProductsByCategory($category['id']);
-            
+            // $products passed from CategoryController::show (filtered by this category + subcategories)
             if(!empty($products)) : 
             ?>
                 <div class="row row-cols-1 row-cols-md-4 g-4">

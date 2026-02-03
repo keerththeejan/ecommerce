@@ -1,15 +1,11 @@
 RewriteEngine On
 RewriteBase /ecommerce/
 
-# If the request is for the root with query parameters
-RewriteCond %{QUERY_STRING} ^controller=([^&]+)&action=([^&]+)
-RewriteRule ^$ public/index.php?controller=%1&action=%2 [L,QSA]
-
 # Redirect to public directory if not already there
 RewriteCond %{REQUEST_URI} !^/ecommerce/public/
-RewriteRule ^(.*)$ public/$1 [L,QSA]
+RewriteRule ^(.*)$ public/$1 [L]
 
-# Handle Front Controller...
-RewriteCond %{REQUEST_FILENAME} !-d
+# Pass through any existing files or directories
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ public/index.php?url=$1 [L,QSA]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
