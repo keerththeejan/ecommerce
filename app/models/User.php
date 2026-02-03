@@ -476,12 +476,21 @@ class User extends Model {
      * @return bool
      */
     public function updateActivity($userId, $ipAddress, $userAgent = '') {
-        $data = [
-            'last_activity' => date('Y-m-d H:i:s'),
-            'ip_address' => $ipAddress,
-            'user_agent' => $userAgent
-        ];
-        
+        $data = [];
+        if ($this->db && method_exists($this->db, 'columnExists')) {
+            if ($this->db->columnExists($this->table, 'last_activity')) {
+                $data['last_activity'] = date('Y-m-d H:i:s');
+            }
+            if ($this->db->columnExists($this->table, 'ip_address')) {
+                $data['ip_address'] = $ipAddress;
+            }
+            if ($this->db->columnExists($this->table, 'user_agent')) {
+                $data['user_agent'] = $userAgent;
+            }
+        }
+        if (empty($data)) {
+            return true;
+        }
         return $this->update($userId, $data);
     }
     
