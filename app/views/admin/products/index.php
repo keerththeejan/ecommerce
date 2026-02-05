@@ -1,94 +1,213 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
 <style>
-/* Admin products table responsive tweaks */
-.products-table .admin-product-img { width: 50px; height: auto; object-fit: contain; }
+/* Summary cards: always light background + dark text (readable in light and dark admin theme) */
+.admin-summary-card {
+    background: #fff !important;
+    border: 1px solid rgba(0,0,0,.1) !important;
+}
+.admin-summary-card .card-body {
+    background: #fff !important;
+    color: #212529 !important;
+}
+.admin-summary-card.admin-summary-products {
+    border-left: 4px solid #0d6efd !important;
+}
+.admin-summary-card.admin-summary-stock {
+    border-left: 4px solid #198754 !important;
+}
+.admin-summary-card .admin-summary-title,
+.admin-summary-card .admin-summary-label {
+    color: #212529 !important;
+}
+.admin-summary-card .admin-summary-title {
+    opacity: 1;
+}
+.admin-summary-card.admin-summary-products .h4.text-primary {
+    color: #0d6efd !important;
+}
+.admin-summary-card.admin-summary-stock .h4.text-success,
+.admin-summary-card.admin-summary-stock .h6.text-success {
+    color: #198754 !important;
+}
+/* Override dark theme so summary cards stay light with dark text */
+[data-theme="dark"] .admin-summary-card,
+[data-theme="dark"] .admin-summary-card .card-body {
+    background: #f8f9fa !important;
+    border-color: rgba(0,0,0,.15) !important;
+    color: #212529 !important;
+}
+[data-theme="dark"] .admin-summary-card .admin-summary-title,
+[data-theme="dark"] .admin-summary-card .admin-summary-label,
+[data-theme="dark"] .admin-summary-card .card-body,
+[data-theme="dark"] .admin-summary-card .card-body p,
+[data-theme="dark"] .admin-summary-card .card-body span {
+    color: #212529 !important;
+}
+[data-theme="dark"] .admin-summary-card.admin-summary-products .h4.text-primary {
+    color: #0d6efd !important;
+}
+[data-theme="dark"] .admin-summary-card.admin-summary-stock .h4.text-success,
+[data-theme="dark"] .admin-summary-card.admin-summary-stock .h6.text-success {
+    color: #198754 !important;
+}
 
-@media (max-width: 576px) {
-  /* Card-like rows on mobile */
+/* Admin products – responsive & trending */
+.products-table .admin-product-img { width: 50px; height: auto; object-fit: contain; border-radius: 8px; }
+
+.products-table-scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
+}
+.products-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
+.products-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.75rem;
+  background: var(--bs-body-bg, #fff);
+  color: var(--bs-body-color, #212529);
+  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+}
+.products-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
+
+/* Responsive height */
+@media (max-width: 575.98px) {
+  .products-table-scroll { max-height: 55vh; }
+}
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .products-table-scroll { max-height: 60vh; }
+}
+@media (min-width: 992px) {
+  .products-table-scroll { max-height: 70vh; }
+}
+
+/* Tablet: hide less critical columns to reduce scroll */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  #productsTable th:nth-child(5),
+  #productsTable th:nth-child(6),
+  #productsTable td:nth-child(5),
+  #productsTable td:nth-child(6) { display: none !important; }
+  #productsTable th:nth-child(9),
+  #productsTable th:nth-child(10),
+  #productsTable td:nth-child(9),
+  #productsTable td:nth-child(10) { display: none !important; }
+}
+
+/* Mobile: card-style rows */
+@media (max-width: 575.98px) {
   #productsTable thead { display: none; }
-  #productsTable tbody tr { display: block; margin-bottom: 12px; border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden; background: #fff; }
-  #productsTable tbody td { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f1f3f5; }
+  #productsTable tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bs-body-bg, #fff);
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  #productsTable tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
   #productsTable tbody td:last-child { border-bottom: 0; }
-  #productsTable tbody td::before { content: attr(data-label); font-weight: 600; color: #6c757d; margin-right: 10px; }
-
-  /* Image row: show full image on top */
+  #productsTable tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--bs-secondary, #6c757d);
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
   #productsTable tbody td[data-label="Image"] { display: block; padding: 0; }
   #productsTable tbody td[data-label="Image"]::before { content: none; }
-  #productsTable tbody td[data-label="Image"] img.admin-product-img { width: 100% !important; height: auto !important; display: block; border-radius: 0; border: 0; }
+  #productsTable tbody td[data-label="Image"] img.admin-product-img {
+    width: 100% !important;
+    max-height: 180px;
+    object-fit: contain;
+    display: block;
+    border-radius: 0;
+  }
+  #productsTable tbody td[data-label="Actions"] { flex-wrap: wrap; gap: 0.25rem; }
+  #productsTable tbody td[data-label="Actions"] .btn-group { width: 100%; justify-content: flex-end; }
 }
+
+/* Pagination responsive */
+.products-table-scroll + .mt-3 .pagination { flex-wrap: wrap; gap: 0.25rem; }
+.products-table-scroll + .mt-3 .pagination .page-link { padding: 0.4rem 0.6rem; font-size: 0.875rem; }
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid px-2 px-sm-3">
     <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">Products</h3>
-                    <div>
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light">
+        <div class="col-12">
+            <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
+                <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 py-3">
+                    <h3 class="card-title mb-0 h5 mb-0">Products</h3>
+                    <div class="d-flex justify-content-end">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
                             <i class="fas fa-plus me-1"></i> Add New Product
                         </a>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card border-primary">
-                                <div class="card-body">
-                                    <h5 class="card-title">Products Summary</h5>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-0">Total Products</h6>
-                                            <p class="h3 mb-0">
-                                                <?php 
-                                                $totalProducts = 0;
-                                                if (isset($products['total_records'])) {
-                                                    $totalProducts = $products['total_records'];
-                                                } elseif (isset($products['total'])) {
-                                                    $totalProducts = $products['total'];
-                                                } elseif (isset($products['data']) && is_array($products['data'])) {
-                                                    $totalProducts = count($products['data']);
-                                                }
-                                                echo number_format($totalProducts);
-                                                ?>
-                                            </p>
-                                        </div>
-                                        <i class="fas fa-boxes fa-3x text-primary"></i>
+                <div class="card-body p-3 p-md-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 admin-summary-card admin-summary-products">
+                                <div class="card-body py-3 py-md-4 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1 small text-uppercase fw-semibold admin-summary-title">Products Summary</h6>
+                                        <p class="h4 mb-0 fw-bold text-primary">
+                                            <?php 
+                                            $totalProducts = 0;
+                                            if (isset($products['total_records'])) {
+                                                $totalProducts = $products['total_records'];
+                                            } elseif (isset($products['total'])) {
+                                                $totalProducts = $products['total'];
+                                            } elseif (isset($products['data']) && is_array($products['data'])) {
+                                                $totalProducts = count($products['data']);
+                                            }
+                                            echo number_format($totalProducts);
+                                            ?>
+                                        </p>
+                                        <span class="small admin-summary-label">Total Products</span>
                                     </div>
+                                    <i class="fas fa-boxes fa-2x text-primary opacity-75"></i>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card border-success">
-                                <div class="card-body">
-                                    <h5 class="card-title">Stock Summary</h5>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-0">Total Stock Quantity</h6>
-                                            <p class="h3 mb-0">
-                                                <?php 
-                                                $totalStock = 0;
-                                                $totalStockValue = 0;
-                                                
-                                                if (isset($products['data']) && is_array($products['data'])) {
-                                                    foreach ($products['data'] as $product) {
-                                                        $quantity = (int)($product['stock_quantity'] ?? 0);
-                                                        $price = (float)($product['price'] ?? 0);
-                                                        $totalStock += $quantity;
-                                                        $totalStockValue += ($quantity * $price);
-                                                    }
+                        <div class="col-12 col-md-6">
+                            <div class="card border-0 rounded-3 shadow-sm h-100 admin-summary-card admin-summary-stock">
+                                <div class="card-body py-3 py-md-4 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1 small text-uppercase fw-semibold admin-summary-title">Stock Summary</h6>
+                                        <p class="h4 mb-0 fw-bold text-success">
+                                            <?php 
+                                            $totalStock = 0;
+                                            $totalStockValue = 0;
+                                            if (isset($products['data']) && is_array($products['data'])) {
+                                                foreach ($products['data'] as $product) {
+                                                    $quantity = (int)($product['stock_quantity'] ?? 0);
+                                                    $price = (float)($product['price'] ?? 0);
+                                                    $totalStock += $quantity;
+                                                    $totalStockValue += ($quantity * $price);
                                                 }
-                                                echo number_format($totalStock);
-                                                ?>
-                                            </p>
-                                            <h6 class="mb-0 mt-2">Total Stock Value</h6>
-                                            <p class="h4 mb-0 text-success fw-bold">
-                                                <?php echo formatPrice($totalStockValue); ?>
-                                            </p>
-                                        </div>
-                                        <i class="fas fa-money-bill-wave fa-3x text-success"></i>
+                                            }
+                                            echo number_format($totalStock);
+                                            ?>
+                                        </p>
+                                        <span class="small admin-summary-label">Total Stock</span>
+                                        <p class="h6 mb-0 mt-1 fw-bold text-success"><?php echo formatPrice($totalStockValue); ?></p>
                                     </div>
+                                    <i class="fas fa-money-bill-wave fa-2x text-success opacity-75"></i>
                                 </div>
                             </div>
                         </div>
@@ -102,11 +221,11 @@
                     <?php if(empty($products['data'])): ?>
                         <div class="alert alert-info">No products found.</div>
                     <?php else: ?>
-                        <div class="table-responsive">
+                        <div class="products-table-scroll table-responsive">
                             <table id="productsTable" class="table table-striped table-hover products-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>#</th>
                                         <th>Image</th>
                                         <th>Name</th>
                                         <th>SKU</th>
@@ -124,9 +243,14 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach($products['data'] as $product): ?>
+                                    <?php 
+                                    $page = isset($products['current_page']) ? (int)$products['current_page'] : 1;
+                                    $perPage = isset($products['per_page']) ? (int)$products['per_page'] : 15;
+                                    foreach($products['data'] as $idx => $product): 
+                                        $rowNum = ($page - 1) * $perPage + $idx + 1;
+                                    ?>
                                         <tr id="product-row-<?php echo $product['id']; ?>">
-                                            <td data-label="ID"><?php echo $product['id']; ?></td>
+                                            <td data-label="#"><?php echo $rowNum; ?></td>
                                             <td data-label="Image">
                                                 <?php if(!empty($product['image'])): ?>
                                                     <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-thumbnail admin-product-img">
@@ -232,10 +356,27 @@
                             </table>
                         </div>
                         
-                        <!-- Pagination -->
-                        <div class="mt-3">
-                            <?php echo getPaginationLinks($products['current_page'], $products['total_pages'], BASE_URL . '?controller=product&action=adminIndex'); ?>
+                        <!-- Show per page: 20 / 50 / 100 / All -->
+                        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                            <label for="perPageFilter" class="form-label mb-0 small text-muted">Show:</label>
+                            <select id="perPageFilter" class="form-select form-select-sm" style="width: auto;">
+                                <?php 
+                                $currentPerPage = $products['per_page_param'] ?? '20';
+                                $baseUrl = BASE_URL . '?controller=product&action=adminIndex';
+                                foreach (['20', '50', '100', 'all'] as $opt): 
+                                    $sel = ($currentPerPage === $opt) ? ' selected' : '';
+                                    $url = $baseUrl . '&per_page=' . $opt;
+                                ?>
+                                    <option value="<?php echo htmlspecialchars($url); ?>"<?php echo $sel; ?>><?php echo $opt === 'all' ? 'All' : $opt; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <span class="small text-muted">(<?php echo count($products['data']); ?> shown)</span>
                         </div>
+                        <script>
+                        document.getElementById('perPageFilter').addEventListener('change', function() {
+                            window.location.href = this.value;
+                        });
+                        </script>
                     <?php endif; ?>
                 </div>
             </div>

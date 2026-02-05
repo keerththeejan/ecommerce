@@ -1,44 +1,86 @@
-<?php 
-require_once APP_PATH . 'views/admin/layouts/header.php'; 
+<?php
+$suppliers = $suppliers ?? [];
+require_once APP_PATH . 'views/admin/layouts/header.php';
 ?>
 <style>
-    /* Ensure consistent sidebar behavior */
-    #supplierSidebar {
-        transition: all 0.3s ease;
-    }
-    @media (max-width: 767.98px) {
-        #supplierSidebar {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            height: 100%;
-            z-index: 1040;
-            overflow-y: auto;
-        }
-        #supplierSidebar.show {
-            right: 0;
-        }
-        .sidebar-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1039;
-            display: none;
-        }
-    }
+/* Suppliers admin – trending responsive */
+.suppliers-admin .card-body { padding: 1rem; }
+@media (min-width: 768px) { .suppliers-admin .card-body { padding: 1.25rem; } }
+.suppliers-table-scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
+}
+.suppliers-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
+.suppliers-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.75rem;
+  background: var(--bs-body-bg, #fff);
+  color: var(--bs-body-color, #212529);
+  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+}
+.suppliers-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
+@media (max-width: 575.98px) { .suppliers-table-scroll { max-height: 55vh; } }
+@media (min-width: 576px) and (max-width: 991.98px) { .suppliers-table-scroll { max-height: 60vh; } }
+@media (min-width: 992px) { .suppliers-table-scroll { max-height: 70vh; } }
+@media (min-width: 576px) and (max-width: 991.98px) {
+  #suppliersTable th:nth-child(4), #suppliersTable td:nth-child(4),
+  #suppliersTable th:nth-child(5), #suppliersTable td:nth-child(5) { display: none !important; }
+}
+@media (max-width: 575.98px) {
+  #suppliersTable thead { display: none; }
+  #suppliersTable tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bs-body-bg, #fff);
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  #suppliersTable tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+  #suppliersTable tbody td:last-child { border-bottom: 0; }
+  #suppliersTable tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--bs-secondary, #6c757d);
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  #suppliersTable tbody td[data-label="Actions"] { flex-wrap: wrap; gap: 0.25rem; }
+  #suppliersTable tbody td[data-label="Actions"] .supplier-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  #suppliersTable tbody tr[onclick] { cursor: pointer; }
+}
+#supplierSidebar { transition: all 0.3s ease; }
+@media (max-width: 767.98px) {
+  #supplierSidebar { position: fixed; top: 0; right: -100%; height: 100%; z-index: 1040; overflow-y: auto; }
+  #supplierSidebar.show { right: 0; }
+  .sidebar-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1039; display: none; }
+}
 </style>
 <div class="sidebar-backdrop d-md-none" id="sidebarBackdrop"></div>
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid py-3 py-md-4 px-2 px-sm-3 suppliers-admin">
+    <div class="row g-3">
         <!-- Main Content -->
-        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Manage Suppliers</h1>
-                <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+        <div class="col-12 col-lg-9">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mb-3">
+                <h1 class="h3 mb-0">Manage Suppliers</h1>
+                <div class="d-flex flex-wrap gap-2">
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-arrow-left me-1"></i> Back to Product
                     </a>
@@ -48,83 +90,52 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                 </div>
             </div>
 
-            <!-- Suppliers Table -->
-            <div class="card">
-                <div class="card-body">
+            <div class="card shadow-sm rounded-3 border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">All Suppliers</h5>
+                </div>
+                <div class="card-body p-0 p-md-3">
                     <?php flash('supplier_success'); ?>
                     <?php flash('supplier_error'); ?>
-                    
-                    <style>
-                      /* Mobile responsive table for suppliers */
-                      @media (max-width: 576.98px) {
-                        table.responsive-table thead { display: none; }
-                        table.responsive-table,
-                        table.responsive-table tbody,
-                        table.responsive-table tr,
-                        table.responsive-table td { display: block; width: 100%; }
-                        table.responsive-table tr {
-                          margin-bottom: 1rem;
-                          border: 1px solid rgba(0,0,0,.075);
-                          border-radius: .5rem;
-                          overflow: hidden;
-                          background: var(--bg-color, #fff);
-                        }
-                        table.responsive-table td {
-                          padding: .5rem .75rem;
-                          border: none;
-                          border-bottom: 1px solid rgba(0,0,0,.05);
-                        }
-                        table.responsive-table td:last-child { border-bottom: 0; }
-                        table.responsive-table td::before {
-                          content: attr(data-label);
-                          font-weight: 600;
-                          display: block;
-                          margin-bottom: .25rem;
-                          opacity: .8;
-                        }
-                        .supplier-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
-                      }
-                    </style>
 
-                    <div class="table-responsive">
-                        <table id="suppliersTable" class="table table-striped table-hover">
-                            <thead>
+                    <div class="suppliers-table-scroll table-responsive">
+                        <table id="suppliersTable" class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
+                                    <th style="width: 60px;">#</th>
                                     <th>Supplier Name</th>
-                                    <th>Product Name</th>
+                                    <th>Product</th>
                                     <th>Email</th>
                                     <th>Phone</th>
-                                    <th>Actions</th>
+                                    <th style="width: 160px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if (!empty($data['suppliers'])): ?>
-                                    <?php foreach ($data['suppliers'] as $supplier): ?>
+                                <?php if (!empty($suppliers)): ?>
+                                    <?php foreach ($suppliers as $idx => $supplier): $rowNum = $idx + 1; ?>
                                         <tr style="cursor: pointer;" onclick="loadSupplierDetails('<?php echo BASE_URL; ?>?controller=supplier&action=details&id=<?php echo $supplier['id']; ?>')">
-                                            <td data-label="ID"><?php echo $supplier['id']; ?></td>
-                                            <td data-label="Supplier Name"><?php echo htmlspecialchars($supplier['name']); ?></td>
-                                            <td data-label="Product Name"><?php echo !empty($supplier['product_name']) ? htmlspecialchars($supplier['product_name']) : '-'; ?></td>
-                                            <td data-label="Email"><?php echo $supplier['email'] ? htmlspecialchars($supplier['email']) : '-'; ?></td>
-                                            <td data-label="Phone"><?php echo $supplier['phone'] ? htmlspecialchars($supplier['phone']) : '-'; ?></td>
-                                            <td data-label="Actions">
-                                                <div class="btn-group btn-group-sm supplier-actions" role="group" aria-label="Supplier Actions" onclick="event.stopPropagation();">
-                                                    <button type="button" 
-                                                            class="btn btn-outline-primary edit-supplier" 
+                                            <td data-label="#"><?php echo $rowNum; ?></td>
+                                            <td data-label="Supplier Name"><?php echo htmlspecialchars($supplier['name'] ?? ''); ?></td>
+                                            <td data-label="Product"><?php echo !empty($supplier['product_name']) ? htmlspecialchars($supplier['product_name']) : '—'; ?></td>
+                                            <td data-label="Email"><?php echo !empty($supplier['email']) ? htmlspecialchars($supplier['email']) : '—'; ?></td>
+                                            <td data-label="Phone"><?php echo !empty($supplier['phone']) ? htmlspecialchars($supplier['phone']) : '—'; ?></td>
+                                            <td data-label="Actions" onclick="event.stopPropagation();">
+                                                <div class="btn-group btn-group-sm supplier-actions" role="group" aria-label="Supplier Actions">
+                                                    <button type="button" class="btn btn-outline-primary edit-supplier"
                                                             data-id="<?php echo $supplier['id']; ?>"
-                                                            data-name="<?php echo htmlspecialchars($supplier['name']); ?>"
+                                                            data-name="<?php echo htmlspecialchars($supplier['name'] ?? ''); ?>"
                                                             data-product_name="<?php echo htmlspecialchars($supplier['product_name'] ?? ''); ?>"
                                                             data-email="<?php echo htmlspecialchars($supplier['email'] ?? ''); ?>"
                                                             data-phone="<?php echo htmlspecialchars($supplier['phone'] ?? ''); ?>"
                                                             data-address="<?php echo htmlspecialchars($supplier['address'] ?? ''); ?>"
                                                             onclick="handleEditClick(event); return false;">
-                                                        <i class="fas fa-edit"></i> Edit
+                                                        <i class="fas fa-edit"></i> <span class="d-none d-sm-inline">Edit</span>
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-danger delete-supplier" 
+                                                    <button type="button" class="btn btn-outline-danger delete-supplier"
                                                             data-id="<?php echo $supplier['id']; ?>"
-                                                            data-name="<?php echo htmlspecialchars($supplier['name']); ?>"
+                                                            data-name="<?php echo htmlspecialchars($supplier['name'] ?? ''); ?>"
                                                             onclick="handleDeleteClick(event); return false;">
-                                                        <i class="fas fa-trash"></i> <span class="button-text">Delete</span>
+                                                        <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete</span>
                                                     </button>
                                                 </div>
                                             </td>
@@ -132,7 +143,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="6" class="text-center">No suppliers found</td>
+                                        <td colspan="6" class="text-center py-4">No suppliers found.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -141,17 +152,17 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                 </div>
             </div>
         </div>
-        
+
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" id="supplierSidebar">
-            <div class="position-sticky pt-3">
-                <div class="text-center mb-4">
-                    <h5>Suppliers Details</h5>
-                </div>
-                <div id="supplierDetails">
-                    <div class="text-center text-muted">
-                        <i class="fas fa-truck fa-4x mb-3"></i>
-                        <p>Select a supplier to view details</p>
+        <div class="col-12 col-lg-3">
+            <div class="card shadow-sm bg-light border-0 position-sticky pt-3" id="supplierSidebar">
+                <div class="card-body">
+                    <h5 class="text-center mb-3">Supplier Details</h5>
+                    <div id="supplierDetails">
+                        <div class="text-center text-muted small">
+                            <i class="fas fa-truck fa-3x mb-2"></i>
+                            <p class="mb-0">Select a supplier to view details</p>
+                        </div>
                     </div>
                 </div>
             </div>

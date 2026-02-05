@@ -186,7 +186,7 @@ class SettingController extends Controller {
                     $data['site_logo'] = $upload['file_name'];
                 } else {
                     flash('setting_error', 'Logo upload failed: ' . $upload['error'], 'alert alert-danger');
-                    redirect('setting/index');
+                    $this->redirect(BASE_URL . '?controller=setting&action=index');
                     return;
                 }
             } else {
@@ -430,17 +430,28 @@ class SettingController extends Controller {
                     exit();
                 }
             } else {
-                // Load view with errors
+                // Load view with errors (include taxSettings so all tabs render)
                 $this->view('admin/settings/index', [
                     'errors' => $errors,
                     'generalSettings' => $data,
                     'storeSettings' => $this->settingModel->getSettingsByGroup('store'),
                     'paymentSettings' => $this->settingModel->getSettingsByGroup('payment'),
-                    'emailSettings' => $this->settingModel->getSettingsByGroup('email')
+                    'emailSettings' => $this->settingModel->getSettingsByGroup('email'),
+                    'taxSettings' => [
+                        'tax1_rate' => $this->settingModel->getSetting('tax1_rate', '0'),
+                        'tax1_name' => $this->settingModel->getSetting('tax1_name', 'Tax 1'),
+                        'tax2_rate' => $this->settingModel->getSetting('tax2_rate', '0'),
+                        'tax2_name' => $this->settingModel->getSetting('tax2_name', 'Tax 2'),
+                        'tax3_rate' => $this->settingModel->getSetting('tax3_rate', '0'),
+                        'tax3_name' => $this->settingModel->getSetting('tax3_name', 'Tax 3'),
+                        'tax4_rate' => $this->settingModel->getSetting('tax4_rate', '0'),
+                        'tax4_name' => $this->settingModel->getSetting('tax4_name', 'Tax 4'),
+                        'tax_inclusive' => $this->settingModel->getSetting('tax_inclusive', '0')
+                    ]
                 ]);
             }
         } else {
-            redirect('setting/index');
+            $this->redirect(BASE_URL . '?controller=setting&action=index');
         }
     }
     
@@ -510,7 +521,7 @@ class SettingController extends Controller {
                 ]);
             }
         } else {
-            redirect('setting/index');
+            $this->redirect(BASE_URL . '?controller=setting&action=index');
         }
     }
     
@@ -554,7 +565,7 @@ class SettingController extends Controller {
                     flash('setting_error', 'Failed to update settings: ' . $this->settingModel->getLastError(), 'alert alert-danger');
                 }
                 
-                redirect('setting/index');
+                $this->redirect(BASE_URL . '?controller=setting&action=index');
             } else {
                 // Load view with errors
                 $this->view('admin/settings/index', [
@@ -566,7 +577,7 @@ class SettingController extends Controller {
                 ]);
             }
         } else {
-            redirect('setting/index');
+            $this->redirect(BASE_URL . '?controller=setting&action=index');
         }
     }
     
@@ -645,7 +656,7 @@ class SettingController extends Controller {
                 ]);
             }
         } else {
-            redirect('setting/index');
+            $this->redirect(BASE_URL . '?controller=setting&action=index');
         }
     }
     
@@ -701,7 +712,7 @@ class SettingController extends Controller {
                     flash('setting_error', 'Failed to update settings: ' . $this->settingModel->getLastError(), 'alert alert-danger');
                 }
                 
-                redirect('setting/index');
+                $this->redirect(BASE_URL . '?controller=setting&action=index');
             } else {
                 // Load view with errors
                 $this->view('admin/settings/index', [
@@ -713,7 +724,7 @@ class SettingController extends Controller {
                 ]);
             }
         } else {
-            redirect('setting/index');
+            $this->redirect(BASE_URL . '?controller=setting&action=index');
         }
     }
 }

@@ -486,6 +486,31 @@ class Product extends Model {
         $this->db->bind(':status', 'active');
         return $this->db->resultSet();
     }
+
+    /**
+     * Soft delete product: keep row (ID) for orders, clear image path, set inactive.
+     * Caller should delete the image file from disk before or after.
+     *
+     * @param int $id Product ID
+     * @return bool
+     */
+    public function softDelete($id) {
+        if (!$this->getById($id)) {
+            $this->lastError = "Product with ID {$id} not found";
+            return false;
+        }
+        $sql = "UPDATE {$this->table} SET status = 'inactive', image = NULL WHERE {$this->primaryKey} = :id";
+        if (!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        $this->db->bind(':id', (int) $id);
+        if (!$this->db->execute()) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+        return true;
+    }
     
     /**
      * Get product with category

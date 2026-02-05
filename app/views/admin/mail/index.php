@@ -1,6 +1,6 @@
-<?php require APP_PATH . 'views/admin/layouts/header.php'; ?>
+<?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
-<div class="container-fluid">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Mail</h1>
         <div>
@@ -23,10 +23,18 @@
         </div>
     <?php endif; ?>
 
-    <?php 
+    <?php
         $fromPos = isset($_GET['from']) && $_GET['from'] === 'pos';
-        $prefill = isset($prefill) && is_array($prefill) ? $prefill : ['email'=>'','subject'=>'','message'=>''];
+        $prefill = isset($prefill) && is_array($prefill) ? $prefill : ['email'=>'','subject'=>'','message'=>'','from_email'=>'','from_name'=>'Store'];
+        $mailNotConfigured = empty($prefill['from_email']);
     ?>
+    <?php if ($mailNotConfigured): ?>
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            To send email, set <code>MAIL_FROM_ADDRESS</code>, <code>SMTP_USERNAME</code>, and <code>SMTP_PASSWORD</code> in <code>config/config.php</code>.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
     
 
@@ -143,4 +151,4 @@
     </div>
 </div>
 
-<?php require APP_PATH . 'views/admin/layouts/footer.php'; ?>
+<?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

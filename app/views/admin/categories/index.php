@@ -1,6 +1,27 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
 <style>
+    /* Inside scrollbar: table scrolls within this container */
+    .categories-table-scroll {
+        max-height: 65vh;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,.08);
+    }
+    .categories-table-scroll .table { margin-bottom: 0; }
+    .categories-table-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--bs-body-bg, #fff);
+        color: var(--bs-body-color, #212529);
+        box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+        padding: 0.75rem;
+    }
+    @media (max-width: 575.98px) {
+        .categories-table-scroll { max-height: 55vh; }
+    }
     /* Responsive tweaks for header action buttons */
     @media (max-width: 576px) {
         .card-header {
@@ -115,11 +136,11 @@
                     <?php if(empty($categories['data'])): ?>
                         <div class="alert alert-info">No categories found.</div>
                     <?php else: ?>
-                        <div class="table-responsive">
+                        <div class="categories-table-scroll table-responsive">
                             <table id="categoriesTable" class="table table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>#</th>
                                         <th>Image</th>
                                         <th>Name</th>
                                         <th>Parent</th>
@@ -129,9 +150,14 @@
                                     </tr>
                                 </thead>
                                 <tbody id="categories-table-body">
-                                    <?php foreach($categories['data'] as $category): ?>
+                                    <?php 
+                                    $catPage = isset($categories['current_page']) ? (int)$categories['current_page'] : 1;
+                                    $catPerPage = isset($categories['per_page']) ? (int)$categories['per_page'] : 20;
+                                    foreach($categories['data'] as $idx => $category): 
+                                        $rowNum = ($catPage - 1) * $catPerPage + $idx + 1;
+                                    ?>
                                         <tr id="category-row-<?php echo $category['id']; ?>">
-                                            <td data-label="ID"><?php echo $category['id']; ?></td>
+                                            <td data-label="#"><?php echo $rowNum; ?></td>
                                             <td data-label="Image">
                                                 <?php 
                                                     $thumb = !empty($category['image']) 
@@ -181,10 +207,27 @@
                             </table>
                         </div>
                         
-                        <!-- Pagination -->
-                        <div class="mt-3">
-                            <?php echo getPaginationLinks($categories['current_page'], $categories['total_pages'], BASE_URL . '?controller=category&action=adminIndex'); ?>
+                        <!-- Show per page: 20 / 50 / 100 / All -->
+                        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                            <label for="perPageFilter" class="form-label mb-0 small text-muted">Show:</label>
+                            <select id="perPageFilter" class="form-select form-select-sm" style="width: auto;">
+                                <?php 
+                                $currentPerPage = $categories['per_page_param'] ?? '20';
+                                $baseUrl = BASE_URL . '?controller=category&action=adminIndex';
+                                foreach (['20', '50', '100', 'all'] as $opt): 
+                                    $sel = ($currentPerPage === $opt) ? ' selected' : '';
+                                    $url = $baseUrl . '&per_page=' . $opt;
+                                ?>
+                                    <option value="<?php echo htmlspecialchars($url); ?>"<?php echo $sel; ?>><?php echo $opt === 'all' ? 'All' : $opt; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <span class="small text-muted">(<?php echo count($categories['data']); ?> shown)</span>
                         </div>
+                        <script>
+                        document.getElementById('perPageFilter').addEventListener('change', function() {
+                            window.location.href = this.value;
+                        });
+                        </script>
                     <?php endif; ?>
                 </div>
             </div>

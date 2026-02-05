@@ -6,8 +6,9 @@
 
 class MailController extends Controller {
     public function __construct() {
+        parent::__construct();
         if (!isAdmin()) {
-            redirect('user/login');
+            redirect('?controller=user&action=login');
         }
     }
 
@@ -57,8 +58,8 @@ class MailController extends Controller {
             'email' => '',
             'subject' => '',
             'message' => '',
-            'from_email' => MAIL_FROM_ADDRESS,
-            'from_name' => MAIL_FROM_NAME,
+            'from_email' => defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : '',
+            'from_name'  => defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'Store',
         ];
 
         if ($orderId > 0) {
@@ -121,8 +122,8 @@ class MailController extends Controller {
         $email     = trim($this->post('email', ''));
         $subject   = trim($this->post('subject', ''));
         $message   = trim($this->post('message', ''));
-        $fromEmail = MAIL_FROM_ADDRESS;
-        $fromName  = MAIL_FROM_NAME;
+        $fromEmail = defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : '';
+        $fromName  = defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'Store';
         $orderId   = (int)$this->post('order_id', 0);
 
         $redirect = BASE_URL . '?controller=mail&action=index' . ($orderId > 0 ? ('&from=pos&order_id=' . $orderId) : '');

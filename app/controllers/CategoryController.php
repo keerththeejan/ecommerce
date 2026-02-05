@@ -81,11 +81,19 @@ class CategoryController extends Controller {
             redirect('user/login');
         }
         
-        // Get page number
-        $page = $this->get('page', 1);
+        // Get page number and per-page filter (20, 50, 100, all)
+        $page = (int) $this->get('page', 1);
+        $perPageParam = $this->get('per_page', '20');
+        $allowedPerPage = ['20', '50', '100', 'all'];
+        $perPage = in_array($perPageParam, $allowedPerPage, true) ? $perPageParam : '20';
+        $perPageNum = ($perPage === 'all') ? 9999 : (int) $perPage;
+        if ($perPageNum < 1) {
+            $perPageNum = 20;
+        }
         
-        // Get categories with pagination
-        $categories = $this->categoryModel->paginate($page, 20, 'name', 'ASC');
+        // Get categories (ID ascending: 1, 2, 3...)
+        $categories = $this->categoryModel->paginate($page, $perPageNum, 'id', 'ASC');
+        $categories['per_page_param'] = $perPage;
         
         // Ensure tax info is present for listing (fallback enrichment)
         if (!empty($categories['data'])) {
@@ -479,7 +487,7 @@ class CategoryController extends Controller {
         
         // Check for POST
         if($this->isPost() || $this->isDelete()) {
-            // Delete category image if exists (support different storage roots)
+            // Permanent delete: remove image from disk, then remove row from DB
             if(!empty($category['image'])) {
                 $tImg = microtime(true);
                 $possiblePaths = [

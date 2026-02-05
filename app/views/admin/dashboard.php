@@ -3,28 +3,34 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
 require_once APP_PATH . 'models/Supplier.php';
 ?>
 <style>
-    /* Keep dashboard visuals responsive without redefining sidebar behavior (handled in layout) */
-    #supplierSidebar { transition: all 0.3s ease; }
-    main { width: 100%; padding: 15px; }
-    @media (max-width: 767.98px) {
-      .card { margin-bottom: 15px; width: 100%; }
-      .card-body { padding: 1rem; }
-      .card-title { font-size: 1.1rem; }
-      .card h2 { font-size: 1.5rem; }
-      .row { margin-left: -8px; margin-right: -8px; display: flex; flex-wrap: wrap; }
-      .col-md-3, .col-md-6, .col-md-8, .col-md-12 { padding-left: 8px; padding-right: 8px; flex: 0 0 100%; max-width: 100%; }
-    }
-  </style>
+/* Dashboard – responsive */
+.dashboard-stats .card { min-height: 1px; }
+.dashboard-stats .card-body { padding: 1rem; }
+.dashboard-stats .card-footer { padding: 0.5rem 1rem; }
+.dashboard-stats h2 { font-size: clamp(1.25rem, 4vw, 1.75rem); }
+.dashboard-stats h6 { font-size: 0.75rem; }
+@media (max-width: 575.98px) {
+  .dashboard-stats .card-body { padding: 0.75rem 1rem; }
+  .dashboard-stats .card-footer a { font-size: 0.875rem; }
+}
+.dashboard-card-header { flex-wrap: wrap; gap: 0.5rem; }
+.dashboard-card-header .btn { white-space: nowrap; }
+.dashboard-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 767.98px) {
+  .dashboard-section .col-md-6 { flex: 0 0 100%; max-width: 100%; margin-bottom: 1rem; }
+  .dashboard-section .col-md-6:last-child { margin-bottom: 0; }
+}
+</style>
 
-<div class="container-fluid">
+<div class="container-fluid py-3 py-md-4 px-2 px-sm-3">
     <!-- Dashboard Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-4">
-            <div class="card bg-info text-white h-100">
+    <div class="row g-3 g-md-4 mb-4 dashboard-stats">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl mb-3 mb-xl-0">
+            <div class="card bg-info text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase">Total Suppliers</h6>
+                            <h6 class="text-uppercase opacity-90">Total Suppliers</h6>
                             <h2 class="mb-0">
                                 <?php 
                                     $supplierModel = new Supplier();
@@ -32,21 +38,21 @@ require_once APP_PATH . 'models/Supplier.php';
                                 ?>
                             </h2>
                         </div>
-                        <i class="fas fa-truck fa-2x"></i>
+                        <i class="fas fa-truck fa-2x opacity-75"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="text-white" id="suppliersCardLink">View Details</a>
+                <div class="card-footer bg-transparent border-0 pt-0 d-flex align-items-center justify-content-between">
+                    <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="text-white text-decoration-none small">View Details</a>
                     <i class="fas fa-angle-right text-white"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-4">
-            <div class="card bg-primary text-white h-100">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl mb-3 mb-xl-0">
+            <div class="card bg-primary text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase">Total Orders</h6>
+                            <h6 class="text-uppercase opacity-90">Total Orders</h6>
                             <h2 class="mb-0">
                                 <?php 
                                     $orderModel = new Order();
@@ -54,22 +60,21 @@ require_once APP_PATH . 'models/Supplier.php';
                                 ?>
                             </h2>
                         </div>
-                        <i class="fas fa-shopping-cart fa-2x"></i>
+                        <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex" class="text-white">View Details</a>
+                <div class="card-footer bg-transparent border-0 pt-0 d-flex align-items-center justify-content-between">
+                    <a href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex" class="text-white text-decoration-none small">View Details</a>
                     <i class="fas fa-angle-right text-white"></i>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-4">
-            <div class="card bg-success text-white h-100">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl mb-3 mb-xl-0">
+            <div class="card bg-success text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase">Total Products</h6>
+                            <h6 class="text-uppercase opacity-90">Total Products</h6>
                             <h2 class="mb-0">
                                 <?php 
                                     $productModel = new Product();
@@ -77,22 +82,21 @@ require_once APP_PATH . 'models/Supplier.php';
                                 ?>
                             </h2>
                         </div>
-                        <i class="fas fa-box fa-2x"></i>
+                        <i class="fas fa-box fa-2x opacity-75"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="text-white">View Details</a>
+                <div class="card-footer bg-transparent border-0 pt-0 d-flex align-items-center justify-content-between">
+                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="text-white text-decoration-none small">View Details</a>
                     <i class="fas fa-angle-right text-white"></i>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-4">
-            <div class="card bg-warning text-white h-100" id="customersOpenSidebarCard" style="cursor: pointer;">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl mb-3 mb-xl-0">
+            <div class="card bg-warning text-dark h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase">Total Customers</h6>
+                            <h6 class="text-uppercase opacity-90">Total Customers</h6>
                             <h2 class="mb-0">
                                 <?php 
                                     $userModel = new User();
@@ -100,22 +104,21 @@ require_once APP_PATH . 'models/Supplier.php';
                                 ?>
                             </h2>
                         </div>
-                        <i class="fas fa-users fa-2x"></i>
+                        <i class="fas fa-users fa-2x opacity-75"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a href="#" class="text-white" id="openCustomersSidebarLink">Customers</a>
-                    <i class="fas fa-angle-right text-white"></i>
+                <div class="card-footer bg-transparent border-0 pt-0 d-flex align-items-center justify-content-between">
+                    <a href="<?php echo BASE_URL; ?>?controller=user&action=customers" class="text-dark text-decoration-none small fw-semibold">View Details</a>
+                    <i class="fas fa-angle-right"></i>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-4">
-            <div class="card bg-danger text-white h-100">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl mb-3 mb-xl-0">
+            <div class="card bg-danger text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase">Total Revenue</h6>
+                            <h6 class="text-uppercase opacity-90">Total Revenue</h6>
                             <h2 class="mb-0">
                                 <?php 
                                     $db = new Database();
@@ -125,11 +128,11 @@ require_once APP_PATH . 'models/Supplier.php';
                                 ?>
                             </h2>
                         </div>
-                        <i class="fas fa-dollar-sign fa-2x"></i>
+                        <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a href="<?php echo BASE_URL; ?>?controller=report&action=index" class="text-white">View Details</a>
+                <div class="card-footer bg-transparent border-0 pt-0 d-flex align-items-center justify-content-between">
+                    <a href="<?php echo BASE_URL; ?>?controller=report&action=index" class="text-white text-decoration-none small">View Details</a>
                     <i class="fas fa-angle-right text-white"></i>
                 </div>
             </div>
@@ -138,11 +141,11 @@ require_once APP_PATH . 'models/Supplier.php';
     
     <!-- Stock Management and Purchases -->
     <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 dashboard-card-header">
                     <h5 class="card-title mb-0">Stock & Purchases</h5>
-                    <div>
+                    <div class="d-flex flex-wrap gap-2">
                         <a href="<?php echo BASE_URL; ?>?controller=purchase&action=create" class="btn btn-primary btn-sm">
                             <i class="fas fa-plus me-1"></i> New Purchase
                         </a>
@@ -152,7 +155,7 @@ require_once APP_PATH . 'models/Supplier.php';
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row dashboard-section">
                         <!-- Low Stock Products -->
                         <div class="col-md-6">
                             <h6 class="text-uppercase text-muted mb-3">Low Stock Alert</h6>
@@ -205,7 +208,7 @@ require_once APP_PATH . 'models/Supplier.php';
                             }
                             
                             if (!empty($recentPurchases)): ?>
-                                <div class="table-responsive">
+                                <div class="table-responsive dashboard-table-wrap">
                                     <table id="dashboardRecentPurchases" class="table table-sm">
                                         <thead>
                                             <tr>
@@ -245,9 +248,9 @@ require_once APP_PATH . 'models/Supplier.php';
     
     <!-- Billing & Invoices -->
     <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 dashboard-card-header">
                     <h5 class="card-title mb-0">Billing & Invoices</h5>
                     <div>
                         <a href="<?php echo BASE_URL; ?>?controller=invoice&action=create" class="btn btn-primary btn-sm">
@@ -256,7 +259,7 @@ require_once APP_PATH . 'models/Supplier.php';
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row dashboard-section">
                         <div class="col-md-6">
                             <h6 class="text-uppercase text-muted mb-3">Recent Invoices</h6>
                             <?php 
@@ -270,7 +273,7 @@ require_once APP_PATH . 'models/Supplier.php';
                             }
                             
                             if (!empty($recentInvoices)): ?>
-                                <div class="table-responsive">
+                                <div class="table-responsive dashboard-table-wrap">
                                     <table id="dashboardRecentInvoices" class="table table-sm">
                                         <thead>
                                             <tr>
@@ -408,19 +411,20 @@ require_once APP_PATH . 'models/Supplier.php';
     
     <!-- Recent Orders and Sales Chart -->
     <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card">
+        <div class="col-12 col-lg-8 mb-4 mb-lg-0">
+            <div class="card shadow-sm h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Sales Statistics</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="salesChart" height="300"></canvas>
+                    <div class="position-relative" style="min-height: 220px;">
+                        <canvas id="salesChart" height="220"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card">
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Recent Orders</h5>
                 </div>
@@ -437,8 +441,8 @@ require_once APP_PATH . 'models/Supplier.php';
                     }
                     
                     if ($hasOrdersTable && !empty($recentOrders)) : ?>
-                        <div class="table-responsive">
-                            <table id="dashboardRecentOrders" class="table table-striped">
+                        <div class="table-responsive dashboard-table-wrap">
+                            <table id="dashboardRecentOrders" class="table table-striped table-sm">
                                 <thead>
                                     <tr>
                                         <th data-label="ID">ID</th>
@@ -476,71 +480,6 @@ require_once APP_PATH . 'models/Supplier.php';
                         </div>
                     <?php else : ?>
                         <p class="text-center">No recent orders found.</p>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Low Stock Products -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Low Stock Products</h5>
-                </div>
-                <div class="card-body">
-                    <?php 
-                    $hasProductsTable = true;
-                    try {
-                        $db = new Database();
-                        $db->query("SHOW TABLES LIKE 'products'");
-                        $hasProductsTable = (bool)$db->single();
-                    } catch (Exception $e) {
-                        $hasProductsTable = false;
-                        error_log('Error checking products table: ' . $e->getMessage());
-                    }
-                    
-                    if ($hasProductsTable && !empty($lowStockProducts)) : ?>
-                        <div class="table-responsive">
-                            <table id="dashboardLowStock" class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th data-label="ID">ID</th>
-                                        <th data-label="Name">Name</th>
-                                        <th data-label="SKU">SKU</th>
-                                        <th data-label="Category">Category</th>
-                                        <th data-label="Price">Price</th>
-                                        <th data-label="Stock">Stock</th>
-                                        <th data-label="Action">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach($lowStockProducts as $product) : ?>
-                                        <tr>
-                                            <td data-label="ID"><?php echo $product['id']; ?></td>
-                                            <td data-label="Name"><?php echo $product['name']; ?></td>
-                                            <td data-label="SKU"><?php echo $product['sku']; ?></td>
-                                            <td data-label="Category"><?php echo $product['category_name']; ?></td>
-                                            <td data-label="Price"><?php echo formatPrice($product['price']); ?></td>
-                                            <td data-label="Stock">
-                                                <span class="badge bg-danger"><?php echo $product['stock_quantity']; ?></span>
-                                            </td>
-                                            <td data-label="Action">
-                                                <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&param=<?php echo $product['id']; ?>" class="btn btn-primary btn-sm">Edit</a>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="text-center mt-3">
-                            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-primary btn-sm">View All Products</a>
-                        </div>
-                    <?php elseif ($hasProductsTable) : ?>
-                        <p class="text-center">No low stock products found.</p>
-                    <?php else : ?>
-                        <p class="text-center text-muted">Products table not found. Please run the database setup.</p>
                     <?php endif; ?>
                 </div>
             </div>
@@ -587,31 +526,6 @@ require_once APP_PATH . 'models/Supplier.php';
             });
         <?php endif; ?>
     });
-</script>
-
-<script>
-    // Make the Customers card open the sidebar Customers section
-    document.addEventListener('DOMContentLoaded', function(){
-        var BASE_URL = '<?php echo BASE_URL; ?>';
-        function openCustomers(e){
-            if (e) e.preventDefault();
-            if (window.openCustomersSidebar) {
-                window.openCustomersSidebar();
-            } else if (window.openSidebar) {
-                try { window.openSidebar(); } catch(_) {}
-                if (window.highlightSidebarCustomers) {
-                    try { window.highlightSidebarCustomers(); } catch(_) {}
-                }
-            } else {
-                window.location.href = BASE_URL + '?controller=user&action=customers';
-            }
-        }
-        var card = document.getElementById('customersOpenSidebarCard');
-        var link = document.getElementById('openCustomersSidebarLink');
-        if (card) card.addEventListener('click', openCustomers);
-        if (link) link.addEventListener('click', openCustomers);
-    });
-
 </script>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

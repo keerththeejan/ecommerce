@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sivakamy</title>
     <!-- Bootstrap 5 CSS - Latest Stable -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -355,13 +355,13 @@
     <!-- Mobile Top Bar -->
     <div class="d-md-none border-bottom mobile-top-bar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
         <!-- Top Bar -->
-        <div class="<?php echo $headerContainerClass; ?> py-2">
+        <div class="<?php echo $headerContainerClass; ?> py-3">
             <div class="d-flex align-items-center justify-content-between">
                 <a href="<?php echo BASE_URL; ?>" class="text-decoration-none">
                     <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
                         <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" 
                              alt="<?php echo htmlspecialchars($siteName); ?>" 
-                             style="max-height: 30px;">
+                             style="max-height: 42px;">
                     <?php else: ?>
                         <span class="h5 mb-0 fw-bold text-dark"><?php echo htmlspecialchars($siteName); ?></span>
                     <?php endif; ?>
@@ -636,7 +636,7 @@
     <style>
         /* Add padding to body to account for fixed navbar */
         body {
-            padding-top: 70px !important;
+            padding-top: 90px !important;
             overflow-x: hidden;
         }
         
@@ -664,14 +664,14 @@
         
         /* Adjust main content margin to prevent content from being hidden behind navbar */
         main {
-            margin-top: 20px;
+            margin-top: 24px;
         }
     </style>
     <nav class="navbar navbar-expand-lg navbar-light border-bottom d-none d-md-block" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
         <div class="<?php echo $headerContainerClass; ?>">
             <a class="navbar-brand fw-bold" href="<?php echo BASE_URL; ?>">
                 <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
-                    <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: 40px;">
+                    <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: 52px;">
                 <?php else: ?>
                     <?php echo htmlspecialchars($siteName); ?>
                 <?php endif; ?>

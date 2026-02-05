@@ -1,13 +1,93 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+/* Admin brands – responsive */
+.brands-table-scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
+}
+.brands-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
+.brands-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.75rem;
+  background: var(--bs-body-bg, #fff);
+  color: var(--bs-body-color, #212529);
+  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+}
+.brands-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
+
+@media (max-width: 575.98px) {
+  .brands-table-scroll { max-height: 55vh; }
+}
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .brands-table-scroll { max-height: 60vh; }
+}
+@media (min-width: 992px) {
+  .brands-table-scroll { max-height: 70vh; }
+}
+
+/* Tablet: hide Slug column */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  #brandsTable th:nth-child(4),
+  #brandsTable td:nth-child(4) { display: none !important; }
+}
+
+/* Mobile: card-style rows */
+@media (max-width: 575.98px) {
+  #brandsTable thead { display: none; }
+  #brandsTable tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bs-body-bg, #fff);
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  #brandsTable tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+  #brandsTable tbody td:last-child { border-bottom: 0; }
+  #brandsTable tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--bs-secondary, #6c757d);
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  #brandsTable tbody td[data-label="Logo"] { display: block; padding: 0; }
+  #brandsTable tbody td[data-label="Logo"]::before { content: none; }
+  #brandsTable tbody td[data-label="Logo"] .brand-logo-container {
+    width: 100% !important;
+    max-height: 120px;
+    margin: 0 auto;
+  }
+  #brandsTable tbody td[data-label="Actions"] { flex-wrap: wrap; gap: 0.25rem; }
+  #brandsTable tbody td[data-label="Actions"] .btn-group { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+}
+</style>
+
+<div class="container-fluid py-3 py-md-4 px-2 px-sm-3">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mb-4">
         <h1 class="h3 mb-0">Manage Brands</h1>
-        <div class="d-flex gap-2">
-            <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-outline-secondary">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-arrow-left me-1"></i> Back to Product
             </a>
-            <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-primary">
+            <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-primary btn-sm">
                 <i class="fas fa-plus-circle me-1"></i> Add New Brand
             </a>
         </div>
@@ -19,25 +99,49 @@
         <?php flash('brand_error', '', 'alert alert-danger alert-dismissible fade show'); ?>
     </div>
     
-    <div class="card">
+    <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
         <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6">
+            <div class="row align-items-center g-2">
+                <div class="col-12 col-md-6">
                     <h5 class="mb-0">All Brands</h5>
                 </div>
-                <div class="col-md-6">
-                    <form action="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex" method="GET" class="d-flex">
-                        <input type="hidden" name="controller" value="brand">
-                        <input type="hidden" name="action" value="adminIndex">
-                        <input type="text" name="search" class="form-control" placeholder="Search brands..." value="<?php echo $search; ?>">
-                        <button type="submit" class="btn btn-outline-primary ms-2">Search</button>
-                        <?php if(!empty($search)): ?>
-                            <a href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex" class="btn btn-outline-secondary ms-2">Clear</a>
-                        <?php endif; ?>
-                    </form>
+                <div class="col-12 col-md-6">
+                    <div class="d-flex flex-column flex-sm-row flex-md-wrap align-items-stretch align-items-sm-center gap-2 justify-content-md-end">
+                        <form action="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex" method="GET" class="d-flex flex-wrap align-items-center gap-2 flex-grow-1 flex-sm-grow-0">
+                            <input type="hidden" name="controller" value="brand">
+                            <input type="hidden" name="action" value="adminIndex">
+                            <?php $currentPerPage = $brands['per_page_param'] ?? '20'; if ($currentPerPage !== '20'): ?>
+                            <input type="hidden" name="per_page" value="<?php echo htmlspecialchars($currentPerPage); ?>">
+                            <?php endif; ?>
+                            <input type="text" name="search" class="form-control form-control-sm flex-grow-1" style="min-width: 120px; max-width: 200px;" placeholder="Search brands..." value="<?php echo htmlspecialchars($search); ?>">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Search</button>
+                            <?php if(!empty($search)): ?>
+                                <a href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex<?php echo $currentPerPage !== '20' ? '&per_page=' . urlencode($currentPerPage) : ''; ?>" class="btn btn-outline-secondary btn-sm">Clear</a>
+                            <?php endif; ?>
+                        </form>
+                        <div class="d-flex align-items-center gap-1">
+                            <label for="brandPerPageFilter" class="form-label mb-0 small text-muted">Show:</label>
+                            <select id="brandPerPageFilter" class="form-select form-select-sm" style="width: auto; min-width: 4rem;">
+                            <?php
+                            $baseUrl = BASE_URL . '?controller=brand&action=adminIndex';
+                            if (!empty($search)) $baseUrl .= '&search=' . urlencode($search);
+                            foreach (['20', '50', '100', 'all'] as $opt):
+                                $url = $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'per_page=' . $opt;
+                                $sel = (isset($currentPerPage) && $currentPerPage === $opt) ? ' selected' : '';
+                            ?>
+                                <option value="<?php echo htmlspecialchars($url); ?>"<?php echo $sel; ?>><?php echo $opt === 'all' ? 'All' : $opt; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
+        <script>
+        (function() {
+            var el = document.getElementById('brandPerPageFilter');
+            if (el) el.addEventListener('change', function() { window.location.href = this.value; });
+        })();
+        </script>
         <div class="card-body">
             <?php if(empty($brands['data'])): ?>
                 <div class="alert alert-info">
@@ -48,11 +152,11 @@
                     <?php endif; ?>
                 </div>
             <?php else: ?>
-                <div class="table-responsive">
+                <div class="brands-table-scroll table-responsive">
                     <table id="brandsTable" class="table table-hover align-middle">
                         <thead>
                             <tr>
-                                <th style="width: 80px;">ID</th>
+                                <th style="width: 60px;">#</th>
                                 <th style="width: 100px;">Logo</th>
                                 <th>Name</th>
                                 <th>Slug</th>
@@ -62,9 +166,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach($brands['data'] as $brand): ?>
+                            <?php
+                            $page = isset($brands['current_page']) ? (int)$brands['current_page'] : 1;
+                            $perPage = isset($brands['per_page']) ? (int)$brands['per_page'] : 20;
+                            foreach($brands['data'] as $idx => $brand):
+                                $rowNum = ($page - 1) * $perPage + $idx + 1;
+                            ?>
                                 <tr>
-                                    <td data-label="ID"><?php echo $brand['id']; ?></td>
+                                    <td data-label="#"><?php echo $rowNum; ?></td>
                                     <td class="align-middle" data-label="Logo">
                                         <div class="brand-logo-container" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                             <?php 
@@ -89,12 +198,12 @@
                                     </td>
                                     <td data-label="Created"><?php echo date('M d, Y', strtotime($brand['created_at'])); ?></td>
                                     <td data-label="Actions">
-                                        <div class="btn-group">
-                                            <a href="<?php echo BASE_URL; ?>?controller=brand&action=edit&id=<?php echo $brand['id']; ?>" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-edit"></i> Edit
+                                        <div class="btn-group btn-group-sm flex-wrap">
+                                            <a href="<?php echo BASE_URL; ?>?controller=brand&action=edit&id=<?php echo $brand['id']; ?>" class="btn btn-outline-primary">
+                                                <i class="fas fa-edit"></i> <span class="d-none d-sm-inline">Edit</span>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger delete-brand" data-id="<?php echo $brand['id']; ?>" data-name="<?php echo htmlspecialchars($brand['name']); ?>">
-                                                <i class="fas fa-trash"></i> Delete
+                                            <button type="button" class="btn btn-outline-danger delete-brand" data-id="<?php echo $brand['id']; ?>" data-name="<?php echo htmlspecialchars($brand['name']); ?>">
+                                                <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete</span>
                                             </button>
                                         </div>
                                     </td>
@@ -103,41 +212,6 @@
                         </tbody>
                     </table>
                 </div>
-                
-                <?php if($brands['last_page'] > 1): ?>
-                    <nav aria-label="Page navigation" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <?php if($brands['current_page'] > 1): ?>
-                                <li class="page-item">
-                                    <a class="page-link" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex&page=1<?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">First</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex&page=<?php echo $brands['current_page'] - 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">Previous</a>
-                                </li>
-                            <?php endif; ?>
-                            
-                            <?php
-                            $startPage = max(1, $brands['current_page'] - 2);
-                            $endPage = min($brands['last_page'], $brands['current_page'] + 2);
-                            
-                            for($i = $startPage; $i <= $endPage; $i++):
-                            ?>
-                                <li class="page-item <?php echo $i == $brands['current_page'] ? 'active' : ''; ?>">
-                                    <a class="page-link" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex&page=<?php echo $i; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>"><?php echo $i; ?></a>
-                                </li>
-                            <?php endfor; ?>
-                            
-                            <?php if($brands['current_page'] < $brands['last_page']): ?>
-                                <li class="page-item">
-                                    <a class="page-link" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex&page=<?php echo $brands['current_page'] + 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">Next</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex&page=<?php echo $brands['last_page']; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">Last</a>
-                                </li>
-                            <?php endif; ?>
-                        </ul>
-                    </nav>
-                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>

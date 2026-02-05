@@ -1,4 +1,9 @@
-<?php require_once APPROOT . '/views/admin/inc/header.php'; ?>
+<?php 
+if (!defined('APPROOT')) {
+    define('APPROOT', dirname(dirname(dirname(__DIR__))));
+}
+require_once APPROOT . '/app/views/admin/layouts/header.php'; 
+?>
 
 <div class="container-fluid">
     <div class="row">
@@ -158,4 +163,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php require_once APPROOT . '/views/admin/inc/footer.php'; ?>
+<?php require_once APPROOT . '/app/views/admin/layouts/footer.php'; ?>

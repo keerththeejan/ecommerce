@@ -410,11 +410,19 @@ class ProductController extends Controller {
             redirect('user/login');
         }
         
-        // Get page number
-        $page = $this->get('page', 1);
+        // Get page number and per-page filter (20, 50, 100, all)
+        $page = (int) $this->get('page', 1);
+        $perPageParam = $this->get('per_page', '20');
+        $allowedPerPage = ['20', '50', '100', 'all'];
+        $perPage = in_array($perPageParam, $allowedPerPage, true) ? $perPageParam : '20';
+        $perPageNum = ($perPage === 'all') ? 9999 : (int) $perPage;
+        if ($perPageNum < 1) {
+            $perPageNum = 20;
+        }
         
-        // Get products with pagination
-        $products = $this->productModel->paginate($page, 20, 'id', 'DESC');
+        // Get products (ID ascending)
+        $products = $this->productModel->paginate($page, $perPageNum, 'id', 'ASC');
+        $products['per_page_param'] = $perPage;
         
         // Normalize rows to associative arrays to avoid blank fields in view
         if (isset($products['data']) && is_array($products['data'])) {
@@ -891,25 +899,33 @@ class ProductController extends Controller {
         // Check for POST or DELETE request (avoid undefined isDelete())
         if($this->isPost() || (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'DELETE')) {
             try {
-                // Delete product
-                if($this->productModel->delete($id)) {
-                    // Delete product image
-                    if(!empty($product['image']) && file_exists(PUBLIC_PATH . $product['image'])) {
-                        @unlink(PUBLIC_PATH . $product['image']);
+                // Remove product image file from disk (ID and row kept for orders)
+                if(!empty($product['image'])) {
+                    $paths = [
+                        PUBLIC_PATH . $product['image'],
+                        ROOT_PATH . 'public/' . $product['image'],
+                        $product['image']
+                    ];
+                    foreach ($paths as $path) {
+                        if (file_exists($path)) {
+                            @unlink($path);
+                            break;
+                        }
                     }
-                    
+                }
+                // Soft delete: keep product row/ID for order references, set inactive and clear image in DB
+                if($this->productModel->softDelete($id)) {
                     if($this->isAjax()) {
                         $this->json([
                             'success' => true, 
-                            'message' => 'Product deleted successfully',
+                            'message' => 'Product removed (ID kept for orders)',
                             'id' => $id
                         ]);
                         return;
                     }
-                    
-                    flash('product_success', 'Product deleted successfully');
+                    flash('product_success', 'Product removed. ID kept for order history.');
                 } else {
-                    throw new Exception('Failed to delete product');
+                    throw new Exception($this->productModel->getLastError() ?: 'Failed to remove product');
                 }
             } catch (Exception $e) {
                 $error = $e->getMessage();

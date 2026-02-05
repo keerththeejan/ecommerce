@@ -81,12 +81,21 @@ class BrandController extends Controller {
         // Get search term
         $search = $this->get('search', '');
         
+        // Per-page filter: 20, 50, 100, or all (default 20)
+        $perPage = $this->get('per_page', '20');
+        $allowed = ['20', '50', '100', 'all'];
+        if (!in_array($perPage, $allowed, true)) {
+            $perPage = '20';
+        }
+        $perPageNum = ($perPage === 'all') ? 9999 : (int) $perPage;
+        
         // Get brands with pagination
         if(!empty($search)) {
-            $brands = $this->brandModel->search($search, $page, 10);
+            $brands = $this->brandModel->search($search, $page, $perPageNum);
         } else {
-            $brands = $this->brandModel->paginate($page, 10, 'name', 'ASC');
+            $brands = $this->brandModel->paginate($page, $perPageNum, 'id', 'ASC');
         }
+        $brands['per_page_param'] = $perPage;
         
         // Load view
         $this->view('admin/brands/index', [

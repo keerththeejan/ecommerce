@@ -41,3 +41,12 @@ date_default_timezone_set('Asia/Kolkata');
 if (!defined('CURRENCY_SYMBOL')) define('CURRENCY_SYMBOL', 'CHF');
 if (!defined('CURRENCY_CODE')) define('CURRENCY_CODE', 'CHF');
 if (!defined('CURRENCY_FORMAT')) define('CURRENCY_FORMAT', 'CHF%s');  // %s will be replaced with the amount
+
+// Mail / SMTP (used by MailController – set your SMTP credentials here)
+if (!defined('MAIL_FROM_ADDRESS')) define('MAIL_FROM_ADDRESS', '');
+if (!defined('MAIL_FROM_NAME')) define('MAIL_FROM_NAME', 'Store');
+if (!defined('SMTP_HOST')) define('SMTP_HOST', 'smtp.gmail.com');
+if (!defined('SMTP_PORT')) define('SMTP_PORT', 587);
+if (!defined('SMTP_ENCRYPTION')) define('SMTP_ENCRYPTION', 'tls');
+if (!defined('SMTP_USERNAME')) define('SMTP_USERNAME', '');
+if (!defined('SMTP_PASSWORD')) define('SMTP_PASSWORD', '');

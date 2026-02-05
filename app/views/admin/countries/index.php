@@ -1,43 +1,106 @@
-<?php require_once APPROOT . '/app/views/admin/layouts/header.php'; ?>
+<?php
+$countries = $countries ?? [];
+$selectedCountry = $selectedCountry ?? null;
+require_once APP_PATH . 'views/admin/layouts/header.php';
+?>
 
-<div class="container-fluid">
+<style>
+/* Countries admin – responsive, current trending */
+.countries-admin .card-body { padding: 1rem; }
+@media (min-width: 768px) { .countries-admin .card-body { padding: 1.25rem; } }
+.countries-table-scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
+}
+.countries-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
+.countries-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.75rem;
+  background: var(--bs-body-bg, #fff);
+  color: var(--bs-body-color, #212529);
+  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+}
+.countries-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
+@media (max-width: 575.98px) { .countries-table-scroll { max-height: 55vh; } }
+@media (min-width: 576px) and (max-width: 991.98px) { .countries-table-scroll { max-height: 60vh; } }
+@media (min-width: 992px) { .countries-table-scroll { max-height: 70vh; } }
+@media (max-width: 575.98px) {
+  #countriesTable thead { display: none; }
+  #countriesTable tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bs-body-bg, #fff);
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  #countriesTable tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+  #countriesTable tbody td:last-child { border-bottom: 0; }
+  #countriesTable tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--bs-secondary, #6c757d);
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  #countriesTable tbody td[data-label="Flag"] { display: block; padding: 0.5rem 0.75rem; }
+  #countriesTable tbody td[data-label="Flag"]::before { content: none; }
+  #countriesTable tbody td[data-label="Actions"] .btn-group, #countriesTable tbody td[data-label="Actions"] .d-inline { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+}
+</style>
+
+<div class="container-fluid py-3 py-md-4 px-2 px-sm-3 countries-admin">
     <div class="row">
-        <!-- Main content area -->
         <div class="col-12">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row flex-md-wrap justify-content-between align-items-stretch align-items-sm-center gap-2">
                     <h5 class="mb-0">
-                        <?php echo isset($data['selectedCountry']) ? 'Edit Country: ' . htmlspecialchars($data['selectedCountry']['name']) : 'Add New Country'; ?>
+                        <?php echo $selectedCountry ? 'Edit Country: ' . htmlspecialchars($selectedCountry['name']) : 'Add New Country'; ?>
                     </h5>
-                    <div class="d-flex gap-2">
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-secondary btn-sm">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
                             <i class="fas fa-arrow-left me-1"></i> Back to Product
                         </a>
                         <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addCountryModal">
-                            <i class="fas fa-plus"></i> Add New Country
+                            <i class="fas fa-plus me-1"></i> Add New Country
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
-                    <?php if (isset($data['selectedCountry'])): ?>
+                    <?php if ($selectedCountry): ?>
                         <form action="?controller=country&action=update" method="POST" enctype="multipart/form-data" id="countryForm">
-                            <input type="hidden" name="id" value="<?php echo $data['selectedCountry']['id']; ?>">
+                            <input type="hidden" name="id" value="<?php echo $selectedCountry['id']; ?>">
                             
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
+                            <div class="row g-3 mb-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="mb-0">
                                         <label for="countrySelect" class="form-label">Select Country</label>
                                         <select name="id" id="countrySelect" class="form-select select2">
                                             <option value="">-- Select a Country --</option>
                                             <?php 
-                                            $existingCountries = array_column($data['countries'], 'name', 'id');
-                                            foreach ($data['countries'] as $country): 
+                                            foreach ($countries as $country): 
                                                 // Get country code from the country name (first 2 characters in lowercase)
                                                 $countryCode = strtolower(substr($country['name'], 0, 2));
                                                 $flagImage = !empty($country['flag_image']) ? 
                                                     BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
                                                     'https://flagcdn.com/24x18/' . $countryCode . '.png';
-                                                $selected = (isset($data['selectedCountry']) && $data['selectedCountry']['id'] == $country['id']) ? 'selected' : '';
+                                                $selected = ($selectedCountry && isset($selectedCountry['id']) && $selectedCountry['id'] == $country['id']) ? 'selected' : '';
                                                 $countryName = htmlspecialchars($country['name']);
                                             ?>
                                             <option value="<?php echo $country['id']; ?>" 
@@ -52,13 +115,12 @@
                                         <input type="hidden" id="name" name="name" value="">
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-12 col-md-6">
                                     <label for="flag_image" class="form-label">Flag Image</label>
                                     <div class="input-group">
-                                        <div class="input-group">
-                                            <input type="file" class="form-control" id="flag_image" name="flag_image" accept="image/*" onchange="previewFlagImage(this)">
-                                            <?php if (!empty($data['selectedCountry']['flag_image'])): 
-                                                $flagImage = BASE_URL . 'uploads/flags/' . $data['selectedCountry']['flag_image'];
+                                        <input type="file" class="form-control" id="flag_image" name="flag_image" accept="image/*" onchange="previewFlagImage(this)">
+                                        <?php if ($selectedCountry && !empty($selectedCountry['flag_image'])): 
+                                                $flagImage = BASE_URL . 'uploads/flags/' . $selectedCountry['flag_image'];
                                             ?>
                                                 <div class="input-group-text p-0 overflow-hidden" style="width: 40px;">
                                                     <img src="<?php echo $flagImage; ?>" 
@@ -83,14 +145,13 @@
                                                 </div>
                                             <?php endif; ?>
                                         </div>
-                                    </div>
                                     <small class="text-muted">Upload a square flag image (recommended: 64x64px)</small>
                                 </div>
                             </div>
 
                             <div class="form-check form-switch mb-3">
                                 <input class="form-check-input" type="checkbox" id="status" name="status" value="1"
-                                    <?php echo (empty($data['selectedCountry']['status']) || $data['selectedCountry']['status'] === 'active') ? 'checked' : ''; ?>>
+                                    <?php echo (!$selectedCountry || empty($selectedCountry['status']) || $selectedCountry['status'] === 'active') ? 'checked' : ''; ?>>
                                 <label class="form-check-label" for="status">Active</label>
                             </div>
 
@@ -245,11 +306,11 @@ $(document).ready(function() {
                     }
                     
                     var $newRow = $('<tr>' +
-                        '<td>' + country.id + '</td>' +
-                        '<td class="text-center">' + flagImg + '</td>' +
-                        '<td>' + country.name + '</td>' +
-                        '<td><span class="badge bg-success">' + (country.status === 'active' ? 'Active' : 'Inactive') + '</span></td>' +
-                        '<td>' +
+                        '<td data-label="#">1</td>' +
+                        '<td class="text-center" data-label="Flag">' + flagImg + '</td>' +
+                        '<td data-label="Name">' + country.name + '</td>' +
+                        '<td data-label="Status"><span class="badge bg-success">' + (country.status === 'active' ? 'Active' : 'Inactive') + '</span></td>' +
+                        '<td data-label="Actions">' +
                             '<a href="?controller=country&action=adminIndex&id=' + country.id + '" ' +
                                'class="btn btn-sm btn-primary" title="Edit">' +
                                 '<i class="fas fa-edit"></i>' +
@@ -436,14 +497,14 @@ $(document).ready(function() {
     });
 
     // Set the selected value when the page loads
-    <?php if (isset($data['selectedCountry'])): ?>
-        var selectedCountryId = '<?php echo $data['selectedCountry']['id']; ?>';
-        var selectedCountryName = '<?php echo addslashes($data['selectedCountry']['name']); ?>';
+    <?php if ($selectedCountry): ?>
+        var selectedCountryId = '<?php echo (int)$selectedCountry['id']; ?>';
+        var selectedCountryName = '<?php echo addslashes($selectedCountry['name'] ?? ''); ?>';
         
         // Update the flag preview with the selected country's flag
         var selectedFlagImage = $('#countrySelect option:selected').data('flag-image');
-        if (!selectedFlagImage && '<?php echo !empty($data['selectedCountry']['flag_image']) ? 'true' : ''; ?>') {
-            selectedFlagImage = '<?php echo BASE_URL; ?>uploads/flags/<?php echo $data['selectedCountry']['flag_image']; ?>';
+        if (!selectedFlagImage && '<?php echo !empty($selectedCountry['flag_image']) ? 'true' : ''; ?>') {
+            selectedFlagImage = '<?php echo BASE_URL; ?>uploads/flags/<?php echo htmlspecialchars($selectedCountry['flag_image'] ?? ''); ?>';
         }
         
         if (selectedFlagImage) {
@@ -546,26 +607,26 @@ $(document).ready(function() {
 <div class="row mt-4">
     <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header bg-secondary text-white">
+            <div class="card-header bg-secondary text-white d-flex flex-wrap align-items-center gap-2">
                 <h5 class="mb-0">All Countries</h5>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table id="countriesTable" class="table table-bordered table-hover">
+            <div class="card-body p-0 p-md-3">
+                <div class="countries-table-scroll table-responsive">
+                    <table id="countriesTable" class="table table-bordered table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>ID</th>
-                                <th>Flag</th>
+                                <th style="width: 60px;">#</th>
+                                <th style="width: 80px;">Flag</th>
                                 <th>Name</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th style="width: 140px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($data['countries'] as $index => $country): ?>
+                            <?php $rowNum = 0; foreach ($countries as $index => $country): $rowNum++; ?>
                                 <tr>
-                                    <td><?php echo $country['id']; ?></td>
-                                    <td class="text-center">
+                                    <td data-label="#"><?php echo $rowNum; ?></td>
+                                    <td class="text-center" data-label="Flag">
                                         <?php 
                                         $countryCode = strtolower(substr($country['name'], 0, 2));
                                         $flagImage = !empty($country['flag_image']) ? 
@@ -584,27 +645,22 @@ $(document).ready(function() {
                                                  style="width: 30px; height: 20px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">
                                         <?php endif; ?>
                                     </td>
-                                    <td><?php echo htmlspecialchars($country['name']); ?></td>
-                                    <td>
-                                        <span class="badge bg-<?php echo $country['status'] === 'active' ? 'success' : 'secondary'; ?>">
-                                            <?php echo ucfirst($country['status']); ?>
+                                    <td data-label="Name"><?php echo htmlspecialchars($country['name']); ?></td>
+                                    <td data-label="Status">
+                                        <span class="badge bg-<?php echo ($country['status'] ?? '') === 'active' ? 'success' : 'secondary'; ?>">
+                                            <?php echo ucfirst($country['status'] ?? 'inactive'); ?>
                                         </span>
                                     </td>
-                                    <td>
+                                    <td data-label="Actions">
                                         <a href="?controller=country&action=adminIndex&id=<?php echo $country['id']; ?>" 
                                            class="btn btn-sm btn-primary" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <form action="?controller=country&action=delete" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this country? This action cannot be undone.');">
                                             <input type="hidden" name="id" value="<?php echo $country['id']; ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete" <?php echo $country['products_count'] > 0 ? 'disabled' : ''; ?>>
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete" <?php echo (isset($country['products_count']) && $country['products_count'] > 0) ? 'disabled' : ''; ?>>
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                            <?php if ($country['products_count'] > 0): ?>
-                                                <small class="d-block text-muted" title="Cannot delete country with products">
-                                                    <?php echo $country['products_count']; ?> product(s)
-                                                </small>
-                                            <?php endif; ?>
                                         </form>
                                     </td>
                                 </tr>
@@ -703,4 +759,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php require_once APPROOT . '/app/views/admin/layouts/footer.php'; ?>
+<?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

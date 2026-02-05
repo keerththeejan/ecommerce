@@ -4,60 +4,82 @@
 <div id="banner"></div>
 <?php require_once APP_PATH . 'views/customer/banner/index.php'; ?>
 
-<!-- Featured Categories - Grid layout matching Featured Products -->
+<!-- Shop by Category - Same layout as Our Brands -->
 <section id="categories" class="featured-categories py-3 py-md-4" style="background: <?php echo !empty($homeCategoriesBgColor) ? htmlspecialchars($homeCategoriesBgColor) : '#fff'; ?>;" data-theme-aware>
-    <div class="container-fluid px-4 px-xl-5 max-width-1400">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 mb-md-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3 mb-md-3">
             <h2 id="categories-heading" class="section-title mb-0">Shop by Category</h2>
-            <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="text-decoration-none d-none d-md-inline-block mt-2 mt-md-0 category-show-all">
-                <span class="category-show-all-text">Show All <i class="fas fa-arrow-right ms-1"></i></span>
+            <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex">
+                View All <i class="fas fa-chevron-right ms-1"></i>
             </a>
         </div>
 
         <?php
             $activeCategories = [];
+            $totalActiveCategories = 0;
             if (!empty($categories)) {
                 $activeCategories = array_values(array_filter($categories, function($cat) {
                     return $cat['status'] == 1;
                 }));
-                $activeCategories = array_slice($activeCategories, 0, 6);
+                $totalActiveCategories = count($activeCategories);
+                $activeCategories = array_slice($activeCategories, 0, 12);
             }
         ?>
 
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-2 g-md-4">
+        <div class="row g-2 g-md-3 justify-content-center">
             <?php if (!empty($activeCategories)) : ?>
                 <?php foreach($activeCategories as $index => $category): ?>
-                    <div class="col">
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" 
-                           class="text-decoration-none text-dark">
-                            <div class="card h-100 category-card transition-all d-flex flex-column text-center">
-                                <div class="category-media position-relative d-flex justify-content-center align-items-center">
-                                    <div class="category-image-box">
+                    <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" class="text-decoration-none">
+                            <div class="category-card card h-100 border-0 shadow-sm transition-all">
+                                <div class="card-body p-2 d-flex flex-column align-items-center justify-content-center">
+                                    <div class="category-logo-container">
                                         <?php if (!empty($category['image'])) : ?>
                                             <img src="<?php echo BASE_URL . $category['image']; ?>" 
+                                                 class="img-fluid" 
                                                  alt="<?php echo htmlspecialchars($category['name']); ?>" 
-                                                 loading="lazy"
-                                                 class="category-image">
+                                                 loading="lazy">
                                         <?php else : ?>
-                                            <div class="no-image-box d-flex align-items-center justify-content-center">
+                                            <div class="d-flex align-items-center justify-content-center h-100">
                                                 <i class="fas fa-box-open fa-2x text-muted"></i>
                                             </div>
                                         <?php endif; ?>
                                     </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <h3 class="category-title card-title mb-0"><?php echo $category['name']; ?></h3>
+                                    <span class="fw-bold small text-dark text-center mt-1 category-name"><?php echo htmlspecialchars($category['name']); ?></span>
                                 </div>
                             </div>
                         </a>
                     </div>
                 <?php endforeach; ?>
+
+                <?php if ($totalActiveCategories > 12): ?>
+                    <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1 d-md-none">
+                        <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="text-decoration-none">
+                            <div class="category-card card h-100 border-0 shadow-sm transition-all bg-light">
+                                <div class="card-body p-2 d-flex align-items-center justify-content-center">
+                                    <div class="text-center">
+                                        <i class="fas fa-ellipsis-h text-muted mb-1"></i>
+                                        <p class="small mb-0">View All</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <?php endif; ?>
             <?php else: ?>
                 <div class="col-12">
                     <div class="alert alert-info mb-0">No categories available</div>
                 </div>
             <?php endif; ?>
         </div>
+
+        <?php if (!empty($activeCategories) && $totalActiveCategories > 12): ?>
+        <div class="text-center mt-3 d-md-none">
+            <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="btn btn-outline-primary px-4">
+                View All Categories <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
 
@@ -1424,9 +1446,46 @@ html[data-theme="dark"] .trending-products .product-link:hover {
     opacity: 1;
 }
 
+/* Shop by Category - same look as brands */
+.category-card {
+    transition: all 0.3s ease;
+}
+.category-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+}
+.category-logo-container {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.category-logo-container img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+.category-card:hover .category-logo-container img {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+.featured-categories .category-name {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* Responsive adjustments */
 @media (max-width: 767.98px) {
-    .brand-logo-container {
+    .brand-logo-container,
+    .category-logo-container {
         height: 40px;
     }
     
@@ -1452,14 +1511,14 @@ html[data-theme="dark"] .trending-products .product-link:hover {
         font-size: 1.5rem;
     }
     
-    /* Improved category grid on tablets */
-    .category-title {
-        font-size: 0.85rem !important;
+    .featured-categories .category-name {
+        font-size: 0.7rem !important;
     }
 }
 
 @media (max-width: 575.98px) {
-    .brand-logo-container {
+    .brand-logo-container,
+    .category-logo-container {
         height: 30px;
     }
     

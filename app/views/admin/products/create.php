@@ -1,16 +1,27 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
-<div class="container-fluid">
+<style>
+/* Create product form – responsive */
+.create-product-form .form-label { font-weight: 500; }
+.create-product-form .input-group .form-select { flex: 1 1 auto; min-width: 0; }
+@media (max-width: 767.98px) {
+    .create-product-form .input-group > .btn { margin-top: 0.25rem; width: 100%; }
+    .create-product-form .row .col-6 { margin-bottom: 0.5rem; }
+}
+.create-product-form select.form-select[style*="width"] { min-width: 0 !important; max-width: 100%; }
+</style>
+
+<div class="container-fluid px-2 px-sm-3">
     <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">Add New Product</h3>
-                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-light">
+        <div class="col-12">
+            <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
+                <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 py-3">
+                    <h3 class="card-title mb-0 h5">Add New Product</h3>
+                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-light btn-sm">
                         <i class="fas fa-arrow-left me-1"></i> Back to Products
                     </a>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3 p-md-4">
                     <div id="alert-messages">
                         <?php if(isset($success)): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -26,9 +37,9 @@
                         <?php endif; ?>
                     </div>
                     
-                    <form id="productForm" action="<?php echo BASE_URL; ?>?controller=product&action=create" method="POST" enctype="multipart/form-data" novalidate>
+                    <form id="productForm" class="create-product-form" action="<?php echo BASE_URL; ?>?controller=product&action=create" method="POST" enctype="multipart/form-data" novalidate>
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-12 col-lg-8">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Product Name</label>
                                     <input type="text" class="form-control <?php echo isset($errors['name']) ? 'is-invalid' : ''; ?>" id="name" name="name" value="<?php echo $data['name'] ?? ''; ?>" required>
@@ -48,9 +59,8 @@
                                 <!-- Country Selection -->
                                 <div class="mb-3">
                                     <label for="country_id" class="form-label">Country of Origin</label>
-                                    <div class="input-group">
-                                        <select class="form-select select2 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required>
-                                            <option value="">Select Country</option>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="min-width: 0;">
                                             <option value="">Select Country</option>
                                             <?php 
                                             // Get active countries
@@ -75,20 +85,18 @@
                                             endif; 
                                             ?>
                                         </select>
+                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
                                         <?php if(isset($errors['country_id'])): ?>
-                                            <div class="invalid-feedback d-block"><?php echo $errors['country_id']; ?></div>
+                                            <div class="invalid-feedback d-block w-100"><?php echo $errors['country_id']; ?></div>
                                         <?php endif; ?>
-                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button">
-                                            <i class="fas fa-plus me-1"></i> Add New
-                                        </a>
                                     </div>
                                 </div>
 
                                 <!-- Brand Selection -->
                                 <div class="mb-3">
                                     <label for="brand_id" class="form-label">Brand</label>
-                                    <div class="input-group">
-                                        <select class="form-select <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="width: 200px;">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <select class="form-select flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
                                             <option value="">Select Brand</option>
                                             <?php 
                                             // Get active brands
@@ -105,17 +113,15 @@
                                             endif; 
                                             ?>
                                         </select>
-                                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button">
-                                            <i class="fas fa-plus me-1"></i> Add New
-                                        </a>
+                                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
                                         <?php if(isset($errors['brand_id'])): ?>
-                                            <div class="invalid-feedback d-block"><?php echo $errors['brand_id']; ?></div>
+                                            <div class="invalid-feedback d-block w-100"><?php echo $errors['brand_id']; ?></div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-12 col-sm-6">
                                         <div class="mb-3">
                                             <label for="price" class="form-label">Buying Price</label>
                                             <div class="input-group">
@@ -127,7 +133,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-12 col-sm-6">
                                         <div class="mb-3">
                                             <label for="price2" class="form-label">Sales Price (Optional)</label>
                                             <div class="input-group">
@@ -139,7 +145,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-12 col-sm-6">
                                         <div class="mb-3">
                                             <label for="sale_price" class="form-label">Including Tax Price (Optional)</label>
                                             <div class="input-group">
@@ -151,7 +157,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-12 col-sm-6">
                                         <div class="mb-3">
                                             <label for="price3" class="form-label">Wholesale Price (SP) (Optional)</label>
                                             <div class="input-group">
@@ -166,7 +172,7 @@
                                 </div>
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-12 col-lg-4">
                                 <div class="mb-3">
                                     <label for="image" class="form-label">Product Image</label>
                                     <input type="file" class="form-control <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" id="image" name="image">
@@ -194,8 +200,8 @@
 
                                 <div class="mb-3">
                                     <label for="supplier" class="form-label">Supplier</label>
-                                    <div class="input-group">
-                                        <select class="form-select <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="width: 200px;">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <select class="form-select flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
                                             <option value="">Select Supplier</option>
                                             <?php if(!empty($suppliers)): ?>
                                                 <?php foreach($suppliers as $supplier): ?>
@@ -209,11 +215,9 @@
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
                                         </select>
-                                        <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="btn btn-outline-primary" type="button">
-                                            <i class="fas fa-plus me-1"></i> Add New
-                                        </a>
+                                        <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
                                         <?php if(isset($errors['supplier'])): ?>
-                                            <div class="invalid-feedback d-block"><?php echo $errors['supplier']; ?></div>
+                                            <div class="invalid-feedback d-block w-100"><?php echo $errors['supplier']; ?></div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -221,8 +225,8 @@
                                 <!-- Category Selection -->
                                 <div class="mb-3">
                                     <label for="category_id" class="form-label">Category</label>
-                                    <div class="input-group">
-                                        <select class="form-select <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="width: 200px;">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <select class="form-select flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;">
                                             <option value="">Select Category</option>
                                             <?php 
                                             // Get active categories
@@ -239,11 +243,9 @@
                                             endif; 
                                             ?>
                                         </select>
-                                        <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-outline-primary" type="button">
-                                            <i class="fas fa-plus me-1"></i> Add New
-                                        </a>
+                                        <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
                                         <?php if(isset($errors['category_id'])): ?>
-                                            <div class="invalid-feedback d-block"><?php echo $errors['category_id']; ?></div>
+                                            <div class="invalid-feedback d-block w-100"><?php echo $errors['category_id']; ?></div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -276,15 +278,15 @@
                             </div>
                         </div>
                         
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-secondary">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mt-4 pt-3 border-top">
+                            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-secondary btn-sm order-sm-1">
                                 <i class="fas fa-times me-1"></i> Cancel
                             </a>
-                            <div>
-                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <div class="d-flex flex-wrap gap-2 order-sm-2">
+                                <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
                                     <i class="fas fa-save me-1"></i> Create Product
                                 </button>
-                                <button type="button" class="btn btn-success d-none" id="addAnotherBtn" style="display: none;">
+                                <button type="button" class="btn btn-success btn-sm d-none" id="addAnotherBtn" style="display: none;">
                                     <i class="fas fa-plus me-1"></i> Add Another
                                 </button>
                             </div>

@@ -1,5 +1,15 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
+<style>
+/* Edit product form: standard order, responsive */
+.edit-product-form .form-label { font-weight: 500; }
+.edit-product-form .input-group .form-select { flex: 1 1 auto; min-width: 0; }
+@media (max-width: 767.98px) {
+    .edit-product-form .input-group > .btn { margin-top: 0.25rem; width: 100%; }
+    .edit-product-form .row .col-6 { margin-bottom: 0.5rem; }
+}
+</style>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
@@ -23,146 +33,60 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form id="editProductForm" action="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" method="POST" enctype="multipart/form-data" novalidate>
+                    <form id="editProductForm" class="edit-product-form" action="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" method="POST" enctype="multipart/form-data" novalidate>
+                        <!-- Standard order: 1.Name 2.Description 3.Image 4.SKU 5.Category 6.Brand 7.Country 8.Prices 9.Stock 10.Expiry 11.Supplier 12.Batch 13.Status -->
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-12 col-lg-8">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Product Name</label>
-                                    <input type="text" class="form-control <?php echo isset($errors['name']) ? 'is-invalid' : ''; ?>" id="name" name="name" value="<?php echo $product['name']; ?>" required>
+                                    <input type="text" class="form-control <?php echo isset($errors['name']) ? 'is-invalid' : ''; ?>" id="name" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required>
                                     <?php if(isset($errors['name'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['name']; ?></div>
                                     <?php endif; ?>
                                 </div>
-                                
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control <?php echo isset($errors['description']) ? 'is-invalid' : ''; ?>" id="description" name="description" rows="5"><?php echo $product['description']; ?></textarea>
+                                    <textarea class="form-control <?php echo isset($errors['description']) ? 'is-invalid' : ''; ?>" id="description" name="description" rows="4"><?php echo htmlspecialchars($product['description'] ?? ''); ?></textarea>
                                     <?php if(isset($errors['description'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['description']; ?></div>
                                     <?php endif; ?>
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="price" class="form-label">Buying Price</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $product['price']; ?>" step="0.01" min="0" required>
-                                                <?php if(isset($errors['price'])): ?>
-                                                    <div class="invalid-feedback"><?php echo $errors['price']; ?></div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="sale_price" class="form-label">Including Tax Price (Optional)</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $product['sale_price']; ?>" step="0.01" min="0">
-                                                <?php if(isset($errors['sale_price'])): ?>
-                                                    <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="price2" class="form-label">Sales Price (Optional)</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control" id="price2" name="price2" value="<?php echo $product['price2'] ?? $product['price']; ?>" step="0.01" min="0">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="price3" class="form-label">Wholesale Price (SP) (Optional)</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control" id="price3" name="price3" value="<?php echo $product['price3'] ?? $product['price']; ?>" step="0.01" min="0">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
-                            
-                            <div class="col-md-4">
+                            <div class="col-12 col-lg-4">
                                 <div class="mb-3">
                                     <label for="image" class="form-label">Product Image</label>
                                     <?php if(!empty($product['image'])): ?>
                                         <div class="mb-2">
-                                            <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="img-thumbnail" style="max-height: 150px;">
+                                            <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-thumbnail" style="max-height: 150px;">
                                         </div>
                                     <?php endif; ?>
                                     <input type="file" class="form-control <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" id="image" name="image">
                                     <?php if(isset($errors['image'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['image']; ?></div>
                                     <?php endif; ?>
-                                    <div class="form-text">Leave empty to keep current image. Recommended size: 230x250 pixels</div>
+                                    <div class="form-text">Leave empty to keep current image. Recommended: 230×250 px</div>
                                 </div>
-                                
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 col-lg-4">
                                 <div class="mb-3">
                                     <label for="sku" class="form-label">SKU</label>
-                                    <input type="text" class="form-control <?php echo isset($errors['sku']) ? 'is-invalid' : ''; ?>" id="sku" name="sku" value="<?php echo $product['sku']; ?>" required>
+                                    <input type="text" class="form-control <?php echo isset($errors['sku']) ? 'is-invalid' : ''; ?>" id="sku" name="sku" value="<?php echo htmlspecialchars($product['sku']); ?>" required>
                                     <?php if(isset($errors['sku'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['sku']; ?></div>
                                     <?php endif; ?>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label for="expiry_date" class="form-label">Expiry Date</label>
-                                    <input type="date" class="form-control <?php echo isset($errors['expiry_date']) ? 'is-invalid' : ''; ?>" id="expiry_date" name="expiry_date" value="<?php echo isset($product['expiry_date']) ? htmlspecialchars($product['expiry_date']) : ''; ?>">
-                                    <?php if(isset($errors['expiry_date'])): ?>
-                                        <div class="invalid-feedback"><?php echo $errors['expiry_date']; ?></div>
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="supplier" class="form-label">Supplier</label>
-                                    <select class="form-select <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier">
-                                        <option value="">Select Supplier</option>
-                                        <?php if(!empty($suppliers)): ?>
-                                            <?php foreach($suppliers as $supplier): ?>
-                                                <?php 
-                                                    $value = htmlspecialchars($supplier['name']);
-                                                    $selected = (isset($product['supplier']) && $product['supplier'] === $supplier['name']) ? 'selected' : '';
-                                                ?>
-                                                <option value="<?php echo $value; ?>" <?php echo $selected; ?>>
-                                                    <?php echo htmlspecialchars($supplier['name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </select>
-                                    <?php if(isset($errors['supplier'])): ?>
-                                        <div class="invalid-feedback"><?php echo $errors['supplier']; ?></div>
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="batch_number" class="form-label">Batch Number</label>
-                                    <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo isset($product['batch_number']) ? htmlspecialchars($product['batch_number']) : ''; ?>" maxlength="100">
-                                    <?php if(isset($errors['batch_number'])): ?>
-                                        <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
-                                    <?php endif; ?>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="stock_quantity" class="form-label">Stock Quantity</label>
-                                    <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo $product['stock_quantity']; ?>" min="0" required>
-                                    <?php if(isset($errors['stock_quantity'])): ?>
-                                        <div class="invalid-feedback"><?php echo $errors['stock_quantity']; ?></div>
-                                    <?php endif; ?>
-                                </div>
-                                
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
                                 <div class="mb-3">
                                     <label for="category_id" class="form-label">Category</label>
                                     <select class="form-select <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required>
                                         <option value="">Select Category</option>
                                         <?php foreach($categories as $category): ?>
                                             <option value="<?php echo $category['id']; ?>" <?php echo ($product['category_id'] == $category['id']) ? 'selected' : ''; ?>>
-                                                <?php echo $category['name']; ?>
+                                                <?php echo htmlspecialchars($category['name']); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -170,46 +94,14 @@
                                         <div class="invalid-feedback"><?php echo $errors['category_id']; ?></div>
                                     <?php endif; ?>
                                 </div>
-
-                                <!-- Country Selection -->
-                                <div class="mb-3">
-                                    <label for="country_id" class="form-label">Country of Origin</label>
-                                    <div class="input-group">
-                                        <select class="form-select <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required>
-                                            <option value="">Select Country</option>
-                                            <?php 
-                                            // Get active countries
-                                            $countryModel = new Country();
-                                            $countries = $countryModel->getActiveCountries();
-                                            if(!empty($countries)) :
-                                                foreach($countries as $country) :
-                                                    $selected = (isset($product['country_id']) && (int)$product['country_id'] === (int)$country['id']) ? 'selected' : '';
-                                            ?>
-                                                <option value="<?php echo (int)$country['id']; ?>" <?php echo $selected; ?>>
-                                                    <?php echo htmlspecialchars($country['name']); ?>
-                                                </option>
-                                            <?php 
-                                                endforeach;
-                                            endif; 
-                                            ?>
-                                        </select>
-                                        <?php if(isset($errors['country_id'])): ?>
-                                            <div class="invalid-feedback d-block"><?php echo $errors['country_id']; ?></div>
-                                        <?php endif; ?>
-                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button">
-                                            <i class="fas fa-plus me-1"></i> Add New
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <!-- Brand Selection -->
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
                                 <div class="mb-3">
                                     <label for="brand_id" class="form-label">Brand</label>
-                                    <div class="input-group">
-                                        <select class="form-select <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <select class="form-select flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
                                             <option value="">Select Brand</option>
                                             <?php 
-                                            // Get active brands
                                             $brandModel = new Brand();
                                             $brands = $brandModel->getActiveBrands();
                                             if(!empty($brands)) :
@@ -217,20 +109,128 @@
                                                     $selected = (isset($product['brand_id']) && (int)$product['brand_id'] === (int)$brand['id']) ? 'selected' : '';
                                             ?>
                                                 <option value="<?php echo (int)$brand['id']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($brand['name']); ?></option>
-                                            <?php 
-                                                endforeach;
-                                            endif; 
-                                            ?>
+                                            <?php endforeach; endif; ?>
                                         </select>
-                                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button">
-                                            <i class="fas fa-plus me-1"></i> Add New
-                                        </a>
+                                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
                                         <?php if(isset($errors['brand_id'])): ?>
                                             <div class="invalid-feedback d-block"><?php echo $errors['brand_id']; ?></div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                                
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="mb-3">
+                                    <label for="country_id" class="form-label">Country of Origin</label>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <select class="form-select flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="min-width: 0;">
+                                            <option value="">Select Country</option>
+                                            <?php 
+                                            $countryModel = new Country();
+                                            $countries = $countryModel->getActiveCountries();
+                                            if(!empty($countries)) :
+                                                foreach($countries as $country) :
+                                                    $selected = (isset($product['country_id']) && (int)$product['country_id'] === (int)$country['id']) ? 'selected' : '';
+                                            ?>
+                                                <option value="<?php echo (int)$country['id']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($country['name']); ?></option>
+                                            <?php endforeach; endif; ?>
+                                        </select>
+                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
+                                        <?php if(isset($errors['country_id'])): ?>
+                                            <div class="invalid-feedback d-block"><?php echo $errors['country_id']; ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6 col-md-3">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Buying Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">CHF</span>
+                                        <input type="number" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $product['price']; ?>" step="0.01" min="0" required>
+                                    </div>
+                                    <?php if(isset($errors['price'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['price']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-3">
+                                    <label for="sale_price" class="form-label">Incl. Tax (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">CHF</span>
+                                        <input type="number" class="form-control" id="sale_price" name="sale_price" value="<?php echo $product['sale_price'] ?? ''; ?>" step="0.01" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-3">
+                                    <label for="price2" class="form-label">Sales Price (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">CHF</span>
+                                        <input type="number" class="form-control" id="price2" name="price2" value="<?php echo $product['price2'] ?? $product['price']; ?>" step="0.01" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-3">
+                                    <label for="price3" class="form-label">Wholesale (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">CHF</span>
+                                        <input type="number" class="form-control" id="price3" name="price3" value="<?php echo $product['price3'] ?? $product['price']; ?>" step="0.01" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="mb-3">
+                                    <label for="stock_quantity" class="form-label">Stock Quantity</label>
+                                    <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo (int)$product['stock_quantity']; ?>" min="0" required>
+                                    <?php if(isset($errors['stock_quantity'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['stock_quantity']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="mb-3">
+                                    <label for="expiry_date" class="form-label">Expiry Date</label>
+                                    <input type="date" class="form-control <?php echo isset($errors['expiry_date']) ? 'is-invalid' : ''; ?>" id="expiry_date" name="expiry_date" value="<?php echo isset($product['expiry_date']) ? htmlspecialchars($product['expiry_date']) : ''; ?>">
+                                    <?php if(isset($errors['expiry_date'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['expiry_date']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="mb-3">
+                                    <label for="supplier" class="form-label">Supplier</label>
+                                    <select class="form-select <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier">
+                                        <option value="">Select Supplier</option>
+                                        <?php if(!empty($suppliers)): ?>
+                                            <?php foreach($suppliers as $supplier): ?>
+                                                <?php $value = htmlspecialchars($supplier['name']); $selected = (isset($product['supplier']) && $product['supplier'] === $supplier['name']) ? 'selected' : ''; ?>
+                                                <option value="<?php echo $value; ?>" <?php echo $selected; ?>><?php echo $value; ?></option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+                                    <?php if(isset($errors['supplier'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['supplier']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="mb-3">
+                                    <label for="batch_number" class="form-label">Batch Number</label>
+                                    <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo isset($product['batch_number']) ? htmlspecialchars($product['batch_number']) : ''; ?>" maxlength="100">
+                                    <?php if(isset($errors['batch_number'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <div class="mb-3">
                                     <label for="status" class="form-label">Status</label>
                                     <select class="form-select" id="status" name="status">

@@ -479,13 +479,17 @@ class UserController extends Controller {
             redirect('user/login');
         }
         
-        // Get page number
-        $page = $this->get('page', 1);
+        $page = (int)$this->get('page', 1);
+        $perPage = $this->get('per_page', '20');
+        $allowed = ['20', '50', '100', 'all'];
+        if (!in_array($perPage, $allowed, true)) {
+            $perPage = '20';
+        }
+        $perPageNum = ($perPage === 'all') ? 9999 : (int)$perPage;
         
-        // Get users with pagination
-        $users = $this->userModel->paginate($page, 20, 'id', 'DESC');
+        $users = $this->userModel->paginate($page, $perPageNum, 'id', 'DESC');
+        $users['per_page_param'] = $perPage;
         
-        // Load view
         $this->view('admin/users/index', [
             'users' => $users
         ]);

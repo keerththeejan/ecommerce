@@ -199,7 +199,7 @@ class PaymentDueController {
             'purchase' => $purchase
         ];
 
-        require_once '../views/admin/payment_due/view.php';
+        require_once __DIR__ . '/../views/admin/payment_due/view.php';
     }
 
     // Update payment status
@@ -353,7 +353,7 @@ class PaymentDueController {
             'end_date' => $endDate
         ];
 
-        require_once '../views/admin/payment_due/report.php';
+        require_once __DIR__ . '/../views/admin/payment_due/report.php';
     }
 
     // Export payment due report to Excel

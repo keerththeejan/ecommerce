@@ -244,7 +244,7 @@ class Brand extends Model {
      * @param string $order Order direction (ASC, DESC)
      * @return array
      */
-    public function paginate($page = 1, $perPage = 10, $orderBy = 'name', $order = 'ASC') {
+    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'ASC') {
         // Calculate offset
         $offset = ($page - 1) * $perPage;
         
@@ -329,7 +329,7 @@ class Brand extends Model {
         $totalPages = ceil($totalCount / $perPage);
         
         // Get brands for current page
-        if(!$this->db->query("SELECT * FROM brands WHERE name LIKE :search ORDER BY name ASC LIMIT :perPage OFFSET :offset")) {
+        if(!$this->db->query("SELECT * FROM brands WHERE name LIKE :search ORDER BY id ASC LIMIT :perPage OFFSET :offset")) {
             return [
                 'data' => [],
                 'total' => $totalCount,
