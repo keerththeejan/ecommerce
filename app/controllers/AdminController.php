@@ -23,21 +23,44 @@ class AdminController extends Controller {
      */
     public function dashboard() {
         // Require admin login
+        if (!function_exists('isAdmin')) {
+            require_once APP_PATH . 'helpers.php';
+        }
         if (!isAdmin()) {
-            // Route to existing user login page if not admin
             redirect('user/login');
         }
 
-        // Recent orders
-        $recentOrders = $this->model('Order')->getRecentOrders(5);
+        $recentOrders = [];
+        $lowStockProducts = [];
+        $salesStats = [];
 
-        // Low stock products
-        $lowStockProducts = $this->productModel->getLowStockProducts();
+        try {
+            $recentOrders = $this->model('Order')->getRecentOrders(5);
+        } catch (Exception $e) {
+            error_log('Admin dashboard getRecentOrders: ' . $e->getMessage());
+        }
+        if (!is_array($recentOrders)) {
+            $recentOrders = [];
+        }
 
-        // Sales statistics
-        $salesStats = $this->model('Order')->getSalesStats();
+        try {
+            $lowStockProducts = $this->productModel->getLowStockProducts(10);
+        } catch (Exception $e) {
+            error_log('Admin dashboard getLowStockProducts: ' . $e->getMessage());
+        }
+        if (!is_array($lowStockProducts)) {
+            $lowStockProducts = [];
+        }
 
-        // Render view
+        try {
+            $salesStats = $this->model('Order')->getSalesStats('monthly');
+        } catch (Exception $e) {
+            error_log('Admin dashboard getSalesStats: ' . $e->getMessage());
+        }
+        if (!is_array($salesStats)) {
+            $salesStats = [];
+        }
+
         $this->view('admin/dashboard', [
             'recentOrders' => $recentOrders,
             'lowStockProducts' => $lowStockProducts,

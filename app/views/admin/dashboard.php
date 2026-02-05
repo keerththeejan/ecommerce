@@ -1,6 +1,8 @@
 <?php 
-require_once APP_PATH . 'views/admin/layouts/header.php'; 
-require_once APP_PATH . 'models/Supplier.php';
+require_once APP_PATH . 'views/admin/layouts/header.php';
+if (file_exists(APP_PATH . 'models/Supplier.php')) {
+    require_once APP_PATH . 'models/Supplier.php';
+}
 ?>
 <style>
 /* Dashboard – responsive */
@@ -33,8 +35,13 @@ require_once APP_PATH . 'models/Supplier.php';
                             <h6 class="text-uppercase opacity-90">Total Suppliers</h6>
                             <h2 class="mb-0">
                                 <?php 
-                                    $supplierModel = new Supplier();
-                                    echo count($supplierModel->getAllSuppliers()); 
+                                    try {
+                                        $supplierModel = class_exists('Supplier') ? new Supplier() : null;
+                                        echo $supplierModel ? count($supplierModel->getAllSuppliers()) : 0;
+                                    } catch (Exception $e) {
+                                        error_log('Dashboard Supplier: ' . $e->getMessage());
+                                        echo '0';
+                                    }
                                 ?>
                             </h2>
                         </div>
@@ -55,8 +62,13 @@ require_once APP_PATH . 'models/Supplier.php';
                             <h6 class="text-uppercase opacity-90">Total Orders</h6>
                             <h2 class="mb-0">
                                 <?php 
-                                    $orderModel = new Order();
-                                    echo $orderModel->count(); 
+                                    try {
+                                        $orderModel = class_exists('Order') ? new Order() : null;
+                                        echo $orderModel ? $orderModel->count() : 0;
+                                    } catch (Exception $e) {
+                                        error_log('Dashboard Order count: ' . $e->getMessage());
+                                        echo '0';
+                                    }
                                 ?>
                             </h2>
                         </div>
@@ -77,8 +89,13 @@ require_once APP_PATH . 'models/Supplier.php';
                             <h6 class="text-uppercase opacity-90">Total Products</h6>
                             <h2 class="mb-0">
                                 <?php 
-                                    $productModel = new Product();
-                                    echo $productModel->count(); 
+                                    try {
+                                        $productModel = class_exists('Product') ? new Product() : null;
+                                        echo $productModel ? $productModel->count() : 0;
+                                    } catch (Exception $e) {
+                                        error_log('Dashboard Product count: ' . $e->getMessage());
+                                        echo '0';
+                                    }
                                 ?>
                             </h2>
                         </div>
@@ -99,8 +116,13 @@ require_once APP_PATH . 'models/Supplier.php';
                             <h6 class="text-uppercase opacity-90">Total Customers</h6>
                             <h2 class="mb-0">
                                 <?php 
-                                    $userModel = new User();
-                                    echo count($userModel->getCustomers()); 
+                                    try {
+                                        $userModel = class_exists('User') ? new User() : null;
+                                        echo $userModel && method_exists($userModel, 'getCustomers') ? count($userModel->getCustomers()) : 0;
+                                    } catch (Exception $e) {
+                                        error_log('Dashboard User getCustomers: ' . $e->getMessage());
+                                        echo '0';
+                                    }
                                 ?>
                             </h2>
                         </div>
@@ -121,10 +143,15 @@ require_once APP_PATH . 'models/Supplier.php';
                             <h6 class="text-uppercase opacity-90">Total Revenue</h6>
                             <h2 class="mb-0">
                                 <?php 
-                                    $db = new Database();
-                                    $db->query("SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid'");
-                                    $result = $db->single();
-                                    echo formatPrice($result['total'] ?? 0); 
+                                    try {
+                                        $dbRev = new Database();
+                                        $dbRev->query("SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid'");
+                                        $result = $dbRev->single();
+                                        echo function_exists('formatPrice') ? formatPrice($result['total'] ?? 0) : number_format((float)($result['total'] ?? 0), 2);
+                                    } catch (Exception $e) {
+                                        error_log('Dashboard Revenue: ' . $e->getMessage());
+                                        echo function_exists('formatPrice') ? formatPrice(0) : '0.00';
+                                    }
                                 ?>
                             </h2>
                         </div>
@@ -311,6 +338,10 @@ require_once APP_PATH . 'models/Supplier.php';
                         
                         <div class="col-md-6">
                             <h6 class="text-uppercase text-muted mb-3">Quick Stats</h6>
+                            <?php 
+                            $db = isset($GLOBALS['db']) ? $GLOBALS['db'] : null;
+                            if (!$db && class_exists('Database')) { try { $db = new Database(); } catch (Exception $e) { $db = null; } }
+                            ?>
                             <div class="row">
                                 <div class="col-6 mb-3">
                                     <div class="card bg-light">
@@ -318,13 +349,8 @@ require_once APP_PATH . 'models/Supplier.php';
                                             <h6 class="text-muted mb-1">This Month's Sales</h6>
                                             <h4 class="mb-0"><?php 
                                                 try {
-                                                    $db = new Database();
-                                                    $db->query("SHOW TABLES LIKE 'orders'");
-                                                    if ($db->single()) {
-                                                        $db->query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders 
-                                                                   WHERE payment_status = 'paid' 
-                                                                   AND MONTH(created_at) = MONTH(CURRENT_DATE()) 
-                                                                   AND YEAR(created_at) = YEAR(CURRENT_DATE())");
+                                                    if ($db && $db->query("SHOW TABLES LIKE 'orders'") && $db->single()) {
+                                                        $db->query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE payment_status = 'paid' AND MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())");
                                                         $result = $db->single();
                                                         echo formatPrice($result['total'] ?? 0);
                                                     } else {
@@ -344,9 +370,13 @@ require_once APP_PATH . 'models/Supplier.php';
                                             <h6 class="text-muted mb-1">Outstanding Invoices</h6>
                                             <h4 class="mb-0"><?php 
                                                 try {
-                                                    $db->query("SELECT COUNT(*) as count FROM invoices WHERE status != 'paid'");
-                                                    $result = $db->single();
-                                                    echo $result['count'] ?? 0;
+                                                    if ($db && $db->query("SHOW TABLES LIKE 'invoices'") && $db->single()) {
+                                                        $db->query("SELECT COUNT(*) as count FROM invoices WHERE status != 'paid'");
+                                                        $result = $db->single();
+                                                        echo (int)($result['count'] ?? 0);
+                                                    } else {
+                                                        echo '0';
+                                                    }
                                                 } catch (Exception $e) {
                                                     echo '0';
                                                     error_log('Error counting outstanding invoices: ' . $e->getMessage());
@@ -361,11 +391,8 @@ require_once APP_PATH . 'models/Supplier.php';
                                             <h6 class="text-muted mb-1">This Month's Purchases</h6>
                                             <h4 class="mb-0"><?php 
                                                 try {
-                                                    $db->query("SHOW TABLES LIKE 'purchases'");
-                                                    if ($db->single()) {
-                                                        $db->query("SELECT COALESCE(SUM(total_amount), 0) as total FROM purchases 
-                                                                   WHERE MONTH(purchase_date) = MONTH(CURRENT_DATE()) 
-                                                                   AND YEAR(purchase_date) = YEAR(CURRENT_DATE())");
+                                                    if ($db && $db->query("SHOW TABLES LIKE 'purchases'") && $db->single()) {
+                                                        $db->query("SELECT COALESCE(SUM(total_amount), 0) as total FROM purchases WHERE MONTH(purchase_date) = MONTH(CURRENT_DATE()) AND YEAR(purchase_date) = YEAR(CURRENT_DATE())");
                                                         $result = $db->single();
                                                         echo formatPrice($result['total'] ?? 0);
                                                     } else {
@@ -385,11 +412,10 @@ require_once APP_PATH . 'models/Supplier.php';
                                             <h6 class="text-muted mb-1">Pending Purchases</h6>
                                             <h4 class="mb-0"><?php 
                                                 try {
-                                                    $db->query("SHOW TABLES LIKE 'purchases'");
-                                                    if ($db->single()) {
+                                                    if ($db && $db->query("SHOW TABLES LIKE 'purchases'") && $db->single()) {
                                                         $db->query("SELECT COUNT(*) as count FROM purchases WHERE status != 'received'");
                                                         $result = $db->single();
-                                                        echo $result['count'] ?? 0;
+                                                        echo (int)($result['count'] ?? 0);
                                                     } else {
                                                         echo '0';
                                                     }
