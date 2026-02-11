@@ -666,6 +666,64 @@
         main {
             margin-top: 24px;
         }
+        
+        /* Desktop navbar: responsive when visible (md and up) */
+        @media (min-width: 768px) {
+            .navbar .navbar-collapse {
+                flex-wrap: wrap;
+                max-width: 100%;
+            }
+            .navbar .navbar-nav.me-auto {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+            .navbar .navbar-nav .nav-item .nav-link {
+                white-space: nowrap;
+            }
+        }
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .navbar .container,
+            .navbar .container-fluid {
+                flex-wrap: wrap;
+            }
+            .navbar .navbar-collapse {
+                width: 100%;
+                overflow-x: hidden;
+            }
+            .navbar .d-lg-flex form {
+                width: 100%;
+                max-width: 100%;
+            }
+            .navbar .d-lg-flex form .form-control {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .navbar .navbar-brand {
+                margin-right: 0.5rem;
+            }
+            .navbar .navbar-nav .nav-link {
+                padding: 0.5rem 0.6rem !important;
+                font-size: 0.9rem;
+            }
+            .navbar .navbar-nav .nav-item .btn {
+                padding: 0.35rem 0.65rem !important;
+                font-size: 0.85rem;
+            }
+            .navbar .d-lg-flex form.desktop-nav-search {
+                max-width: 220px;
+                min-width: 0;
+            }
+            .navbar .d-lg-flex form .form-control {
+                min-width: 0;
+                width: 100%;
+            }
+            .navbar .d-lg-flex form .btn {
+                padding: 0.35rem 0.5rem;
+                font-size: 0.85rem;
+            }
+        }
     </style>
     <nav class="navbar navbar-expand-lg navbar-light border-bottom d-none d-md-block" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
         <div class="<?php echo $headerContainerClass; ?>">
@@ -803,11 +861,11 @@
                 </ul>
                 <div class="d-lg-flex flex-column flex-lg-row align-items-start align-items-lg-center mt-3 mt-lg-0">
                     <!-- Desktop Search -->
-                    <form class="d-none d-md-flex w-100 mb-3 mb-lg-0 me-lg-2" action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET">
+                    <form class="d-none d-md-flex flex-grow-1 flex-lg-grow-0 mb-3 mb-lg-0 me-lg-2 desktop-nav-search" action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" style="min-width: 0; max-width: 280px;">
                         <input type="hidden" name="controller" value="product">
                         <input type="hidden" name="action" value="search">
-                        <input class="form-control me-2" type="search" name="keyword" placeholder="Search" aria-label="Search">
-                        <button class="btn btn-outline-dark" type="submit">Search</button>
+                        <input class="form-control me-2" type="search" name="keyword" placeholder="Search" aria-label="Search" style="min-width: 0;">
+                        <button class="btn btn-outline-dark flex-shrink-0" type="submit">Search</button>
                     </form>
                     <ul class="navbar-nav ms-lg-2">
                         <li class="nav-item d-flex align-items-center me-2">

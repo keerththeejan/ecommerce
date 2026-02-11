@@ -498,7 +498,7 @@ try {
     }
 
     /* Center inner content and control max width */
-    .max-width-1400 { max-width: 1400px; margin-left: auto; margin-right: auto; }
+    .max-width-1400 { max-width: 1680px; margin-left: auto; margin-right: auto; }
 
     /* Ensure symmetric inner padding within footer */
     footer .container-fluid { padding-left: 1.5rem; padding-right: 1.5rem; }

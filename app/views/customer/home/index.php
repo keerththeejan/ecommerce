@@ -1791,7 +1791,7 @@ html[data-theme="dark"] .trending-products .product-link:hover {
 }
 
 .max-width-1400 {
-    max-width: 1400px;
+    max-width: 1680px;
     margin-left: auto;
     margin-right: auto;
 }

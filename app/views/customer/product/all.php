@@ -3,7 +3,7 @@
 <style>
 /* Professional Product Grid Styling */
 .all-products-container {
-    max-width: 1400px;
+    max-width: 1680px;
     margin: 0 auto;
     padding: 2rem 1rem;
 }

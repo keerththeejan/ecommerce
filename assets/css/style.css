@@ -1218,9 +1218,9 @@ main {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Professional Container – responsive auto-fit */
+/* Professional Container – responsive auto-fit (wider content on large screens) */
 .max-width-1400 {
-    max-width: 1400px;
+    max-width: 1680px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 1.5rem;
@@ -1249,6 +1249,12 @@ main {
     .max-width-1400 {
         padding-left: 3rem;
         padding-right: 3rem;
+    }
+}
+@media (min-width: 1680px) {
+    .max-width-1400 {
+        padding-left: 3.5rem;
+        padding-right: 3.5rem;
     }
 }
 
