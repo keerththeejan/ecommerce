@@ -271,8 +271,10 @@
         padding: 0.625rem 0.75rem;
     }
     
-    .card-body {
+    .product-card .card-body {
         padding: 0.75rem 0.875rem 0.875rem !important;
+        min-width: 0;
+        overflow: hidden;
     }
     
     .product-title {
@@ -287,17 +289,47 @@
         font-size: 0.7rem;
     }
     
+    .product-actions-row {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        max-width: 100%;
+        min-width: 0;
+    }
+    
+    .product-actions-row .quantity-group {
+        min-width: 78px;
+        flex-shrink: 0;
+    }
+    
+    .product-actions-row .quantity-group input {
+        width: 28px;
+        padding: 0.25rem 0.1rem;
+        font-size: 0.8rem;
+    }
+    
+    .product-actions-row .quantity-group .btn {
+        min-width: 28px;
+        padding: 0.25rem 0.35rem;
+        font-size: 0.8rem;
+    }
+    
     .btn-add-to-cart {
-        font-size: 0.875rem;
-        padding: 0.375rem 0.75rem;
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .btn-add-to-cart span {
-        display: none;
+        display: inline;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .btn-add-to-cart i {
-        margin: 0;
+        flex-shrink: 0;
     }
     
     .filter-section {
