@@ -152,7 +152,13 @@
             <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
                 <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 py-3">
                     <h3 class="card-title mb-0 h5 mb-0">Products</h3>
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex flex-wrap gap-2 justify-content-end">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=export" class="btn btn-light btn-sm">
+                            <i class="fas fa-download me-1"></i> Export CSV
+                        </a>
+                        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <i class="fas fa-upload me-1"></i> Import CSV
+                        </button>
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
                             <i class="fas fa-plus me-1"></i> Add New Product
                         </a>
@@ -218,8 +224,35 @@
                         <?php flash('product_error', '', 'alert alert-danger'); ?>
                     </div>
                     
+                    <!-- Search -->
+                    <form method="GET" action="<?php echo BASE_URL; ?>" class="mb-4">
+                        <input type="hidden" name="controller" value="product">
+                        <input type="hidden" name="action" value="adminIndex">
+                        <input type="hidden" name="per_page" value="<?php echo htmlspecialchars($products['per_page_param'] ?? '20'); ?>">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-12 col-md-8 col-lg-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" name="search" class="form-control" 
+                                           placeholder="Search by name, SKU, category, supplier, batch..." 
+                                           value="<?php echo htmlspecialchars($products['search'] ?? ''); ?>">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                    <?php if(!empty($products['search'])): ?>
+                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex&per_page=<?php echo htmlspecialchars($products['per_page_param'] ?? '20'); ?>" class="btn btn-outline-secondary">Clear</a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
                     <?php if(empty($products['data'])): ?>
-                        <div class="alert alert-info">No products found.</div>
+                        <div class="alert alert-info">
+                            <?php if(!empty($products['search'])): ?>
+                                No products found for "<?php echo htmlspecialchars($products['search']); ?>". <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex&per_page=<?php echo htmlspecialchars($products['per_page_param'] ?? '20'); ?>">Show all</a>
+                            <?php else: ?>
+                                No products found.
+                            <?php endif; ?>
+                        </div>
                     <?php else: ?>
                         <div class="products-table-scroll table-responsive">
                             <table id="productsTable" class="table table-striped table-hover products-table">
@@ -362,10 +395,14 @@
                             <select id="perPageFilter" class="form-select form-select-sm" style="width: auto;">
                                 <?php 
                                 $currentPerPage = $products['per_page_param'] ?? '20';
+                                $currentSearch = $products['search'] ?? '';
                                 $baseUrl = BASE_URL . '?controller=product&action=adminIndex';
                                 foreach (['20', '50', '100', 'all'] as $opt): 
                                     $sel = ($currentPerPage === $opt) ? ' selected' : '';
                                     $url = $baseUrl . '&per_page=' . $opt;
+                                    if ($currentSearch !== '') {
+                                        $url .= '&search=' . urlencode($currentSearch);
+                                    }
                                 ?>
                                     <option value="<?php echo htmlspecialchars($url); ?>"<?php echo $sel; ?>><?php echo $opt === 'all' ? 'All' : $opt; ?></option>
                                 <?php endforeach; ?>
@@ -425,6 +462,31 @@
                     <span class="btn-text">Delete</span>
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?php echo BASE_URL; ?>?controller=product&action=import" method="POST" enctype="multipart/form-data">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="importModalLabel"><i class="fas fa-upload me-2"></i>Import Products from CSV</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="import_file" class="form-label">CSV File</label>
+                        <input type="file" class="form-control" id="import_file" name="import_file" accept=".csv" required>
+                        <div class="form-text">Upload a CSV with columns: name, description, sku, price, sale_price, price2, price3, stock_quantity, category_id, brand_id, country_id, supplier, batch_number, status, add_date, expiry_date, tax_id. Use Export to download a sample.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload me-1"></i>Import</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

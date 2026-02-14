@@ -120,6 +120,31 @@
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <div class="mb-3">
+                                    <label for="tax_id" class="form-label">Tax Rate (Optional)</label>
+                                    <select class="form-select <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>" id="tax_id" name="tax_id">
+                                        <option value="">Use category tax / None</option>
+                                        <?php
+                                        $taxModel = new TaxModel();
+                                        $taxRates = $taxModel->getTaxRates(true);
+                                        if (!empty($taxRates)):
+                                            foreach ($taxRates as $t):
+                                                $tid = is_object($t) ? $t->id : (isset($t['id']) ? $t['id'] : null);
+                                                $tname = is_object($t) ? $t->name : (isset($t['name']) ? $t['name'] : '');
+                                                $trate = is_object($t) ? $t->rate : (isset($t['rate']) ? $t['rate'] : '');
+                                                $label = trim($tname . ' (' . $trate . '%)');
+                                                $selected = (isset($product['tax_id']) && (string)($product['tax_id'] ?? '') === (string)$tid) ? 'selected' : '';
+                                        ?>
+                                            <option value="<?php echo htmlspecialchars($tid); ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($label); ?></option>
+                                        <?php
+                                            endforeach;
+                                        endif;
+                                        ?>
+                                    </select>
+                                    <div class="form-text small">Override category tax. Leave empty to use category's tax.</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="mb-3">
                                     <label for="country_id" class="form-label">Country of Origin</label>
                                     <div class="d-flex flex-wrap gap-1">
                                         <select class="form-select flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="min-width: 0;">

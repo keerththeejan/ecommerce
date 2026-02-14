@@ -10,9 +10,9 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # If the request is for index.php with query parameters
+    # If the request is for index.php with query parameters (QSA preserves per_page, search, etc.)
     RewriteCond %{THE_REQUEST} /index\.php\?controller=([^&]+)&action=([^&\s]+) [NC]
-    RewriteRule ^index\.php$ %1/%2? [R=301,L]
+    RewriteRule ^index\.php$ %1/%2 [QSA,R=301,L]
 
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d

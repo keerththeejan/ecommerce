@@ -410,9 +410,10 @@ class ProductController extends Controller {
             redirect('user/login');
         }
         
-        // Get page number and per-page filter (20, 50, 100, all)
+        // Get page number, per-page filter, and search
         $page = (int) $this->get('page', 1);
         $perPageParam = $this->get('per_page', '20');
+        $search = trim((string) $this->get('search', ''));
         $allowedPerPage = ['20', '50', '100', 'all'];
         $perPage = in_array($perPageParam, $allowedPerPage, true) ? $perPageParam : '20';
         $perPageNum = ($perPage === 'all') ? 9999 : (int) $perPage;
@@ -420,9 +421,10 @@ class ProductController extends Controller {
             $perPageNum = 20;
         }
         
-        // Get products (ID ascending)
-        $products = $this->productModel->paginate($page, $perPageNum, 'id', 'ASC');
+        // Get products (ID ascending), with optional search
+        $products = $this->productModel->paginate($page, $perPageNum, 'id', 'ASC', $search ?: null);
         $products['per_page_param'] = $perPage;
+        $products['search'] = $search;
         
         // Normalize rows to associative arrays to avoid blank fields in view
         if (isset($products['data']) && is_array($products['data'])) {
@@ -458,6 +460,129 @@ class ProductController extends Controller {
     }
     
     /**
+     * Admin: Export products to CSV
+     */
+    public function export() {
+        if (!isAdmin()) {
+            redirect('user/login');
+        }
+        $products = $this->productModel->getAllForExport();
+        $filename = 'products_export_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['name', 'description', 'sku', 'price', 'sale_price', 'price2', 'price3', 'stock_quantity', 'category_id', 'brand_id', 'country_id', 'supplier', 'batch_number', 'status', 'add_date', 'expiry_date', 'tax_id']);
+        foreach ($products as $p) {
+            fputcsv($out, [
+                $p['name'] ?? '',
+                $p['description'] ?? '',
+                $p['sku'] ?? '',
+                $p['price'] ?? '',
+                $p['sale_price'] ?? '',
+                $p['price2'] ?? '',
+                $p['price3'] ?? '',
+                $p['stock_quantity'] ?? 0,
+                $p['category_id'] ?? '',
+                $p['brand_id'] ?? '',
+                $p['country_id'] ?? '',
+                $p['supplier'] ?? '',
+                $p['batch_number'] ?? 0,
+                $p['status'] ?? 'active',
+                $p['add_date'] ?? date('Y-m-d'),
+                $p['expiry_date'] ?? '',
+                $p['tax_id'] ?? ''
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
+    
+    /**
+     * Admin: Import products from CSV
+     */
+    public function import() {
+        if (!isAdmin()) {
+            redirect('user/login');
+        }
+        if (!$this->isPost()) {
+            flash('product_error', 'Please upload a CSV file.', 'alert alert-danger');
+            header('Location: ' . BASE_URL . '?controller=product&action=adminIndex');
+            exit;
+        }
+        $file = $_FILES['import_file'] ?? null;
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            flash('product_error', 'Invalid or missing file upload.', 'alert alert-danger');
+            header('Location: ' . BASE_URL . '?controller=product&action=adminIndex');
+            exit;
+        }
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if ($ext !== 'csv') {
+            flash('product_error', 'Only CSV files are allowed.', 'alert alert-danger');
+            header('Location: ' . BASE_URL . '?controller=product&action=adminIndex');
+            exit;
+        }
+        $handle = fopen($file['tmp_name'], 'r');
+        if (!$handle) {
+            flash('product_error', 'Could not read uploaded file.', 'alert alert-danger');
+            header('Location: ' . BASE_URL . '?controller=product&action=adminIndex');
+            exit;
+        }
+        $headers = fgetcsv($handle);
+        $created = 0;
+        $errors = [];
+        $rowNum = 1;
+        while (($row = fgetcsv($handle)) !== false) {
+            $rowNum++;
+            $data = array_combine(array_map('trim', $headers ?: []), $row);
+            if (!$data) continue;
+            $data = array_change_key_case($data, CASE_LOWER);
+            if (empty(trim($data['name'] ?? ''))) continue;
+            $sku = trim($data['sku'] ?? '');
+            if (empty($sku)) {
+                $sku = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($data['name'], 0, 10))) . (time() % 10000 + $rowNum);
+            }
+            if ($this->productModel->getSingleBy('sku', $sku)) {
+                $sku = $sku . '_' . $rowNum;
+            }
+            $addDate = !empty(trim($data['add_date'] ?? '')) ? trim($data['add_date']) : date('Y-m-d');
+            $expiryDate = !empty(trim($data['expiry_date'] ?? '')) ? trim($data['expiry_date']) : null;
+            $insert = [
+                'name' => sanitize($data['name'] ?? ''),
+                'description' => sanitize($data['description'] ?? ''),
+                'sku' => $sku,
+                'price' => (float)($data['price'] ?? 0),
+                'sale_price' => !empty(trim($data['sale_price'] ?? '')) ? (float)$data['sale_price'] : null,
+                'price2' => !empty(trim($data['price2'] ?? '')) ? (float)$data['price2'] : (float)($data['price'] ?? 0),
+                'price3' => !empty(trim($data['price3'] ?? '')) ? (float)$data['price3'] : (float)($data['price'] ?? 0),
+                'stock_quantity' => (int)($data['stock_quantity'] ?? 0),
+                'category_id' => (int)($data['category_id'] ?? 0) ?: null,
+                'brand_id' => (int)($data['brand_id'] ?? 0) ?: null,
+                'country_id' => (int)($data['country_id'] ?? 0) ?: null,
+                'supplier' => sanitize($data['supplier'] ?? ''),
+                'batch_number' => (int)($data['batch_number'] ?? 0),
+                'status' => in_array(trim($data['status'] ?? ''), ['active', 'inactive']) ? trim($data['status']) : 'active',
+                'add_date' => $addDate,
+                'expiry_date' => $expiryDate,
+                'tax_id' => ($tid = (int)($data['tax_id'] ?? 0)) > 0 ? $tid : null
+            ];
+            if ($this->productModel->create($insert)) {
+                $created++;
+            } else {
+                $errors[] = "Row {$rowNum}: " . ($this->productModel->lastError ?? 'Failed');
+            }
+        }
+        fclose($handle);
+        if ($created > 0) {
+            flash('product_success', "Successfully imported {$created} product(s).", 'alert alert-success');
+        }
+        if (!empty($errors)) {
+            flash('product_error', implode(' ', array_slice($errors, 0, 5)) . (count($errors) > 5 ? ' ...' : ''), 'alert alert-danger');
+        }
+        header('Location: ' . BASE_URL . '?controller=product&action=adminIndex');
+        exit;
+    }
+    
+    /**
      * Admin: Create product form
      */
     public function create() {
@@ -490,7 +615,8 @@ class ProductController extends Controller {
                 'status' => $this->post('status'),
                 'expiry_date' => $this->post('expiry_date') ?: null,
                 'supplier' => sanitize($this->post('supplier')),
-                'batch_number' => sanitize($this->post('batch_number'))
+                'batch_number' => sanitize($this->post('batch_number')),
+                'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null
             ];
             
             // Handle SKU - generate if empty or check for uniqueness
@@ -532,12 +658,13 @@ class ProductController extends Controller {
                 'category_id' => 'required|numeric',
                 'country_id' => 'required|numeric',
                 'brand_id' => 'required|numeric',
-                'price2' => 'nullable|numeric',
+                'price2' => 'required|numeric',
                 'price3' => 'nullable|numeric',
                 'sale_price' => 'nullable|numeric',
                 'supplier' => 'nullable|max:255',
                 'batch_number' => 'nullable|max:100',
-                'expiry_date' => 'nullable'
+                'expiry_date' => 'nullable',
+                'tax_id' => 'nullable|numeric'
             ];
             
             $validationErrors = $this->validate($data, $validationRules);
@@ -586,7 +713,8 @@ class ProductController extends Controller {
                             'status' => 'active',
                             'expiry_date' => '',
                             'supplier' => '',
-                            'batch_number' => ''
+                            'batch_number' => '',
+                            'tax_id' => ''
                         ];
                         
                         $this->view('admin/products/create', [
@@ -636,7 +764,8 @@ class ProductController extends Controller {
                 'status' => 'active',
                 'expiry_date' => '',
                 'supplier' => '',
-                'batch_number' => ''
+                'batch_number' => '',
+                'tax_id' => ''
             ];
             
             // Load view
@@ -701,7 +830,8 @@ class ProductController extends Controller {
                     'status' => $this->post('status') ?: 'active',
                     'expiry_date' => $this->post('expiry_date') ?: null,
                     'supplier' => sanitize($this->post('supplier')),
-                    'batch_number' => sanitize($this->post('batch_number'))
+                    'batch_number' => sanitize($this->post('batch_number')),
+                    'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null
                 ];
                 
                 // Validate data before processing
@@ -716,7 +846,8 @@ class ProductController extends Controller {
                     'status' => 'required|in:active,inactive',
                     'supplier' => 'nullable|max:255',
                     'batch_number' => 'nullable|max:100',
-                    'expiry_date' => 'nullable'
+                    'expiry_date' => 'nullable',
+                    'tax_id' => 'nullable|numeric'
                 ]);
                 
                 if(!empty($errors)) {
@@ -804,6 +935,7 @@ class ProductController extends Controller {
                         'expiry_date' => $payload['expiry_date'] ?? ($data['expiry_date'] ?? null),
                         'supplier' => $payload['supplier'] ?? ($data['supplier'] ?? null),
                         'batch_number' => $payload['batch_number'] ?? ($data['batch_number'] ?? null),
+                        'tax_id' => $payload['tax_id'] ?? ($data['tax_id'] ?? ($product['tax_id'] ?? null)),
                     ]
                 ];
                 

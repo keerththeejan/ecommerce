@@ -704,14 +704,30 @@ class Product extends Model {
      * @param int $perPage Items per page
      * @param string $orderBy Column to order by
      * @param string $order Order direction (ASC or DESC)
+     * @param string|null $search Optional search keyword (searches name, sku, description, category_name)
      * @return array
      */
-    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC') {
+    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC', $search = null) {
         // Calculate offset
         $offset = ($page - 1) * $perPage;
         
+        $whereClause = '';
+        $searchKeyword = trim((string)$search);
+        if ($searchKeyword !== '') {
+            // Use unique param names (PDO doesn't allow same named param twice)
+            $whereClause = " p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE (p.name LIKE :s1 OR p.sku LIKE :s2 OR p.description LIKE :s3 
+                       OR p.supplier LIKE :s4 OR CAST(p.batch_number AS CHAR) LIKE :s5
+                       OR c.name LIKE :s6)";
+        }
+        
         // Get total count
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table}";
+        if ($whereClause !== '') {
+            $countSql = "SELECT COUNT(*) as total FROM {$this->table}" . $whereClause;
+        } else {
+            $countSql = "SELECT COUNT(*) as total FROM {$this->table} p";
+        }
         
         if(!$this->db->query($countSql)) {
             $this->lastError = $this->db->getError();
@@ -724,40 +740,95 @@ class Product extends Model {
             ];
         }
         
+        if ($searchKeyword !== '') {
+            $term = '%' . $searchKeyword . '%';
+            $this->db->bind(':s1', $term);
+            $this->db->bind(':s2', $term);
+            $this->db->bind(':s3', $term);
+            $this->db->bind(':s4', $term);
+            $this->db->bind(':s5', $term);
+            $this->db->bind(':s6', $term);
+        }
         $totalResult = $this->db->single();
-        $total = $totalResult['total'];
-        $totalPages = ceil($total / $perPage);
+        if ($totalResult === false) {
+            $this->lastError = $this->db->getError();
+            return [
+                'data' => [],
+                'total' => 0,
+                'total_records' => 0,
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => 0
+            ];
+        }
+        $total = (int) ($totalResult['total'] ?? 0);
+        $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 1;
+        $offset = (int) $offset;
+        $perPage = (int) $perPage;
         
-        // Get products
+        // Get products (use intval for LIMIT/OFFSET to avoid MySQL PDO binding issues)
+        $dataWhere = $whereClause !== '' ? $whereClause : " p
+                LEFT JOIN categories c ON p.category_id = c.id";
+        $orderBySafe = in_array($orderBy, ['id', 'name', 'sku', 'price', 'stock_quantity', 'status', 'created_at'], true) ? $orderBy : 'id';
+        $orderSafe = strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
+        
+        $limitVal = max(1, $perPage);
+        $offsetVal = max(0, $offset);
+        
         $sql = "SELECT p.*, c.name as category_name 
-                FROM {$this->table} p
-                LEFT JOIN categories c ON p.category_id = c.id
-                ORDER BY p.{$orderBy} {$order}
-                LIMIT :limit OFFSET :offset";
+                FROM {$this->table}" . $dataWhere . "
+                ORDER BY p.{$orderBySafe} {$orderSafe}
+                LIMIT " . (int) $limitVal . " OFFSET " . (int) $offsetVal;
                 
         if(!$this->db->query($sql)) {
             $this->lastError = $this->db->getError();
             return [
                 'data' => [],
                 'total' => $total,
+                'total_records' => $total,
                 'current_page' => $page,
                 'per_page' => $perPage,
                 'total_pages' => $totalPages
             ];
         }
         
-        $this->db->bind(':limit', $perPage);
-        $this->db->bind(':offset', $offset);
+        if ($searchKeyword !== '') {
+            $term = '%' . $searchKeyword . '%';
+            $this->db->bind(':s1', $term);
+            $this->db->bind(':s2', $term);
+            $this->db->bind(':s3', $term);
+            $this->db->bind(':s4', $term);
+            $this->db->bind(':s5', $term);
+            $this->db->bind(':s6', $term);
+        }
         
         $data = $this->db->resultSet();
         
         return [
             'data' => $data,
             'total' => $total,
+            'total_records' => $total,
             'current_page' => $page,
             'per_page' => $perPage,
             'total_pages' => $totalPages
         ];
+    }
+    
+    /**
+     * Get all products for export (admin)
+     * @return array
+     */
+    public function getAllForExport() {
+        $sql = "SELECT p.*, c.name as category_name 
+                FROM {$this->table} p
+                LEFT JOIN categories c ON p.category_id = c.id
+                ORDER BY p.id ASC";
+        if (!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return [];
+        }
+        $rows = $this->db->resultSet();
+        return array_map(function($r) { return (array)$r; }, $rows);
     }
     
     /**

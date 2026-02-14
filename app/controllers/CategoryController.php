@@ -81,9 +81,10 @@ class CategoryController extends Controller {
             redirect('user/login');
         }
         
-        // Get page number and per-page filter (20, 50, 100, all)
+        // Get page number, per-page filter, and search
         $page = (int) $this->get('page', 1);
         $perPageParam = $this->get('per_page', '20');
+        $search = trim((string) $this->get('search', ''));
         $allowedPerPage = ['20', '50', '100', 'all'];
         $perPage = in_array($perPageParam, $allowedPerPage, true) ? $perPageParam : '20';
         $perPageNum = ($perPage === 'all') ? 9999 : (int) $perPage;
@@ -91,9 +92,10 @@ class CategoryController extends Controller {
             $perPageNum = 20;
         }
         
-        // Get categories (ID ascending: 1, 2, 3...)
-        $categories = $this->categoryModel->paginate($page, $perPageNum, 'id', 'ASC');
+        // Get categories (ID ascending: 1, 2, 3...), with optional search
+        $categories = $this->categoryModel->paginate($page, $perPageNum, 'id', 'ASC', $search ?: null);
         $categories['per_page_param'] = $perPage;
+        $categories['search'] = $search;
         
         // Ensure tax info is present for listing (fallback enrichment)
         if (!empty($categories['data'])) {

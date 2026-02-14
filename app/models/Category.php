@@ -393,14 +393,30 @@ class Category extends Model {
      * @param int $perPage Items per page
      * @param string $orderBy Column to order by
      * @param string $order Order direction (ASC or DESC)
+     * @param string|null $search Optional search keyword (searches name, description, parent_name, tax_name)
      * @return array
      */
-    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC') {
+    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC', $search = null) {
         // Calculate offset
         $offset = ($page - 1) * $perPage;
+        $searchKeyword = trim((string)$search);
+        
+        $baseJoins = " FROM {$this->table} c\n                LEFT JOIN {$this->table} p ON c.parent_id = p.id";
+        if ($this->db->columnExists($this->table, 'tax_id') && $this->db->tableExists('tax_rates')) {
+            $baseJoins .= "\n                LEFT JOIN tax_rates t ON c.tax_id = t.id";
+        }
+        
+        $whereClause = '';
+        if ($searchKeyword !== '') {
+            $whereClause = " WHERE (c.name LIKE :s1 OR c.description LIKE :s2 OR p.name LIKE :s3";
+            if ($this->db->columnExists($this->table, 'tax_id') && $this->db->tableExists('tax_rates')) {
+                $whereClause .= " OR t.name LIKE :s4";
+            }
+            $whereClause .= ")";
+        }
         
         // Get total count
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table}";
+        $countSql = "SELECT COUNT(*) as total" . $baseJoins . $whereClause;
         
         if(!$this->db->query($countSql)) {
             $this->lastError = $this->db->getError();
@@ -413,18 +429,32 @@ class Category extends Model {
             ];
         }
         
+        if ($searchKeyword !== '') {
+            $term = '%' . $searchKeyword . '%';
+            $this->db->bind(':s1', $term);
+            $this->db->bind(':s2', $term);
+            $this->db->bind(':s3', $term);
+            if ($this->db->columnExists($this->table, 'tax_id') && $this->db->tableExists('tax_rates')) {
+                $this->db->bind(':s4', $term);
+            }
+        }
         $totalResult = $this->db->single();
-        $total = $totalResult['total'];
-        $totalPages = ceil($total / $perPage);
+        $total = $totalResult ? (int)($totalResult['total'] ?? 0) : 0;
+        $totalPages = $perPage > 0 ? (int)ceil($total / $perPage) : 1;
+        $offset = (int)$offset;
+        $perPage = (int)$perPage;
+        $limitVal = max(1, $perPage);
+        $offsetVal = max(0, $offset);
+        $orderBySafe = in_array($orderBy, ['id', 'name', 'status'], true) ? $orderBy : 'id';
+        $orderSafe = strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
         
         // Build base query with parent info, and conditionally include tax info if available
         $select = "SELECT c.*, p.name as parent_name";
-        $joins = " FROM {$this->table} c\n                LEFT JOIN {$this->table} p ON c.parent_id = p.id";
+        $joins = $baseJoins;
         if ($this->db->columnExists($this->table, 'tax_id') && $this->db->tableExists('tax_rates')) {
             $select .= ", t.name as tax_name, t.rate as tax_rate";
-            $joins  .= "\n                LEFT JOIN tax_rates t ON c.tax_id = t.id";
         }
-        $sql = $select . $joins . "\n                ORDER BY c.{$orderBy} {$order}\n                LIMIT :limit OFFSET :offset";
+        $sql = $select . $joins . $whereClause . "\n                ORDER BY c.{$orderBySafe} {$orderSafe}\n                LIMIT " . $limitVal . " OFFSET " . $offsetVal;
                 
         if(!$this->db->query($sql)) {
             $this->lastError = $this->db->getError();
@@ -437,14 +467,22 @@ class Category extends Model {
             ];
         }
         
-        $this->db->bind(':limit', $perPage);
-        $this->db->bind(':offset', $offset);
+        if ($searchKeyword !== '') {
+            $term = '%' . $searchKeyword . '%';
+            $this->db->bind(':s1', $term);
+            $this->db->bind(':s2', $term);
+            $this->db->bind(':s3', $term);
+            if ($this->db->columnExists($this->table, 'tax_id') && $this->db->tableExists('tax_rates')) {
+                $this->db->bind(':s4', $term);
+            }
+        }
         
         $data = $this->db->resultSet();
         
         return [
             'data' => $data,
             'total' => $total,
+            'total_records' => $total,
             'current_page' => $page,
             'per_page' => $perPage,
             'total_pages' => $totalPages

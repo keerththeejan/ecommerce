@@ -112,7 +112,14 @@
             </div>
             
             <?php if($product['stock_quantity'] > 0): ?>
-                <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mb-2">
+                <?php if(!isLoggedIn()): ?>
+                <div class="mb-3">
+                    <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Add to Cart
+                    </a>
+                </div>
+                <?php else: ?>
+                <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mb-2 add-to-cart-form">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-auto">
@@ -145,6 +152,7 @@
                         </a>
                     </div>
                 </form>
+                <?php endif; ?>
             <?php else: ?>
                 <div class="d-grid mb-3">
                     <button class="btn btn-secondary" disabled>

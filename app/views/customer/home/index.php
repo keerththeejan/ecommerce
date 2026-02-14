@@ -8,7 +8,7 @@
 <section id="categories" class="featured-categories py-3 py-md-4" style="background: <?php echo !empty($homeCategoriesBgColor) ? htmlspecialchars($homeCategoriesBgColor) : '#fff'; ?>;" data-theme-aware>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3 mb-md-3">
-            <h2 id="categories-heading" class="section-title mb-0">Shop by Category</h2>
+            <h2 id="categories-heading" class="section-title mb-0">Category</h2>
             <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex">
                 View All <i class="fas fa-chevron-right ms-1"></i>
             </a>
@@ -859,6 +859,7 @@ html[data-theme="dark"] .category-card .card-body {
 .product-image-box {
     width: 100%;
     height: 120px;
+    overflow: hidden;
     min-height: 120px;
     overflow: hidden;
     display: flex;
@@ -869,9 +870,12 @@ html[data-theme="dark"] .category-card .card-body {
     margin-bottom: 10px;
 }
 .product-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    object-position: center;
     transition: transform 0.25s ease;
 }
 .product-image:hover { transform: scale(1.04); }
@@ -1506,32 +1510,26 @@ html[data-theme="dark"] .trending-products .product-link:hover {
     opacity: 1;
 }
 
-/* Shop by Category - same look as brands */
-.category-card {
+/* Shop by Category – brand animations only (same as Our Brands) */
+.featured-categories .category-card {
     transition: all 0.3s ease;
 }
-.category-card:hover {
+.featured-categories .category-card:hover {
     transform: translateY(-5px) !important;
     box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
 }
-.category-logo-container {
+.featured-categories .category-logo-container {
     height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
 }
-.category-logo-container img {
+.featured-categories .category-logo-container img {
     max-height: 100%;
     max-width: 100%;
     object-fit: contain;
-    filter: grayscale(100%);
-    opacity: 0.7;
     transition: all 0.3s ease;
-}
-.category-card:hover .category-logo-container img {
-    filter: grayscale(0%);
-    opacity: 1;
 }
 .featured-categories .category-name {
     font-size: 0.75rem;

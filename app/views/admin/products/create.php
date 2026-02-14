@@ -96,7 +96,7 @@
                                 <div class="mb-3">
                                     <label for="brand_id" class="form-label">Brand</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
                                             <option value="">Select Brand</option>
                                             <?php 
                                             // Get active brands
@@ -123,7 +123,7 @@
                                 <div class="row">
                                     <div class="col-12 col-sm-6">
                                         <div class="mb-3">
-                                            <label for="price" class="form-label">Buying Price</label>
+                                            <label for="price" class="form-label">Buying Price <span class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <span class="input-group-text">CHF</span>
                                                 <input type="number" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $data['price'] ?? ''; ?>" step="0.01" min="0" required>
@@ -135,10 +135,10 @@
                                     </div>
                                     <div class="col-12 col-sm-6">
                                         <div class="mb-3">
-                                            <label for="price2" class="form-label">Sales Price (Optional)</label>
+                                            <label for="price2" class="form-label">Sales Price <span class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" step="0.01" min="0">
+                                                <input type="number" class="form-control <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" step="0.01" min="0" required>
                                                 <?php if(isset($errors['price2'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['price2']; ?></div>
                                                 <?php endif; ?>
@@ -201,7 +201,7 @@
                                 <div class="mb-3">
                                     <label for="supplier" class="form-label">Supplier</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
                                             <option value="">Select Supplier</option>
                                             <?php if(!empty($suppliers)): ?>
                                                 <?php foreach($suppliers as $supplier): ?>
@@ -226,7 +226,7 @@
                                 <div class="mb-3">
                                     <label for="category_id" class="form-label">Category</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;">
                                             <option value="">Select Category</option>
                                             <?php 
                                             // Get active categories
@@ -248,6 +248,37 @@
                                             <div class="invalid-feedback d-block w-100"><?php echo $errors['category_id']; ?></div>
                                         <?php endif; ?>
                                     </div>
+                                </div>
+
+                                <!-- Tax Rate Selection -->
+                                <div class="mb-3">
+                                    <label for="tax_id" class="form-label">Tax Rate (Optional)</label>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>" id="tax_id" name="tax_id" style="min-width: 0;">
+                                            <option value="">Use category tax / None</option>
+                                            <?php
+                                            $taxModel = new TaxModel();
+                                            $taxRates = $taxModel->getTaxRates(true);
+                                            if (!empty($taxRates)):
+                                                foreach ($taxRates as $t):
+                                                    $tid = is_object($t) ? $t->id : (isset($t['id']) ? $t['id'] : null);
+                                                    $tname = is_object($t) ? $t->name : (isset($t['name']) ? $t['name'] : '');
+                                                    $trate = is_object($t) ? $t->rate : (isset($t['rate']) ? $t['rate'] : '');
+                                                    $label = trim($tname . ' (' . $trate . '%)');
+                                                    $selected = (isset($data['tax_id']) && (string)($data['tax_id'] ?? '') === (string)$tid) ? 'selected' : '';
+                                            ?>
+                                                <option value="<?php echo htmlspecialchars($tid); ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($label); ?></option>
+                                            <?php
+                                                endforeach;
+                                            endif;
+                                            ?>
+                                        </select>
+                                        <a href="<?php echo BASE_URL; ?>?controller=tax&action=index" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
+                                        <?php if(isset($errors['tax_id'])): ?>
+                                            <div class="invalid-feedback d-block w-100"><?php echo $errors['tax_id']; ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="form-text small">Override category tax. Leave empty to use category's tax.</div>
                                 </div>
 
                                 <div class="mb-3">
@@ -337,25 +368,26 @@
 </style>
 
 <script>
-// Format country with flag
-function formatCountry(country) {
-    if (!country.id) { return country.text; }
-    
-    var $country = $(
-        '<div class="d-flex align-items-center">' +
-        '<img src="' + $(country.element).data('flag-image') + '" class="me-2" style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">' +
-        '<span>' + country.text + '</span>' +
-        '</div>'
-    );
-    return $country;
+// Format country with flag (only for country dropdown options that have flag-image)
+function formatOption(option) {
+    if (!option.id) { return option.text; }
+    var flagImg = $(option.element).data('flag-image');
+    if (flagImg) {
+        return $('<div class="d-flex align-items-center">' +
+            '<img src="' + flagImg + '" class="me-2" style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">' +
+            '<span>' + option.text + '</span></div>');
+    }
+    return option.text;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Select2 for country dropdown
+    // Initialize Select2 for ALL dropdowns (Country, Brand, Category, Supplier, Status) - searchable
     $('.select2').select2({
         theme: 'bootstrap-5',
-        templateResult: formatCountry,
-        templateSelection: formatCountry,
+        placeholder: 'Search...',
+        allowClear: false,
+        templateResult: formatOption,
+        templateSelection: formatOption,
         escapeMarkup: function(m) { return m; }
     });
     

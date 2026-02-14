@@ -1035,17 +1035,17 @@ try {
             });
         });
 
-        // Prevent multiple rapid clicks on buttons
-        let lastClickTime = 0;
+        // Prevent multiple rapid clicks on the SAME element only (per-element throttle)
         document.querySelectorAll('.btn, form').forEach(element => {
             element.addEventListener('click', function(e) {
                 const now = Date.now();
-                if (now - lastClickTime < 300) {
+                const lastClick = this._lastClickTime || 0;
+                if (now - lastClick < 300) {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
                 }
-                lastClickTime = now;
+                this._lastClickTime = now;
             });
         });
 

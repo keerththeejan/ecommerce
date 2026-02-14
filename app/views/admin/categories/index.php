@@ -133,8 +133,35 @@
                         <?php flash('category_error', '', 'alert alert-danger'); ?>
                     </div>
                     
+                    <!-- Search -->
+                    <form method="GET" action="<?php echo BASE_URL; ?>" class="mb-4">
+                        <input type="hidden" name="controller" value="category">
+                        <input type="hidden" name="action" value="adminIndex">
+                        <input type="hidden" name="per_page" value="<?php echo htmlspecialchars($categories['per_page_param'] ?? '20'); ?>">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-12 col-md-8 col-lg-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" name="search" class="form-control" 
+                                           placeholder="Search by name, description, parent, tax rate..." 
+                                           value="<?php echo htmlspecialchars($categories['search'] ?? ''); ?>">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                    <?php if(!empty($categories['search'])): ?>
+                                    <a href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex&per_page=<?php echo htmlspecialchars($categories['per_page_param'] ?? '20'); ?>" class="btn btn-outline-secondary">Clear</a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
                     <?php if(empty($categories['data'])): ?>
-                        <div class="alert alert-info">No categories found.</div>
+                        <div class="alert alert-info">
+                            <?php if(!empty($categories['search'])): ?>
+                                No categories found for "<?php echo htmlspecialchars($categories['search']); ?>". <a href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex&per_page=<?php echo htmlspecialchars($categories['per_page_param'] ?? '20'); ?>">Show all</a>
+                            <?php else: ?>
+                                No categories found.
+                            <?php endif; ?>
+                        </div>
                     <?php else: ?>
                         <div class="categories-table-scroll table-responsive">
                             <table id="categoriesTable" class="table table-striped table-hover">
@@ -213,10 +240,14 @@
                             <select id="perPageFilter" class="form-select form-select-sm" style="width: auto;">
                                 <?php 
                                 $currentPerPage = $categories['per_page_param'] ?? '20';
+                                $currentSearch = $categories['search'] ?? '';
                                 $baseUrl = BASE_URL . '?controller=category&action=adminIndex';
                                 foreach (['20', '50', '100', 'all'] as $opt): 
                                     $sel = ($currentPerPage === $opt) ? ' selected' : '';
                                     $url = $baseUrl . '&per_page=' . $opt;
+                                    if ($currentSearch !== '') {
+                                        $url .= '&search=' . urlencode($currentSearch);
+                                    }
                                 ?>
                                     <option value="<?php echo htmlspecialchars($url); ?>"<?php echo $sel; ?>><?php echo $opt === 'all' ? 'All' : $opt; ?></option>
                                 <?php endforeach; ?>

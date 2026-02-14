@@ -9,7 +9,7 @@
         </ol>
     </nav>
 
-    <h1 class="mb-4">Shop by Category</h1>
+    <h1 class="mb-4">Category</h1>
 
     <?php if(!empty($categories)) : ?>
         <div class="row row-cols-1 row-cols-md-3 g-4">

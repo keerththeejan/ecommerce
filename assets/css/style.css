@@ -83,7 +83,13 @@ img, video, iframe {
     vertical-align: middle;
 }
 
-img.product-image, img.category-image {
+img.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+img.category-image {
     width: 100%;
     object-fit: contain;
 }
@@ -547,9 +553,10 @@ html[data-theme="dark"] .navbar[style*="background"] {
 }
 
 .product-image-box .product-image {
-    max-height: 100%;
-    width: auto;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .category-image-box {
@@ -1549,4 +1556,54 @@ img:not(.loaded) {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent-color);
+}
+
+/* ========================================
+   Trending: Auto Responsive (Mobile & Desktop)
+   Bootstrap 5 breakpoints: xs <576, sm ≥576, md ≥768, lg ≥992, xl ≥1200, xxl ≥1400
+   ======================================== */
+.container-fluid {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (max-width: 575.98px) {
+    .container-fluid { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .container { padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+
+/* Trending: fluid responsive grids */
+.row.g-2, .row.g-3, .row.g-4 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+}
+
+@media (min-width: 576px) {
+    .row.g-2 { --bs-gutter-x: 0.5rem; }
+    .row.g-3, .row.g-md-3 { --bs-gutter-x: 0.75rem; }
+    .row.g-4, .row.g-md-4 { --bs-gutter-x: 1rem; --bs-gutter-y: 1rem; }
+}
+
+/* Trending: auto-fit sections */
+section {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Trending: card hover polish */
+.card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+/* Trending: responsive images */
+.img-fluid {
+    max-width: 100%;
+    height: auto;
 }
