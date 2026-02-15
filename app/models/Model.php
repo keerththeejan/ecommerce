@@ -130,6 +130,14 @@ class Model {
     }
     
     /**
+     * Get last error message
+     * @return string
+     */
+    public function getLastError() {
+        return $this->lastError;
+    }
+    
+    /**
      * Create a new record
      * 
      * @param array $data The data to insert
@@ -417,15 +425,6 @@ class Model {
         } else {
             return $this->db->resultSet();
         }
-    }
-    
-    /**
-     * Get the last error message
-     * 
-     * @return string
-     */
-    public function getLastError() {
-        return $this->lastError;
     }
     
     /**

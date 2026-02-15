@@ -1,0 +1,17 @@
+<?php
+/**
+ * Production config for sivakamy.ch (cPanel)
+ * Copy this file to config.production.php and fill in your cPanel MySQL credentials.
+ * This file is loaded only when HTTP_HOST contains 'sivakamy.ch'.
+ */
+define('DB_HOST', 'localhost');
+define('DB_USER', 'your_cpanel_mysql_user');
+define('DB_PASS', 'your_cpanel_mysql_password');
+define('DB_NAME', 'your_cpanel_mysql_database');
+
+define('BASE_URL', 'https://sivakamy.ch/');
+define('URLROOT', 'https://sivakamy.ch/');
+
+// Hide errors on production
+error_reporting(0);
+@ini_set('display_errors', 0);

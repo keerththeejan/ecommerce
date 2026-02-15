@@ -430,43 +430,35 @@ document.addEventListener('DOMContentLoaded', function() {
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         
         xhr.onload = function() {
-            // Reset button state
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
             
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    
-                    if (response.success) {
-                        // Show success message
-                        showAlert('Product created successfully!', 'success');
-                        
-                        // Show "Add Another" button
-                        submitBtn.classList.add('d-none');
-                        addAnotherBtn.classList.remove('d-none');
-                        
-                        // Reset form
-                        form.reset();
-                        
-                        // Clear file input
-                        const fileInput = document.querySelector('input[type="file"]');
-                        if (fileInput) fileInput.value = '';
-                        
-                        // Clear any validation errors
-                        clearValidationErrors();
-                        
-                        // Scroll to top
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                        showAlert(response.message || 'Failed to create product', 'danger');
-                    }
-                } catch (e) {
-                    console.error('Error parsing response:', e);
-                    showAlert('An error occurred. Please try again.', 'danger');
+            var response, msg;
+            try {
+                response = JSON.parse(xhr.responseText);
+                msg = response.message || (response.errors ? Object.values(response.errors).join(' ') : '') || 'Unknown error';
+            } catch (parseErr) {
+                response = null;
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    console.error('Invalid JSON response:', xhr.responseText.substring(0, 200));
+                    msg = 'Server returned an invalid response. If you were redirected to login, please log in and try again.';
+                } else {
+                    var preview = (xhr.responseText || '').substring(0, 150).replace(/<[^>]+>/g, ' ').trim();
+                    msg = 'Error ' + xhr.status + (preview ? ': ' + preview : '');
                 }
+            }
+            
+            if (xhr.status >= 200 && xhr.status < 300 && response && response.success) {
+                showAlert('Product created successfully!', 'success');
+                submitBtn.classList.add('d-none');
+                addAnotherBtn.classList.remove('d-none');
+                form.reset();
+                var fileInput = document.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+                clearValidationErrors();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-                showAlert('An error occurred. Please try again.', 'danger');
+                showAlert(msg || 'Error ' + xhr.status + '. Please try again.', 'danger');
             }
         };
         

@@ -687,60 +687,29 @@ class ProductController extends Controller {
                             return;
                         }
                         
-                        // Set success message
                         $success = 'Product created successfully';
-                        
-                        // If it's an AJAX request, return success
-                        if($this->isAjax()) {
-                            $this->json([
-                                'success' => true, 
-                                'message' => $success,
-                                'productId' => $productId
-                            ]);
-                            return;
-                        }
-                        
-                        // For regular form submission, stay on the same page with success message
                         $data = [
-                            'name' => '',
-                            'description' => '',
-                            'price' => '',
-                            'sale_price' => '',
-                            'stock_quantity' => '',
-                            'sku' => '',
-                            'category_id' => '',
-                            'country_id' => '',
-                            'brand_id' => '',
-                            'status' => 'active',
-                            'expiry_date' => '',
-                            'supplier' => '',
-                            'batch_number' => '',
-                            'tax_id' => ''
+                            'name' => '', 'description' => '', 'price' => '', 'sale_price' => '',
+                            'stock_quantity' => '', 'sku' => '', 'category_id' => '', 'country_id' => '',
+                            'brand_id' => '', 'status' => 'active', 'expiry_date' => '',
+                            'supplier' => '', 'batch_number' => '', 'tax_id' => ''
                         ];
-                        
                         $this->view('admin/products/create', [
-                            'data' => $data,
-                            'categories' => $categories,
-                            'suppliers' => $suppliers,
-                            'success' => $success,
-                            'errors' => []
+                            'data' => $data, 'categories' => $categories, 'suppliers' => $suppliers,
+                            'success' => $success, 'errors' => []
                         ]);
                         return;
-                    } else {
-                        throw new Exception('Failed to create product');
                     }
+                    $dbError = $this->productModel->getLastError();
+                    throw new Exception($dbError ?: 'Failed to create product');
                 } catch (Exception $e) {
                     $error = $e->getMessage();
                     error_log('Product creation error: ' . $error);
-                    
                     if($this->isAjax()) {
-                        $this->json([
-                            'success' => false, 
-                            'message' => $error
-                        ], 500);
+                        $this->json(['success' => false, 'message' => $error], 500);
                         return;
                     }
-                    
+                    $errors = $errors ?? [];
                     $errors['db_error'] = $error;
                 }
             }

@@ -6,14 +6,19 @@ error_reporting(0);
  * Configuration file for the e-commerce application
  */
 
-    // Database configuration
-    define('DB_HOST', 'localhost');
-    define('DB_USER', 'root');
-    define('DB_PASS', '1234');
-    define('DB_NAME', 'sn');
+// Production config: if hosting on sivakamy.ch, load config.production.php (create from config.production.php.example)
+$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+$productionFile = __DIR__ . '/config.production.php';
+if (file_exists($productionFile) && strpos($host, 'sivakamy.ch') !== false) {
+    require_once $productionFile;
+}
 
-    // Application paths
-    define('BASE_URL', 'http://localhost/ecommerce/');
+// Local/development defaults (only if not already defined by config.production.php)
+if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
+if (!defined('DB_USER')) define('DB_USER', 'root');
+if (!defined('DB_PASS')) define('DB_PASS', '1234');
+if (!defined('DB_NAME')) define('DB_NAME', 'sn');
+if (!defined('BASE_URL')) define('BASE_URL', 'http://localhost/ecommerce/');
 if (!defined('ROOT_PATH')) define('ROOT_PATH', dirname(__DIR__) . '/');
 if (!defined('APPROOT')) define('APPROOT', dirname(dirname(__FILE__))); // Root directory of the application
 if (!defined('APP_PATH')) define('APP_PATH', ROOT_PATH . 'app/');
@@ -22,7 +27,7 @@ if (!defined('ASSETS_PATH')) define('ASSETS_PATH', ROOT_PATH . 'assets/');
 if (!defined('CONFIG_PATH')) define('CONFIG_PATH', ROOT_PATH . 'config/');
 
 // URL Root (for links in views)
-if (!defined('URLROOT')) define('URLROOT', 'http://localhost/ecommerce/');
+if (!defined('URLROOT')) define('URLROOT', defined('BASE_URL') ? BASE_URL : 'http://localhost/ecommerce/');
 
 // File upload settings
 if (!defined('UPLOAD_PATH')) define('UPLOAD_PATH', ROOT_PATH . 'public/uploads/');
