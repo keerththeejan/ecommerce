@@ -294,8 +294,7 @@ class ProductController extends Controller {
             return;
         }
         
-        // Get category - ensure we're using the correct ID
-        // Force integer type to avoid any type coercion issues
+        // Get category by ID
         $categoryIdInt = (int)$categoryId;
         $category = $this->categoryModel->getById($categoryIdInt);
         
@@ -338,10 +337,10 @@ class ProductController extends Controller {
         // Get products
         $products = $this->productModel->getProductsByCategory($categoryId);
         
-        // Get all categories for sidebar
+        // All active categories for sidebar
         $categories = $this->categoryModel->getActiveCategories();
         
-        // Load view
+        // Load view - show the actual clicked category name
         $this->view('customer/products/category', [
             'products' => $products,
             'category' => $category,
@@ -744,7 +743,15 @@ class ProductController extends Controller {
                 }
             }
             
-            // If we got here, there were errors or it's not an AJAX request
+            // If we got here, there were validation errors
+            if($this->isAjax()) {
+                $this->json([
+                    'success' => false,
+                    'message' => implode(' ', array_values($errors)),
+                    'errors' => $errors
+                ], 422);
+                return;
+            }
             $this->view('admin/products/create', [
                 'errors' => $errors,
                 'data' => $data,
@@ -761,6 +768,8 @@ class ProductController extends Controller {
                 'stock_quantity' => '',
                 'sku' => '',
                 'category_id' => '',
+                'country_id' => '',
+                'brand_id' => '',
                 'status' => 'active',
                 'expiry_date' => '',
                 'supplier' => '',

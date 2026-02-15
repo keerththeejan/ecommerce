@@ -413,6 +413,47 @@ class Order extends Model {
         $this->db->bind(':limit', $limit);
         return $this->db->resultSet();
     }
+
+    /**
+     * Search orders by ID or customer name
+     * @param string $keyword Search term (order ID or customer name)
+     * @param int $limit Max results
+     * @return array
+     */
+    public function searchOrders($keyword, $limit = 20) {
+        $keyword = trim($keyword);
+        if ($keyword === '') {
+            return $this->getRecentOrders($limit);
+        }
+        $like = '%' . $keyword . '%';
+        $conditions = [];
+        $binds = [':limit' => $limit];
+        if (is_numeric($keyword)) {
+            $conditions[] = "o.id = :id_num";
+            $binds[':id_num'] = (int)$keyword;
+        }
+        $conditions[] = "CONCAT(u.first_name, ' ', u.last_name) LIKE :name";
+        $conditions[] = "u.first_name LIKE :name2";
+        $conditions[] = "u.last_name LIKE :name3";
+        $binds[':name'] = $like;
+        $binds[':name2'] = $like;
+        $binds[':name3'] = $like;
+
+        $sql = "SELECT o.*, u.first_name, u.last_name 
+                FROM {$this->table} o
+                JOIN users u ON o.user_id = u.id
+                WHERE (" . implode(' OR ', $conditions) . ")
+                ORDER BY o.created_at DESC
+                LIMIT :limit";
+        if (!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return [];
+        }
+        foreach ($binds as $k => $v) {
+            $this->db->bind($k, $v);
+        }
+        return $this->db->resultSet();
+    }
     
     /**
      * Get orders by status

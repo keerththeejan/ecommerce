@@ -1,15 +1,22 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
 <style>
-/* Users admin – trending responsive */
+/* Users admin – trending modern UI */
+.users-admin .card { border: none; box-shadow: 0 4px 20px rgba(0,0,0,.08); transition: box-shadow .3s ease; }
+.users-admin .card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.1); }
+.users-admin .card-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  border: none;
+  padding: 1rem 1.25rem;
+}
 .users-admin .card-body { padding: 1rem; }
 @media (min-width: 768px) { .users-admin .card-body { padding: 1.25rem; } }
 .users-table-scroll {
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.08);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
+  border: 1px solid rgba(0,0,0,.06);
+  background: #fff;
 }
 .users-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
 .users-table-scroll thead th {
@@ -18,15 +25,22 @@
   z-index: 1;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 0.85rem;
-  padding: 0.75rem;
-  background: var(--bs-body-bg, #fff);
-  color: var(--bs-body-color, #212529);
-  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
 }
-.users-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
-.status-actions .btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0 !important; border-radius: 6px; }
-.status-actions .badge { min-width: 80px; padding: 0.35rem 0.5rem; font-weight: 600; }
+.users-table-scroll tbody td { padding: 0.75rem 1rem; vertical-align: middle; font-size: 0.9rem; }
+.users-table-scroll tbody tr { transition: background .15s ease; }
+.users-table-scroll tbody tr:hover { background: rgba(79, 70, 229, 0.04) !important; }
+.status-actions .btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0 !important; border-radius: 8px; transition: transform .2s; }
+.status-actions .btn:hover { transform: scale(1.08); }
+.status-actions .badge { min-width: 80px; padding: 0.4rem 0.6rem; font-weight: 600; font-size: 0.75rem; border-radius: 6px; }
+.users-admin .btn-light { background: rgba(255,255,255,.95); color: #4f46e5; font-weight: 600; }
+.users-admin .btn-light:hover { background: #fff; color: #4338ca; }
 @media (max-width: 575.98px) { .users-table-scroll { max-height: 55vh; } }
 @media (min-width: 576px) and (max-width: 991.98px) { .users-table-scroll { max-height: 60vh; } }
 @media (min-width: 992px) { .users-table-scroll { max-height: 70vh; } }
@@ -39,25 +53,27 @@
   #usersTable tbody tr {
     display: block;
     margin-bottom: 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     overflow: hidden;
-    background: var(--bs-body-bg, #fff);
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    transition: box-shadow .2s;
   }
+  #usersTable tbody tr:active { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
   #usersTable tbody td {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid rgba(0,0,0,.06);
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
   }
   #usersTable tbody td:last-child { border-bottom: 0; }
   #usersTable tbody td::before {
     content: attr(data-label);
     font-weight: 600;
-    font-size: 0.8rem;
-    color: var(--bs-secondary, #6c757d);
+    font-size: 0.75rem;
+    color: #64748b;
     margin-right: 0.5rem;
     flex-shrink: 0;
   }
@@ -66,18 +82,27 @@
   #usersTable tbody td[data-label="Actions"] .user-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
 }
 .users-admin .pagination { flex-wrap: wrap; gap: 0.25rem; }
+.users-admin .page-link { border-radius: 8px !important; margin: 0 2px; }
+.users-admin .page-item.active .page-link { background: linear-gradient(135deg, #4f46e5, #7c3aed); border-color: transparent; }
+.users-admin .gap-1 > * + * { margin-left: 0.25rem; }
+.users-admin .gap-2 > * + * { margin-left: 0.5rem; }
 </style>
 
 <div class="container-fluid py-3 py-md-4 px-2 px-sm-3 users-admin">
     <div class="row">
         <div class="col-12">
-            <div class="card shadow-sm rounded-3 border-0">
-                <div class="card-header bg-primary text-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
-                    <h3 class="card-title mb-0 h5">Users</h3>
+            <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
+                <div class="card-header text-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h3 class="card-title mb-0 h5 d-flex align-items-center">
+                        <i class="fas fa-users mr-2 opacity-90"></i> Users
+                        <?php if (isset($users['total'])): ?>
+                            <span class="badge badge-light text-dark ml-2 font-weight-normal"><?php echo (int)$users['total']; ?> total</span>
+                        <?php endif; ?>
+                    </h3>
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="d-flex align-items-center gap-1">
                             <label for="userPerPageFilter" class="form-label mb-0 small text-white opacity-90">Show:</label>
-                            <select id="userPerPageFilter" class="form-select form-select-sm" style="width: auto; min-width: 4rem;">
+                            <select id="userPerPageFilter" class="form-select form-select-sm bg-white" style="width: auto; min-width: 4rem;">
                                 <?php
                                 $currentPerPage = $users['per_page_param'] ?? '20';
                                 $baseUrl = BASE_URL . '?controller=user&action=adminIndex';
@@ -90,7 +115,7 @@
                             </select>
                         </div>
                         <a href="<?php echo BASE_URL; ?>?controller=user&action=adminCreate" class="btn btn-light btn-sm">
-                            <i class="fas fa-plus me-1"></i> Add New User
+                            <i class="fas fa-plus mr-1"></i> Add New User
                         </a>
                     </div>
                 </div>

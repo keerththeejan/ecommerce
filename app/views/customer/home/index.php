@@ -26,13 +26,14 @@
             }
         ?>
 
-        <div class="row g-2 g-md-3 justify-content-center">
-            <?php if (!empty($activeCategories)) : ?>
-                <?php foreach($activeCategories as $index => $category): ?>
-                    <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1">
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" class="text-decoration-none">
+        <?php if (!empty($activeCategories)) : ?>
+        <div class="category-scroll-wrapper">
+            <div class="category-scroll-track">
+                <div class="category-scroll-inner">
+                    <?php foreach($activeCategories as $category): ?>
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" class="category-scroll-item text-decoration-none">
                             <div class="category-card card h-100 border-0 shadow-sm transition-all">
-                                <div class="card-body p-2 d-flex flex-column align-items-center justify-content-center">
+                                <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center">
                                     <div class="category-logo-container">
                                         <?php if (!empty($category['image'])) : ?>
                                             <img src="<?php echo BASE_URL . $category['image']; ?>" 
@@ -49,36 +50,41 @@
                                 </div>
                             </div>
                         </a>
-                    </div>
-                <?php endforeach; ?>
-
-                <?php if ($totalActiveCategories > 12): ?>
-                    <div class="col-4 col-sm-3 col-md-2 col-lg-2 col-xl-1 d-md-none">
-                        <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="text-decoration-none">
-                            <div class="category-card card h-100 border-0 shadow-sm transition-all bg-light">
-                                <div class="card-body p-2 d-flex align-items-center justify-content-center">
-                                    <div class="text-center">
-                                        <i class="fas fa-ellipsis-h text-muted mb-1"></i>
-                                        <p class="small mb-0">View All</p>
+                    <?php endforeach; ?>
+                </div>
+                <div class="category-scroll-inner" aria-hidden="true">
+                    <?php foreach($activeCategories as $category): ?>
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=category&id=<?php echo $category['id']; ?>" class="category-scroll-item text-decoration-none">
+                            <div class="category-card card h-100 border-0 shadow-sm transition-all">
+                                <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center">
+                                    <div class="category-logo-container">
+                                        <?php if (!empty($category['image'])) : ?>
+                                            <img src="<?php echo BASE_URL . $category['image']; ?>" 
+                                                 class="img-fluid" 
+                                                 alt="" 
+                                                 loading="lazy">
+                                        <?php else : ?>
+                                            <div class="d-flex align-items-center justify-content-center h-100">
+                                                <i class="fas fa-box-open fa-2x text-muted"></i>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
+                                    <span class="fw-bold small text-dark text-center mt-1 category-name"><?php echo htmlspecialchars($category['name']); ?></span>
                                 </div>
                             </div>
                         </a>
-                    </div>
-                <?php endif; ?>
-            <?php else: ?>
-                <div class="col-12">
-                    <div class="alert alert-info mb-0">No categories available</div>
+                    <?php endforeach; ?>
                 </div>
-            <?php endif; ?>
+            </div>
         </div>
 
-        <?php if (!empty($activeCategories) && $totalActiveCategories > 12): ?>
         <div class="text-center mt-3 d-md-none">
             <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="btn btn-outline-primary px-4">
                 View All Categories <i class="fas fa-arrow-right ms-2"></i>
             </a>
         </div>
+        <?php else: ?>
+            <div class="alert alert-info mb-0">No categories available</div>
         <?php endif; ?>
     </div>
 </section>
@@ -614,6 +620,54 @@ html[data-theme="dark"] .featured-products {
     transform: translateY(-2px);
 }
 
+/* Category - Single line with auto-scroll */
+.category-scroll-wrapper {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+.category-scroll-track {
+    display: flex;
+    width: max-content;
+    animation: categoryScroll 30s linear infinite;
+}
+.category-scroll-track:hover {
+    animation-play-state: paused;
+}
+@keyframes categoryScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.category-scroll-inner {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+}
+.category-scroll-item {
+    flex-shrink: 0;
+    width: 100px;
+}
+.category-scroll-wrapper .category-logo-container {
+    height: 56px;
+    min-height: 56px;
+}
+.category-scroll-wrapper .category-name {
+    font-size: 0.75rem;
+}
+@media (min-width: 576px) {
+    .category-scroll-item { width: 110px; }
+    .category-scroll-wrapper .category-logo-container { height: 64px; min-height: 64px; }
+}
+@media (min-width: 768px) {
+    .category-scroll-item { width: 120px; }
+    .category-scroll-wrapper .category-logo-container { height: 72px; min-height: 72px; }
+}
+@media (min-width: 992px) {
+    .category-scroll-item { width: 130px; }
+    .category-scroll-wrapper .category-logo-container { height: 80px; min-height: 80px; }
+}
+
 /* Modern Category Styles - Enhanced Theme */
 .featured-categories {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -858,22 +912,20 @@ html[data-theme="dark"] .category-card .card-body {
 }
 .product-image-box {
     width: 100%;
-    height: 120px;
-    overflow: hidden;
-    min-height: 120px;
+    height: 160px;
+    min-height: 160px;
+    max-height: 160px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background-color: transparent;
+    background: #f8f9fa;
     margin-bottom: 10px;
 }
 .product-image {
     width: 100%;
     height: 100%;
-    min-width: 100%;
-    min-height: 100%;
     object-fit: cover;
     object-position: center;
     transition: transform 0.25s ease;
@@ -965,12 +1017,15 @@ html[data-theme="dark"] .no-image-box {
     z-index: 2;
 }
 
+@media (max-width: 575.98px) {
+    .product-image-box { height: 140px; min-height: 140px; max-height: 140px; }
+}
 @media (min-width: 576px) {
-    .product-image-box { height: 140px; }
+    .product-image-box { height: 180px; min-height: 180px; max-height: 180px; }
     .category-image-box { height: 140px; padding: 25px 20px; }
 }
 @media (min-width: 768px) {
-    .product-image-box { height: 180px; }
+    .product-image-box { height: 200px; min-height: 200px; max-height: 200px; }
     .category-image-box { height: 160px; padding: 30px 25px; }
     .product-title { font-size: 0.9rem; }
     .category-title { font-size: 1rem; padding: 16px 12px; }
@@ -1499,14 +1554,10 @@ html[data-theme="dark"] .trending-products .product-link:hover {
     max-height: 100%;
     max-width: 100%;
     object-fit: contain;
-    filter: grayscale(100%);
-    opacity: 0.7;
     transition: all 0.3s ease;
-    
 }
 
 .brand-card:hover .brand-logo-container img {
-    filter: grayscale(0%);
     opacity: 1;
 }
 
@@ -1519,7 +1570,8 @@ html[data-theme="dark"] .trending-products .product-link:hover {
     box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
 }
 .featured-categories .category-logo-container {
-    height: 60px;
+    height: 80px;
+    min-height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1532,8 +1584,8 @@ html[data-theme="dark"] .trending-products .product-link:hover {
     transition: all 0.3s ease;
 }
 .featured-categories .category-name {
-    font-size: 0.75rem;
-    line-height: 1.2;
+    font-size: 0.9rem;
+    line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -1542,9 +1594,10 @@ html[data-theme="dark"] .trending-products .product-link:hover {
 
 /* Responsive adjustments */
 @media (max-width: 767.98px) {
-    .brand-logo-container,
-    .category-logo-container {
-        height: 40px;
+    .brand-logo-container { height: 40px; }
+    .featured-categories .category-logo-container {
+        height: 56px;
+        min-height: 56px;
     }
     
     .product-card .card-title {
@@ -1570,14 +1623,15 @@ html[data-theme="dark"] .trending-products .product-link:hover {
     }
     
     .featured-categories .category-name {
-        font-size: 0.7rem !important;
+        font-size: 0.8rem !important;
     }
 }
 
 @media (max-width: 575.98px) {
-    .brand-logo-container,
-    .category-logo-container {
-        height: 30px;
+    .brand-logo-container { height: 30px; }
+    .featured-categories .category-logo-container {
+        height: 48px;
+        min-height: 48px;
     }
     
     .btn {

@@ -30,6 +30,17 @@
     $settingModel = new Setting();
     $siteLogo = $settingModel->getSetting('site_logo');
     $siteName = $settingModel->getSetting('site_name') ?: 'Sivakamy';
+    $headerLogoSize = (int)($settingModel->getSetting('header_logo_size', '80'));
+    $headerLogoSize = $headerLogoSize >= 32 && $headerLogoSize <= 150 ? $headerLogoSize : 80;
+    $headerLogoSizeMobile = (int)($settingModel->getSetting('header_logo_size_mobile', '52'));
+    $headerLogoSizeMobile = $headerLogoSizeMobile >= 28 && $headerLogoSizeMobile <= 100 ? $headerLogoSizeMobile : 52;
+    $menuAllProducts = $settingModel->getSetting('menu_all_products', 'All products');
+    $menuCountryOrigin = $settingModel->getSetting('menu_country_origin', 'Country of origin');
+    $menuAllBrands = $settingModel->getSetting('menu_all_brands', 'All brands');
+    $menuNew = $settingModel->getSetting('menu_new', 'New');
+    $menuSale = $settingModel->getSetting('menu_sale', 'Sale');
+    $menuFontSize = trim($settingModel->getSetting('menu_font_size', '1rem'));
+    if (!preg_match('/^\d+(\.\d+)?(px|rem|em|%)$/', $menuFontSize)) { $menuFontSize = '1rem'; }
     $headerBgColor = $settingModel->getSetting('header_bg_color', '#ffffff');
     $headerWidth = $settingModel->getSetting('header_width', 'boxed');
     $headerBgColor = (!empty($headerBgColor) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $headerBgColor)) ? $headerBgColor : '#ffffff';
@@ -309,6 +320,23 @@
     
     <!-- Mobile Header -->
     <style>
+        /* Searchable dropdowns - scroll when many items */
+        .nav-dropdown-searchable {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .nav-dropdown-searchable .nav-dropdown-search {
+            min-width: 180px;
+        }
+
+        /* Mobile menu toggle - remove white box around hamburger icon */
+        button[data-bs-target="#mobileNavbar"] {
+            background: transparent !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
         /* Mobile Navigation Styles */
         @media (max-width: 767.98px) {
             /* Add padding to body to account for fixed navigation bars */
@@ -361,7 +389,7 @@
                     <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
                         <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" 
                              alt="<?php echo htmlspecialchars($siteName); ?>" 
-                             style="max-height: 42px;">
+                             style="max-height: <?php echo $headerLogoSizeMobile; ?>px;">
                     <?php else: ?>
                         <span class="h5 mb-0 fw-bold text-dark"><?php echo htmlspecialchars($siteName); ?></span>
                     <?php endif; ?>
@@ -404,7 +432,7 @@
                             <i class="fas fa-moon"></i>
                         </button>
                         
-                        <button class="btn p-0 border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavbar" aria-expanded="false" aria-controls="mobileNavbar">
+                        <button class="btn p-0 border-0 bg-transparent ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavbar" aria-expanded="false" aria-controls="mobileNavbar">
                             <i class="fas fa-bars fs-4"></i>
                         </button>
                     </div>
@@ -667,6 +695,11 @@
             margin-top: 24px;
         }
         
+        /* Menu font size from admin settings */
+        .navbar .navbar-nav .nav-link,
+        .navbar .navbar-nav .dropdown-toggle { font-size: <?php echo htmlspecialchars($menuFontSize); ?> !important; }
+        .navbar .navbar-nav .btn { font-size: <?php echo htmlspecialchars($menuFontSize); ?> !important; }
+
         /* Desktop navbar: responsive when visible (md and up) */
         @media (min-width: 768px) {
             .navbar .navbar-collapse {
@@ -729,7 +762,7 @@
         <div class="<?php echo $headerContainerClass; ?>">
             <a class="navbar-brand fw-bold" href="<?php echo BASE_URL; ?>">
                 <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
-                    <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: 52px;">
+                    <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: <?php echo $headerLogoSize; ?>px;">
                 <?php else: ?>
                     <?php echo htmlspecialchars($siteName); ?>
                 <?php endif; ?>
@@ -742,10 +775,13 @@
                  
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            All products
+                            <?php echo htmlspecialchars($menuAllProducts); ?>
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
-                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=product&action=index">All Products</a></li>
+                        <ul class="dropdown-menu nav-dropdown-searchable" aria-labelledby="categoryDropdown">
+                            <li class="px-2 py-1 border-bottom">
+                                <input type="text" class="form-control form-control-sm nav-dropdown-search" placeholder="Search categories..." autocomplete="off">
+                            </li>
+                            <li><a class="dropdown-item nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=product&action=index" data-search-text="all products">All Products</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <?php 
                             // Get active categories
@@ -761,7 +797,7 @@
                                         BASE_URL . 'assets/img/no-image.png';
                             ?>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['id']; ?>">
+                                    <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['id']; ?>" data-search-text="<?php echo htmlspecialchars(strtolower($category['name'])); ?>">
                                         <img src="<?php echo $categoryImage; ?>" 
                                              alt="<?php echo htmlspecialchars($category['name']); ?>" 
                                              class="me-2" 
@@ -777,11 +813,14 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="countryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Country of origin
+                            <?php echo htmlspecialchars($menuCountryOrigin); ?>
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="countryDropdown">
+                        <ul class="dropdown-menu nav-dropdown-searchable" aria-labelledby="countryDropdown">
+                            <li class="px-2 py-1 border-bottom">
+                                <input type="text" class="form-control form-control-sm nav-dropdown-search" placeholder="Search countries..." autocomplete="off">
+                            </li>
                             <li>
-                                <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=country&action=index">
+                                <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=index" data-search-text="all countries">
                                     <div class="me-2" style="width: 24px; height: 18px; display: flex; align-items: center; justify-content: center;">
                                         <i class="fas fa-globe-americas"></i>
                                     </div>
@@ -804,7 +843,7 @@
                                         'https://flagcdn.com/24x18/' . $countryCode . '.png';
                                 ?>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=country&action=show&id=<?php echo (int)$countryItem['id']; ?>">
+                                    <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=show&id=<?php echo (int)$countryItem['id']; ?>" data-search-text="<?php echo htmlspecialchars(strtolower($countryItem['name'])); ?>">
                                         <img src="<?php echo $flagImage; ?>" 
                                              alt="<?php echo htmlspecialchars($countryItem['name']); ?>" 
                                              class="me-2" 
@@ -820,10 +859,13 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="brandDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            All brands
+                            <?php echo htmlspecialchars($menuAllBrands); ?>
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="brandDropdown">
-                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=index">All Brands</a></li>
+                        <ul class="dropdown-menu nav-dropdown-searchable" aria-labelledby="brandDropdown">
+                            <li class="px-2 py-1 border-bottom">
+                                <input type="text" class="form-control form-control-sm nav-dropdown-search" placeholder="Search brands..." autocomplete="off">
+                            </li>
+                            <li><a class="dropdown-item nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=index" data-search-text="all brands">All Brands</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <?php 
                             // Get active brands
@@ -837,7 +879,7 @@
                                         BASE_URL . 'assets/img/no-image.png';
                             ?>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['id']; ?>">
+                                    <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['id']; ?>" data-search-text="<?php echo htmlspecialchars(strtolower($brand['name'])); ?>">
                                         <img src="<?php echo $brandImage; ?>" 
                                              alt="<?php echo htmlspecialchars($brand['name']); ?>" 
                                              class="me-2" 
@@ -853,10 +895,10 @@
                     </li>
                    
                     <li class="nav-item ms-2">
-                        <a href="#" class="btn btn-success px-3 fw-medium" style="background-color: #28a745; border-color: #28a745;">New </a>
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="btn btn-success px-3 fw-medium" style="background-color: #28a745; border-color: #28a745;"><?php echo htmlspecialchars($menuNew); ?></a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a href="#" class="btn btn-success px-3 fw-medium" style="background-color:rgb(172, 104, 26); border-color:rgb(167, 116, 40);">Sale</a>
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=sale" class="btn btn-success px-3 fw-medium" style="background-color:rgb(172, 104, 26); border-color:rgb(167, 116, 40);"><?php echo htmlspecialchars($menuSale); ?></a>
                     </li>
                 </ul>
                 <div class="d-lg-flex flex-column flex-lg-row align-items-start align-items-lg-center mt-3 mt-lg-0">
@@ -930,6 +972,52 @@
             </div>
         </div>
     </nav>
+
+    <!-- Navbar dropdown search - inline script (runs before main.js) -->
+    <script>
+    (function() {
+        function initNavDropdownSearch() {
+            document.addEventListener('input', function(e) {
+                var input = e.target;
+                if (!input || !input.classList || !input.classList.contains('nav-dropdown-search')) return;
+                var query = (input.value || '').trim().toLowerCase();
+                var menu = input.closest('.nav-dropdown-searchable');
+                if (!menu) return;
+                var items = menu.querySelectorAll('.nav-dropdown-item');
+                for (var i = 0; i < items.length; i++) {
+                    var item = items[i];
+                    var text = (item.getAttribute('data-search-text') || '').toLowerCase();
+                    var li = item.closest('li');
+                    if (li) li.style.display = (query === '' || text.indexOf(query) !== -1) ? '' : 'none';
+                }
+            });
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.classList && e.target.classList.contains('nav-dropdown-search')) {
+                    e.stopPropagation();
+                }
+            }, true);
+            document.addEventListener('hidden.bs.dropdown', function(e) {
+                var dropdown = (e.target && e.target.closest) ? e.target.closest('.dropdown') : e.target;
+                var menu = dropdown ? dropdown.querySelector('.nav-dropdown-searchable') : null;
+                if (!menu) return;
+                var searchInput = menu.querySelector('.nav-dropdown-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                    var items = menu.querySelectorAll('.nav-dropdown-item');
+                    for (var i = 0; i < items.length; i++) {
+                        var li = items[i].closest('li');
+                        if (li) li.style.display = '';
+                    }
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initNavDropdownSearch);
+        } else {
+            initNavDropdownSearch();
+        }
+    })();
+    </script>
 
     <!-- Flash Messages -->
     <div class="container mt-3">

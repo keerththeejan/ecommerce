@@ -140,6 +140,29 @@ if (!defined('BASE_URL')) {
             padding-bottom: 80px; 
             box-sizing: border-box; 
         }
+        /* Sidebar dropdowns: visible sub-menus, open to the right, high contrast */
+        #sidebar .dropdown-menu {
+            background: #2c3034 !important;
+            border: 1px solid #495057;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.3);
+            padding: 0.25rem;
+            min-width: 200px;
+            margin-top: 0;
+            margin-left: 0.25rem;
+            z-index: 1060;
+        }
+        #sidebar .dropdown-item {
+            color: #f8f9fa !important;
+            padding: 0.5rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        #sidebar .dropdown-item:hover,
+        #sidebar .dropdown-item:focus {
+            background: rgba(255,255,255,.15) !important;
+            color: #fff !important;
+        }
 
         /* Scrollbar styling - Sidebar and Main */
         /* Firefox */
@@ -218,7 +241,7 @@ if (!defined('BASE_URL')) {
                 left: 0;
                 height: 100vh;
                 width: 260px;
-                overflow: hidden;
+                overflow: visible;
                 transform: none;
                 overscroll-behavior: contain;
             }
@@ -250,151 +273,189 @@ if (!defined('BASE_URL')) {
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=home&action=admin">
-                                <i class="fas fa-tachometer-alt mr-2"></i>
-                                Dashboard
+                                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex">
-                                <i class="fas fa-box mr-2"></i>
-                                Products
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="productsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-box mr-2"></i> Products
                             </a>
+                            <ul class="dropdown-menu" aria-labelledby="productsDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex">All Products</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=product&action=create">Add Product</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-tags mr-2"></i> Categories
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex">All Categories</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=category&action=create">Add Category</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="brandsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-building mr-2"></i> Brands
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex">All Brands</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=create">Add Brand</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="countryDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-globe-americas mr-2"></i> Country of Origin
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="countryDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex">List Countries</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="purchaseDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-money-bill-wave mr-2"></i> Purchase
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="purchaseDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=purchase&action=create">Purchase with customer</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=ListPurchaseController">List Purchase</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=purchase&action=purchase2">Add Purchase</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=purchase&action=purchase3">List Purchase Return</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="bannersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-images mr-2"></i> Hero Banners
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="bannersDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=banner">List Banners</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=banner&action=create">Add Banner</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="ordersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-shopping-cart mr-2"></i> Orders
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="ordersDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex">All Orders</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="suppliersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-truck mr-2"></i> Suppliers
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="suppliersDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=supplier&action=index">List Suppliers</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="usersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-users mr-2"></i> Users
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="usersDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=adminIndex">All Users</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=adminCreate">Add User</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=customers">Customers</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="reportsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-chart-bar mr-2"></i> Reports
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=index">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=sales">Sales Report</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=products">Products Report</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=customers">Customers Report</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="mailDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-envelope mr-2"></i> Mail
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="mailDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=mail&action=index">Mail</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="billingDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user-check mr-2"></i> Billing & Invoices
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="billingDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=invoice&action=create">Create Invoice</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="settingsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-cog mr-2"></i> Settings
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=setting&action=index">Store Settings</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="taxDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-percentage mr-2"></i> Tax Management
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="taxDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=tax&action=index">Tax Settings</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="storeDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-store mr-2"></i> Store
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="storeDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>">View Store</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=aboutStore">Manage About Store</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=aboutStore&action=create">Add About Entry</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="contactDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-address-book mr-2"></i> Contact Info
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="contactDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=contactinfo&action=index">Contact Info</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="paymentDueDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-money-bill-wave mr-2"></i> Payment Dues
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="paymentDueDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=PaymentDue&action=index">Payment Dues</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="policyDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-file-contract mr-2"></i> Policy
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="policyDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=policy&action=index">Policy</a></li>
+                            </ul>
                         </li>
 
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="cookiesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-cookie-bite mr-2"></i> Clear Cookies
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="cookiesDropdown">
+                                <li><a class="dropdown-item" href="#" id="clearCookiesBtn">Clear All Cookies</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown dropright">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="logoutDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="logoutDropdown">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=logout">Logout</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
 
-
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex">
-                                <i class="fas fa-tags mr-2"></i>
-                                Categories
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex">
-                                <i class="fas fa-building mr-2"></i>
-                                Brands
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex">
-                                <i class="fas fa-globe-americas mr-2"></i>
-                                Country of Origin
-                            </a>
-                        </li>
-
-                        <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle text-white" href="#" id="purchaseDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-money-bill-wave mr-2"></i> Purchase
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="purchaseDropdown">
-        <li><a class="dropdown-item" href="?controller=purchase&action=create">Purchase with customer</a></li>
-        <li><a class="dropdown-item" href="?controller=ListPurchaseController">List Purchase </a></li>
-        <li><a class="dropdown-item" href="?controller=purchase&action=purchase2">Add Purchase</a></li>
-        <li><a class="dropdown-item" href="?controller=purchase&action=purchase3">List Purchase Return</a></li>
-        
-    </ul>
-</li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=banner">
-                                <i class="fas fa-images mr-2"></i>
-                                Hero Banners
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex">
-                                <i class="fas fa-shopping-cart mr-2"></i>
-                                Orders
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=supplier&action=index" id="suppliersLink">
-                                <i class="fas fa-truck mr-2"></i>
-                                Suppliers
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=adminIndex">
-                                <i class="fas fa-users mr-2"></i>
-                                Users
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=customers" id="customersSidebarLink">
-                                <i class="fas fa-user-friends mr-2"></i>
-                                Customers
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=report&action=index">
-                                <i class="fas fa-chart-bar mr-2"></i>
-                                Reports
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=mail&action=index">
-                                <i class="fas fa-envelope mr-2"></i>
-                                Mail
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=invoice&action=create">
-                                <i class="fas fa-user-check mr-2"></i>
-                                Billing & Invoices
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=setting&action=index">
-                                <i class="fas fa-cog mr-2"></i>
-                                Settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=tax&action=index">
-                                <i class="fas fa-percentage mr-2"></i>
-                                Tax Management
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>">
-                                <i class="fas fa-store mr-2"></i>
-                                View Store
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="?controller=aboutStore">
-                                <i class="fas fa-globe-americas mr-2"></i>
-                                Manage About Store
-                            </a>
-                        </li>
-                            <li class="nav-item">
-                            <a class="nav-link text-white" href="?controller=contactinfo&action=index">
-                                <i class="fas fa-address-book mr-2"></i>
-                                Contact Info
-                            </a>
-                        </li>
-                           
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="?controller=PaymentDue&action=index">
-                                <i class="fas fa-money-bill-wave mr-2"></i>
-                                Payment Dues
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-white" id="policyLink" href="<?php echo BASE_URL; ?>?controller=policy&action=index" data-keep-open="1">
-                                <i class="fas fa-file-contract mr-2"></i>
-                                Policy
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#" id="clearCookiesBtn">
-                                <i class="fas fa-cookie-bite mr-2"></i>
-                                Clear Cookies
-                            </a>
-                            <script>
+            <script>
                                 document.getElementById('clearCookiesBtn').addEventListener('click', function(e) {
                                     e.preventDefault();
                                     if (confirm('Are you sure you want to clear all cookies? This will log out all users.')) {
@@ -430,17 +491,7 @@ if (!defined('BASE_URL')) {
                                             });
                                     }
                                 });
-                            </script>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=user&action=logout">
-                                <i class="fas fa-sign-out-alt mr-2"></i>
-                                Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+            </script>
 
             <!-- Backdrop for mobile -->
             <div class="sidebar-backdrop d-md-none" id="sidebarBackdrop"></div>

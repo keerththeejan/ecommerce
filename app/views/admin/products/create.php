@@ -3,12 +3,12 @@
 <style>
 /* Create product form – responsive */
 .create-product-form .form-label { font-weight: 500; }
-.create-product-form .input-group .form-select { flex: 1 1 auto; min-width: 0; }
+.create-product-form .input-group select.form-control { flex: 1 1 auto; min-width: 0; }
 @media (max-width: 767.98px) {
     .create-product-form .input-group > .btn { margin-top: 0.25rem; width: 100%; }
     .create-product-form .row .col-6 { margin-bottom: 0.5rem; }
 }
-.create-product-form select.form-select[style*="width"] { min-width: 0 !important; max-width: 100%; }
+.create-product-form select[style*="width"] { min-width: 0 !important; max-width: 100%; }
 </style>
 
 <div class="container-fluid px-2 px-sm-3">
@@ -18,21 +18,21 @@
                 <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 py-3">
                     <h3 class="card-title mb-0 h5">Add New Product</h3>
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Products
+                        <i class="fas fa-arrow-left mr-1"></i> Back to Products
                     </a>
                 </div>
                 <div class="card-body p-3 p-md-4">
                     <div id="alert-messages">
                         <?php if(isset($success)): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <i class="fas fa-check-circle me-2"></i> <?php echo $success; ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <i class="fas fa-check-circle mr-2"></i> <?php echo $success; ?>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                             </div>
                         <?php endif; ?>
                         <?php if(isset($errors['db_error'])): ?>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="fas fa-exclamation-circle me-2"></i> <?php echo $errors['db_error']; ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <i class="fas fa-exclamation-circle mr-2"></i> <?php echo $errors['db_error']; ?>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -60,7 +60,7 @@
                                 <div class="mb-3">
                                     <label for="country_id" class="form-label">Country of Origin</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="min-width: 0;">
+                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="min-width: 0;">
                                             <option value="">Select Country</option>
                                             <?php 
                                             // Get active countries
@@ -96,7 +96,7 @@
                                 <div class="mb-3">
                                     <label for="brand_id" class="form-label">Brand</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
+                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
                                             <option value="">Select Brand</option>
                                             <?php 
                                             // Get active brands
@@ -201,7 +201,7 @@
                                 <div class="mb-3">
                                     <label for="supplier" class="form-label">Supplier</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
+                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
                                             <option value="">Select Supplier</option>
                                             <?php if(!empty($suppliers)): ?>
                                                 <?php foreach($suppliers as $supplier): ?>
@@ -226,7 +226,7 @@
                                 <div class="mb-3">
                                     <label for="category_id" class="form-label">Category</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;">
+                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;">
                                             <option value="">Select Category</option>
                                             <?php 
                                             // Get active categories
@@ -254,7 +254,7 @@
                                 <div class="mb-3">
                                     <label for="tax_id" class="form-label">Tax Rate (Optional)</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>" id="tax_id" name="tax_id" style="min-width: 0;">
+                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>" id="tax_id" name="tax_id" style="min-width: 0;">
                                             <option value="">Use category tax / None</option>
                                             <?php
                                             $taxModel = new TaxModel();
@@ -301,7 +301,7 @@
                                 
                                 <div class="mb-3">
                                     <label for="status" class="form-label">Status</label>
-                                    <select class="form-select" id="status" name="status">
+                                    <select class="form-control" id="status" name="status">
                                         <option value="active" <?php echo (isset($data['status']) && $data['status'] == 'active') ? 'selected' : ''; ?>>Active</option>
                                         <option value="inactive" <?php echo (isset($data['status']) && $data['status'] == 'inactive') ? 'selected' : ''; ?>>Inactive</option>
                                     </select>
@@ -311,14 +311,14 @@
                         
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mt-4 pt-3 border-top">
                             <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-secondary btn-sm order-sm-1">
-                                <i class="fas fa-times me-1"></i> Cancel
+                                <i class="fas fa-times mr-1"></i> Cancel
                             </a>
                             <div class="d-flex flex-wrap gap-2 order-sm-2">
                                 <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
-                                    <i class="fas fa-save me-1"></i> Create Product
+                                    <i class="fas fa-save mr-1"></i> Create Product
                                 </button>
                                 <button type="button" class="btn btn-success btn-sm d-none" id="addAnotherBtn" style="display: none;">
-                                    <i class="fas fa-plus me-1"></i> Add Another
+                                    <i class="fas fa-plus mr-1"></i> Add Another
                                 </button>
                             </div>
                         </div>
@@ -331,28 +331,27 @@
 
 <!-- Add Select2 CSS and JS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <style>
 /* Style for flag images in dropdown */
-.select2-container--bootstrap-5 .select2-selection--single {
+.select2-container--default .select2-selection--single {
     height: 38px;
     padding: 0.375rem 0.75rem;
 }
 
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+.select2-container--default .select2-selection--single .select2-selection__rendered {
     padding-left: 0;
     line-height: 1.5;
 }
 
-.select2-container--bootstrap-5 .select2-results__option {
+.select2-container--default .select2-results__option {
     padding: 6px 12px;
     display: flex;
     align-items: center;
 }
 
-.select2-container--bootstrap-5 .select2-results__option img {
+.select2-container--default .select2-results__option img {
     width: 24px;
     height: 18px;
     object-fit: cover;
@@ -361,7 +360,7 @@
     border-radius: 2px;
 }
 
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+.select2-container--default .select2-selection--single .select2-selection__rendered {
     display: flex;
     align-items: center;
 }
@@ -374,7 +373,7 @@ function formatOption(option) {
     var flagImg = $(option.element).data('flag-image');
     if (flagImg) {
         return $('<div class="d-flex align-items-center">' +
-            '<img src="' + flagImg + '" class="me-2" style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">' +
+            '<img src="' + flagImg + '" class="mr-2" style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">' +
             '<span>' + option.text + '</span></div>');
     }
     return option.text;
@@ -383,7 +382,7 @@ function formatOption(option) {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2 for ALL dropdowns (Country, Brand, Category, Supplier, Status) - searchable
     $('.select2').select2({
-        theme: 'bootstrap-5',
+        theme: 'default',
         placeholder: 'Search...',
         allowClear: false,
         templateResult: formatOption,
@@ -486,15 +485,14 @@ document.addEventListener('DOMContentLoaded', function() {
         alertDiv.role = 'alert';
         alertDiv.innerHTML = `
             ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         `;
         
         alertMessages.appendChild(alertDiv);
         
         // Auto-dismiss after 5 seconds
         setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alertDiv);
-            bsAlert.close();
+            $(alertDiv).alert('close');
         }, 5000);
     }
     
@@ -521,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="addCountryModalLabel">Add New Country</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <form id="addCountryForm" enctype="multipart/form-data">
@@ -551,11 +549,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     <div class="d-flex justify-content-end mt-3">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-1"></i> Cancel
+                        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Cancel
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Save Country
+                            <i class="fas fa-save mr-1"></i> Save Country
                         </button>
                     </div>
                 </form>
@@ -570,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addBrandModalLabel">Add New Brand</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="addBrandForm">
@@ -583,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <textarea class="form-control" id="brand_description" name="description" rows="3"></textarea>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Brand</button>
                     </div>
                 </form>
@@ -598,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addSupplierModalLabel">Add New Supplier</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="addSupplierForm">
@@ -619,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="tel" class="form-control" id="supplier_phone" name="phone">
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Supplier</button>
                     </div>
                 </form>
@@ -634,7 +632,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="addCategoryForm">
@@ -644,7 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="mb-3">
                         <label for="parent_category" class="form-label">Parent Category (Optional)</label>
-                        <select class="form-select" id="parent_category" name="parent_id">
+                        <select class="form-control" id="parent_category" name="parent_id">
                             <option value="">No Parent (Top Level)</option>
                             <?php 
                             $categoryModel = new Category();
@@ -663,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <textarea class="form-control" id="category_description" name="description" rows="3"></textarea>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Category</button>
                     </div>
                 </form>
@@ -821,8 +819,8 @@ $('#addCategoryForm').on('submit', function(e) {
 // Helper function to show alerts
 function showAlert(type, message) {
     var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
-                    '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + ' me-2"></i> ' + message +
-                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                    '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + ' mr-2"></i> ' + message +
+                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
                     '</div>';
     
     $('#alert-messages').append(alertHtml);

@@ -24,19 +24,24 @@ class InvoiceController extends Controller {
             return;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
-            $orderId = isset($_POST['order_id']) ? (int)$_POST['order_id'] : (isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0);
+        $orderId = 0;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $orderId = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
             if ($orderId <= 0) {
                 flash('invoice_error', 'Please provide a valid Order ID', 'alert alert-danger');
-                $this->view('admin/invoices/create');
+                $this->view('admin/invoices/create', ['recentOrders' => $this->orderModel->getRecentOrders(20)]);
                 return;
             }
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['order_id']) && (int)$_GET['order_id'] > 0) {
+            $orderId = (int)$_GET['order_id'];
+        }
 
+        if ($orderId > 0) {
             // Ensure order exists
             $order = $this->orderModel->getById($orderId);
             if (!$order) {
                 flash('invoice_error', 'Order not found', 'alert alert-danger');
-                $this->view('admin/invoices/create');
+                $this->view('admin/invoices/create', ['recentOrders' => $this->orderModel->getRecentOrders(20)]);
                 return;
             }
 
@@ -56,8 +61,32 @@ class InvoiceController extends Controller {
             return;
         }
 
-        // GET without order_id: show form
-        $this->view('admin/invoices/create');
+        // GET without order_id: show form with recent orders
+        $recentOrders = [];
+        try {
+            $recentOrders = $this->orderModel->getRecentOrders(20);
+        } catch (Exception $e) {
+            error_log('Invoice create getRecentOrders: ' . $e->getMessage());
+        }
+        $this->view('admin/invoices/create', ['recentOrders' => $recentOrders]);
+    }
+
+    /**
+     * Search orders for autocomplete (JSON)
+     */
+    public function searchOrders() {
+        if (!isAdmin()) {
+            $this->json(['success' => false, 'orders' => []], 401);
+            return;
+        }
+        $keyword = isset($_GET['q']) ? trim($_GET['q']) : '';
+        $orders = [];
+        try {
+            $orders = $this->orderModel->searchOrders($keyword, 20);
+        } catch (Exception $e) {
+            error_log('Invoice searchOrders: ' . $e->getMessage());
+        }
+        $this->json(['success' => true, 'orders' => $orders]);
     }
     
     /**

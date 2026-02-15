@@ -78,6 +78,14 @@ class SettingController extends Controller {
         $generalSettings['footer_bottom_text_color'] = $this->settingModel->getSetting('footer_bottom_text_color', '#EEEEEE');
         $generalSettings['footer_bottom_link_color'] = $this->settingModel->getSetting('footer_bottom_link_color', '#EEEEEE');
         $generalSettings['footer_bottom_link_hover_color'] = $this->settingModel->getSetting('footer_bottom_link_hover_color', '#00ADB5');
+        $generalSettings['header_logo_size'] = $this->settingModel->getSetting('header_logo_size', '80');
+        $generalSettings['header_logo_size_mobile'] = $this->settingModel->getSetting('header_logo_size_mobile', '52');
+        $generalSettings['menu_all_products'] = $this->settingModel->getSetting('menu_all_products', 'All products');
+        $generalSettings['menu_country_origin'] = $this->settingModel->getSetting('menu_country_origin', 'Country of origin');
+        $generalSettings['menu_all_brands'] = $this->settingModel->getSetting('menu_all_brands', 'All brands');
+        $generalSettings['menu_new'] = $this->settingModel->getSetting('menu_new', 'New');
+        $generalSettings['menu_sale'] = $this->settingModel->getSetting('menu_sale', 'Sale');
+        $generalSettings['menu_font_size'] = $this->settingModel->getSetting('menu_font_size', '1rem');
         $paymentSettings = $this->settingModel->getSettingsByGroup('payment');
         $emailSettings = $this->settingModel->getSettingsByGroup('email');
         
@@ -149,7 +157,16 @@ class SettingController extends Controller {
                 'footer_bottom_link_faq' => sanitize($this->post('footer_bottom_link_faq')),
                 'footer_bottom_text_color' => trim($this->post('footer_bottom_text_color')),
                 'footer_bottom_link_color' => trim($this->post('footer_bottom_link_color')),
-                'footer_bottom_link_hover_color' => trim($this->post('footer_bottom_link_hover_color'))
+                'footer_bottom_link_hover_color' => trim($this->post('footer_bottom_link_hover_color')),
+                // Header logo & menu
+                'header_logo_size' => (int)$this->post('header_logo_size'),
+                'header_logo_size_mobile' => (int)$this->post('header_logo_size_mobile'),
+                'menu_all_products' => sanitize($this->post('menu_all_products')),
+                'menu_country_origin' => sanitize($this->post('menu_country_origin')),
+                'menu_all_brands' => sanitize($this->post('menu_all_brands')),
+                'menu_new' => sanitize($this->post('menu_new')),
+                'menu_sale' => sanitize($this->post('menu_sale')),
+                'menu_font_size' => trim($this->post('menu_font_size'))
             ];
             
             // Also update store_name for consistency
@@ -404,6 +421,23 @@ class SettingController extends Controller {
             if (empty($data['footer_bottom_link_hover_color'])) {
                 $data['footer_bottom_link_hover_color'] = '#00ADB5';
             }
+
+            // Header logo size validation
+            $logoSize = (int)$data['header_logo_size'];
+            $data['header_logo_size'] = ($logoSize >= 32 && $logoSize <= 150) ? (string)$logoSize : '80';
+            $logoSizeMobile = (int)$data['header_logo_size_mobile'];
+            $data['header_logo_size_mobile'] = ($logoSizeMobile >= 28 && $logoSizeMobile <= 100) ? (string)$logoSizeMobile : '52';
+
+            // Menu names - allow empty, use defaults
+            if (empty(trim($data['menu_all_products']))) { $data['menu_all_products'] = 'All products'; }
+            if (empty(trim($data['menu_country_origin']))) { $data['menu_country_origin'] = 'Country of origin'; }
+            if (empty(trim($data['menu_all_brands']))) { $data['menu_all_brands'] = 'All brands'; }
+            if (empty(trim($data['menu_new']))) { $data['menu_new'] = 'New'; }
+            if (empty(trim($data['menu_sale']))) { $data['menu_sale'] = 'Sale'; }
+
+            // Menu font size - whitelist
+            $allowedSizes = ['0.8rem', '0.9rem', '1rem', '1.1rem', '1.2rem', '1.3rem'];
+            $data['menu_font_size'] = in_array(trim($data['menu_font_size']), $allowedSizes, true) ? trim($data['menu_font_size']) : '1rem';
             
             // Make sure there are no errors
             if(empty($errors)) {

@@ -11,6 +11,38 @@ $(document).ready(function() {
     
     console.log('✅ main.js loaded - Add to cart handlers will be attached');
     
+    // Navbar dropdown search - filter options as user types
+    document.querySelectorAll('.nav-dropdown-search').forEach(function(input) {
+        input.addEventListener('input', function() {
+            var query = this.value.trim().toLowerCase();
+            var dropdown = this.closest('.nav-dropdown-searchable');
+            if (!dropdown) return;
+            dropdown.querySelectorAll('.nav-dropdown-item').forEach(function(item) {
+                var text = (item.getAttribute('data-search-text') || '').toLowerCase();
+                item.closest('li').style.display = (query === '' || text.indexOf(query) !== -1) ? '' : 'none';
+            });
+        });
+        input.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+    // Reset search and show all items when dropdown closes
+    document.querySelectorAll('.nav-dropdown-searchable').forEach(function(menu) {
+        var dropdownEl = menu.closest('.dropdown');
+        if (dropdownEl) {
+            dropdownEl.addEventListener('hidden.bs.dropdown', function() {
+                var searchInput = menu.querySelector('.nav-dropdown-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                    menu.querySelectorAll('.nav-dropdown-item').forEach(function(item) {
+                        var li = item.closest('li');
+                        if (li) li.style.display = '';
+                    });
+                }
+            });
+        }
+    });
+
     // Initialize Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {

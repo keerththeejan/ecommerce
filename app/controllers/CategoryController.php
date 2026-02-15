@@ -392,6 +392,48 @@ class CategoryController extends Controller {
     }
     
     /**
+     * Admin: One-click remove "Tiefkühlprodukte" category (by name or id=72)
+     */
+    public function removeTiefkuehlprodukte() {
+        if (!isAdmin()) {
+            redirect('user/login');
+            return;
+        }
+        $cat = $this->categoryModel->getById(72);
+        if (!$cat) {
+            $cats = $this->categoryModel->getAllCategories();
+            foreach ($cats as $c) {
+                if (isset($c['name']) && $c['name'] === 'Tiefkühlprodukte') {
+                    $cat = $c;
+                    break;
+                }
+            }
+        }
+        if (!$cat) {
+            flash('category_success', 'Category "Tiefkühlprodukte" was not found (may already be removed).');
+            redirect('?controller=category&action=adminIndex');
+            return;
+        }
+        $id = (int)($cat['id'] ?? 0);
+        if ($id <= 0) {
+            redirect('?controller=category&action=adminIndex');
+            return;
+        }
+        $this->categoryModel->reassignProductsToNull($id);
+        if ($this->categoryModel->hasSubcategories($id)) {
+            flash('category_error', 'Cannot remove: category has subcategories. Remove subcategories first.');
+            redirect('?controller=category&action=adminIndex');
+            return;
+        }
+        if ($this->categoryModel->delete($id)) {
+            flash('category_success', 'Category "Tiefkühlprodukte" removed successfully.');
+        } else {
+            flash('category_error', 'Failed to remove category.');
+        }
+        redirect('?controller=category&action=adminIndex');
+    }
+
+    /**
      * Admin: Delete category
      * 
      * @param int $id Category ID

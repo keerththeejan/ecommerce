@@ -144,9 +144,28 @@
 /* Pagination responsive */
 .products-table-scroll + .mt-3 .pagination { flex-wrap: wrap; gap: 0.25rem; }
 .products-table-scroll + .mt-3 .pagination .page-link { padding: 0.4rem 0.6rem; font-size: 0.875rem; }
+
+/* Fix overflow - search and filters don't take excessive space */
+.products-admin .input-group { max-width: 100%; }
+.products-admin .form-control { max-width: 100%; }
+.products-admin .card-body { overflow-x: hidden; }
+.products-admin .row.g-3 { overflow: hidden; }
+.modal .close { padding: 0.5rem 1rem; font-size: 1.5rem; opacity: 1; }
+
+/* Force dark text on white/light backgrounds (fix invisible text in dark mode) */
+.products-admin .btn-light,
+.products-admin .btn-light i { color: #212529 !important; }
+.products-admin .form-control,
+.products-admin .input-group-text { color: #212529 !important; background-color: #fff !important; }
+.products-admin .form-control::placeholder { color: #6c757d !important; }
+[data-theme="dark"] .products-admin .btn-light,
+[data-theme="dark"] .products-admin .btn-light i { color: #212529 !important; background-color: #f8f9fa !important; }
+[data-theme="dark"] .products-admin .form-control,
+[data-theme="dark"] .products-admin .input-group-text { color: #212529 !important; background-color: #fff !important; border-color: #dee2e6; }
+[data-theme="dark"] .products-admin .form-control::placeholder { color: #6c757d !important; }
 </style>
 
-<div class="container-fluid px-2 px-sm-3">
+<div class="container-fluid px-2 px-sm-3 products-admin">
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
@@ -154,13 +173,13 @@
                     <h3 class="card-title mb-0 h5 mb-0">Products</h3>
                     <div class="d-flex flex-wrap gap-2 justify-content-end">
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=export" class="btn btn-light btn-sm">
-                            <i class="fas fa-download me-1"></i> Export CSV
+                            <i class="fas fa-download mr-1"></i> Export CSV
                         </a>
-                        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
-                            <i class="fas fa-upload me-1"></i> Import CSV
+                        <button type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#importModal">
+                            <i class="fas fa-upload mr-1"></i> Import CSV
                         </button>
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
-                            <i class="fas fa-plus me-1"></i> Add New Product
+                            <i class="fas fa-plus mr-1"></i> Add New Product
                         </a>
                     </div>
                 </div>
@@ -224,35 +243,8 @@
                         <?php flash('product_error', '', 'alert alert-danger'); ?>
                     </div>
                     
-                    <!-- Search -->
-                    <form method="GET" action="<?php echo BASE_URL; ?>" class="mb-4">
-                        <input type="hidden" name="controller" value="product">
-                        <input type="hidden" name="action" value="adminIndex">
-                        <input type="hidden" name="per_page" value="<?php echo htmlspecialchars($products['per_page_param'] ?? '20'); ?>">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-12 col-md-8 col-lg-6">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <input type="text" name="search" class="form-control" 
-                                           placeholder="Search by name, SKU, category, supplier, batch..." 
-                                           value="<?php echo htmlspecialchars($products['search'] ?? ''); ?>">
-                                    <button type="submit" class="btn btn-primary">Search</button>
-                                    <?php if(!empty($products['search'])): ?>
-                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex&per_page=<?php echo htmlspecialchars($products['per_page_param'] ?? '20'); ?>" class="btn btn-outline-secondary">Clear</a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                    
                     <?php if(empty($products['data'])): ?>
-                        <div class="alert alert-info">
-                            <?php if(!empty($products['search'])): ?>
-                                No products found for "<?php echo htmlspecialchars($products['search']); ?>". <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex&per_page=<?php echo htmlspecialchars($products['per_page_param'] ?? '20'); ?>">Show all</a>
-                            <?php else: ?>
-                                No products found.
-                            <?php endif; ?>
-                        </div>
+                        <div class="alert alert-info">No products found.</div>
                     <?php else: ?>
                         <div class="products-table-scroll table-responsive">
                             <table id="productsTable" class="table table-striped table-hover products-table">
@@ -313,7 +305,7 @@
                                                     $isExpired = false;
                                                     try { $isExpired = (strtotime($product['expiry_date']) < time()); } catch (Exception $e) { $isExpired = false; }
                                                     ?>
-                                                    <?php if($isExpired): ?><span class="badge bg-danger ms-1">Expired</span><?php endif; ?>
+                                                    <?php if($isExpired): ?><span class="badge badge-danger ml-1">Expired</span><?php endif; ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">-</span>
                                                 <?php endif; ?>
@@ -364,7 +356,7 @@
                                             <td data-label="Actions">
                                                 <div class="btn-group" role="group">
                                                     <button type="button"
-                                                            class="btn btn-sm btn-outline-info btn-history me-1"
+                                                            class="btn btn-sm btn-outline-info btn-history mr-1"
                                                             data-product-id="<?php echo $product['id']; ?>"
                                                             data-product-name="<?php echo htmlspecialchars($product['name']); ?>">
                                                         <i class="fas fa-history"></i>
@@ -392,7 +384,7 @@
                         <!-- Show per page: 20 / 50 / 100 / All -->
                         <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
                             <label for="perPageFilter" class="form-label mb-0 small text-muted">Show:</label>
-                            <select id="perPageFilter" class="form-select form-select-sm" style="width: auto;">
+                            <select id="perPageFilter" class="form-control form-control-sm" style="width: auto; max-width: 100px;">
                                 <?php 
                                 $currentPerPage = $products['per_page_param'] ?? '20';
                                 $currentSearch = $products['search'] ?? '';
@@ -427,7 +419,7 @@
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title" id="historyModalLabel">Stock History</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <div id="historyContent" class="py-2">
@@ -435,7 +427,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -448,7 +440,7 @@
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete <strong id="productName"></strong>?</p>
@@ -456,7 +448,7 @@
                 <input type="hidden" id="productId" value="">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDelete">
                     <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     <span class="btn-text">Delete</span>
@@ -472,8 +464,8 @@
         <div class="modal-content">
             <form action="<?php echo BASE_URL; ?>?controller=product&action=import" method="POST" enctype="multipart/form-data">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="importModalLabel"><i class="fas fa-upload me-2"></i>Import Products from CSV</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="importModalLabel"><i class="fas fa-upload mr-2"></i>Import Products from CSV</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -483,8 +475,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload me-1"></i>Import</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload mr-1"></i>Import</button>
                 </div>
             </form>
         </div>
@@ -492,10 +484,9 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
     // History modal elements
     const historyModalEl = document.getElementById('historyModal');
-    const historyModal = historyModalEl ? new bootstrap.Modal(historyModalEl) : null;
     const historyContent = document.getElementById('historyContent');
     const historyTitle = document.getElementById('historyModalLabel');
 
@@ -517,15 +508,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Open history modal on button click
-    document.querySelectorAll('.btn-history').forEach(btn => {
-        btn.addEventListener('click', function() {
+        $(document).on('click', '.btn-history', function() {
             const productId = this.getAttribute('data-product-id');
             const productName = this.getAttribute('data-product-name') || '';
-            if (historyTitle) historyTitle.textContent = `Stock History - ${productName}`;
-            if (historyModal) historyModal.show();
+            if (historyTitle) historyTitle.textContent = 'Stock History - ' + productName;
+            $('#historyModal').modal('show');
             loadHistory(productId, 1);
         });
-    });
 
     // Delegate pagination clicks inside history modal
     if (historyModalEl) {
@@ -543,7 +532,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Delete modal elements
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     const productNameEl = document.getElementById('productName');
     const productIdEl = document.getElementById('productId');
     const confirmDeleteBtn = document.getElementById('confirmDelete');
@@ -566,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmDeleteBtn.disabled = false;
             
             // Show modal
-            deleteModal.show();
+            $('#deleteModal').modal('show');
         });
     });
     
@@ -621,9 +609,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             showAlert(error.message || 'An error occurred while deleting the product', 'danger');
         })
-        .finally(() => {
+        .finally(function() {
             // Hide modal
-            deleteModal.hide();
+            $('#deleteModal').modal('hide');
         });
     });
     
@@ -639,28 +627,22 @@ document.addEventListener('DOMContentLoaded', function() {
         alertDiv.role = 'alert';
         alertDiv.innerHTML = `
             ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         `;
         
         // Add to container
         alertMessages.insertBefore(alertDiv, alertMessages.firstChild);
         
         // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alertDiv);
-            bsAlert.close();
+        setTimeout(function() {
+            $(alertDiv).alert('close');
         }, 5000);
     }
     
-    // Close button for alerts
-    document.addEventListener('click', function(e) {
-        if (e.target.matches('.btn-close')) {
-            const alert = e.target.closest('.alert');
-            if (alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
-        }
+    // Close button for alerts (Bootstrap 4 uses data-dismiss)
+    $(document).on('click', '[data-dismiss="alert"]', function() {
+        var alert = $(this).closest('.alert');
+        if (alert.length) alert.alert('close');
     });
 });
 </script>

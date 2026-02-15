@@ -1,13 +1,132 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
 <style>
-/* Settings page – responsive */
-.settings-page .card-body { padding: 1rem; }
-@media (min-width: 768px) { .settings-page .card-body { padding: 1.25rem; } }
-.settings-page .nav-tabs { flex-wrap: wrap; }
-.settings-page .nav-tabs .nav-link { white-space: nowrap; }
+/* Settings page – Bootstrap 5 trending UI */
+.settings-page { --bs-primary: #6366f1; --bs-primary-rgb: 99, 102, 241; }
+.settings-page .card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow .3s ease;
+}
+.settings-page .card:hover { box-shadow: 0 12px 40px rgba(0,0,0,.12); }
+.settings-page .card-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  border: none;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.settings-page .nav-tabs {
+  flex-wrap: wrap;
+  border: none;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+}
+.settings-page .nav-tabs .nav-link {
+  white-space: nowrap;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff !important;
+  background: #4338ca !important;
+  transition: all .25s ease;
+}
+.settings-page .nav-tabs .nav-link:hover {
+  color: #fff !important;
+  background: #3730a3 !important;
+}
+.settings-page .nav-tabs .nav-link.active {
+  color: #4f46e5 !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.settings-page .card-body { padding: 1.25rem; }
+@media (min-width: 768px) { .settings-page .card-body { padding: 1.5rem; } }
+.settings-page h2 {
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+}
+.settings-page h5, .settings-page h6 {
+  font-weight: 600;
+  color: #334155;
+}
+.settings-page .form-label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.9rem;
+}
+.settings-page .form-control, .settings-page .form-select {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 0.85rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+.settings-page .form-control:focus, .settings-page .form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  outline: none;
+}
+.settings-page .form-control-color {
+  height: 2.5rem;
+  padding: 0.2rem;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.settings-page .form-check-input:checked {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
+.settings-page .form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+.settings-page .btn-primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  transition: transform .2s, box-shadow .2s;
+}
+.settings-page .btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+.settings-page .tab-pane { animation: tabFadeIn .3s ease; }
+@keyframes tabFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.settings-page .card .card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.settings-page .card .card-header {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  color: #334155;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-radius: 12px 12px 0 0;
+}
+.settings-page hr { border-color: #e2e8f0; opacity: 1; }
+.settings-page .form-text { color: #64748b; font-size: 0.85rem; }
+.settings-page textarea.form-control { min-height: 52px; max-height: 100px; resize: vertical; }
+.settings-page .form-control-color { width: 3rem; min-width: 3rem; }
+.settings-page .row.g-2.g-md-3 .col-md-6 input[type="text"],
+.settings-page .row.g-2.g-md-3 .col-md-6 input[type="email"],
+.settings-page .row.g-2.g-md-3 .col-md-6 input[type="number"] { max-width: 100%; }
+@media (min-width: 768px) {
+  .settings-page .row.g-2.g-md-3 .col-md-3 .form-control,
+  .settings-page .row.g-2.g-md-3 .col-md-3 .form-select { max-width: 180px; }
+}
 @media (max-width: 575.98px) {
   .settings-page .nav-tabs .nav-item { margin-bottom: 0.25rem; }
+  .settings-page .nav-tabs .nav-link { padding: 0.5rem 1rem; font-size: 0.85rem; }
 }
 </style>
 
@@ -19,7 +138,7 @@
             <?php flash('setting_error', '', 'alert alert-danger'); ?>
 
             <div class="card shadow-sm rounded-3 border-0 mb-4">
-                <div class="card-header bg-light">
+                <div class="card-header">
                     <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="general-tab" data-toggle="tab" data-target="#general" type="button" role="tab" aria-controls="general">General</button>
@@ -59,7 +178,7 @@
                                 <div class="row g-2 g-md-3 mb-3">
                                     <div class="col-12 col-md-6">
                                         <label for="site_description" class="form-label">Site Description</label>
-                                        <textarea class="form-control" id="site_description" name="site_description" rows="3"><?php echo isset($generalSettings['site_description']) ? htmlspecialchars($generalSettings['site_description']) : ''; ?></textarea>
+                                        <textarea class="form-control" id="site_description" name="site_description" rows="2" style="min-height:52px"><?php echo isset($generalSettings['site_description']) ? htmlspecialchars($generalSettings['site_description']) : ''; ?></textarea>
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <label for="site_phone" class="form-label">Phone Number</label>
@@ -87,7 +206,51 @@
                                         <input type="hidden" name="current_logo" value="<?php echo !empty($generalSettings['site_logo']) ? htmlspecialchars($generalSettings['site_logo']) : ''; ?>">
                                         <small class="form-text text-muted">JPG, PNG, GIF, WEBP. Max 2MB.</small>
                                     </div>
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label for="header_logo_size" class="form-label">Header Logo Size (Desktop, px)</label>
+                                        <input type="number" class="form-control" id="header_logo_size" name="header_logo_size" min="32" max="150" value="<?php echo isset($generalSettings['header_logo_size']) ? (int)$generalSettings['header_logo_size'] : 80; ?>">
+                                        <small class="form-text text-muted">32–150. Default 80.</small>
+                                    </div>
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label for="header_logo_size_mobile" class="form-label">Header Logo Size (Mobile, px)</label>
+                                        <input type="number" class="form-control" id="header_logo_size_mobile" name="header_logo_size_mobile" min="28" max="100" value="<?php echo isset($generalSettings['header_logo_size_mobile']) ? (int)$generalSettings['header_logo_size_mobile'] : 52; ?>">
+                                        <small class="form-text text-muted">28–100. Default 52.</small>
+                                    </div>
                                 </div>
+                        <div class="row g-2 g-md-3 mb-3">
+                            <div class="col-12"><h6 class="border-bottom pb-2 mb-2">Header Menu</h6></div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="menu_all_products" class="form-label">Menu: All Products</label>
+                                <input type="text" class="form-control" id="menu_all_products" name="menu_all_products" value="<?php echo isset($generalSettings['menu_all_products']) ? htmlspecialchars($generalSettings['menu_all_products']) : 'All products'; ?>">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="menu_country_origin" class="form-label">Menu: Country of Origin</label>
+                                <input type="text" class="form-control" id="menu_country_origin" name="menu_country_origin" value="<?php echo isset($generalSettings['menu_country_origin']) ? htmlspecialchars($generalSettings['menu_country_origin']) : 'Country of origin'; ?>">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="menu_all_brands" class="form-label">Menu: All Brands</label>
+                                <input type="text" class="form-control" id="menu_all_brands" name="menu_all_brands" value="<?php echo isset($generalSettings['menu_all_brands']) ? htmlspecialchars($generalSettings['menu_all_brands']) : 'All brands'; ?>">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="menu_new" class="form-label">Menu: New Button</label>
+                                <input type="text" class="form-control" id="menu_new" name="menu_new" value="<?php echo isset($generalSettings['menu_new']) ? htmlspecialchars($generalSettings['menu_new']) : 'New'; ?>">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="menu_sale" class="form-label">Menu: Sale Button</label>
+                                <input type="text" class="form-control" id="menu_sale" name="menu_sale" value="<?php echo isset($generalSettings['menu_sale']) ? htmlspecialchars($generalSettings['menu_sale']) : 'Sale'; ?>">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="menu_font_size" class="form-label">Menu Font Size</label>
+                                <select class="form-control form-select" id="menu_font_size" name="menu_font_size">
+                                    <option value="0.8rem" <?php echo (isset($generalSettings['menu_font_size']) ? $generalSettings['menu_font_size'] : '1rem') === '0.8rem' ? 'selected' : ''; ?>>Small (0.8rem)</option>
+                                    <option value="0.9rem" <?php echo (isset($generalSettings['menu_font_size']) ? $generalSettings['menu_font_size'] : '1rem') === '0.9rem' ? 'selected' : ''; ?>>Medium Small (0.9rem)</option>
+                                    <option value="1rem" <?php echo (isset($generalSettings['menu_font_size']) ? $generalSettings['menu_font_size'] : '1rem') === '1rem' ? 'selected' : ''; ?>>Medium (1rem)</option>
+                                    <option value="1.1rem" <?php echo (isset($generalSettings['menu_font_size']) ? $generalSettings['menu_font_size'] : '1rem') === '1.1rem' ? 'selected' : ''; ?>>Medium Large (1.1rem)</option>
+                                    <option value="1.2rem" <?php echo (isset($generalSettings['menu_font_size']) ? $generalSettings['menu_font_size'] : '1rem') === '1.2rem' ? 'selected' : ''; ?>>Large (1.2rem)</option>
+                                    <option value="1.3rem" <?php echo (isset($generalSettings['menu_font_size']) ? $generalSettings['menu_font_size'] : '1rem') === '1.3rem' ? 'selected' : ''; ?>>Extra Large (1.3rem)</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="row g-2 g-md-3 mb-3">
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="home_categories_bg_color" class="form-label">Home Categories Background</label>
@@ -105,7 +268,7 @@
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="header_width" class="form-label">Header Width</label>
-                                <select class="form-control <?php echo isset($errors['header_width']) ? 'is-invalid' : ''; ?>" id="header_width" name="header_width">
+                                <select class="form-control form-select <?php echo isset($errors['header_width']) ? 'is-invalid' : ''; ?>" id="header_width" name="header_width">
                                     <option value="boxed" <?php echo (isset($generalSettings['header_width']) ? $generalSettings['header_width'] : 'boxed') === 'boxed' ? 'selected' : ''; ?>>Boxed</option>
                                     <option value="full" <?php echo (isset($generalSettings['header_width']) ? $generalSettings['header_width'] : 'boxed') === 'full' ? 'selected' : ''; ?>>Full width</option>
                                 </select>
@@ -170,7 +333,7 @@
                         <div class="row g-2 g-md-3 mb-3">
                             <div class="col-12 col-sm-6 col-md-3">
                                 <label for="theme_default_mode" class="form-label">Default Theme</label>
-                                <select class="form-control <?php echo isset($errors['theme_default_mode']) ? 'is-invalid' : ''; ?>" id="theme_default_mode" name="theme_default_mode">
+                                <select class="form-control form-select <?php echo isset($errors['theme_default_mode']) ? 'is-invalid' : ''; ?>" id="theme_default_mode" name="theme_default_mode">
                                     <option value="light" <?php echo (isset($generalSettings['theme_default_mode']) ? $generalSettings['theme_default_mode'] : 'light') === 'light' ? 'selected' : ''; ?>>Light</option>
                                     <option value="dark" <?php echo (isset($generalSettings['theme_default_mode']) ? $generalSettings['theme_default_mode'] : 'light') === 'dark' ? 'selected' : ''; ?>>Dark</option>
                                 </select>
@@ -242,7 +405,7 @@
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="footer_font_family" class="form-label">Footer Font Family</label>
-                                <select class="form-control <?php echo isset($errors['footer_font_family']) ? 'is-invalid' : ''; ?>" id="footer_font_family" name="footer_font_family">
+                                <select class="form-control form-select <?php echo isset($errors['footer_font_family']) ? 'is-invalid' : ''; ?>" id="footer_font_family" name="footer_font_family">
                                     <?php
                                         $families = [
                                             'inherit' => 'Inherit (default)',
@@ -330,7 +493,7 @@
                         <div class="row g-2 g-md-3 mb-3">
                                     <div class="col-12 col-md-6">
                                         <label for="site_address" class="form-label">Address</label>
-                                        <textarea class="form-control" id="site_address" name="site_address" rows="3"><?php echo isset($generalSettings['site_address']) ? htmlspecialchars($generalSettings['site_address']) : ''; ?></textarea>
+                                        <textarea class="form-control" id="site_address" name="site_address" rows="2" style="min-height:52px"><?php echo isset($generalSettings['site_address']) ? htmlspecialchars($generalSettings['site_address']) : ''; ?></textarea>
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <label for="site_favicon" class="form-label">Favicon URL</label>
@@ -388,7 +551,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="payment_bank_details" class="form-label">Bank Account Details</label>
-                                        <textarea class="form-control" id="payment_bank_details" name="payment_bank_details" rows="3"><?php echo isset($paymentSettings['payment_bank_details']) ? $paymentSettings['payment_bank_details'] : ''; ?></textarea>
+                                        <textarea class="form-control" id="payment_bank_details" name="payment_bank_details" rows="2" style="min-height:52px"><?php echo isset($paymentSettings['payment_bank_details']) ? $paymentSettings['payment_bank_details'] : ''; ?></textarea>
                                         <div class="form-text">Enter the bank account details that will be shown to customers.</div>
                                     </div>
                                 </div>
@@ -478,7 +641,7 @@
 
                                     <div class="mb-3">
                                         <label for="email_smtp_encryption" class="form-label">Encryption</label>
-                                        <select class="form-control" id="email_smtp_encryption" name="email_smtp_encryption">
+                                        <select class="form-control form-select" id="email_smtp_encryption" name="email_smtp_encryption">
                                             <option value="" <?php echo (!isset($emailSettings['email_smtp_encryption']) || $emailSettings['email_smtp_encryption'] == '') ? 'selected' : ''; ?>>None</option>
                                             <option value="tls" <?php echo (isset($emailSettings['email_smtp_encryption']) && $emailSettings['email_smtp_encryption'] == 'tls') ? 'selected' : ''; ?>>TLS</option>
                                             <option value="ssl" <?php echo (isset($emailSettings['email_smtp_encryption']) && $emailSettings['email_smtp_encryption'] == 'ssl') ? 'selected' : ''; ?>>SSL</option>
@@ -504,5 +667,37 @@
     </div>
 </div>
 </div>
+
+<script>
+(function() {
+    var TAB_KEY = 'admin_settings_active_tab';
+    document.addEventListener('DOMContentLoaded', function() {
+        var tabEl = document.querySelector('#settingsTabs');
+        if (!tabEl) return;
+        var triggerList = [].slice.call(tabEl.querySelectorAll('button[data-toggle="tab"]'));
+        triggerList.forEach(function(trigger) {
+            trigger.addEventListener('click', function() {
+                var target = this.getAttribute('data-target');
+                if (target) localStorage.setItem(TAB_KEY, target);
+            });
+        });
+        var saved = localStorage.getItem(TAB_KEY);
+        if (saved) {
+            var btn = tabEl.querySelector('button[data-target="' + saved + '"]');
+            if (btn && document.querySelector(saved)) {
+                [].slice.call(tabEl.querySelectorAll('.nav-link')).forEach(function(n) { n.classList.remove('active'); });
+                [].slice.call(document.querySelectorAll('.tab-pane')).forEach(function(p) { p.classList.remove('show', 'active'); });
+                btn.classList.add('active');
+                var pane = document.querySelector(saved);
+                if (pane) { pane.classList.add('show', 'active'); }
+            }
+        }
+        document.querySelectorAll('.settings-page .form-control, .settings-page .form-select').forEach(function(el) {
+            el.addEventListener('focus', function() { this.parentElement && this.parentElement.classList.add('focused'); });
+            el.addEventListener('blur', function() { this.parentElement && this.parentElement.classList.remove('focused'); });
+        });
+    });
+})();
+</script>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

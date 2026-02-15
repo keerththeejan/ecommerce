@@ -206,7 +206,7 @@ class UserController extends Controller {
                         setcookie('remember_token', $token, time() + (86400 * 30), '/'); // 30 days
                     }
                     
-                    // Redirect based on role
+                    // Redirect based on role: admin → admin dashboard, staff → POS, customer → customer dashboard
                     switch($user['role']) {
                         case 'admin':
                             redirect('admin/dashboard');
@@ -215,7 +215,7 @@ class UserController extends Controller {
                             redirect('pos');
                             break;
                         default:
-                            redirect('');
+                            redirect('user/dashboard');
                             break;
                     }
                 } else {
@@ -261,6 +261,31 @@ class UserController extends Controller {
         redirect('user/login');
     }
     
+    /**
+     * User dashboard - redirects based on role, customers see account overview
+     */
+    public function dashboard() {
+        if (!isLoggedIn()) {
+            redirect('user/login');
+        }
+        // Admin and staff go to their dashboards
+        if (isAdmin()) {
+            redirect('admin/dashboard');
+        }
+        if (isStaff()) {
+            redirect('pos');
+        }
+        // Customer dashboard
+        $user = $this->userModel->getById($_SESSION['user_id']);
+        $orderModel = $this->model('Order');
+        $allOrders = $orderModel->getOrdersByUser($_SESSION['user_id']);
+        $recentOrders = array_slice($allOrders, 0, 5);
+        $this->view('customer/user/dashboard', [
+            'user' => $user,
+            'recentOrders' => $recentOrders
+        ]);
+    }
+
     /**
      * User settings landing page
      */

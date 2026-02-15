@@ -31,40 +31,13 @@ class AdminController extends Controller {
         }
 
         $recentOrders = [];
-        $lowStockProducts = [];
-        $salesStats = [];
-
         try {
             $recentOrders = $this->model('Order')->getRecentOrders(5);
         } catch (Exception $e) {
             error_log('Admin dashboard getRecentOrders: ' . $e->getMessage());
         }
-        if (!is_array($recentOrders)) {
-            $recentOrders = [];
-        }
-
-        try {
-            $lowStockProducts = $this->productModel->getLowStockProducts(10);
-        } catch (Exception $e) {
-            error_log('Admin dashboard getLowStockProducts: ' . $e->getMessage());
-        }
-        if (!is_array($lowStockProducts)) {
-            $lowStockProducts = [];
-        }
-
-        try {
-            $salesStats = $this->model('Order')->getSalesStats('monthly');
-        } catch (Exception $e) {
-            error_log('Admin dashboard getSalesStats: ' . $e->getMessage());
-        }
-        if (!is_array($salesStats)) {
-            $salesStats = [];
-        }
-
         $this->view('admin/dashboard', [
-            'recentOrders' => $recentOrders,
-            'lowStockProducts' => $lowStockProducts,
-            'salesStats' => $salesStats
+            'recentOrders' => is_array($recentOrders) ? $recentOrders : []
         ]);
     }
 

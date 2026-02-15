@@ -35,22 +35,10 @@ if (empty($banners)) {
 }
 ?>
 
-<!-- Banner Carousel - Matching Featured Products container width -->
+<!-- Banner Carousel - Full width, no white box -->
 <section class="banner-carousel py-2 py-md-3">
-    <div class="container-fluid px-4 px-xl-5 max-width-1400">
+    <div class="container-fluid px-0 px-md-2 max-width-1400">
         <div id="bannerCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-touch="true">
-        <!-- Indicators -->
-        <div class="carousel-indicators">
-            <?php foreach ($banners as $index => $banner): ?>
-                <button type="button" 
-                        data-bs-target="#bannerCarousel" 
-                        data-bs-slide-to="<?php echo $index; ?>" 
-                        class="<?php echo $index === 0 ? 'active' : ''; ?>"
-                        aria-current="<?php echo $index === 0 ? 'true' : 'false'; ?>"
-                        aria-label="Slide <?php echo $index + 1; ?>"></button>
-            <?php endforeach; ?>
-        </div>
-
         <!-- Slides -->
         <div class="carousel-inner">
             <?php foreach ($banners as $index => $banner): ?>
@@ -100,13 +88,20 @@ if (empty($banners)) {
 </section>
 
 <style>
-/* Modern Banner Carousel Theme */
+/* Modern Banner Carousel Theme - Full width, no white box */
 .banner-carousel {
     margin: 0;
     height: auto;
     position: relative;
     background: transparent;
     padding: 1.5rem 0;
+    /* Break out of container - full viewport width */
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .carousel-item,
@@ -195,39 +190,6 @@ if (empty($banners)) {
     color: #ffffff;
     transform: translateY(-3px);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
-}
-
-/* Modern Carousel Indicators */
-.carousel-indicators {
-    bottom: 25px;
-    margin: 0;
-    padding: 0 2rem;
-    justify-content: flex-start;
-    gap: 0.5rem;
-}
-
-.carousel-indicators button {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    margin: 0;
-    transition: all 0.3s ease;
-    opacity: 0.7;
-}
-
-.carousel-indicators button:hover {
-    opacity: 1;
-    transform: scale(1.2);
-}
-
-.carousel-indicators .active {
-    background-color: #ffffff;
-    border-color: #ffffff;
-    width: 32px;
-    border-radius: 6px;
-    opacity: 1;
 }
 
 /* Modern Control Buttons */
@@ -319,20 +281,6 @@ if (empty($banners)) {
     .btn-banner {
         padding: 0.625rem 1.5rem;
         font-size: 0.9rem;
-    }
-
-    .carousel-indicators {
-        bottom: 15px;
-        padding: 0 1rem;
-    }
-    
-    .carousel-indicators button {
-        width: 10px;
-        height: 10px;
-    }
-    
-    .carousel-indicators .active {
-        width: 24px;
     }
 
     .carousel-control-prev,
