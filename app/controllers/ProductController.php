@@ -619,11 +619,13 @@ class ProductController extends Controller {
             ];
             
             // Handle SKU - generate if empty or check for uniqueness
+            $errors = $errors ?? [];
             $sku = trim($this->post('sku'));
             if (empty($sku)) {
                 // Generate a unique SKU based on product name and timestamp
-                $baseSku = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($data['name'], 0, 10)));
-                $sku = $baseSku . time() % 10000; // Add some randomness with timestamp
+                $baseSku = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($data['name'] ?? '', 0, 10)));
+                $baseSku = $baseSku !== '' ? $baseSku : 'SKU';
+                $sku = $baseSku . (time() % 100000);
             } else {
                 // Check if SKU already exists
                 $existingProduct = $this->productModel->getSingleBy('sku', $sku);

@@ -184,9 +184,17 @@
                                 
                                 <div class="mb-3">
                                     <label for="sku" class="form-label">SKU</label>
-                                    <input type="text" class="form-control <?php echo isset($errors['sku']) ? 'is-invalid' : ''; ?>" id="sku" name="sku" value="<?php echo $data['sku'] ?? ''; ?>" required>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control <?php echo isset($errors['sku']) ? 'is-invalid' : ''; ?>" id="sku" name="sku" value="<?php echo $data['sku'] ?? ''; ?>" placeholder="Leave blank to auto-generate on save">
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-outline-secondary" id="generateSkuBtn" title="Generate SKU from product name">
+                                                <i class="fas fa-magic mr-1"></i> Generate
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Leave blank to auto-generate on save, or enter your own. Use "Generate" to preview one from the product name.</div>
                                     <?php if(isset($errors['sku'])): ?>
-                                        <div class="invalid-feedback"><?php echo $errors['sku']; ?></div>
+                                        <div class="invalid-feedback d-block"><?php echo $errors['sku']; ?></div>
                                     <?php endif; ?>
                                 </div>
 
@@ -380,6 +388,15 @@ function formatOption(option) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Generate SKU button: build SKU from product name (same logic as server)
+    document.getElementById('generateSkuBtn').addEventListener('click', function() {
+        var name = (document.getElementById('name').value || '').trim();
+        var base = name ? name.replace(/[^A-Za-z0-9]/g, '').toUpperCase().substring(0, 10) : 'SKU';
+        if (!base) base = 'SKU';
+        var suffix = (Date.now() % 100000).toString();
+        document.getElementById('sku').value = base + suffix;
+    });
+    
     // Initialize Select2 for ALL dropdowns (Country, Brand, Category, Supplier, Status) - searchable
     $('.select2').select2({
         theme: 'default',
