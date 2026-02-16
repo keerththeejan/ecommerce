@@ -4,9 +4,9 @@
 <section class="login-section full-width-section">
     <div class="login-bg-overlay"></div>
     
-    <div class="container py-5">
+    <div class="container py-4 py-md-5 px-3 px-sm-4">
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
+            <div class="col-12 col-sm-11 col-md-8 col-lg-6 col-xl-5">
                 <div class="login-card">
                     <div class="login-header">
                         <h3>Welcome Back</h3>
@@ -35,7 +35,7 @@
                                 </button>
                             </div>
                             
-                            <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="login-options mb-4">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input custom-checkbox" id="remember" name="remember">
                                     <label class="form-check-label" for="remember">Remember me</label>
@@ -74,14 +74,19 @@
     /* Full-width Login Section */
     .login-section {
         min-height: 100vh;
+        min-height: 100dvh;
         display: flex;
         align-items: center;
         position: relative;
         background-image: url('<?php echo BASE_URL; ?>public/assets/images/banners/login-bg.jpg');
         background-size: cover;
         background-position: center;
-        padding: 80px 0;
+        padding: 60px 0 100px;
         z-index: 1;
+        overflow-x: hidden;
+    }
+    @supports (padding: env(safe-area-inset-bottom)) {
+        .login-section { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
     }
     
     .login-bg-overlay {
@@ -97,6 +102,7 @@
     .login-section .container {
         position: relative;
         z-index: 2;
+        max-width: 100%;
     }
     
     /* Login Card Styles */
@@ -106,6 +112,8 @@
         overflow: hidden;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
         backdrop-filter: blur(10px);
+        max-width: 100%;
+        width: 100%;
     }
     
     .login-header {
@@ -126,7 +134,7 @@
     }
     
     .login-body {
-        padding: 30px;
+        padding: 25px 20px 30px;
     }
     
     /* Form Styles */
@@ -151,23 +159,37 @@
     .password-field {
         position: relative;
     }
-    
+    .password-field .form-control {
+        padding-right: 48px;
+    }
     .password-toggle {
         position: absolute;
-        right: 15px;
+        right: 12px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
         border: none;
         color: #666;
         z-index: 5;
-        padding: 0;
+        padding: 8px;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .custom-checkbox {
         width: 18px;
         height: 18px;
         border-radius: 4px;
+        margin-top: 0.15em;
+    }
+    .login-options .form-check-label {
+        padding-left: 0.5rem;
+        min-height: 24px;
+        display: inline-flex;
+        align-items: center;
     }
     
     .custom-checkbox:checked {
@@ -245,6 +267,7 @@
     .social-login {
         display: flex;
         justify-content: center;
+        flex-wrap: wrap;
         gap: 15px;
         margin-bottom: 20px;
     }
@@ -304,71 +327,112 @@
         flex-direction: column;
     }
     
+    /* Login options: row on desktop, stack on mobile */
+    .login-options {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    
     /* Responsive Adjustments */
     @media (max-width: 991px) {
         .login-section {
-            padding: 40px 0;
+            padding: 40px 0 90px;
         }
-        
-        .login-header,
+        .login-header {
+            padding: 24px 20px;
+        }
         .login-body {
-            padding: 20px;
+            padding: 22px 20px 28px;
         }
-        
         .login-card {
-            margin: 0 15px;
+            margin: 0;
         }
     }
     
     @media (max-width: 767px) {
         .login-section {
-            padding: 30px 0;
-            min-height: calc(100vh - 60px); /* Adjust for mobile header */
+            padding: 24px 0 100px;
+            min-height: calc(100vh - 60px);
+            min-height: calc(100dvh - 60px);
         }
-        
+        .login-header {
+            padding: 20px 16px;
+        }
+        .login-header h3 {
+            font-size: 1.4rem;
+        }
+        .login-header p {
+            font-size: 0.9rem;
+        }
+        .login-body {
+            padding: 20px 16px 24px;
+        }
         .custom-input {
-            height: 50px;
+            height: 52px;
+            font-size: 16px; /* Prevents zoom on iOS */
         }
-        
-        .social-login {
-            gap: 10px;
+        .form-floating > label {
+            font-size: 0.95rem;
         }
-        
-        .social-btn {
-            width: 45px;
-            height: 45px;
-        }
-        
-        .d-flex.justify-content-between.align-items-center {
+        .login-options {
             flex-direction: column;
-            align-items: flex-start !important;
+            align-items: flex-start;
         }
-        
+        .login-options .form-check {
+            margin-bottom: 0;
+        }
         .forgot-link {
-            margin-top: 10px;
-            display: inline-block;
+            font-size: 0.9rem;
+        }
+        .custom-btn-primary {
+            padding: 14px 20px;
+            min-height: 48px;
+            font-size: 1rem;
+        }
+        .social-login {
+            gap: 12px;
+        }
+        .social-btn {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            min-height: 48px;
         }
     }
     
     @media (max-width: 480px) {
+        .login-section {
+            padding: 16px 0 100px;
+        }
         .login-header h3 {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
         }
-        
         .login-header p {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
-        
+        .login-body {
+            padding: 18px 14px 20px;
+        }
+        .form-floating {
+            margin-bottom: 1rem !important;
+        }
         .form-floating > label {
             font-size: 0.9rem;
         }
-        
         .login-divider span {
             font-size: 0.8rem;
         }
-        
         .account-text, .register-link {
             font-size: 0.9rem;
+        }
+        .social-btn {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
         }
     }
 

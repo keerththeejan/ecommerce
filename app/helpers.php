@@ -10,7 +10,9 @@
  * @return void
  */
 function redirect($page) {
-    header('Location: ' . BASE_URL . $page);
+    $base = rtrim(BASE_URL, '/') . '/';
+    $url = $base . ltrim($page, '/');
+    header('Location: ' . $url);
     exit;
 }
 

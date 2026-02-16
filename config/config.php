@@ -9,7 +9,8 @@ error_reporting(0);
 // Production config: if hosting on sivakamy.ch, load config.production.php (create from config.production.php.example)
 $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
 $productionFile = __DIR__ . '/config.production.php';
-if (file_exists($productionFile) && strpos($host, 'sivakamy.ch') !== false) {
+$isProduction = file_exists($productionFile) && strpos($host, 'sivakamy.ch') !== false;
+if ($isProduction) {
     require_once $productionFile;
 }
 
@@ -35,8 +36,8 @@ if (!defined('UPLOAD_PATH')) define('UPLOAD_PATH', ROOT_PATH . 'public/uploads/'
 // Session configuration
 session_start();
 
-// Error reporting (production keeps errors off; config.production.php sets DISPLAY_ERRORS=false)
-if (!defined('DISPLAY_ERRORS') || DISPLAY_ERRORS) {
+// Error reporting (hide on production to avoid 500 from PHP notices)
+if (!$isProduction) {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 }
