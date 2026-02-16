@@ -8,10 +8,15 @@ Make sure these fixes are on your server:
 - **Duplicate getLastError removed** in `app/models/Model.php` (only one `getLastError()` method)
 - **Production config support** in `config/config.php`
 
-## 2. Set document root
+## 2. Set document root (choose one)
 
-In cPanel **Domains** → **sivakamy.ch** → **Document Root**:
-- Set to `public_html/public` (the `public` folder inside your app)
+**Option A (recommended):** Document root = `public_html/public`
+- In cPanel **Domains** → sivakamy.ch → **Document Root**: set to `public_html/public`
+- Then use `public/.htaccess.production` (copy to `public/.htaccess`)
+
+**Option B:** Document root = `public_html` (project root)
+- Use root `.htaccess.production` (copy to `.htaccess` at project root) – so URLs work at domain root
+- Use `public/.htaccess.production` in the public folder
 
 ## 3. Create production config
 
@@ -21,12 +26,12 @@ In cPanel **Domains** → **sivakamy.ch** → **Document Root**:
    - `DB_USER` – your MySQL username (from cPanel → MySQL Databases)
    - `DB_PASS` – your MySQL password
    - `DB_NAME` – your database name
+   - In `config.production.php`, set `DISPLAY_ERRORS` to `true` temporarily to see PHP errors on screen if needed
 
-## 4. Use production .htaccess
+## 4. Use production .htaccess files
 
-In the `public/` folder:
-- Copy `public/.htaccess.production` to `public/.htaccess`
-- Or replace `.htaccess` content with `.htaccess.production` content
+- **Root:** Copy `.htaccess.production` to `.htaccess` (if document root is project root)
+- **Public folder:** Copy `public/.htaccess.production` to `public/.htaccess`
 
 ## 5. Database import
 
@@ -38,8 +43,12 @@ In the `public/` folder:
 - `public/uploads/` – writable (755 or 775)
 - `config/config.production.php` – not web-accessible (keep outside public folder; it is in `config/` which is above `public/`)
 
-## 7. Test
+## 7. Debug 500 error
+
+Visit **https://sivakamy.ch/check-setup.php** – this script shows config, database, and AdminController status. **Delete it after fixing.**
+
+## 8. Test
 
 Visit: https://sivakamy.ch/admin/dashboard
 
-If still 500: check **cPanel → Errors** or `error_log` in your account for the exact error.
+If still 500: check **cPanel → Metrics → Errors** or the `error_log` file for the exact PHP error.

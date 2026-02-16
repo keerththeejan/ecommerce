@@ -1,0 +1,14 @@
+# Production root .htaccess for cPanel (sivakamy.ch)
+# Use when document root is the project root (e.g. public_html = project root).
+# Copy to .htaccess at project root on the server.
+RewriteEngine On
+RewriteBase /
+
+# Redirect to public directory
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]
+
+# Send to front controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]

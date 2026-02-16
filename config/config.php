@@ -35,9 +35,11 @@ if (!defined('UPLOAD_PATH')) define('UPLOAD_PATH', ROOT_PATH . 'public/uploads/'
 // Session configuration
 session_start();
 
-// Error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Error reporting (production keeps errors off; config.production.php sets DISPLAY_ERRORS=false)
+if (!defined('DISPLAY_ERRORS') || DISPLAY_ERRORS) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
 
 // Time zone
 date_default_timezone_set('Asia/Kolkata');
