@@ -70,12 +70,12 @@
   white-space: nowrap;
   font-weight: 600;
   font-size: 0.85rem;
-  padding: 0.75rem;
+  padding: 0.5rem 0.6rem;
   background: var(--bs-body-bg, #fff);
   color: var(--bs-body-color, #212529);
   box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
 }
-.products-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
+.products-table-scroll tbody td { padding: 0.45rem 0.6rem; vertical-align: middle; }
 
 /* Responsive height */
 @media (max-width: 575.98px) {
@@ -90,14 +90,14 @@
 
 /* Tablet: hide less critical columns to reduce scroll */
 @media (min-width: 576px) and (max-width: 991.98px) {
-  #productsTable th:nth-child(5),
   #productsTable th:nth-child(6),
-  #productsTable td:nth-child(5),
-  #productsTable td:nth-child(6) { display: none !important; }
-  #productsTable th:nth-child(9),
+  #productsTable th:nth-child(7),
+  #productsTable td:nth-child(6),
+  #productsTable td:nth-child(7) { display: none !important; }
   #productsTable th:nth-child(10),
-  #productsTable td:nth-child(9),
-  #productsTable td:nth-child(10) { display: none !important; }
+  #productsTable th:nth-child(11),
+  #productsTable td:nth-child(10),
+  #productsTable td:nth-child(11) { display: none !important; }
 }
 
 /* Mobile: card-style rows */
@@ -169,7 +169,7 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
-                <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 py-3">
+                <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 py-2">
                     <h3 class="card-title mb-0 h5 mb-0">Products</h3>
                     <div class="d-flex flex-wrap gap-2 justify-content-end">
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=export" class="btn btn-light btn-sm">
@@ -183,11 +183,11 @@
                         </a>
                     </div>
                 </div>
-                <div class="card-body p-3 p-md-4">
-                    <div class="row g-3 mb-4">
+                <div class="card-body p-2 p-md-3">
+                    <div class="row g-2 mb-3">
                         <div class="col-12 col-md-6">
                             <div class="card border-0 rounded-3 shadow-sm h-100 admin-summary-card admin-summary-products">
-                                <div class="card-body py-3 py-md-4 d-flex justify-content-between align-items-center">
+                                <div class="card-body py-2 py-md-3 d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="mb-1 small text-uppercase fw-semibold admin-summary-title">Products Summary</h6>
                                         <p class="h4 mb-0 fw-bold text-primary">
@@ -211,7 +211,7 @@
                         </div>
                         <div class="col-12 col-md-6">
                             <div class="card border-0 rounded-3 shadow-sm h-100 admin-summary-card admin-summary-stock">
-                                <div class="card-body py-3 py-md-4 d-flex justify-content-between align-items-center">
+                                <div class="card-body py-2 py-md-3 d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="mb-1 small text-uppercase fw-semibold admin-summary-title">Stock Summary</h6>
                                         <p class="h4 mb-0 fw-bold text-success">
@@ -242,6 +242,36 @@
                         <?php flash('product_success', '', 'alert alert-success'); ?>
                         <?php flash('product_error', '', 'alert alert-danger'); ?>
                     </div>
+
+                    <?php
+                        $categoryOptions = [];
+                        if (isset($products['data']) && is_array($products['data'])) {
+                            foreach ($products['data'] as $p) {
+                                $catName = trim((string)($p['category_name'] ?? ''));
+                                if ($catName === '') {
+                                    $catName = 'Uncategorized';
+                                }
+                                $categoryOptions[$catName] = true;
+                            }
+                        }
+                        $categoryOptions = array_keys($categoryOptions);
+                        sort($categoryOptions, SORT_NATURAL | SORT_FLAG_CASE);
+                    ?>
+
+                    <?php if (!empty($categoryOptions)): ?>
+                        <div class="mb-2">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <label for="categoryFilterSelect" class="small text-muted mb-0">Filter by category:</label>
+                                <select id="categoryFilterSelect" class="form-control form-control-sm" style="width: auto; min-width: 220px;">
+                                    <option value="">All categories</option>
+                                    <?php foreach ($categoryOptions as $cat): ?>
+                                        <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="button" class="btn btn-sm btn-light" id="clearCategoryFilter">Clear</button>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                     
                     <?php if(empty($products['data'])): ?>
                         <div class="alert alert-info">No products found.</div>
@@ -253,6 +283,7 @@
                                         <th>#</th>
                                         <th>Image</th>
                                         <th>Name</th>
+                                        <th>Category</th>
                                         <th>SKU</th>
                                         <th>Batch No.</th>
                                         <th>Supplier</th>
@@ -274,7 +305,13 @@
                                     foreach($products['data'] as $idx => $product): 
                                         $rowNum = ($page - 1) * $perPage + $idx + 1;
                                     ?>
-                                        <tr id="product-row-<?php echo $product['id']; ?>">
+                                        <?php
+                                            $rowCategoryName = trim((string)($product['category_name'] ?? ''));
+                                            if ($rowCategoryName === '') {
+                                                $rowCategoryName = 'Uncategorized';
+                                            }
+                                        ?>
+                                        <tr id="product-row-<?php echo $product['id']; ?>" data-category="<?php echo htmlspecialchars($rowCategoryName); ?>">
                                             <td data-label="#"><?php echo $rowNum; ?></td>
                                             <td data-label="Image">
                                                 <?php if(!empty($product['image'])): ?>
@@ -284,6 +321,7 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td data-label="Name"><?php echo htmlspecialchars($product['name']); ?></td>
+                                            <td data-label="Category"><?php echo htmlspecialchars($rowCategoryName); ?></td>
                                             <td data-label="SKU"><?php echo htmlspecialchars($product['sku']); ?></td>
                                             <td data-label="Batch No."><?php echo !empty($product['batch_number']) ? htmlspecialchars($product['batch_number']) : '<span class="text-muted">-</span>'; ?></td>
                                             <td data-label="Supplier">
@@ -334,13 +372,9 @@
                                             </td>
                                             <td data-label="Stock">
                                                 <?php $qty = (float)($product['stock_quantity'] ?? 0); ?>
-                                                <?php if ($qty <= 0): ?>
-                                                    <span class="badge bg-info">Out of Stock</span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-<?php echo ($qty <= 5) ? 'warning text-dark' : 'success'; ?>">
-                                                        <?php echo $product['stock_quantity']; ?>
-                                                    </span>
-                                                <?php endif; ?>
+                                                <span class="badge bg-<?php echo ($qty <= 0) ? 'info' : (($qty <= 5) ? 'warning text-dark' : 'success'); ?>" id="stock-badge-<?php echo $product['id']; ?>">
+                                                    <?php echo $product['stock_quantity'] ?? 0; ?>
+                                                </span>
                                             </td>
                                             <td class="text-nowrap" data-label="Stock Value">
                                                 <?php 
@@ -360,6 +394,14 @@
                                                             data-product-id="<?php echo $product['id']; ?>"
                                                             data-product-name="<?php echo htmlspecialchars($product['name']); ?>">
                                                         <i class="fas fa-history"></i>
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-secondary btn-stock-options mr-1"
+                                                            data-product-id="<?php echo $product['id']; ?>"
+                                                            data-product-name="<?php echo htmlspecialchars($product['name']); ?>"
+                                                            data-current-stock="<?php echo htmlspecialchars((string)($product['stock_quantity'] ?? 0)); ?>"
+                                                            title="Options">
+                                                        <i class="fas fa-ellipsis-v"></i>
                                                     </button>
                                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" 
                                                        class="btn btn-sm btn-primary" 
@@ -434,6 +476,34 @@
     
 </div>
 
+<!-- Stock Options / Add Stock Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title" id="stockModalLabel">Update Stock</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="stockProductId" value="">
+                <p class="mb-2">Product: <strong id="stockProductName"></strong></p>
+                <p class="mb-3 text-muted small">Current stock: <span id="stockCurrent"></span></p>
+
+                <label for="stockAddQty" class="form-label">Add Stock Quantity</label>
+                <input type="text" class="form-control" id="stockAddQty" inputmode="numeric" autocomplete="off" placeholder="Enter quantity to add">
+                <div class="form-text">This will increase stock by the entered amount.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmAddStock">
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    <span class="btn-text">Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -490,6 +560,57 @@ $(document).ready(function() {
     const historyContent = document.getElementById('historyContent');
     const historyTitle = document.getElementById('historyModalLabel');
 
+    function normalizeCategoryValue(value) {
+        let s = (value ?? '').toString();
+        s = s.replace(/\s+/g, ' ').trim().toLowerCase();
+        try {
+            if (typeof s.normalize === 'function') {
+                s = s.normalize('NFKC');
+            }
+        } catch (e) {
+            // ignore
+        }
+        return s;
+    }
+
+    function applyCategoryFilterSelect() {
+        const select = document.getElementById('categoryFilterSelect');
+        const rows = document.querySelectorAll('#productsTable tbody tr');
+        if (!select || !rows) return;
+        const selected = normalizeCategoryValue(select.value || '');
+        if (selected === '') {
+            rows.forEach(r => { r.style.display = ''; });
+            return;
+        }
+        rows.forEach(r => {
+            const cat = normalizeCategoryValue(r.getAttribute('data-category') || '');
+            r.style.display = (cat === selected) ? '' : 'none';
+        });
+    }
+
+    const categorySelect = document.getElementById('categoryFilterSelect');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            applyCategoryFilterSelect();
+        });
+    }
+
+    const clearSelectBtn = document.getElementById('clearCategoryFilter');
+    if (clearSelectBtn) {
+        clearSelectBtn.addEventListener('click', function() {
+            if (categorySelect) categorySelect.value = '';
+            applyCategoryFilterSelect();
+        });
+    }
+
+    // Stock modal elements
+    const stockModalEl = document.getElementById('stockModal');
+    const stockProductIdEl = document.getElementById('stockProductId');
+    const stockProductNameEl = document.getElementById('stockProductName');
+    const stockCurrentEl = document.getElementById('stockCurrent');
+    const stockAddQtyEl = document.getElementById('stockAddQty');
+    const confirmAddStockBtn = document.getElementById('confirmAddStock');
+
     function loadHistory(productId, page = 1) {
         if (!historyContent) return;
         historyContent.innerHTML = '<div class="text-center text-muted">Loading...</div>';
@@ -516,6 +637,28 @@ $(document).ready(function() {
             loadHistory(productId, 1);
         });
 
+    // Open stock options modal
+    $(document).on('click', '.btn-stock-options', function() {
+        const productId = this.getAttribute('data-product-id');
+        const productName = this.getAttribute('data-product-name') || '';
+        const currentStock = this.getAttribute('data-current-stock') || '0';
+
+        if (stockProductIdEl) stockProductIdEl.value = productId;
+        if (stockProductNameEl) stockProductNameEl.textContent = productName;
+        if (stockCurrentEl) stockCurrentEl.textContent = currentStock;
+        if (stockAddQtyEl) stockAddQtyEl.value = '';
+
+        if (confirmAddStockBtn) {
+            const spinner = confirmAddStockBtn.querySelector('.spinner-border');
+            const btnText = confirmAddStockBtn.querySelector('.btn-text');
+            if (spinner) spinner.classList.add('d-none');
+            if (btnText) btnText.textContent = 'Save';
+            confirmAddStockBtn.disabled = false;
+        }
+
+        $('#stockModal').modal('show');
+    });
+
     // Delegate pagination clicks inside history modal
     if (historyModalEl) {
         historyModalEl.addEventListener('click', function(e) {
@@ -536,6 +679,68 @@ $(document).ready(function() {
     const productIdEl = document.getElementById('productId');
     const confirmDeleteBtn = document.getElementById('confirmDelete');
     const alertMessages = document.getElementById('alert-messages');
+
+    // Confirm add stock
+    if (confirmAddStockBtn) {
+        confirmAddStockBtn.addEventListener('click', function() {
+            const productId = stockProductIdEl ? stockProductIdEl.value : '';
+            const addQty = stockAddQtyEl ? (stockAddQtyEl.value || '').trim() : '';
+            if (!productId || !addQty) return;
+
+            const spinner = this.querySelector('.spinner-border');
+            const btnText = this.querySelector('.btn-text');
+            if (spinner) spinner.classList.remove('d-none');
+            if (btnText) btnText.textContent = 'Saving...';
+            this.disabled = true;
+
+            fetch(`?controller=product&action=addStock&id=${encodeURIComponent(productId)}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ addQty })
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('Network response was not ok');
+                return r.json();
+            })
+            .then(data => {
+                if (!data.success) throw new Error(data.message || 'Failed to update stock');
+
+                const newQty = data.stock_quantity;
+                const badge = document.getElementById(`stock-badge-${productId}`);
+                if (badge) {
+                    badge.textContent = newQty;
+                    badge.classList.remove('bg-success', 'bg-warning', 'bg-info', 'text-dark');
+                    if (parseFloat(newQty) <= 0) {
+                        badge.classList.add('bg-info');
+                    } else if (parseFloat(newQty) <= 5) {
+                        badge.classList.add('bg-warning', 'text-dark');
+                    } else {
+                        badge.classList.add('bg-success');
+                    }
+                }
+
+                const optBtn = document.querySelector(`.btn-stock-options[data-product-id="${productId}"]`);
+                if (optBtn) {
+                    optBtn.setAttribute('data-current-stock', String(newQty));
+                }
+
+                showAlert(data.message || 'Stock updated successfully', 'success');
+            })
+            .catch(err => {
+                showAlert(err.message || 'Failed to update stock', 'danger');
+            })
+            .finally(() => {
+                $('#stockModal').modal('hide');
+                if (spinner) spinner.classList.add('d-none');
+                if (btnText) btnText.textContent = 'Save';
+                confirmAddStockBtn.disabled = false;
+            });
+        });
+    }
     
     // Handle delete button click
     document.querySelectorAll('.delete-product').forEach(button => {

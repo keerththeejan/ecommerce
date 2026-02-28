@@ -73,6 +73,18 @@
             --theme-secondary: <?php echo htmlspecialchars($themeSecondaryColor); ?>;
             --theme-bg: <?php echo htmlspecialchars($themeBackgroundColor); ?>;
             --theme-text: <?php echo htmlspecialchars($themeTextColor); ?>;
+
+            /* Sivakamy – modern commerce tokens (used by product cards + actions) */
+            --siva-primary: #6d28d9; /* purple */
+            --siva-accent: #06b6d4;  /* teal/cyan */
+            --siva-bg: var(--theme-bg);
+            --siva-card: #ffffff;
+            --siva-text: var(--theme-text);
+            --siva-muted: rgba(15, 23, 42, 0.65);
+            --siva-border: rgba(15, 23, 42, 0.10);
+            --siva-radius: 12px;
+            --siva-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --siva-shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.08);
         }
 
         html[data-theme="light"] {
@@ -84,11 +96,62 @@
             --theme-secondary: <?php echo htmlspecialchars($themeDarkSecondaryColor); ?>;
             --theme-bg: <?php echo htmlspecialchars($themeDarkBackgroundColor); ?>;
             --theme-text: <?php echo htmlspecialchars($themeDarkTextColor); ?>;
+
+            /* Sivakamy – requested dark palette */
+            --siva-bg: #2c313c;
+            --siva-card: #363c48;
+            --siva-text: #EAEAEA;
+            --siva-muted: rgba(234, 234, 234, 0.75);
+            --siva-border: rgba(255, 255, 255, 0.14);
+            --siva-accent: #06b6d4;
         }
 
         body {
             background-color: var(--theme-bg) !important;
             color: var(--theme-text);
+        }
+
+        /* Global commerce surfaces */
+        body {
+            background-color: var(--siva-bg) !important;
+            color: var(--siva-text) !important;
+        }
+
+        .card {
+            border-color: var(--siva-border) !important;
+        }
+
+        html[data-theme="dark"] .card,
+        html[data-theme="dark"] .modal-content {
+            background-color: var(--siva-card) !important;
+        }
+
+        /* Add-to-cart button: default purple, hover elevation, Added teal state */
+        .btn-add-to-cart {
+            background: linear-gradient(135deg, var(--siva-primary) 0%, #7c3aed 100%) !important;
+            border: none !important;
+            color: #ffffff !important;
+            border-radius: 12px !important;
+            min-height: 44px;
+            font-weight: 700;
+            transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        @media (hover: hover) {
+            .btn-add-to-cart:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 22px rgba(109, 40, 217, 0.25);
+            }
+        }
+
+        .btn-add-to-cart:active {
+            transform: translateY(0);
+        }
+
+        .btn-add-to-cart.is-added,
+        .btn-add-to-cart[aria-pressed="true"] {
+            background: linear-gradient(135deg, var(--siva-accent) 0%, #14b8a6 100%) !important;
+            box-shadow: 0 10px 22px rgba(6, 182, 212, 0.22);
         }
 
         /* Ensure Brands section inherits page background (remove white strip) */

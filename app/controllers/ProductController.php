@@ -653,16 +653,24 @@ class ProductController extends Controller {
             // Handle image upload
             $image = $_FILES['image'] ?? null;
             if($image && $image['error'] == 0) {
-                $fileName = time() . '_' . $image['name'];
+                $safeOriginal = preg_replace('/[^a-zA-Z0-9_.-]/', '_', (string)($image['name'] ?? 'image'));
+                $baseName = pathinfo($safeOriginal, PATHINFO_FILENAME);
+                $baseName = $baseName !== '' ? $baseName : 'product';
+                $fileName = time() . '_' . $baseName . '.jpg';
                 $targetPath = PUBLIC_PATH . 'uploads/products/' . $fileName;
                 
                 // Create directory if it doesn't exist
                 if(!file_exists(PUBLIC_PATH . 'uploads/products/')) {
                     mkdir(PUBLIC_PATH . 'uploads/products/', 0777, true);
                 }
-                
-                if(move_uploaded_file($image['tmp_name'], $targetPath)) {
-                    $data['image'] = 'uploads/products/' . $fileName;
+
+                $tmpInputPath = rtrim(sys_get_temp_dir(), '\\/') . DIRECTORY_SEPARATOR . 'product_upload_' . time() . '_' . mt_rand(1000, 9999);
+                if (move_uploaded_file($image['tmp_name'], $tmpInputPath)) {
+                    $finalPath = $this->processProductImage($tmpInputPath, $targetPath);
+                    @unlink($tmpInputPath);
+                    if ($finalPath) {
+                        $data['image'] = 'uploads/products/' . basename($finalPath);
+                    }
                 }
             }
             
@@ -771,6 +779,124 @@ class ProductController extends Controller {
                 'errors' => []
             ]);
         }
+    }
+
+    private function processProductImage($inputPath, $outputJpgPath, $size = 800) {
+        if (!is_string($inputPath) || $inputPath === '' || !file_exists($inputPath)) {
+            return null;
+        }
+        $workingPath = $inputPath;
+
+        $apiKey = defined('REMOVE_BG_API_KEY') ? (string)REMOVE_BG_API_KEY : '';
+        if ($apiKey !== '') {
+            $removed = $this->removeBackgroundViaRemoveBg($workingPath, $apiKey);
+            if ($removed && file_exists($removed)) {
+                $workingPath = $removed;
+            }
+        }
+
+        $outDir = dirname($outputJpgPath);
+        if (!is_dir($outDir)) {
+            @mkdir($outDir, 0777, true);
+        }
+
+        $resultPath = $this->fitImageToSquare($workingPath, $outputJpgPath, (int)$size);
+
+        if ($workingPath !== $inputPath) {
+            @unlink($workingPath);
+        }
+
+        return $resultPath;
+    }
+
+    private function removeBackgroundViaRemoveBg($inputPath, $apiKey) {
+        if (!function_exists('curl_init')) {
+            return null;
+        }
+        $endpoint = 'https://api.remove.bg/v1.0/removebg';
+        $tmpOut = rtrim(sys_get_temp_dir(), '\\/') . DIRECTORY_SEPARATOR . 'removebg_' . time() . '_' . mt_rand(1000, 9999) . '.png';
+
+        $ch = curl_init();
+        $postFields = [
+            'image_file' => new CURLFile($inputPath),
+            'size' => 'auto'
+        ];
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $endpoint,
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POSTFIELDS => $postFields,
+            CURLOPT_HTTPHEADER => [
+                'X-Api-Key: ' . $apiKey
+            ],
+            CURLOPT_TIMEOUT => 60,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false || $httpCode < 200 || $httpCode >= 300) {
+            return null;
+        }
+
+        if (@file_put_contents($tmpOut, $response) === false) {
+            return null;
+        }
+        return $tmpOut;
+    }
+
+    private function fitImageToSquare($inputPath, $outputJpgPath, $size = 800) {
+        if (!extension_loaded('gd')) {
+            return null;
+        }
+        $info = @getimagesize($inputPath);
+        if (!$info || empty($info[0]) || empty($info[1])) {
+            return null;
+        }
+
+        $mime = $info['mime'] ?? '';
+        $src = null;
+        if ($mime === 'image/jpeg') {
+            $src = @imagecreatefromjpeg($inputPath);
+        } elseif ($mime === 'image/png') {
+            $src = @imagecreatefrompng($inputPath);
+        } elseif ($mime === 'image/webp' && function_exists('imagecreatefromwebp')) {
+            $src = @imagecreatefromwebp($inputPath);
+        }
+        if (!$src) {
+            return null;
+        }
+
+        $srcW = imagesx($src);
+        $srcH = imagesy($src);
+        if ($srcW <= 0 || $srcH <= 0) {
+            imagedestroy($src);
+            return null;
+        }
+
+        $dst = imagecreatetruecolor($size, $size);
+        $white = imagecolorallocate($dst, 255, 255, 255);
+        imagefill($dst, 0, 0, $white);
+
+        $scale = min($size / $srcW, $size / $srcH);
+        $newW = (int)max(1, round($srcW * $scale));
+        $newH = (int)max(1, round($srcH * $scale));
+        $dstX = (int)floor(($size - $newW) / 2);
+        $dstY = (int)floor(($size - $newH) / 2);
+
+        imagecopyresampled($dst, $src, $dstX, $dstY, 0, 0, $newW, $newH, $srcW, $srcH);
+
+        $dir = dirname($outputJpgPath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0777, true);
+        }
+
+        $saved = @imagejpeg($dst, $outputJpgPath, 85);
+        imagedestroy($src);
+        imagedestroy($dst);
+
+        return $saved ? $outputJpgPath : null;
     }
     
     /**
@@ -981,6 +1107,76 @@ class ProductController extends Controller {
             ]);
             return;
         }
+    }
+
+    public function addStock($id = null) {
+        if(!isAdmin()) {
+            if($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Unauthorized access'], 401);
+                return;
+            }
+            redirect('user/login');
+        }
+
+        if ($id === null || $id === '' || (is_numeric($id) && (int)$id <= 0)) {
+            $id = $_GET['id'] ?? null;
+        }
+        $id = (int)$id;
+
+        if ($id <= 0) {
+            if($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Product ID is required'], 400);
+                return;
+            }
+            flash('product_error', 'Product ID is required', 'alert alert-danger');
+            redirect('admin/products');
+        }
+
+        if(!$this->isPost()) {
+            if($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid request'], 405);
+                return;
+            }
+            redirect('admin/products');
+        }
+
+        $payload = [];
+        $raw = file_get_contents('php://input');
+        if (is_string($raw) && trim($raw) !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $payload = $decoded;
+            }
+        }
+
+        $addQty = $payload['addQty'] ?? ($_POST['addQty'] ?? null);
+        if ($addQty === null || $addQty === '') {
+            $addQty = $payload['quantity'] ?? ($_POST['quantity'] ?? null);
+        }
+
+        $newQty = $this->productModel->incrementStock($id, $addQty);
+        if ($newQty === false) {
+            $error = $this->productModel->getLastError() ?: 'Failed to update stock';
+            if($this->isAjax()) {
+                $this->json(['success' => false, 'message' => $error], 400);
+                return;
+            }
+            flash('product_error', $error, 'alert alert-danger');
+            redirect('admin/products');
+        }
+
+        if($this->isAjax()) {
+            $this->json([
+                'success' => true,
+                'message' => 'Stock updated successfully',
+                'id' => $id,
+                'stock_quantity' => $newQty
+            ]);
+            return;
+        }
+
+        flash('product_success', 'Stock updated successfully');
+        redirect('admin/products');
     }
     
     /**

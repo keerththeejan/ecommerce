@@ -191,6 +191,49 @@ class Product extends Model {
             return false;
         }
     }
+
+    public function incrementStock($id, $addQty) {
+        try {
+            $product = $this->getById($id);
+            if(!$product) {
+                $this->lastError = "Product not found";
+                return false;
+            }
+
+            if (!is_numeric($addQty) || $addQty <= 0) {
+                $this->lastError = "Invalid stock quantity";
+                return false;
+            }
+
+            $addQty = (float)$addQty;
+
+            $sql = "UPDATE {$this->table} 
+                    SET stock_quantity = COALESCE(stock_quantity, 0) + :addQty, updated_at = NOW() 
+                    WHERE id = :id";
+            if (!$this->db->query($sql)) {
+                $this->lastError = $this->db->getError();
+                return false;
+            }
+            $this->db->bind(':addQty', $addQty);
+            $this->db->bind(':id', (int)$id);
+            if (!$this->db->execute()) {
+                $this->lastError = $this->db->getError();
+                return false;
+            }
+
+            $updated = $this->getById($id);
+            if(!$updated) {
+                $this->lastError = "Failed to load updated product";
+                return false;
+            }
+
+            return (float)($updated['stock_quantity'] ?? 0);
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log('Error in Product::incrementStock - ' . $this->lastError);
+            return false;
+        }
+    }
     
     /**
      * Get product by ID with category information

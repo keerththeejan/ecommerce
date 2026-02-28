@@ -3,6 +3,28 @@
 <style>
 /* Create product form – responsive */
 .create-product-form .form-label { font-weight: 500; }
+.create-product-form .mb-3 { margin-bottom: 0.75rem !important; }
+.create-product-form { font-size: 0.9rem; }
+.create-product-form .form-label { margin-bottom: 0.25rem; }
+.create-product-form .form-control,
+.create-product-form .form-select {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+}
+.create-product-form .form-control,
+.create-product-form .form-select {
+    min-height: calc(1.5em + 0.5rem + 2px);
+}
+.create-product-form textarea.form-control {
+    min-height: 90px;
+}
+.create-product-form .input-group-text {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+}
+.create-product-form .btn { padding: 0.25rem 0.5rem; }
+.create-product-form .form-text { margin-top: 0.15rem; }
+.create-product-form .invalid-feedback { margin-top: 0.15rem; }
 .create-product-form .input-group select.form-select { flex: 1 1 auto; min-width: 0; }
 @media (max-width: 767.98px) {
     .create-product-form .input-group > .btn { margin-top: 0.25rem; width: 100%; }
@@ -40,24 +62,33 @@
     z-index: 10;
     background: #fff;
     border-top: 1px solid rgba(0,0,0,.125);
-    padding-top: 0.75rem;
-    margin-top: 1rem;
+    padding-top: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+/* Select2 compact height */
+.create-product-form .select2-container--default .select2-selection--single {
+    height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+}
+.create-product-form .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 1.5;
 }
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid px-2 px-sm-3">
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                    <h3 class="card-title mb-0 h5">
                         <i class="fas fa-box mr-2"></i>Add Product
                     </h3>
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-light btn-sm">
                         <i class="fas fa-arrow-left mr-1"></i> Back to Products
                     </a>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-2 p-md-3">
                     <div id="alert-messages">
                         <?php if(isset($success)): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -74,7 +105,7 @@
                     </div>
                     
                     <form id="productForm" class="create-product-form" action="<?php echo BASE_URL; ?>?controller=product&action=create" method="POST" enctype="multipart/form-data" novalidate>
-                        <div class="row g-3 g-lg-4">
+                        <div class="row g-2 g-lg-3">
                             <div class="col-12 col-lg-8">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Product Name</label>
@@ -85,7 +116,7 @@
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
+                                    <label for="description" class="form-label">Description (Optional)</label>
                                     <textarea class="form-control <?php echo isset($errors['description']) ? 'is-invalid' : ''; ?>" id="description" name="description" rows="5"><?php echo $data['description'] ?? ''; ?></textarea>
                                     <?php if(isset($errors['description'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['description']; ?></div>
@@ -216,7 +247,7 @@
                             
                             <div class="col-12 col-lg-4">
                                 <div class="mb-3">
-                                    <label for="image" class="form-label">Product Image</label>
+                                    <label for="image" class="form-label">Product Image (Optional)</label>
                                     <input type="file" class="form-control <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" id="image" name="image">
                                     <?php if(isset($errors['image'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['image']; ?></div>
@@ -225,7 +256,7 @@
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="sku" class="form-label">SKU</label>
+                                    <label for="sku" class="form-label">SKU (Optional)</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control <?php echo isset($errors['sku']) ? 'is-invalid' : ''; ?>" id="sku" name="sku" value="<?php echo $data['sku'] ?? ''; ?>" placeholder="Leave blank to auto-generate on save">
                                         <div class="input-group-append">
@@ -241,7 +272,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="expiry_date" class="form-label">Expiry Date</label>
+                                    <label for="expiry_date" class="form-label">Expiry Date (Optional)</label>
                                     <input type="date" class="form-control <?php echo isset($errors['expiry_date']) ? 'is-invalid' : ''; ?>" id="expiry_date" name="expiry_date" value="<?php echo $data['expiry_date'] ?? ''; ?>">
                                     <?php if(isset($errors['expiry_date'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['expiry_date']; ?></div>
@@ -249,7 +280,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="supplier" class="form-label">Supplier</label>
+                                    <label for="supplier" class="form-label">Supplier (Optional)</label>
                                     <div class="pm-select-add">
                                         <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
                                             <option value="">Select Supplier</option>
@@ -332,7 +363,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="batch_number" class="form-label">Batch Number</label>
+                                    <label for="batch_number" class="form-label">Batch Number (Optional)</label>
                                     <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo $data['batch_number'] ?? ''; ?>" maxlength="100">
                                     <?php if(isset($errors['batch_number'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
@@ -341,7 +372,7 @@
 
                                 <div class="mb-3">
                                     <label for="stock_quantity" class="form-label">Stock Quantity (Optional)</label>
-                                    <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo $data['stock_quantity'] ?? ''; ?>" min="0">
+                                    <input type="text" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo $data['stock_quantity'] ?? ''; ?>" inputmode="numeric" autocomplete="off">
                                     <?php if(isset($errors['stock_quantity'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['stock_quantity']; ?></div>
                                     <?php endif; ?>

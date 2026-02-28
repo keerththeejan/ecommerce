@@ -181,6 +181,8 @@ $(document).ready(function() {
         
         // Disable button to prevent double submission
         const originalBtnHtml = $submitBtn.html();
+        $submitBtn.data('siva-original-html', originalBtnHtml);
+        $submitBtn.data('siva-keep-state', false);
         $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Adding...');
 
         $.ajax({
@@ -228,6 +230,24 @@ $(document).ready(function() {
                     const toastInstance = new bootstrap.Toast(toastEl, { delay: 3000 });
                     toastInstance.show();
                     toastEl.addEventListener('hidden.bs.toast', function() { $(this).remove(); });
+
+                    // Button feedback: Added state
+                    if ($submitBtn && $submitBtn.length) {
+                        $submitBtn.addClass('is-added');
+                        $submitBtn.attr('aria-pressed', 'true');
+                        $submitBtn.html('<i class="fas fa-check"></i><span>Added</span>');
+                        $submitBtn.data('siva-keep-state', true);
+
+                        window.setTimeout(function() {
+                            const original = $submitBtn.data('siva-original-html');
+                            $submitBtn.removeClass('is-added');
+                            $submitBtn.removeAttr('aria-pressed');
+                            if (typeof original !== 'undefined') {
+                                $submitBtn.html(original);
+                            }
+                            $submitBtn.data('siva-keep-state', false);
+                        }, 1400);
+                    }
                 } else {
                     alert(response.message || 'Failed to add product to cart.');
                 }
@@ -267,7 +287,10 @@ $(document).ready(function() {
             },
             complete: function() {
                 // Re-enable button after request completes
-                $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                $submitBtn.prop('disabled', false);
+                if (!$submitBtn.data('siva-keep-state')) {
+                    $submitBtn.html($submitBtn.data('siva-original-html') || originalBtnHtml);
+                }
             }
         });
         

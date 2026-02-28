@@ -40,6 +40,10 @@ if (!defined('BASE_URL')) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Bootstrap 4 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <!-- Font Awesome -->
@@ -68,6 +72,7 @@ if (!defined('BASE_URL')) {
         
         /* Apply theme colors */
         body {
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
             color: var(--text-color);
             background-color: var(--bg-color);
             transition: background-color 0.3s ease, color 0.3s ease;
@@ -134,6 +139,223 @@ if (!defined('BASE_URL')) {
         #sidebar {
             background-color: var(--sidebar-bg);
         }
+
+        /* Modern sidebar UI (8px grid) */
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-width-collapsed: 84px;
+            --sidebar-accent: #3b82f6; /* blue */
+            --sidebar-surface: rgba(255,255,255,0.06);
+            --sidebar-surface-hover: rgba(255,255,255,0.10);
+            --sidebar-text-muted: rgba(248,249,250,0.72);
+        }
+
+        #sidebar {
+            width: var(--sidebar-width);
+        }
+
+        body.sidebar-collapsed #sidebar {
+            width: var(--sidebar-width-collapsed);
+        }
+
+        @media (min-width: 768px) {
+            main {
+                margin-left: var(--sidebar-width);
+            }
+            body.sidebar-collapsed main {
+                margin-left: var(--sidebar-width-collapsed);
+            }
+        }
+
+        .admin-sidebar {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .admin-sidebar__brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .admin-sidebar__brand a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        .admin-sidebar__brand .brand-subtitle {
+            display: block;
+            color: var(--sidebar-text-muted);
+            font-weight: 500;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .admin-sidebar__scroll {
+            flex: 1;
+            overflow: auto;
+            padding: 12px 12px 80px;
+            overscroll-behavior: contain;
+        }
+
+        .admin-sidebar__section {
+            margin-top: 16px;
+        }
+
+        .admin-sidebar__section-title {
+            color: var(--sidebar-text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 8px 8px;
+            margin-bottom: 8px;
+        }
+
+        .admin-nav-item {
+            margin-bottom: 4px;
+        }
+
+        .admin-nav-link,
+        .admin-nav-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: rgba(255,255,255,0.90);
+            background: transparent;
+            border: 0;
+            text-decoration: none;
+            outline: none;
+            transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+        }
+
+        .admin-nav-link:hover,
+        .admin-nav-link:focus,
+        .admin-nav-trigger:hover,
+        .admin-nav-trigger:focus {
+            background: var(--sidebar-surface-hover);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .admin-nav-link:active,
+        .admin-nav-trigger:active {
+            transform: translateY(1px);
+        }
+
+        .admin-nav-link.active,
+        .admin-nav-trigger.active {
+            background: rgba(59,130,246,0.22);
+            box-shadow: inset 0 0 0 1px rgba(59,130,246,0.35);
+            color: #fff;
+        }
+
+        .admin-nav-icon {
+            width: 20px;
+            height: 20px;
+            color: rgba(255,255,255,0.88);
+            flex: 0 0 auto;
+        }
+
+        .admin-nav-text {
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.2;
+            flex: 1 1 auto;
+            text-align: left;
+        }
+
+        .admin-nav-caret {
+            width: 18px;
+            height: 18px;
+            opacity: 0.75;
+            transition: transform 180ms ease;
+            flex: 0 0 auto;
+        }
+
+        .admin-nav-trigger[aria-expanded="true"] .admin-nav-caret {
+            transform: rotate(90deg);
+        }
+
+        .admin-submenu {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 240ms ease, opacity 200ms ease;
+            margin: 4px 0 8px;
+            padding-left: 8px;
+        }
+
+        .admin-submenu.show {
+            opacity: 1;
+        }
+
+        .admin-submenu .admin-nav-link {
+            padding: 8px 12px;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.84);
+        }
+
+        .admin-submenu .admin-nav-link .admin-nav-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.9;
+        }
+
+        /* Logout styling */
+        .admin-nav-link.danger {
+            color: rgba(255,255,255,0.92);
+            background: rgba(239,68,68,0.10);
+        }
+
+        .admin-nav-link.danger:hover,
+        .admin-nav-link.danger:focus {
+            background: rgba(239,68,68,0.18);
+        }
+
+        /* Collapsed mini-icon sidebar mode */
+        body.sidebar-collapsed .admin-nav-text,
+        body.sidebar-collapsed .admin-sidebar__section-title,
+        body.sidebar-collapsed .brand-text-block,
+        body.sidebar-collapsed .admin-nav-caret {
+            display: none !important;
+        }
+
+        body.sidebar-collapsed .admin-sidebar__brand {
+            justify-content: center;
+        }
+
+        body.sidebar-collapsed .admin-nav-link,
+        body.sidebar-collapsed .admin-nav-trigger {
+            justify-content: center;
+            padding: 10px 10px;
+        }
+
+        body.sidebar-collapsed .admin-submenu {
+            display: none !important;
+        }
+
+        /* Light theme sidebar tweaks */
+        :not([data-theme="dark"]) #sidebar {
+            background: #0f172a;
+        }
+
+        /* Custom scrollbar for sidebar menu */
+        .admin-sidebar__scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.22) transparent; }
+        .admin-sidebar__scroll::-webkit-scrollbar{ width:10px; height:10px; }
+        .admin-sidebar__scroll::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.22); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+        .admin-sidebar__scroll::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,0.30); background-clip: padding-box; }
+        .admin-sidebar__scroll::-webkit-scrollbar-track{ background: transparent; }
         
         /* Ensure last items in sidebar are reachable */
         #sidebar .position-sticky { 
@@ -240,19 +462,24 @@ if (!defined('BASE_URL')) {
                 top: 0;
                 left: 0;
                 height: 100vh;
-                width: 260px;
+                width: var(--sidebar-width);
                 overflow: visible;
                 transform: none;
                 overscroll-behavior: contain;
             }
             #sidebar .position-sticky { height: 100vh; overflow: auto; overscroll-behavior: contain; }
             main {
-                margin-left: 260px;
+                margin-left: var(--sidebar-width);
+                width: calc(100% - var(--sidebar-width));
                 height: 100vh;
                 overflow: auto;
                 overscroll-behavior: contain;
                 padding-bottom: 32px;
                 box-sizing: border-box;
+            }
+            body.sidebar-collapsed main {
+                margin-left: var(--sidebar-width-collapsed);
+                width: calc(100% - var(--sidebar-width-collapsed));
             }
         }
     </style>
@@ -262,196 +489,255 @@ if (!defined('BASE_URL')) {
 </head>
 
 <body>
+    <?php
+        // Determine current route for active highlighting
+        $currentController = strtolower((string)($_GET['controller'] ?? ''));
+        $currentAction = strtolower((string)($_GET['action'] ?? ''));
+
+        $isActive = function($controller, $action = null) use ($currentController, $currentAction) {
+            $controller = strtolower((string)$controller);
+            $action = $action === null ? null : strtolower((string)$action);
+            if ($controller !== '' && $controller !== $currentController) return false;
+            if ($action !== null && $action !== $currentAction) return false;
+            return true;
+        };
+
+        $isAnyActive = function($items) use ($isActive) {
+            if (!is_array($items)) return false;
+            foreach ($items as $it) {
+                $c = $it['controller'] ?? '';
+                $a = $it['action'] ?? null;
+                if ($isActive($c, $a)) return true;
+            }
+            return false;
+        };
+    ?>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse" role="navigation">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <h5 class="text-white">Admin Dashboard</h5>
+            <nav id="sidebar" class="bg-dark sidebar collapse" role="navigation" aria-label="Admin Sidebar">
+                <div class="admin-sidebar">
+                    <!-- Brand / header -->
+                    <div class="admin-sidebar__brand">
+                        <a href="<?php echo BASE_URL; ?>?controller=home&action=admin" class="d-flex align-items-center gap-2">
+                            <span class="brand-text-block">
+                                <span style="display:block; font-size:14px;">Admin Dashboard</span>
+                                <span class="brand-subtitle">Control Panel</span>
+                            </span>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-light d-none d-md-inline-flex" id="sidebarCollapseBtn" aria-label="Toggle sidebar" title="Toggle sidebar">
+                            <span data-lucide="panel-left" class="admin-nav-icon"></span>
+                        </button>
                     </div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>?controller=home&action=admin">
-                                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="productsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-box mr-2"></i> Products
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="productsDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex">All Products</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=product&action=create">Add Product</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="categoriesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-tags mr-2"></i> Categories
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex">All Categories</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=category&action=create">Add Category</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="brandsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-building mr-2"></i> Brands
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex">All Brands</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=create">Add Brand</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="countryDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-globe-americas mr-2"></i> Country of Origin
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="countryDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex">List Countries</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="purchaseDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-money-bill-wave mr-2"></i> Purchase
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="purchaseDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=purchase&action=create">Purchase with customer</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=ListPurchaseController">List Purchase</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=purchase&action=purchase2">Add Purchase</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=purchase&action=purchase3">List Purchase Return</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="bannersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-images mr-2"></i> Hero Banners
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="bannersDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=banner">List Banners</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=banner&action=create">Add Banner</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="ordersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-shopping-cart mr-2"></i> Orders
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="ordersDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex">All Orders</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="suppliersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-truck mr-2"></i> Suppliers
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="suppliersDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=supplier&action=index">List Suppliers</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="usersDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-users mr-2"></i> Users
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="usersDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=adminIndex">All Users</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=adminCreate">Add User</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=customers">Customers</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="reportsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-chart-bar mr-2"></i> Reports
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=index">Dashboard</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=sales">Sales Report</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=products">Products Report</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=report&action=customers">Customers Report</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="mailDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-envelope mr-2"></i> Mail
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="mailDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=mail&action=index">Mail</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="billingDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-user-check mr-2"></i> Billing & Invoices
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="billingDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=invoice&action=create">Create Invoice</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="settingsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-cog mr-2"></i> Settings
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=setting&action=index">Store Settings</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="taxDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-percentage mr-2"></i> Tax Management
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="taxDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=tax&action=index">Tax Settings</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="storeDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-store mr-2"></i> Store
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="storeDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>">View Store</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=aboutStore">Manage About Store</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=aboutStore&action=create">Add About Entry</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="contactDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-address-book mr-2"></i> Contact Info
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="contactDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=contactinfo&action=index">Contact Info</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="paymentDueDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-money-bill-wave mr-2"></i> Payment Dues
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="paymentDueDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=PaymentDue&action=index">Payment Dues</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="policyDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-file-contract mr-2"></i> Policy
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="policyDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=policy&action=index">Policy</a></li>
-                            </ul>
-                        </li>
 
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="cookiesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-cookie-bite mr-2"></i> Clear Cookies
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="cookiesDropdown">
-                                <li><a class="dropdown-item" href="#" id="clearCookiesBtn">Clear All Cookies</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown dropright">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="logoutDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="logoutDropdown">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=logout">Logout</a></li>
-                            </ul>
-                        </li>
-                    </ul>
+                    <!-- Scrollable menu -->
+                    <div class="admin-sidebar__scroll" id="adminSidebarScroll" tabindex="0">
+                        <?php
+                            $mainItems = [
+                                [
+                                    'type' => 'link',
+                                    'label' => 'Dashboard',
+                                    'icon' => 'layout-dashboard',
+                                    'href' => BASE_URL . '?controller=home&action=admin',
+                                    'active' => $isActive('home', 'admin') || ($currentController === '' && $currentAction === ''),
+                                ],
+                            ];
+
+                            $managementGroups = [
+                                [
+                                    'label' => 'Products',
+                                    'icon' => 'package',
+                                    'items' => [
+                                        ['label' => 'All Products', 'icon' => 'list', 'href' => BASE_URL . '?controller=product&action=adminIndex', 'controller' => 'product', 'action' => 'adminindex'],
+                                        ['label' => 'Add Product', 'icon' => 'plus', 'href' => BASE_URL . '?controller=product&action=create', 'controller' => 'product', 'action' => 'create'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Categories',
+                                    'icon' => 'tags',
+                                    'items' => [
+                                        ['label' => 'All Categories', 'icon' => 'list', 'href' => BASE_URL . '?controller=category&action=adminIndex', 'controller' => 'category', 'action' => 'adminindex'],
+                                        ['label' => 'Add Category', 'icon' => 'plus', 'href' => BASE_URL . '?controller=category&action=create', 'controller' => 'category', 'action' => 'create'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Brands',
+                                    'icon' => 'building-2',
+                                    'items' => [
+                                        ['label' => 'All Brands', 'icon' => 'list', 'href' => BASE_URL . '?controller=brand&action=adminIndex', 'controller' => 'brand', 'action' => 'adminindex'],
+                                        ['label' => 'Add Brand', 'icon' => 'plus', 'href' => BASE_URL . '?controller=brand&action=create', 'controller' => 'brand', 'action' => 'create'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Suppliers',
+                                    'icon' => 'truck',
+                                    'items' => [
+                                        ['label' => 'List Suppliers', 'icon' => 'list', 'href' => BASE_URL . '?controller=supplier&action=index', 'controller' => 'supplier', 'action' => 'index'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Orders',
+                                    'icon' => 'shopping-cart',
+                                    'items' => [
+                                        ['label' => 'All Orders', 'icon' => 'list', 'href' => BASE_URL . '?controller=order&action=adminIndex', 'controller' => 'order', 'action' => 'adminindex'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Users',
+                                    'icon' => 'users',
+                                    'items' => [
+                                        ['label' => 'All Users', 'icon' => 'list', 'href' => BASE_URL . '?controller=user&action=adminIndex', 'controller' => 'user', 'action' => 'adminindex'],
+                                        ['label' => 'Add User', 'icon' => 'plus', 'href' => BASE_URL . '?controller=user&action=adminCreate', 'controller' => 'user', 'action' => 'admincreate'],
+                                        ['label' => 'Customers', 'icon' => 'user-round', 'href' => BASE_URL . '?controller=user&action=customers', 'controller' => 'user', 'action' => 'customers'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Purchase',
+                                    'icon' => 'credit-card',
+                                    'items' => [
+                                        ['label' => 'Purchase with customer', 'icon' => 'user-round', 'href' => BASE_URL . '?controller=purchase&action=create', 'controller' => 'purchase', 'action' => 'create'],
+                                        ['label' => 'List Purchase', 'icon' => 'list', 'href' => BASE_URL . '?controller=ListPurchaseController', 'controller' => 'listpurchasecontroller', 'action' => null],
+                                        ['label' => 'Add Purchase', 'icon' => 'plus', 'href' => BASE_URL . '?controller=purchase&action=purchase2', 'controller' => 'purchase', 'action' => 'purchase2'],
+                                        ['label' => 'List Purchase Return', 'icon' => 'rotate-ccw', 'href' => BASE_URL . '?controller=purchase&action=purchase3', 'controller' => 'purchase', 'action' => 'purchase3'],
+                                    ],
+                                ],
+                            ];
+
+                            $systemGroups = [
+                                [
+                                    'label' => 'Reports',
+                                    'icon' => 'bar-chart-3',
+                                    'items' => [
+                                        ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'href' => BASE_URL . '?controller=report&action=index', 'controller' => 'report', 'action' => 'index'],
+                                        ['label' => 'Sales Report', 'icon' => 'trending-up', 'href' => BASE_URL . '?controller=report&action=sales', 'controller' => 'report', 'action' => 'sales'],
+                                        ['label' => 'Products Report', 'icon' => 'package', 'href' => BASE_URL . '?controller=report&action=products', 'controller' => 'report', 'action' => 'products'],
+                                        ['label' => 'Customers Report', 'icon' => 'users', 'href' => BASE_URL . '?controller=report&action=customers', 'controller' => 'report', 'action' => 'customers'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Settings',
+                                    'icon' => 'settings',
+                                    'items' => [
+                                        ['label' => 'Store Settings', 'icon' => 'store', 'href' => BASE_URL . '?controller=setting&action=index', 'controller' => 'setting', 'action' => 'index'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Tax Management',
+                                    'icon' => 'percent',
+                                    'items' => [
+                                        ['label' => 'Tax Settings', 'icon' => 'percent', 'href' => BASE_URL . '?controller=tax&action=index', 'controller' => 'tax', 'action' => 'index'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Store',
+                                    'icon' => 'shopping-bag',
+                                    'items' => [
+                                        ['label' => 'View Store', 'icon' => 'external-link', 'href' => BASE_URL, 'controller' => '', 'action' => null],
+                                        ['label' => 'Manage About Store', 'icon' => 'file-text', 'href' => BASE_URL . '?controller=aboutStore', 'controller' => 'aboutstore', 'action' => null],
+                                        ['label' => 'Add About Entry', 'icon' => 'plus', 'href' => BASE_URL . '?controller=aboutStore&action=create', 'controller' => 'aboutstore', 'action' => 'create'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Contact Info',
+                                    'icon' => 'contact',
+                                    'items' => [
+                                        ['label' => 'Contact Info', 'icon' => 'contact', 'href' => BASE_URL . '?controller=contactinfo&action=index', 'controller' => 'contactinfo', 'action' => 'index'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Payment Dues',
+                                    'icon' => 'wallet',
+                                    'items' => [
+                                        ['label' => 'Payment Dues', 'icon' => 'wallet', 'href' => BASE_URL . '?controller=PaymentDue&action=index', 'controller' => 'paymentdue', 'action' => 'index'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Clear Cookies',
+                                    'icon' => 'trash-2',
+                                    'items' => [
+                                        ['label' => 'Clear All Cookies', 'icon' => 'trash-2', 'href' => '#', 'controller' => '', 'action' => null, 'id' => 'clearCookiesBtn'],
+                                    ],
+                                ],
+                            ];
+                        ?>
+
+                        <div class="admin-sidebar__section">
+                            <div class="admin-sidebar__section-title">Main</div>
+                            <?php foreach ($mainItems as $it): ?>
+                                <div class="admin-nav-item">
+                                    <a class="admin-nav-link <?php echo !empty($it['active']) ? 'active' : ''; ?>" href="<?php echo htmlspecialchars($it['href']); ?>" aria-current="<?php echo !empty($it['active']) ? 'page' : 'false'; ?>">
+                                        <span data-lucide="<?php echo htmlspecialchars($it['icon']); ?>" class="admin-nav-icon" aria-hidden="true"></span>
+                                        <span class="admin-nav-text"><?php echo htmlspecialchars($it['label']); ?></span>
+                                    </a>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <div class="admin-sidebar__section">
+                            <div class="admin-sidebar__section-title">Management</div>
+                            <?php foreach ($managementGroups as $idx => $group): ?>
+                                <?php
+                                    $groupActive = $isAnyActive($group['items']);
+                                    $submenuId = 'submenu_mgmt_' . $idx;
+                                ?>
+                                <div class="admin-nav-item">
+                                    <button type="button" class="admin-nav-trigger <?php echo $groupActive ? 'active' : ''; ?>" aria-expanded="<?php echo $groupActive ? 'true' : 'false'; ?>" aria-controls="<?php echo htmlspecialchars($submenuId); ?>" data-submenu-toggle>
+                                        <span data-lucide="<?php echo htmlspecialchars($group['icon']); ?>" class="admin-nav-icon" aria-hidden="true"></span>
+                                        <span class="admin-nav-text"><?php echo htmlspecialchars($group['label']); ?></span>
+                                        <span data-lucide="chevron-right" class="admin-nav-caret" aria-hidden="true"></span>
+                                    </button>
+                                    <div id="<?php echo htmlspecialchars($submenuId); ?>" class="admin-submenu <?php echo $groupActive ? 'show' : ''; ?>" role="region" aria-label="<?php echo htmlspecialchars($group['label']); ?> submenu">
+                                        <?php foreach ($group['items'] as $sub): ?>
+                                            <?php
+                                                $subActive = $isActive($sub['controller'] ?? '', $sub['action'] ?? null);
+                                                $subId = $sub['id'] ?? '';
+                                            ?>
+                                            <a class="admin-nav-link <?php echo $subActive ? 'active' : ''; ?>" href="<?php echo htmlspecialchars($sub['href']); ?>" <?php echo $subId !== '' ? 'id="' . htmlspecialchars($subId) . '"' : ''; ?> aria-current="<?php echo $subActive ? 'page' : 'false'; ?>">
+                                                <span data-lucide="<?php echo htmlspecialchars($sub['icon']); ?>" class="admin-nav-icon" aria-hidden="true"></span>
+                                                <span class="admin-nav-text"><?php echo htmlspecialchars($sub['label']); ?></span>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <div class="admin-sidebar__section">
+                            <div class="admin-sidebar__section-title">System</div>
+                            <?php foreach ($systemGroups as $idx => $group): ?>
+                                <?php
+                                    $groupActive = $isAnyActive($group['items']);
+                                    $submenuId = 'submenu_sys_' . $idx;
+                                ?>
+                                <div class="admin-nav-item">
+                                    <button type="button" class="admin-nav-trigger <?php echo $groupActive ? 'active' : ''; ?>" aria-expanded="<?php echo $groupActive ? 'true' : 'false'; ?>" aria-controls="<?php echo htmlspecialchars($submenuId); ?>" data-submenu-toggle>
+                                        <span data-lucide="<?php echo htmlspecialchars($group['icon']); ?>" class="admin-nav-icon" aria-hidden="true"></span>
+                                        <span class="admin-nav-text"><?php echo htmlspecialchars($group['label']); ?></span>
+                                        <span data-lucide="chevron-right" class="admin-nav-caret" aria-hidden="true"></span>
+                                    </button>
+                                    <div id="<?php echo htmlspecialchars($submenuId); ?>" class="admin-submenu <?php echo $groupActive ? 'show' : ''; ?>" role="region" aria-label="<?php echo htmlspecialchars($group['label']); ?> submenu">
+                                        <?php foreach ($group['items'] as $sub): ?>
+                                            <?php
+                                                $subActive = $isActive($sub['controller'] ?? '', $sub['action'] ?? null);
+                                                $subId = $sub['id'] ?? '';
+                                            ?>
+                                            <a class="admin-nav-link <?php echo $subActive ? 'active' : ''; ?>" href="<?php echo htmlspecialchars($sub['href']); ?>" <?php echo $subId !== '' ? 'id="' . htmlspecialchars($subId) . '"' : ''; ?> aria-current="<?php echo $subActive ? 'page' : 'false'; ?>">
+                                                <span data-lucide="<?php echo htmlspecialchars($sub['icon']); ?>" class="admin-nav-icon" aria-hidden="true"></span>
+                                                <span class="admin-nav-text"><?php echo htmlspecialchars($sub['label']); ?></span>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+
+                            <div class="admin-nav-item" style="margin-top: 12px;">
+                                <a class="admin-nav-link danger" href="<?php echo BASE_URL; ?>?controller=user&action=logout" aria-label="Logout">
+                                    <span data-lucide="log-out" class="admin-nav-icon" aria-hidden="true"></span>
+                                    <span class="admin-nav-text">Logout</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </nav>
 
@@ -497,11 +783,14 @@ if (!defined('BASE_URL')) {
             <div class="sidebar-backdrop d-md-none" id="sidebarBackdrop"></div>
 
             <!-- Main Content -->
-            <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+            <main class="px-2 px-md-4">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center flex-wrap flex-md-nowrap pt-3 pb-2 mb-3 border-bottom">
                     <div class="d-flex align-items-center mb-2 mb-sm-0">
                         <button class="btn btn-outline-secondary mr-3 d-md-none" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" id="sidebarToggleBtn">
                             <i class="fas fa-bars"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary mr-2 d-none d-md-inline-flex" type="button" aria-label="Collapse sidebar" id="sidebarCollapseBtnTop">
+                            <span data-lucide="panel-left" class="admin-nav-icon" aria-hidden="true"></span>
                         </button>
                         <h1 class="h2 mb-0">Admin Dashboard</h1>
                     </div>
@@ -523,6 +812,159 @@ if (!defined('BASE_URL')) {
                         </div>
                     </div>
                 </div>
+
+                <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+                <script>
+                    // Sidebar: mobile drawer toggle (Bootstrap 4 collapse + custom backdrop)
+                    document.addEventListener('DOMContentLoaded', function() {
+                        try {
+                            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                                window.lucide.createIcons();
+                            }
+                        } catch (e) { /* ignore */ }
+
+                        var body = document.body;
+                        var sidebar = document.getElementById('sidebar');
+                        var toggleBtn = document.getElementById('sidebarToggleBtn');
+                        var backdrop = document.getElementById('sidebarBackdrop');
+
+                        function openSidebar() {
+                            if (!sidebar) return;
+                            sidebar.classList.add('show');
+                            body.classList.add('sidebar-open');
+                            if (backdrop) backdrop.classList.add('active');
+                            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+                            sidebar.setAttribute('aria-hidden', 'false');
+                        }
+
+                        function closeSidebar() {
+                            if (!sidebar) return;
+                            sidebar.classList.remove('show');
+                            body.classList.remove('sidebar-open');
+                            if (backdrop) backdrop.classList.remove('active');
+                            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+                            sidebar.setAttribute('aria-hidden', 'true');
+                        }
+
+                        function isMobile() {
+                            return window.innerWidth < 768;
+                        }
+
+                        if (toggleBtn) {
+                            toggleBtn.addEventListener('click', function(e) {
+                                if (!isMobile()) return;
+                                e.preventDefault();
+                                if (sidebar && sidebar.classList.contains('show')) closeSidebar();
+                                else openSidebar();
+                            });
+                        }
+
+                        if (backdrop) {
+                            backdrop.addEventListener('click', function() {
+                                closeSidebar();
+                            });
+                        }
+
+                        document.addEventListener('keydown', function(e) {
+                            if (e.key === 'Escape' && isMobile()) {
+                                closeSidebar();
+                            }
+                        });
+
+                        // Accordion submenu
+                        function setSubmenuState(trigger, open) {
+                            if (!trigger) return;
+                            var id = trigger.getAttribute('aria-controls');
+                            var submenu = id ? document.getElementById(id) : null;
+                            trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                            if (!submenu) return;
+                            if (open) {
+                                submenu.classList.add('show');
+                                submenu.style.maxHeight = submenu.scrollHeight + 'px';
+                            } else {
+                                submenu.style.maxHeight = submenu.scrollHeight + 'px';
+                                requestAnimationFrame(function() {
+                                    submenu.classList.remove('show');
+                                    submenu.style.maxHeight = '0px';
+                                });
+                            }
+                        }
+
+                        function closeOtherSubmenus(currentTrigger) {
+                            document.querySelectorAll('[data-submenu-toggle]').forEach(function(t) {
+                                if (t !== currentTrigger) {
+                                    setSubmenuState(t, false);
+                                }
+                            });
+                        }
+
+                        document.querySelectorAll('[data-submenu-toggle]').forEach(function(trigger) {
+                            var expanded = trigger.getAttribute('aria-expanded') === 'true';
+                            setSubmenuState(trigger, expanded);
+
+                            trigger.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                if (body.classList.contains('sidebar-collapsed') && !isMobile()) {
+                                    return;
+                                }
+                                var isOpen = trigger.getAttribute('aria-expanded') === 'true';
+                                closeOtherSubmenus(trigger);
+                                setSubmenuState(trigger, !isOpen);
+                            });
+
+                            trigger.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    trigger.click();
+                                }
+                            });
+                        });
+
+                        // Desktop collapsed mini mode (persist)
+                        var collapseBtns = [
+                            document.getElementById('sidebarCollapseBtn'),
+                            document.getElementById('sidebarCollapseBtnTop')
+                        ].filter(Boolean);
+
+                        function applyCollapsedState(state) {
+                            if (state) body.classList.add('sidebar-collapsed');
+                            else body.classList.remove('sidebar-collapsed');
+                            try { localStorage.setItem('adminSidebarCollapsed', state ? '1' : '0'); } catch (e) { /* ignore */ }
+                        }
+
+                        (function initCollapsed() {
+                            if (isMobile()) {
+                                applyCollapsedState(false);
+                                return;
+                            }
+                            var saved = '0';
+                            try { saved = localStorage.getItem('adminSidebarCollapsed') || '0'; } catch (e) { saved = '0'; }
+                            applyCollapsedState(saved === '1');
+                        })();
+
+                        collapseBtns.forEach(function(btn) {
+                            btn.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                if (isMobile()) return;
+                                applyCollapsedState(!body.classList.contains('sidebar-collapsed'));
+                            });
+                        });
+
+                        window.addEventListener('resize', function() {
+                            if (isMobile()) {
+                                applyCollapsedState(false);
+                                closeSidebar();
+                            }
+                        });
+
+                        // Close drawer after clicking any link on mobile
+                        document.querySelectorAll('#sidebar a.admin-nav-link').forEach(function(a) {
+                            a.addEventListener('click', function() {
+                                if (isMobile()) closeSidebar();
+                            });
+                        });
+                    });
+                </script>
 
                 <!-- Flash Messages -->
                 <?php flash('product_success'); ?>
