@@ -413,6 +413,8 @@ class ProductController extends Controller {
         $page = (int) $this->get('page', 1);
         $perPageParam = $this->get('per_page', '20');
         $search = trim((string) $this->get('search', ''));
+        $showInactive = (string)$this->get('show_inactive', '0');
+        $includeInactive = ($showInactive === '1' || strtolower($showInactive) === 'true');
         $allowedPerPage = ['20', '50', '100', 'all'];
         $perPage = in_array($perPageParam, $allowedPerPage, true) ? $perPageParam : '20';
         $perPageNum = ($perPage === 'all') ? 9999 : (int) $perPage;
@@ -421,9 +423,10 @@ class ProductController extends Controller {
         }
         
         // Get products (ID ascending), with optional search
-        $products = $this->productModel->paginate($page, $perPageNum, 'id', 'ASC', $search ?: null);
+        $products = $this->productModel->paginate($page, $perPageNum, 'id', 'ASC', $search ?: null, $includeInactive);
         $products['per_page_param'] = $perPage;
         $products['search'] = $search;
+        $products['show_inactive'] = $includeInactive ? '1' : '0';
         
         // Normalize rows to associative arrays to avoid blank fields in view
         if (isset($products['data']) && is_array($products['data'])) {
@@ -431,6 +434,14 @@ class ProductController extends Controller {
                 if (is_object($row)) {
                     $products['data'][$idx] = (array)$row;
                 }
+            }
+
+            // Defensive: hide inactive products in admin list unless explicitly requested
+            if (!$includeInactive) {
+                $products['data'] = array_values(array_filter($products['data'], function($r) {
+                    $status = is_array($r) && isset($r['status']) ? strtolower((string)$r['status']) : '';
+                    return $status === 'active' || $status === '';
+                }));
             }
         }
         
@@ -603,20 +614,24 @@ class ProductController extends Controller {
             $data = [
                 'name' => sanitize($this->post('name')),
                 'description' => sanitize($this->post('description')),
-                'price' => $this->post('price'),
+                'price' => ($p = $this->post('price')) === '' || $p === null ? null : $p,
                 'sale_price' => $this->post('sale_price') ?: null,
                 'price2' => $this->post('price2') ?: $this->post('price'),
                 'price3' => $this->post('price3') ?: $this->post('price'),
-                'stock_quantity' => $this->post('stock_quantity'),
+                'stock_quantity' => ($sq = $this->post('stock_quantity')) === '' || $sq === null ? 0 : $sq,
                 'category_id' => $this->post('category_id'),
-                'country_id' => $this->post('country_id'),
-                'brand_id' => $this->post('brand_id'),
+                'country_id' => ($cid = $this->post('country_id')) && (int)$cid > 0 ? (int)$cid : null,
+                'brand_id' => ($bid = $this->post('brand_id')) && (int)$bid > 0 ? (int)$bid : null,
                 'status' => $this->post('status'),
                 'expiry_date' => $this->post('expiry_date') ?: null,
                 'supplier' => sanitize($this->post('supplier')),
                 'batch_number' => sanitize($this->post('batch_number')),
                 'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null
             ];
+
+            if ($data['price'] === null && ($data['price2'] !== '' && $data['price2'] !== null)) {
+                $data['price'] = $data['price2'];
+            }
             
             // Handle SKU - generate if empty or check for uniqueness
             $errors = $errors ?? [];
@@ -654,11 +669,11 @@ class ProductController extends Controller {
             // Validate data
             $validationRules = [
                 'name' => 'required|max:255',
-                'price' => 'required|numeric',
-                'stock_quantity' => 'required|numeric|min:0',
+                'price' => 'nullable|numeric|min:0',
+                'stock_quantity' => 'nullable|numeric|min:0',
                 'category_id' => 'required|numeric',
-                'country_id' => 'required|numeric',
-                'brand_id' => 'required|numeric',
+                'country_id' => 'nullable|numeric',
+                'brand_id' => 'nullable|numeric',
                 'price2' => 'required|numeric',
                 'price3' => 'nullable|numeric',
                 'sale_price' => 'nullable|numeric',
@@ -798,31 +813,35 @@ class ProductController extends Controller {
                 $data = [
                     'name' => sanitize($this->post('name')),
                     'description' => sanitize($this->post('description')),
-                    'price' => $this->post('price'),
+                    'price' => ($p = $this->post('price')) === '' || $p === null ? null : $p,
                     'sale_price' => $this->post('sale_price') ?: null,
                     'price2' => $this->post('price2') ?: $this->post('price'),
                     'price3' => $this->post('price3') ?: $this->post('price'),
-                    'stock_quantity' => $this->post('stock_quantity'),
+                    'stock_quantity' => ($sq = $this->post('stock_quantity')) === '' || $sq === null ? 0 : $sq,
                     'sku' => sanitize($this->post('sku')),
                     'category_id' => $this->post('category_id'),
-                    'country_id' => $this->post('country_id'),
-                    'brand_id' => $this->post('brand_id'),
+                    'country_id' => ($cid = $this->post('country_id')) && (int)$cid > 0 ? (int)$cid : null,
+                    'brand_id' => ($bid = $this->post('brand_id')) && (int)$bid > 0 ? (int)$bid : null,
                     'status' => $this->post('status') ?: 'active',
                     'expiry_date' => $this->post('expiry_date') ?: null,
                     'supplier' => sanitize($this->post('supplier')),
                     'batch_number' => sanitize($this->post('batch_number')),
                     'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null
                 ];
+
+                if ($data['price'] === null && ($data['price2'] !== '' && $data['price2'] !== null)) {
+                    $data['price'] = $data['price2'];
+                }
                 
                 // Validate data before processing
                 $errors = $this->validate($data, [
                     'name' => 'required|max:255',
-                    'price' => 'required|numeric',
-                    'stock_quantity' => 'required|numeric',
+                    'price' => 'nullable|numeric|min:0',
+                    'stock_quantity' => 'nullable|numeric|min:0',
                     'sku' => 'required|max:50',
                     'category_id' => 'required',
-                    'country_id' => 'required',
-                    'brand_id' => 'required',
+                    'country_id' => 'nullable|numeric',
+                    'brand_id' => 'nullable|numeric',
                     'status' => 'required|in:active,inactive',
                     'supplier' => 'nullable|max:255',
                     'batch_number' => 'nullable|max:100',
@@ -968,7 +987,7 @@ class ProductController extends Controller {
      * 
      * @param int $id Product ID
      */
-    public function delete($id) {
+    public function delete($id = null) {
         // Check if admin
         if(!isAdmin()) {
             if($this->isAjax()) {
@@ -978,13 +997,19 @@ class ProductController extends Controller {
             redirect('user/login');
         }
 
-        // Determine back URL (prefer staying on ListPurchaseController page)
+        // Determine back URL (stay on Products list by default)
         $referer = $_SERVER['HTTP_REFERER'] ?? '';
-        $defaultBack = (defined('BASE_URL') ? BASE_URL : '/') . '?controller=ListPurchaseController';
-        $backUrl = (strpos($referer, 'controller=ListPurchaseController') !== false) ? $referer : $defaultBack;
+        $defaultBack = (defined('BASE_URL') ? BASE_URL : '/') . '?controller=product&action=adminIndex';
+        $backUrl = (strpos($referer, 'controller=product') !== false && strpos($referer, 'action=adminIndex') !== false) ? $referer : $defaultBack;
+
+        // Query-string routing compatibility: allow id via ?id=...
+        if ($id === null || $id === '' || (is_numeric($id) && (int)$id <= 0)) {
+            $id = $_GET['id'] ?? null;
+        }
+        $id = (int)$id;
 
         // Check if ID is provided
-        if(!$id) {
+        if($id <= 0) {
             if($this->isAjax()) {
                 $this->json(['success' => false, 'message' => 'Product ID is required'], 400);
                 return;

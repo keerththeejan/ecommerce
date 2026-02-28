@@ -8,6 +8,40 @@
     .edit-product-form .input-group > .btn { margin-top: 0.25rem; width: 100%; }
     .edit-product-form .row .col-6 { margin-bottom: 0.5rem; }
 }
+.pm-select-add {
+    display: flex;
+    gap: 0.25rem;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+.pm-select-add .select2-container {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto !important;
+}
+.pm-select-add > .btn {
+    flex: 0 0 auto;
+}
+@media (max-width: 575.98px) {
+    .pm-select-add {
+        flex-wrap: wrap;
+    }
+    .pm-select-add .select2-container {
+        flex: 1 1 100%;
+    }
+    .pm-select-add > .btn {
+        width: 100%;
+    }
+}
+.pm-actionbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: #fff;
+    border-top: 1px solid rgba(0,0,0,.125);
+    padding-top: 0.75rem;
+    margin-top: 1rem;
+}
 </style>
 
 <div class="container-fluid">
@@ -35,7 +69,7 @@
                 <div class="card-body">
                     <form id="editProductForm" class="edit-product-form" action="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" method="POST" enctype="multipart/form-data" novalidate>
                         <!-- Standard order: 1.Name 2.Description 3.Image 4.SKU 5.Category 6.Brand 7.Country 8.Prices 9.Stock 10.Expiry 11.Supplier 12.Batch 13.Status -->
-                        <div class="row">
+                        <div class="row g-3 g-lg-4">
                             <div class="col-12 col-lg-8">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Product Name</label>
@@ -97,9 +131,9 @@
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <div class="mb-3">
-                                    <label for="brand_id" class="form-label">Brand</label>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
+                                    <label for="brand_id" class="form-label">Brand (Optional)</label>
+                                    <div class="pm-select-add">
+                                        <select class="form-select flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" style="min-width: 0;">
                                             <option value="">Select Brand</option>
                                             <?php 
                                             $brandModel = new Brand();
@@ -145,9 +179,9 @@
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <div class="mb-3">
-                                    <label for="country_id" class="form-label">Country of Origin</label>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-select flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="min-width: 0;">
+                                    <label for="country_id" class="form-label">Country of Origin (Optional)</label>
+                                    <div class="pm-select-add">
+                                        <select class="form-select flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" style="min-width: 0;">
                                             <option value="">Select Country</option>
                                             <?php 
                                             $countryModel = new Country();
@@ -171,10 +205,10 @@
                         <div class="row">
                             <div class="col-6 col-md-3">
                                 <div class="mb-3">
-                                    <label for="price" class="form-label">Buying Price</label>
-                                    <div class="input-group">
+                                    <label for="price" class="form-label">Buying Price (Optional)</label>
+                                    <div class="input-group input-group-sm">
                                         <span class="input-group-text">CHF</span>
-                                        <input type="number" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $product['price']; ?>" step="0.01" min="0" required>
+                                        <input type="text" class="form-control form-control-sm <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $product['price']; ?>" inputmode="decimal" autocomplete="off">
                                     </div>
                                     <?php if(isset($errors['price'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['price']; ?></div>
@@ -184,27 +218,27 @@
                             <div class="col-6 col-md-3">
                                 <div class="mb-3">
                                     <label for="sale_price" class="form-label">Incl. Tax (Optional)</label>
-                                    <div class="input-group">
+                                    <div class="input-group input-group-sm">
                                         <span class="input-group-text">CHF</span>
-                                        <input type="number" class="form-control" id="sale_price" name="sale_price" value="<?php echo $product['sale_price'] ?? ''; ?>" step="0.01" min="0">
+                                        <input type="text" class="form-control form-control-sm" id="sale_price" name="sale_price" value="<?php echo $product['sale_price'] ?? ''; ?>" inputmode="decimal" autocomplete="off">
                                     </div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="mb-3">
                                     <label for="price2" class="form-label">Sales Price (Optional)</label>
-                                    <div class="input-group">
+                                    <div class="input-group input-group-sm">
                                         <span class="input-group-text">CHF</span>
-                                        <input type="number" class="form-control" id="price2" name="price2" value="<?php echo $product['price2'] ?? $product['price']; ?>" step="0.01" min="0">
+                                        <input type="text" class="form-control form-control-sm" id="price2" name="price2" value="<?php echo $product['price2'] ?? $product['price']; ?>" inputmode="decimal" autocomplete="off">
                                     </div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="mb-3">
                                     <label for="price3" class="form-label">Wholesale (Optional)</label>
-                                    <div class="input-group">
+                                    <div class="input-group input-group-sm">
                                         <span class="input-group-text">CHF</span>
-                                        <input type="number" class="form-control" id="price3" name="price3" value="<?php echo $product['price3'] ?? $product['price']; ?>" step="0.01" min="0">
+                                        <input type="text" class="form-control form-control-sm" id="price3" name="price3" value="<?php echo $product['price3'] ?? $product['price']; ?>" inputmode="decimal" autocomplete="off">
                                     </div>
                                 </div>
                             </div>
@@ -213,8 +247,8 @@
                         <div class="row">
                             <div class="col-12 col-sm-6 col-md-4">
                                 <div class="mb-3">
-                                    <label for="stock_quantity" class="form-label">Stock Quantity</label>
-                                    <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo (int)$product['stock_quantity']; ?>" min="0" required>
+                                    <label for="stock_quantity" class="form-label">Stock Quantity (Optional)</label>
+                                    <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo (int)$product['stock_quantity']; ?>" min="0">
                                     <?php if(isset($errors['stock_quantity'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['stock_quantity']; ?></div>
                                     <?php endif; ?>
@@ -266,17 +300,19 @@
                             </div>
                         </div>
                         
-                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> Back to Products
-                            </a>
-                            <div>
-                                <button type="button" id="cancelChangesBtn" class="btn btn-outline-secondary me-2">
-                                    <i class="fas fa-times me-1"></i> Cancel
-                                </button>
-                                <button type="submit" id="submitBtn" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i> Update Product
-                                </button>
+                        <div class="pm-actionbar">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2">
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-secondary order-sm-1">
+                                    <i class="fas fa-arrow-left me-1"></i> Back to Products
+                                </a>
+                                <div class="d-flex flex-wrap gap-2 order-sm-2">
+                                    <button type="button" id="cancelChangesBtn" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-1"></i> Cancel
+                                    </button>
+                                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> Update Product
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </form>

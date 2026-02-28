@@ -3,25 +3,61 @@
 <style>
 /* Create product form – responsive */
 .create-product-form .form-label { font-weight: 500; }
-.create-product-form .input-group select.form-control { flex: 1 1 auto; min-width: 0; }
+.create-product-form .input-group select.form-select { flex: 1 1 auto; min-width: 0; }
 @media (max-width: 767.98px) {
     .create-product-form .input-group > .btn { margin-top: 0.25rem; width: 100%; }
     .create-product-form .row .col-6 { margin-bottom: 0.5rem; }
 }
 .create-product-form select[style*="width"] { min-width: 0 !important; max-width: 100%; }
+.pm-select-add {
+    display: flex;
+    gap: 0.25rem;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+.pm-select-add .select2-container {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto !important;
+}
+.pm-select-add > .btn {
+    flex: 0 0 auto;
+}
+@media (max-width: 575.98px) {
+    .pm-select-add {
+        flex-wrap: wrap;
+    }
+    .pm-select-add .select2-container {
+        flex: 1 1 100%;
+    }
+    .pm-select-add > .btn {
+        width: 100%;
+    }
+}
+.pm-actionbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: #fff;
+    border-top: 1px solid rgba(0,0,0,.125);
+    padding-top: 0.75rem;
+    margin-top: 1rem;
+}
 </style>
 
-<div class="container-fluid px-2 px-sm-3">
+<div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card shadow-sm rounded-3 border-0 overflow-hidden">
-                <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 py-3">
-                    <h3 class="card-title mb-0 h5">Add New Product</h3>
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-box mr-2"></i>Add Product
+                    </h3>
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-light btn-sm">
                         <i class="fas fa-arrow-left mr-1"></i> Back to Products
                     </a>
                 </div>
-                <div class="card-body p-3 p-md-4">
+                <div class="card-body">
                     <div id="alert-messages">
                         <?php if(isset($success)): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -38,7 +74,7 @@
                     </div>
                     
                     <form id="productForm" class="create-product-form" action="<?php echo BASE_URL; ?>?controller=product&action=create" method="POST" enctype="multipart/form-data" novalidate>
-                        <div class="row">
+                        <div class="row g-3 g-lg-4">
                             <div class="col-12 col-lg-8">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Product Name</label>
@@ -56,77 +92,83 @@
                                     <?php endif; ?>
                                 </div>
 
-                                <!-- Country Selection -->
-                                <div class="mb-3">
-                                    <label for="country_id" class="form-label">Country of Origin</label>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" required style="min-width: 0;">
-                                            <option value="">Select Country</option>
-                                            <?php 
-                                            // Get active countries
-                                            $countryModel = new Country();
-                                            $countries = $countryModel->getActiveCountries();
-                                            
-                                            if(!empty($countries)) :
-                                                foreach($countries as $country) :
-                                                    $selected = (isset($data['country_id']) && $data['country_id'] == $country['id']) ? 'selected' : '';
-                                                    $countryCode = strtolower(substr($country['name'], 0, 2));
-                                                    $flagImage = !empty($country['flag_image']) ? 
-                                                        BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
-                                                        'https://flagcdn.com/24x18/' . $countryCode . '.png';
-                                            ?>
-                                                <option value="<?php echo $country['id']; ?>" 
-                                                    data-flag-image="<?php echo $flagImage; ?>"
-                                                    <?php echo $selected; ?>>
-                                                    <?php echo $country['name']; ?>
-                                                </option>
-                                            <?php 
-                                                endforeach;
-                                            endif; 
-                                            ?>
-                                        </select>
-                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
-                                        <?php if(isset($errors['country_id'])): ?>
-                                            <div class="invalid-feedback d-block w-100"><?php echo $errors['country_id']; ?></div>
-                                        <?php endif; ?>
+                                <div class="row g-3">
+                                    <!-- Country Selection -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="mb-3">
+                                            <label for="country_id" class="form-label">Country of Origin (Optional)</label>
+                                            <div class="pm-select-add">
+                                                <select class="form-select select2 flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" style="min-width: 0;">
+                                                    <option value="">Select Country</option>
+                                                    <?php 
+                                                    // Get active countries
+                                                    $countryModel = new Country();
+                                                    $countries = $countryModel->getActiveCountries();
+                                                    
+                                                    if(!empty($countries)) :
+                                                        foreach($countries as $country) :
+                                                            $selected = (isset($data['country_id']) && $data['country_id'] == $country['id']) ? 'selected' : '';
+                                                            $countryCode = strtolower(substr($country['name'], 0, 2));
+                                                            $flagImage = !empty($country['flag_image']) ? 
+                                                                BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
+                                                                'https://flagcdn.com/24x18/' . $countryCode . '.png';
+                                                    ?>
+                                                        <option value="<?php echo $country['id']; ?>" 
+                                                            data-flag-image="<?php echo $flagImage; ?>"
+                                                            <?php echo $selected; ?>>
+                                                            <?php echo $country['name']; ?>
+                                                        </option>
+                                                    <?php 
+                                                        endforeach;
+                                                    endif; 
+                                                    ?>
+                                                </select>
+                                                <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
+                                                <?php if(isset($errors['country_id'])): ?>
+                                                    <div class="invalid-feedback d-block w-100"><?php echo $errors['country_id']; ?></div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Brand Selection -->
-                                <div class="mb-3">
-                                    <label for="brand_id" class="form-label">Brand</label>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" required style="min-width: 0;">
-                                            <option value="">Select Brand</option>
-                                            <?php 
-                                            // Get active brands
-                                            $brandModel = new Brand();
-                                            $brands = $brandModel->getActiveBrands();
-                                            
-                                            if(!empty($brands)) :
-                                                foreach($brands as $brand) :
-                                                    $selected = (isset($data['brand_id']) && $data['brand_id'] == $brand['id']) ? 'selected' : '';
-                                            ?>
-                                                <option value="<?php echo $brand['id']; ?>" <?php echo $selected; ?>><?php echo $brand['name']; ?></option>
-                                            <?php 
-                                                endforeach;
-                                            endif; 
-                                            ?>
-                                        </select>
-                                        <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
-                                        <?php if(isset($errors['brand_id'])): ?>
-                                            <div class="invalid-feedback d-block w-100"><?php echo $errors['brand_id']; ?></div>
-                                        <?php endif; ?>
+                                    <!-- Brand Selection -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="mb-3">
+                                            <label for="brand_id" class="form-label">Brand (Optional)</label>
+                                            <div class="pm-select-add">
+                                                <select class="form-select select2 flex-grow-1 <?php echo isset($errors['brand_id']) ? 'is-invalid' : ''; ?>" id="brand_id" name="brand_id" style="min-width: 0;">
+                                                    <option value="">Select Brand</option>
+                                                    <?php 
+                                                    // Get active brands
+                                                    $brandModel = new Brand();
+                                                    $brands = $brandModel->getActiveBrands();
+                                                    
+                                                    if(!empty($brands)) :
+                                                        foreach($brands as $brand) :
+                                                            $selected = (isset($data['brand_id']) && $data['brand_id'] == $brand['id']) ? 'selected' : '';
+                                                    ?>
+                                                        <option value="<?php echo $brand['id']; ?>" <?php echo $selected; ?>><?php echo $brand['name']; ?></option>
+                                                    <?php 
+                                                        endforeach;
+                                                    endif; 
+                                                    ?>
+                                                </select>
+                                                <a href="<?php echo BASE_URL; ?>?controller=brand&action=create" class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></a>
+                                                <?php if(isset($errors['brand_id'])): ?>
+                                                    <div class="invalid-feedback d-block w-100"><?php echo $errors['brand_id']; ?></div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
                                     <div class="col-12 col-sm-6">
                                         <div class="mb-3">
-                                            <label for="price" class="form-label">Buying Price <span class="text-danger">*</span></label>
-                                            <div class="input-group">
+                                            <label for="price" class="form-label">Buying Price (Optional)</label>
+                                            <div class="input-group input-group-sm">
                                                 <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $data['price'] ?? ''; ?>" step="0.01" min="0" required>
+                                                <input type="text" class="form-control form-control-sm <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $data['price'] ?? ''; ?>" inputmode="decimal" autocomplete="off">
                                                 <?php if(isset($errors['price'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['price']; ?></div>
                                                 <?php endif; ?>
@@ -136,9 +178,9 @@
                                     <div class="col-12 col-sm-6">
                                         <div class="mb-3">
                                             <label for="price2" class="form-label">Sales Price <span class="text-danger">*</span></label>
-                                            <div class="input-group">
+                                            <div class="input-group input-group-sm">
                                                 <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" step="0.01" min="0" required>
+                                                <input type="text" class="form-control form-control-sm <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" inputmode="decimal" autocomplete="off" required>
                                                 <?php if(isset($errors['price2'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['price2']; ?></div>
                                                 <?php endif; ?>
@@ -148,9 +190,9 @@
                                     <div class="col-12 col-sm-6">
                                         <div class="mb-3">
                                             <label for="sale_price" class="form-label">Including Tax Price (Optional)</label>
-                                            <div class="input-group">
+                                            <div class="input-group input-group-sm">
                                                 <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" step="0.01" min="0">
+                                                <input type="text" class="form-control form-control-sm <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" inputmode="decimal" autocomplete="off">
                                                 <?php if(isset($errors['sale_price'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
                                                 <?php endif; ?>
@@ -160,9 +202,9 @@
                                     <div class="col-12 col-sm-6">
                                         <div class="mb-3">
                                             <label for="price3" class="form-label">Wholesale Price (SP) (Optional)</label>
-                                            <div class="input-group">
+                                            <div class="input-group input-group-sm">
                                                 <span class="input-group-text">CHF</span>
-                                                <input type="number" class="form-control <?php echo isset($errors['price3']) ? 'is-invalid' : ''; ?>" id="price3" name="price3" value="<?php echo $data['price3'] ?? ''; ?>" step="0.01" min="0">
+                                                <input type="text" class="form-control form-control-sm <?php echo isset($errors['price3']) ? 'is-invalid' : ''; ?>" id="price3" name="price3" value="<?php echo $data['price3'] ?? ''; ?>" inputmode="decimal" autocomplete="off">
                                                 <?php if(isset($errors['price3'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['price3']; ?></div>
                                                 <?php endif; ?>
@@ -208,8 +250,8 @@
 
                                 <div class="mb-3">
                                     <label for="supplier" class="form-label">Supplier</label>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
+                                    <div class="pm-select-add">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;">
                                             <option value="">Select Supplier</option>
                                             <?php if(!empty($suppliers)): ?>
                                                 <?php foreach($suppliers as $supplier): ?>
@@ -233,8 +275,8 @@
                                 <!-- Category Selection -->
                                 <div class="mb-3">
                                     <label for="category_id" class="form-label">Category</label>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;">
+                                    <div class="pm-select-add">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;">
                                             <option value="">Select Category</option>
                                             <?php 
                                             // Get active categories
@@ -261,8 +303,8 @@
                                 <!-- Tax Rate Selection -->
                                 <div class="mb-3">
                                     <label for="tax_id" class="form-label">Tax Rate (Optional)</label>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <select class="form-control select2 flex-grow-1 <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>" id="tax_id" name="tax_id" style="min-width: 0;">
+                                    <div class="pm-select-add">
+                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['tax_id']) ? 'is-invalid' : ''; ?>" id="tax_id" name="tax_id" style="min-width: 0;">
                                             <option value="">Use category tax / None</option>
                                             <?php
                                             $taxModel = new TaxModel();
@@ -298,8 +340,8 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="stock_quantity" class="form-label">Stock Quantity</label>
-                                    <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo $data['stock_quantity'] ?? ''; ?>" min="0" required>
+                                    <label for="stock_quantity" class="form-label">Stock Quantity (Optional)</label>
+                                    <input type="number" class="form-control <?php echo isset($errors['stock_quantity']) ? 'is-invalid' : ''; ?>" id="stock_quantity" name="stock_quantity" value="<?php echo $data['stock_quantity'] ?? ''; ?>" min="0">
                                     <?php if(isset($errors['stock_quantity'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['stock_quantity']; ?></div>
                                     <?php endif; ?>
@@ -309,7 +351,7 @@
                                 
                                 <div class="mb-3">
                                     <label for="status" class="form-label">Status</label>
-                                    <select class="form-control" id="status" name="status">
+                                    <select class="form-select" id="status" name="status">
                                         <option value="active" <?php echo (isset($data['status']) && $data['status'] == 'active') ? 'selected' : ''; ?>>Active</option>
                                         <option value="inactive" <?php echo (isset($data['status']) && $data['status'] == 'inactive') ? 'selected' : ''; ?>>Inactive</option>
                                     </select>
@@ -317,17 +359,19 @@
                             </div>
                         </div>
                         
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mt-4 pt-3 border-top">
-                            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-secondary btn-sm order-sm-1">
-                                <i class="fas fa-times mr-1"></i> Cancel
-                            </a>
-                            <div class="d-flex flex-wrap gap-2 order-sm-2">
-                                <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
-                                    <i class="fas fa-save mr-1"></i> Create Product
-                                </button>
-                                <button type="button" class="btn btn-success btn-sm d-none" id="addAnotherBtn" style="display: none;">
-                                    <i class="fas fa-plus mr-1"></i> Add Another
-                                </button>
+                        <div class="pm-actionbar">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2">
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-secondary btn-sm order-sm-1">
+                                    <i class="fas fa-times mr-1"></i> Cancel
+                                </a>
+                                <div class="d-flex flex-wrap gap-2 order-sm-2">
+                                    <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
+                                        <i class="fas fa-save mr-1"></i> Create Product
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-sm d-none" id="addAnotherBtn" style="display: none;">
+                                        <i class="fas fa-plus mr-1"></i> Add Another
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </form>

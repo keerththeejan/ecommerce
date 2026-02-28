@@ -705,29 +705,29 @@ class Product extends Model {
      * @param string $orderBy Column to order by
      * @param string $order Order direction (ASC or DESC)
      * @param string|null $search Optional search keyword (searches name, sku, description, category_name)
+     * @param bool $includeInactive Whether to include inactive products
      * @return array
      */
-    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC', $search = null) {
+    public function paginate($page = 1, $perPage = 10, $orderBy = 'id', $order = 'DESC', $search = null, $includeInactive = false) {
         // Calculate offset
         $offset = ($page - 1) * $perPage;
-        
-        $whereClause = '';
+
         $searchKeyword = trim((string)$search);
+        $conditions = [];
+        if (!$includeInactive) {
+            $conditions[] = "p.status = :status";
+        }
         if ($searchKeyword !== '') {
             // Use unique param names (PDO doesn't allow same named param twice)
-            $whereClause = " p
-                LEFT JOIN categories c ON p.category_id = c.id
-                WHERE (p.name LIKE :s1 OR p.sku LIKE :s2 OR p.description LIKE :s3 
+            $conditions[] = "(p.name LIKE :s1 OR p.sku LIKE :s2 OR p.description LIKE :s3 
                        OR p.supplier LIKE :s4 OR CAST(p.batch_number AS CHAR) LIKE :s5
                        OR c.name LIKE :s6)";
         }
+        $whereSql = !empty($conditions) ? (' WHERE ' . implode(' AND ', $conditions)) : '';
+        $fromSql = " {$this->table} p\n                LEFT JOIN categories c ON p.category_id = c.id";
         
         // Get total count
-        if ($whereClause !== '') {
-            $countSql = "SELECT COUNT(*) as total FROM {$this->table}" . $whereClause;
-        } else {
-            $countSql = "SELECT COUNT(*) as total FROM {$this->table} p";
-        }
+        $countSql = "SELECT COUNT(*) as total FROM" . $fromSql . $whereSql;
         
         if(!$this->db->query($countSql)) {
             $this->lastError = $this->db->getError();
@@ -740,6 +740,9 @@ class Product extends Model {
             ];
         }
         
+        if (!$includeInactive) {
+            $this->db->bind(':status', 'active');
+        }
         if ($searchKeyword !== '') {
             $term = '%' . $searchKeyword . '%';
             $this->db->bind(':s1', $term);
@@ -767,8 +770,6 @@ class Product extends Model {
         $perPage = (int) $perPage;
         
         // Get products (use intval for LIMIT/OFFSET to avoid MySQL PDO binding issues)
-        $dataWhere = $whereClause !== '' ? $whereClause : " p
-                LEFT JOIN categories c ON p.category_id = c.id";
         $orderBySafe = in_array($orderBy, ['id', 'name', 'sku', 'price', 'stock_quantity', 'status', 'created_at'], true) ? $orderBy : 'id';
         $orderSafe = strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
         
@@ -776,7 +777,7 @@ class Product extends Model {
         $offsetVal = max(0, $offset);
         
         $sql = "SELECT p.*, c.name as category_name 
-                FROM {$this->table}" . $dataWhere . "
+                FROM" . $fromSql . $whereSql . "
                 ORDER BY p.{$orderBySafe} {$orderSafe}
                 LIMIT " . (int) $limitVal . " OFFSET " . (int) $offsetVal;
                 
@@ -791,7 +792,10 @@ class Product extends Model {
                 'total_pages' => $totalPages
             ];
         }
-        
+
+        if (!$includeInactive) {
+            $this->db->bind(':status', 'active');
+        }
         if ($searchKeyword !== '') {
             $term = '%' . $searchKeyword . '%';
             $this->db->bind(':s1', $term);

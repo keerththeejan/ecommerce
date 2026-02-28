@@ -593,7 +593,7 @@ $(document).ready(function() {
                     row.remove();
                     
                     // Show success message
-                    showAlert('Product deleted successfully', 'success');
+                    showAlert(data.message || 'Product deleted successfully', 'success');
                     
                     // Check if table is empty
                     const tbody = document.querySelector('table tbody');
