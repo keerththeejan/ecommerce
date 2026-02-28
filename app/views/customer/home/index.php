@@ -237,6 +237,31 @@
         font-weight: 700;
     }
 
+    /* Mobile fix: prevent Add button from being cut + keep spacing clean */
+    @media (max-width: 767.98px) {
+        .siva-card,
+        .siva-mcard {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .siva-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .siva-actions .quantity-group {
+            width: 100%;
+            min-width: 0;
+            justify-content: center;
+        }
+
+        .siva-actions .btn-add-to-cart {
+            width: 100%;
+        }
+    }
+
     /* Brands card */
     .siva-brand {
         border: 1px solid var(--siva-border);
