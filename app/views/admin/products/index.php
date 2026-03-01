@@ -53,14 +53,27 @@
 }
 
 /* Admin products – responsive & trending */
-.products-table .admin-product-img { width: 50px; height: auto; object-fit: contain; border-radius: 8px; }
+.products-table { font-size: 0.84rem; }
+.products-table .admin-product-img { width: 38px; height: 38px; object-fit: cover; border-radius: 6px; }
+
+/* Compact controls */
+.products-toolbar .form-control,
+.products-toolbar .custom-select,
+.products-toolbar .btn {
+  min-height: 32px;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.products-toolbar .btn { padding-left: 0.5rem; padding-right: 0.5rem; }
+.products-toolbar .form-control,
+.products-toolbar .custom-select { font-size: 0.85rem; }
 
 .products-table-scroll {
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid rgba(0,0,0,.08);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.04);
 }
 .products-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
 .products-table-scroll thead th {
@@ -69,13 +82,33 @@
   z-index: 1;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 0.85rem;
-  padding: 0.5rem 0.6rem;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.5rem;
   background: var(--bs-body-bg, #fff);
   color: var(--bs-body-color, #212529);
   box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
 }
-.products-table-scroll tbody td { padding: 0.45rem 0.6rem; vertical-align: middle; }
+.products-table-scroll tbody td {
+  padding: 0.3rem 0.5rem;
+  vertical-align: middle;
+  line-height: 1.2;
+}
+
+/* Compact badges/buttons inside table */
+.products-table .badge {
+  padding: 0.25em 0.5em;
+  font-size: 0.72rem;
+  border-radius: 999px;
+}
+.products-table .btn-group .btn {
+  padding: 0.2rem 0.35rem;
+  line-height: 1;
+}
+.products-table .btn-group .btn i { font-size: 0.9em; }
+
+/* Compact pagination */
+.products-table-scroll + .mt-3 { margin-top: 0.75rem !important; }
+.products-table-scroll + .mt-3 .pagination .page-link { padding: 0.3rem 0.5rem; font-size: 0.82rem; }
 
 /* Responsive height */
 @media (max-width: 575.98px) {
@@ -105,7 +138,7 @@
   #productsTable thead { display: none; }
   #productsTable tbody tr {
     display: block;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     border: 1px solid var(--bs-border-color, #dee2e6);
     border-radius: 12px;
     overflow: hidden;
@@ -116,7 +149,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0.75rem;
+    padding: 0.45rem 0.65rem;
     border-bottom: 1px solid rgba(0,0,0,.06);
   }
   #productsTable tbody td:last-child { border-bottom: 0; }
