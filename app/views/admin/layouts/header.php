@@ -51,21 +51,47 @@ if (!defined('BASE_URL')) {
     <!-- Custom CSS (cache-busted) -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css?v=<?php echo time(); ?>">
     <style>
-        /* Base styles for light theme */
-        :root {
-            --text-color: #212529;
-            --bg-color: #ffffff;
-            --sidebar-bg: #212529;
-            --sidebar-text: #f8f9fa;
+        /* Theme tokens (Light defaults) */
+        :root,
+        [data-theme="light"],
+        [data-theme="light"] body {
+            --text-color: #111827;
+            --bg-color: #f8f9fa;
+            --surface-color: #ffffff;
+            --surface-muted: #f8f9fa;
+            --muted-color: #6b7280;
+            --border-color: rgba(17, 24, 39, 0.10);
+            --icon-color: #374151;
+
+            /* Sidebar (keep modern dark sidebar even in light mode) */
+            --sidebar-bg: #0f172a;
+            --sidebar-text: rgba(255,255,255,0.92);
+            --sidebar-text-muted: rgba(248,249,250,0.72);
+            --sidebar-surface: rgba(255,255,255,0.06);
+            --sidebar-surface-hover: rgba(255,255,255,0.10);
+            --sidebar-border: rgba(255,255,255,0.08);
+            --sidebar-icon: rgba(255,255,255,0.88);
         }
         
         /* Dark theme overrides (custom data-theme for Bootstrap 4 compatibility) */
         [data-theme="dark"],
         [data-theme="dark"] body {
+            /* Preserve existing dark mode look */
             --text-color: #f8f9fa;
             --bg-color: #212529;
+            --surface-color: #2c3034;
+            --surface-muted: #2c3034;
+            --muted-color: rgba(248,249,250,0.72);
+            --border-color: #495057;
+            --icon-color: rgba(248,249,250,0.90);
+
             --sidebar-bg: #1a1e21;
             --sidebar-text: #f8f9fa;
+            --sidebar-text-muted: rgba(248,249,250,0.72);
+            --sidebar-surface: rgba(255,255,255,0.06);
+            --sidebar-surface-hover: rgba(255,255,255,0.10);
+            --sidebar-border: rgba(255,255,255,0.08);
+            --sidebar-icon: rgba(255,255,255,0.88);
             color: var(--text-color) !important;
             background-color: var(--bg-color) !important;
         }
@@ -77,17 +103,43 @@ if (!defined('BASE_URL')) {
             background-color: var(--bg-color);
             transition: background-color 0.3s ease, color 0.3s ease;
         }
+
+        /* Global surfaces/text (prevents invisible labels in light mode) */
+        .card,
+        .card-header,
+        .card-body,
+        .table,
+        .table th,
+        .table td,
+        .alert,
+        .list-group-item,
+        .modal-content {
+            color: var(--text-color);
+        }
+
+        .card,
+        .modal-content,
+        .dropdown-menu,
+        .list-group-item {
+            background-color: var(--surface-color);
+            border-color: var(--border-color);
+        }
+
+        .text-muted,
+        small.text-muted {
+            color: var(--muted-color) !important;
+        }
+
+        /* Fix: light mode pages that use text-white/text-light (from dark-mode styling) */
+        :not([data-theme="dark"]) .text-white,
+        :not([data-theme="dark"]) .text-light {
+            color: var(--text-color) !important;
+        }
         
-        /* Force text color in light mode */
+        /* Light mode explicit text classes */
         :not([data-theme="dark"]) .text-body,
-        :not([data-theme="dark"]) .text-dark,
-        :not([data-theme="dark"]) .table,
-        :not([data-theme="dark"]) .table th,
-        :not([data-theme="dark"]) .table td,
-        :not([data-theme="dark"]) .card,
-        :not([data-theme="dark"]) .card-header,
-        :not([data-theme="dark"]) .card-body {
-            color: #212529 !important;
+        :not([data-theme="dark"]) .text-dark {
+            color: var(--text-color) !important;
         }
         
         /* Force text color in dark mode */
@@ -145,9 +197,6 @@ if (!defined('BASE_URL')) {
             --sidebar-width: 280px;
             --sidebar-width-collapsed: 84px;
             --sidebar-accent: #3b82f6; /* blue */
-            --sidebar-surface: rgba(255,255,255,0.06);
-            --sidebar-surface-hover: rgba(255,255,255,0.10);
-            --sidebar-text-muted: rgba(248,249,250,0.72);
         }
 
         #sidebar {
@@ -179,11 +228,11 @@ if (!defined('BASE_URL')) {
             justify-content: space-between;
             padding: 16px;
             gap: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid var(--sidebar-border);
         }
 
         .admin-sidebar__brand a {
-            color: #fff;
+            color: var(--sidebar-text);
             text-decoration: none;
             font-weight: 600;
             letter-spacing: -0.01em;
@@ -231,7 +280,7 @@ if (!defined('BASE_URL')) {
             gap: 12px;
             padding: 10px 12px;
             border-radius: 12px;
-            color: rgba(255,255,255,0.90);
+            color: var(--sidebar-text);
             background: transparent;
             border: 0;
             text-decoration: none;
@@ -263,7 +312,7 @@ if (!defined('BASE_URL')) {
         .admin-nav-icon {
             width: 20px;
             height: 20px;
-            color: rgba(255,255,255,0.88);
+            color: var(--sidebar-icon);
             flex: 0 0 auto;
         }
 
@@ -345,9 +394,9 @@ if (!defined('BASE_URL')) {
             display: none !important;
         }
 
-        /* Light theme sidebar tweaks */
+        /* Light theme sidebar tweaks (intentionally dark sidebar; keep consistent) */
         :not([data-theme="dark"]) #sidebar {
-            background: #0f172a;
+            background: var(--sidebar-bg);
         }
 
         /* Custom scrollbar for sidebar menu */
