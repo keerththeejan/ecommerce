@@ -465,7 +465,192 @@ class ProductController extends Controller {
         // Load view
         $this->view('admin/products/index', [
             'products' => $products,
-            'supplierMap' => $supplierMap
+            'supplierMap' => $supplierMap,
+            'categories' => $this->categoryModel ? $this->categoryModel->getActiveCategories() : [],
+            'suppliers' => ($this->supplierModel && method_exists($this->supplierModel, 'getAllSuppliers')) ? $this->supplierModel->getAllSuppliers() : []
+        ]);
+    }
+
+    public function inlineUpdate() {
+        if(!isAdmin()) {
+            $this->json(['success' => false, 'message' => 'Unauthorized access'], 401);
+            return;
+        }
+
+        if(!$this->isAjax()) {
+            $this->json(['success' => false, 'message' => 'Invalid request'], 400);
+            return;
+        }
+
+        if(!$this->isPost()) {
+            $this->json(['success' => false, 'message' => 'Method not allowed'], 405);
+            return;
+        }
+
+        $payload = [];
+        $raw = file_get_contents('php://input');
+        if (is_string($raw) && trim($raw) !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $payload = $decoded;
+            }
+        }
+
+        $id = (int)($payload['id'] ?? ($_POST['id'] ?? 0));
+        $field = (string)($payload['field'] ?? ($_POST['field'] ?? ''));
+        $value = $payload['value'] ?? ($_POST['value'] ?? null);
+
+        if ($id <= 0 || $field === '') {
+            $this->json(['success' => false, 'message' => 'Invalid payload'], 400);
+            return;
+        }
+
+        $allowed = [
+            'sku' => 'string',
+            'price' => 'number',
+            'sale_price' => 'number_nullable',
+            'price2' => 'number_nullable',
+            'price3' => 'number_nullable',
+            'customs_charge' => 'number_nullable',
+            'transport_charge' => 'number_nullable',
+            'stock_quantity' => 'number',
+            'category_id' => 'int_nullable',
+            'supplier' => 'string_nullable',
+            'expiry_date' => 'date_nullable'
+        ];
+
+        if (!isset($allowed[$field])) {
+            $this->json(['success' => false, 'message' => 'Field not editable'], 400);
+            return;
+        }
+
+        $product = $this->productModel->getById($id);
+        if (!$product) {
+            $this->json(['success' => false, 'message' => 'Product not found'], 404);
+            return;
+        }
+
+        $type = $allowed[$field];
+        $normalized = null;
+
+        if ($type === 'string') {
+            $normalized = sanitize((string)$value);
+            if ($normalized === '') {
+                $this->json(['success' => false, 'message' => 'Value is required'], 400);
+                return;
+            }
+        } elseif ($type === 'string_nullable') {
+            $normalized = sanitize((string)$value);
+            if (trim((string)$normalized) === '') {
+                $normalized = null;
+            }
+        } elseif ($type === 'number') {
+            if ($value === null || $value === '' || !is_numeric($value)) {
+                $this->json(['success' => false, 'message' => 'Invalid number'], 400);
+                return;
+            }
+            $normalized = (float)$value;
+            if ($normalized < 0) {
+                $this->json(['success' => false, 'message' => 'Value cannot be negative'], 400);
+                return;
+            }
+            if ($field === 'stock_quantity') {
+                $normalized = (float)$normalized;
+            }
+        } elseif ($type === 'number_nullable') {
+            if ($value === null || $value === '') {
+                $normalized = null;
+            } else {
+                if (!is_numeric($value)) {
+                    $this->json(['success' => false, 'message' => 'Invalid number'], 400);
+                    return;
+                }
+                $normalized = (float)$value;
+                if ($normalized < 0) {
+                    $this->json(['success' => false, 'message' => 'Value cannot be negative'], 400);
+                    return;
+                }
+            }
+        } elseif ($type === 'int_nullable') {
+            if ($value === null || $value === '' || (string)$value === '0') {
+                $normalized = null;
+            } else {
+                if (!is_numeric($value)) {
+                    $this->json(['success' => false, 'message' => 'Invalid value'], 400);
+                    return;
+                }
+                $normalized = (int)$value;
+                if ($normalized <= 0) {
+                    $normalized = null;
+                }
+            }
+        } elseif ($type === 'date_nullable') {
+            $s = trim((string)$value);
+            if ($s === '') {
+                $normalized = null;
+            } else {
+                $ts = strtotime($s);
+                if (!$ts) {
+                    $this->json(['success' => false, 'message' => 'Invalid date'], 400);
+                    return;
+                }
+                $normalized = date('Y-m-d', $ts);
+            }
+        }
+
+        if ($field === 'sku') {
+            if (strlen((string)$normalized) > 50) {
+                $this->json(['success' => false, 'message' => 'SKU too long'], 400);
+                return;
+            }
+            $existing = $this->productModel->getSingleBy('sku', $normalized);
+            if ($existing && (int)($existing['id'] ?? 0) !== $id) {
+                $this->json(['success' => false, 'message' => 'SKU already exists'], 400);
+                return;
+            }
+        }
+
+        if (!$this->productModel->update($id, [$field => $normalized])) {
+            $error = method_exists($this->productModel, 'getLastError') ? $this->productModel->getLastError() : 'Failed to update';
+            $this->json(['success' => false, 'message' => $error], 400);
+            return;
+        }
+
+        $updated = $this->productModel->getById($id);
+        $rawValue = is_array($updated) && array_key_exists($field, $updated) ? $updated[$field] : $normalized;
+        $displayValue = $rawValue;
+
+        if (in_array($field, ['price', 'sale_price', 'price2', 'price3', 'customs_charge', 'transport_charge'], true)) {
+            try {
+                $displayValue = ($rawValue === null || $rawValue === '') ? '' : formatPrice($rawValue);
+            } catch (Exception $e) {
+                $displayValue = $rawValue;
+            }
+        }
+
+        if ($field === 'category_id') {
+            $catName = '';
+            try {
+                $cats = $this->categoryModel ? $this->categoryModel->getActiveCategories() : [];
+                foreach ($cats as $c) {
+                    if ((int)($c['id'] ?? 0) === (int)$rawValue) {
+                        $catName = (string)($c['name'] ?? '');
+                        break;
+                    }
+                }
+            } catch (Exception $e) {
+                $catName = '';
+            }
+            $displayValue = $catName !== '' ? $catName : 'Uncategorized';
+        }
+
+        $this->json([
+            'success' => true,
+            'message' => 'Saved',
+            'id' => $id,
+            'field' => $field,
+            'value' => $rawValue,
+            'display' => $displayValue
         ]);
     }
     

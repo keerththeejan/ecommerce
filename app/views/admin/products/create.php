@@ -16,6 +16,15 @@
     border-bottom: 1px solid var(--border-color);
 }
 
+html[data-theme="light"] .admin-page-shell {
+    background: #f7f8fb;
+}
+
+html[data-theme="light"] .admin-page-header {
+    background: rgba(247, 248, 251, 0.82);
+    border-bottom-color: rgba(17, 24, 39, 0.08);
+}
+
 .admin-page-header__inner {
     padding: 16px 0;
 }
@@ -37,12 +46,17 @@
 .admin-card {
     background: var(--surface-color);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(17,24,39,0.06), 0 1px 2px rgba(17,24,39,0.05);
+}
+
+html[data-theme="light"] .admin-card {
+    background: #ffffff;
+    border-color: rgba(17, 24, 39, 0.08);
 }
 
 .admin-card__header {
-    padding: 12px 12px 0;
+    padding: 14px 14px 0;
 }
 
 .admin-card__title {
@@ -60,7 +74,11 @@
 }
 
 .admin-card__body {
-    padding: 12px;
+    padding: 14px;
+}
+
+@media (min-width: 992px) {
+    .admin-card__body { padding: 16px; }
 }
 
 .create-product-form .form-label {
@@ -72,6 +90,10 @@
 
 .create-product-form .form-group {
     margin-bottom: 12px;
+}
+
+@media (min-width: 992px) {
+    .create-product-form .form-group { margin-bottom: 14px; }
 }
 
 .create-product-form .form-control,
@@ -181,6 +203,30 @@ html[data-theme="dark"] .create-product-form .input-group-text {
 .admin-btn-primary:hover {
     background: #1d4ed8;
     border-color: #1d4ed8;
+}
+
+.admin-page-header .btn {
+    box-shadow: 0 1px 0 rgba(17,24,39,0.02);
+}
+
+html[data-theme="light"] .admin-page-header .btn.btn-outline-secondary {
+    background: rgba(255,255,255,0.75);
+    border-color: rgba(17, 24, 39, 0.10);
+}
+
+html[data-theme="light"] .admin-page-header .btn.btn-outline-secondary:hover {
+    background: rgba(255,255,255,0.95);
+    border-color: rgba(17, 24, 39, 0.14);
+}
+
+html[data-theme="light"] .admin-page-header .btn.btn-outline-primary {
+    background: rgba(37,99,235,0.06);
+    border-color: rgba(37,99,235,0.22);
+}
+
+html[data-theme="light"] .admin-page-header .btn.btn-outline-primary:hover {
+    background: rgba(37,99,235,0.10);
+    border-color: rgba(37,99,235,0.28);
 }
 
 .admin-btn-soft {
@@ -437,6 +483,35 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
     border-color: #495057 !important;
 }
 
+/* Light mode Select2 specific overrides */
+html[data-theme="light"] .select2-dropdown {
+    background-color: #ffffff !important;
+    border-color: rgba(17, 24, 39, 0.10) !important;
+}
+
+html[data-theme="light"] .select2-container--default .select2-results__option {
+    color: #111827 !important;
+}
+
+html[data-theme="light"] .create-product-form .select2-container--default .select2-selection--single {
+    background-color: #ffffff !important;
+    border-color: rgba(17, 24, 39, 0.10) !important;
+}
+
+html[data-theme="light"] .create-product-form .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #111827 !important;
+}
+
+html[data-theme="light"] .create-product-form .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #6b7280 !important;
+}
+
+html[data-theme="light"] .select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: rgba(17, 24, 39, 0.10) !important;
+}
+
 @media (max-width: 767.98px) {
     .create-product-form .select2-container--default .select2-selection--single { height: 44px; }
     .create-product-form .select2-container--default .select2-selection--single .select2-selection__arrow { height: 42px; }
@@ -471,10 +546,19 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
                     <h1 class="admin-page-title">Add Product</h1>
                     <p class="admin-page-subtitle">Create a new product with pricing, inventory and media.</p>
                 </div>
-                <div class="d-flex align-items-center" style="gap: 10px;">
+                <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
                     <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-secondary" style="min-height: 40px; border-radius: 10px;">
                         <i class="fas fa-arrow-left mr-2"></i>Back
                     </a>
+                    <button type="button" class="btn btn-outline-secondary" id="previewBtn" style="min-height: 40px; border-radius: 10px;" aria-label="Preview product">
+                        <i class="fas fa-eye mr-2"></i>Preview
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="saveAddAnotherBtn" style="min-height: 40px; border-radius: 10px;" aria-label="Save and add another product">
+                        <i class="fas fa-plus mr-2"></i>Save & Add Another
+                    </button>
+                    <button type="button" class="btn admin-btn-primary text-white" id="saveHeaderBtn" style="min-height: 40px; border-radius: 10px; padding: 0 14px;" aria-label="Save product">
+                        <i class="fas fa-save mr-2"></i>Save
+                    </button>
                 </div>
             </div>
         </div>
@@ -506,7 +590,8 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
                                         <div class="pm-divider"></div>
                                         <div class="form-group">
                                             <label for="name" class="form-label">Product Name<span class="required-asterisk">*</span></label>
-                                            <input type="text" class="form-control <?php echo isset($errors['name']) ? 'is-invalid' : ''; ?>" id="name" name="name" value="<?php echo $data['name'] ?? ''; ?>" required aria-required="true">
+                                            <input type="text" class="form-control <?php echo isset($errors['name']) ? 'is-invalid' : ''; ?>" id="name" name="name" value="<?php echo $data['name'] ?? ''; ?>" required aria-required="true" list="productSuggestions" autocomplete="off">
+                                            <datalist id="productSuggestions"></datalist>
                                             <?php if(isset($errors['name'])): ?>
                                                 <div class="invalid-feedback"><?php echo $errors['name']; ?></div>
                                             <?php endif; ?>
@@ -586,37 +671,90 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
                                         <p class="pm-section-subtitle">Set your selling price.</p>
                                         <div class="pm-divider"></div>
 
-                                        <div class="form-group">
-                                            <label for="price" class="form-label">Buying Price</label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
-                                                <input type="text" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $data['price'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Buying price">
-                                                <?php if(isset($errors['price'])): ?>
-                                                    <div class="invalid-feedback"><?php echo $errors['price']; ?></div>
-                                                <?php endif; ?>
+                                        <div class="row" style="row-gap: 12px;">
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-group">
+                                                    <label for="price" class="form-label">Buying Price</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                        <input type="text" class="form-control <?php echo isset($errors['price']) ? 'is-invalid' : ''; ?>" id="price" name="price" value="<?php echo $data['price'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Buying price">
+                                                        <?php if(isset($errors['price'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['price']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div class="form-group">
-                                            <label for="price2" class="form-label">Sales Price<span class="required-asterisk">*</span></label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
-                                                <input type="text" class="form-control <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" inputmode="decimal" autocomplete="off" required aria-required="true" aria-label="Sales price">
-                                                <?php if(isset($errors['price2'])): ?>
-                                                    <div class="invalid-feedback"><?php echo $errors['price2']; ?></div>
-                                                <?php endif; ?>
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-group">
+                                                    <div class="d-flex align-items-center justify-content-between" style="gap: 12px; margin-bottom: 4px;">
+                                                        <label for="sale_price" class="form-label" style="margin-bottom: 0;">Including Tax Price</label>
+                                                        <div class="custom-control custom-switch" style="margin: 0;">
+                                                            <input type="checkbox" class="custom-control-input" id="includingTaxToggle" <?php echo (!empty($data['sale_price'])) ? 'checked' : ''; ?> aria-label="Including tax toggle">
+                                                            <label class="custom-control-label" for="includingTaxToggle"></label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="input-group" id="salePriceGroup">
+                                                        <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                        <input type="text" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Including tax price">
+                                                        <?php if(isset($errors['sale_price'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="form-text" style="font-size: 12px;">Required</div>
-                                        </div>
 
-                                        <div class="form-group">
-                                            <label for="price3" class="form-label">Wholesale Price</label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
-                                                <input type="text" class="form-control <?php echo isset($errors['price3']) ? 'is-invalid' : ''; ?>" id="price3" name="price3" value="<?php echo $data['price3'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Wholesale price">
-                                                <?php if(isset($errors['price3'])): ?>
-                                                    <div class="invalid-feedback"><?php echo $errors['price3']; ?></div>
-                                                <?php endif; ?>
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-group">
+                                                    <label for="price2" class="form-label">Sales Price<span class="required-asterisk">*</span></label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                        <input type="text" class="form-control <?php echo isset($errors['price2']) ? 'is-invalid' : ''; ?>" id="price2" name="price2" value="<?php echo $data['price2'] ?? ''; ?>" inputmode="decimal" autocomplete="off" required aria-required="true" aria-label="Sales price">
+                                                        <?php if(isset($errors['price2'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['price2']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div class="form-text" style="font-size: 12px;">Required</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-group">
+                                                    <label for="price3" class="form-label">Wholesale Price</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                        <input type="text" class="form-control <?php echo isset($errors['price3']) ? 'is-invalid' : ''; ?>" id="price3" name="price3" value="<?php echo $data['price3'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Wholesale price">
+                                                        <?php if(isset($errors['price3'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['price3']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-group">
+                                                    <label for="customs_charge" class="form-label">Customs Charge</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                        <input type="text" class="form-control <?php echo isset($errors['customs_charge']) ? 'is-invalid' : ''; ?>" id="customs_charge" name="customs_charge" value="<?php echo $data['customs_charge'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Customs charge">
+                                                        <?php if(isset($errors['customs_charge'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['customs_charge']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-group">
+                                                    <label for="transport_charge" class="form-label">Transport Charge</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                        <input type="text" class="form-control <?php echo isset($errors['transport_charge']) ? 'is-invalid' : ''; ?>" id="transport_charge" name="transport_charge" value="<?php echo $data['transport_charge'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Transport charge">
+                                                        <?php if(isset($errors['transport_charge'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['transport_charge']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -648,6 +786,18 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
                                                 <?php if(isset($errors['tax_id'])): ?>
                                                     <div class="invalid-feedback d-block w-100"><?php echo $errors['tax_id']; ?></div>
                                                 <?php endif; ?>
+                                            </div>
+                                        </div>
+
+                                        <div class="pm-divider"></div>
+                                        <div class="row" style="row-gap: 12px;">
+                                            <div class="col-6">
+                                                <div class="form-text" style="margin: 0; font-weight: 700; color: var(--text-color);">Profit</div>
+                                                <div id="kpiProfit" style="font-weight: 800; font-variant-numeric: tabular-nums;">CHF 0.00</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-text" style="margin: 0; font-weight: 700; color: var(--text-color);">Margin</div>
+                                                <div id="kpiMargin" style="font-weight: 800; font-variant-numeric: tabular-nums;">0%</div>
                                             </div>
                                         </div>
                                     </div>
@@ -719,33 +869,45 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
                                             </div>
                                         </div>
 
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label class="form-label">Image</label>
-                                            <input type="file" class="d-none <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" id="image" name="image" accept="image/*" aria-label="Product image">
-                                            <div class="d-flex" style="gap: 12px; align-items: flex-start;">
-                                                <div class="pm-media-preview" aria-hidden="true">
-                                                    <img id="imagePreview" src="" alt="" style="display:none;">
-                                                    <i id="imagePreviewIcon" class="fas fa-image" style="color: rgba(100,116,139,0.9); font-size: 22px;"></i>
-                                                </div>
-                                                <div style="flex: 1 1 auto; min-width: 0;">
-                                                    <div class="pm-media-actions" style="margin-top: 0;">
-                                                        <button class="btn admin-btn-soft" type="button" id="chooseImageBtn" style="min-height: 40px;">
-                                                            <i class="fas fa-upload mr-1"></i>Upload
-                                                        </button>
-                                                        <button class="btn btn-outline-secondary" type="button" id="removeImageBtn" style="border-radius: 10px; min-height: 40px;" disabled>
-                                                            <i class="fas fa-times mr-1"></i>Remove
-                                                        </button>
-                                                    </div>
-                                                    <div class="form-text" style="font-size: 12px;">Square image works best.</div>
-                                                    <?php if(isset($errors['image'])): ?>
-                                                        <div class="invalid-feedback d-block"><?php echo $errors['image']; ?></div>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <div class="pm-divider"></div>
                                         <div style="margin-top: 10px;">
+                                            <div class="row" style="row-gap: 12px;">
+                                                <div class="col-12 col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="batch_number" class="form-label">Batch</label>
+                                                        <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo $data['batch_number'] ?? ''; ?>" maxlength="100" aria-label="Batch number">
+                                                        <?php if(isset($errors['batch_number'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="supplier" class="form-label">Supplier</label>
+                                                        <div class="pm-select-add">
+                                                            <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;" aria-label="Supplier">
+                                                                <option value="">Select Supplier</option>
+                                                                <?php if(!empty($suppliers)): ?>
+                                                                    <?php foreach($suppliers as $supplier): ?>
+                                                                        <?php 
+                                                                            $value = htmlspecialchars($supplier['name']);
+                                                                            $selected = (isset($data['supplier']) && $data['supplier'] === $supplier['name']) ? 'selected' : '';
+                                                                        ?>
+                                                                        <option value="<?php echo $value; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($supplier['name']); ?></option>
+                                                                    <?php endforeach; ?>
+                                                                <?php endif; ?>
+                                                            </select>
+                                                            <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="btn btn-outline-primary" type="button" aria-label="Add new supplier">
+                                                                <i class="fas fa-plus"></i>
+                                                            </a>
+                                                            <?php if(isset($errors['supplier'])): ?>
+                                                                <div class="invalid-feedback d-block w-100"><?php echo $errors['supplier']; ?></div>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div class="form-group">
                                                 <label for="country_id" class="form-label">Country</label>
                                                 <div class="pm-select-add">
@@ -787,84 +949,33 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
                                                         <?php endif; ?>
                                                     </div>
                                                 </div>
-                                                <div class="col-12 col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="customs_charge" class="form-label">Customs Charge</label>
-                                                        <div class="input-group">
-                                                            <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
-                                                            <input type="text" class="form-control <?php echo isset($errors['customs_charge']) ? 'is-invalid' : ''; ?>" id="customs_charge" name="customs_charge" value="<?php echo $data['customs_charge'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Customs charge">
-                                                            <?php if(isset($errors['customs_charge'])): ?>
-                                                                <div class="invalid-feedback"><?php echo $errors['customs_charge']; ?></div>
-                                                            <?php endif; ?>
-                                                        </div>
+                                            </div>
+
+                                            <div class="form-group" style="margin-bottom: 0;">
+                                                <label class="form-label">Image</label>
+                                                <input type="file" class="d-none <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" id="image" name="image" accept="image/*" aria-label="Product image">
+                                                <div class="d-flex" style="gap: 12px; align-items: flex-start;">
+                                                    <div class="pm-media-preview" aria-hidden="true">
+                                                        <img id="imagePreview" src="" alt="" style="display:none;">
+                                                        <i id="imagePreviewIcon" class="fas fa-image" style="color: rgba(100,116,139,0.9); font-size: 22px;"></i>
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="transport_charge" class="form-label">Transport Charge</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
-                                                    <input type="text" class="form-control <?php echo isset($errors['transport_charge']) ? 'is-invalid' : ''; ?>" id="transport_charge" name="transport_charge" value="<?php echo $data['transport_charge'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Transport charge">
-                                                    <?php if(isset($errors['transport_charge'])): ?>
-                                                        <div class="invalid-feedback"><?php echo $errors['transport_charge']; ?></div>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="supplier" class="form-label">Supplier</label>
-                                                <div class="pm-select-add">
-                                                    <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;" aria-label="Supplier">
-                                                        <option value="">Select Supplier</option>
-                                                        <?php if(!empty($suppliers)): ?>
-                                                            <?php foreach($suppliers as $supplier): ?>
-                                                                <?php 
-                                                                    $value = htmlspecialchars($supplier['name']);
-                                                                    $selected = (isset($data['supplier']) && $data['supplier'] === $supplier['name']) ? 'selected' : '';
-                                                                ?>
-                                                                <option value="<?php echo $value; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($supplier['name']); ?></option>
-                                                            <?php endforeach; ?>
-                                                        <?php endif; ?>
-                                                    </select>
-                                                    <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="btn btn-outline-primary" type="button" aria-label="Add new supplier">
-                                                        <i class="fas fa-plus"></i>
-                                                    </a>
-                                                    <?php if(isset($errors['supplier'])): ?>
-                                                        <div class="invalid-feedback d-block w-100"><?php echo $errors['supplier']; ?></div>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-
-                                            <div class="row" style="row-gap: 12px;">
-                                                <div class="col-12 col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="batch_number" class="form-label">Batch</label>
-                                                        <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo $data['batch_number'] ?? ''; ?>" maxlength="100" aria-label="Batch number">
-                                                        <?php if(isset($errors['batch_number'])): ?>
-                                                            <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
+                                                    <div style="flex: 1 1 auto; min-width: 0;">
+                                                        <div class="pm-media-actions" style="margin-top: 0;">
+                                                            <button class="btn admin-btn-soft" type="button" id="chooseImageBtn" style="min-height: 40px;">
+                                                                <i class="fas fa-upload mr-1"></i>Upload
+                                                            </button>
+                                                            <button class="btn btn-outline-secondary" type="button" id="removeImageBtn" style="border-radius: 10px; min-height: 40px;" disabled>
+                                                                <i class="fas fa-times mr-1"></i>Remove
+                                                            </button>
+                                                        </div>
+                                                        <div class="form-text" style="font-size: 12px;">Square image works best.</div>
+                                                        <?php if(isset($errors['image'])): ?>
+                                                            <div class="invalid-feedback d-block"><?php echo $errors['image']; ?></div>
                                                         <?php endif; ?>
                                                     </div>
                                                 </div>
-                                                <div class="col-12 col-sm-6">
-                                                    <div class="form-group" style="margin-bottom: 0;">
-                                                        <div class="d-flex align-items-center justify-content-between" style="gap: 12px; margin-bottom: 4px;">
-                                                            <label for="sale_price" class="form-label" style="margin-bottom: 0;">Incl. Tax</label>
-                                                            <div class="custom-control custom-switch" style="margin: 0;">
-                                                                <input type="checkbox" class="custom-control-input" id="includingTaxToggle" <?php echo (!empty($data['sale_price'])) ? 'checked' : ''; ?> aria-label="Including tax toggle">
-                                                                <label class="custom-control-label" for="includingTaxToggle"></label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="input-group" id="salePriceGroup">
-                                                            <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
-                                                            <input type="text" class="form-control <?php echo isset($errors['sale_price']) ? 'is-invalid' : ''; ?>" id="sale_price" name="sale_price" value="<?php echo $data['sale_price'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Including tax price">
-                                                            <?php if(isset($errors['sale_price'])): ?>
-                                                                <div class="invalid-feedback"><?php echo $errors['sale_price']; ?></div>
-                                                            <?php endif; ?>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -879,9 +990,6 @@ html[data-theme="dark"] .select2-container--default .select2-search--dropdown .s
                                     <div class="d-flex flex-column flex-sm-row order-sm-2" style="gap: 10px;">
                                         <button type="submit" class="btn admin-btn-primary text-white" id="submitBtn" aria-label="Create product" style="padding: 0 14px;">
                                             <i class="fas fa-save mr-2"></i>Save Product
-                                        </button>
-                                        <button type="button" class="btn btn-success d-none" id="addAnotherBtn" style="display: none;" aria-label="Add another product">
-                                            <i class="fas fa-plus mr-2"></i>Add Another
                                         </button>
                                     </div>
                                 </div>
@@ -1070,20 +1178,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize Select2 for ALL dropdowns (Country, Brand, Category, Supplier, Status) - searchable
+    // Initialize Select2 for ALL dropdowns (Country, Brand, Category, Supplier, Status) - live search
     $('.select2').select2({
         theme: 'default',
+        width: '100%',
         placeholder: 'Search...',
         allowClear: false,
+        minimumResultsForSearch: 0,
         templateResult: formatOption,
         templateSelection: formatOption,
         escapeMarkup: function(m) { return m; }
     });
+
+    // Focus the Select2 search field on open (instant typing filters results)
+    $(document).on('select2:open', function() {
+        setTimeout(function() {
+            const field = document.querySelector('.select2-container--open .select2-search__field');
+            try { field && field.focus(); } catch (e) { /* ignore */ }
+        }, 0);
+    });
     
     const form = document.getElementById('productForm');
     const submitBtn = document.getElementById('submitBtn');
-    const addAnotherBtn = document.getElementById('addAnotherBtn');
     const alertMessages = document.getElementById('alert-messages');
+    const saveHeaderBtn = document.getElementById('saveHeaderBtn');
+    const saveAddAnotherBtn = document.getElementById('saveAddAnotherBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const postSaveModalEl = document.getElementById('postSaveModal');
+    const postSaveGoListBtn = document.getElementById('postSaveGoList');
+    const postSaveContinueBtn = document.getElementById('postSaveContinue');
+    const postSaveAddAnotherBtn = document.getElementById('postSaveAddAnother');
+    const previewModalEl = document.getElementById('productPreviewModal');
+    const previewName = document.getElementById('previewName');
+    const previewMeta = document.getElementById('previewMeta');
+    const previewPricing = document.getElementById('previewPricing');
+    const previewInventory = document.getElementById('previewInventory');
+    const previewImg = document.getElementById('previewImg');
+    const previewDescription = document.getElementById('previewDescription');
+
+    let pendingAfterSaveAction = 'continue';
     
     // Handle form submission
     form.addEventListener('submit', function(e) {
@@ -1123,16 +1256,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (xhr.status >= 200 && xhr.status < 300 && response && response.success) {
                 showAlert('Product created successfully!', 'success');
-                submitBtn.classList.add('d-none');
-                addAnotherBtn.classList.remove('d-none');
-                form.reset();
-                var fileInput = document.querySelector('input[type="file"]');
-                if (fileInput) fileInput.value = '';
-                resetImageUI();
-                if (includingTaxToggle) setIncludingTaxEnabled(!!includingTaxToggle.checked);
-                if (statusToggle) setStatusUI(!!statusToggle.checked);
                 clearValidationErrors();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                if (postSaveModalEl) {
+                    try { $(postSaveModalEl).modal('show'); } catch (e) { /* ignore */ }
+                }
             } else {
                 showAlert(msg || 'Error ' + xhr.status + '. Please try again.', 'danger');
             }
@@ -1147,18 +1276,199 @@ document.addEventListener('DOMContentLoaded', function() {
         xhr.send(formData);
     });
     
-    // Handle "Add Another" button click
-    addAnotherBtn.addEventListener('click', function() {
-        // Hide "Add Another" button and show submit button
-        addAnotherBtn.classList.add('d-none');
-        submitBtn.classList.remove('d-none');
-        
-        // Clear any success messages
-        const alerts = alertMessages.getElementsByClassName('alert');
-        while (alerts[0]) {
-            alerts[0].parentNode.removeChild(alerts[0]);
+    function setPendingAfterSaveAction(action) {
+        pendingAfterSaveAction = action;
+    }
+
+    function getSelectedValue(id) {
+        const el = document.getElementById(id);
+        return el ? (el.value ?? '') : '';
+    }
+
+    function setSelectedValue(id, val) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = val;
+        try { if (window.jQuery && $(el).hasClass('select2-hidden-accessible')) { $(el).trigger('change.select2'); } } catch (e) { /* ignore */ }
+    }
+
+    function resetFormKeep(categoryVal, brandVal) {
+        form.reset();
+        var fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) fileInput.value = '';
+        resetImageUI();
+        if (includingTaxToggle) setIncludingTaxEnabled(false);
+        if (statusToggle) { statusToggle.checked = true; setStatusUI(true); }
+        setSelectedValue('category_id', categoryVal);
+        setSelectedValue('brand_id', brandVal);
+        clearValidationErrors();
+        updatePricingKpis();
+        try { document.getElementById('name') && document.getElementById('name').focus(); } catch (e) { /* ignore */ }
+    }
+
+    if (saveHeaderBtn) {
+        saveHeaderBtn.addEventListener('click', function() {
+            setPendingAfterSaveAction('continue');
+            submitBtn && submitBtn.click();
+        });
+    }
+
+    if (saveAddAnotherBtn) {
+        saveAddAnotherBtn.addEventListener('click', function() {
+            setPendingAfterSaveAction('add_another');
+            submitBtn && submitBtn.click();
+        });
+    }
+
+    if (postSaveGoListBtn) {
+        postSaveGoListBtn.addEventListener('click', function() {
+            try { $(postSaveModalEl).modal('hide'); } catch (e) { /* ignore */ }
+            window.location.href = '<?php echo BASE_URL; ?>?controller=product&action=adminIndex';
+        });
+    }
+
+    if (postSaveContinueBtn) {
+        postSaveContinueBtn.addEventListener('click', function() {
+            try { $(postSaveModalEl).modal('hide'); } catch (e) { /* ignore */ }
+        });
+    }
+
+    if (postSaveAddAnotherBtn) {
+        postSaveAddAnotherBtn.addEventListener('click', function() {
+            const cat = getSelectedValue('category_id');
+            const br = getSelectedValue('brand_id');
+            try { $(postSaveModalEl).modal('hide'); } catch (e) { /* ignore */ }
+            resetFormKeep(cat, br);
+        });
+    }
+
+    if (postSaveModalEl) {
+        $(postSaveModalEl).on('shown.bs.modal', function() {
+            if (pendingAfterSaveAction === 'add_another') {
+                const cat = getSelectedValue('category_id');
+                const br = getSelectedValue('brand_id');
+                try { $(postSaveModalEl).modal('hide'); } catch (e) { /* ignore */ }
+                resetFormKeep(cat, br);
+            }
+        });
+    }
+
+    function toNum(v) {
+        const s = (v ?? '').toString().replace(/[^0-9.\-]/g, '');
+        const n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+    }
+
+    function fmtCHF(n) {
+        const x = (isNaN(n) ? 0 : n);
+        return 'CHF ' + x.toFixed(2);
+    }
+
+    function updatePricingKpis() {
+        const buying = toNum(document.getElementById('price') ? document.getElementById('price').value : 0);
+        const selling = toNum(document.getElementById('price2') ? document.getElementById('price2').value : 0);
+        const profit = selling - buying;
+        const margin = selling > 0 ? (profit / selling) * 100 : 0;
+        const p = document.getElementById('kpiProfit');
+        const m = document.getElementById('kpiMargin');
+        if (p) p.textContent = fmtCHF(profit);
+        if (m) m.textContent = (isNaN(margin) ? '0%' : margin.toFixed(1) + '%');
+    }
+
+    function formatCurrencyOnBlur(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('blur', function() {
+            const n = toNum(el.value);
+            if (el.value === '') return;
+            el.value = n.toFixed(2);
+        });
+    }
+
+    ['price','price2','price3','customs_charge','transport_charge','sale_price'].forEach(function(id) {
+        formatCurrencyOnBlur(id);
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function() { updatePricingKpis(); });
+            el.addEventListener('change', function() { updatePricingKpis(); });
         }
     });
+    updatePricingKpis();
+
+    function debounce(fn, wait) {
+        let t = null;
+        return function() {
+            const ctx = this;
+            const args = arguments;
+            clearTimeout(t);
+            t = setTimeout(function() { fn.apply(ctx, args); }, wait);
+        };
+    }
+
+    const nameInput = document.getElementById('name');
+    const datalist = document.getElementById('productSuggestions');
+    const suggestUrlBase = '<?php echo BASE_URL; ?>?controller=product&action=suggest';
+    const fetchSuggestions = debounce(function() {
+        if (!nameInput || !datalist) return;
+        const q = (nameInput.value || '').trim();
+        if (q.length < 2) {
+            datalist.innerHTML = '';
+            return;
+        }
+        fetch(suggestUrlBase + '&q=' + encodeURIComponent(q) + '&limit=8', { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(json => {
+                if (!json || !json.success || !Array.isArray(json.data)) return;
+                datalist.innerHTML = '';
+                json.data.forEach(function(item) {
+                    const opt = document.createElement('option');
+                    opt.value = item.name || '';
+                    datalist.appendChild(opt);
+                });
+            })
+            .catch(() => { /* ignore */ });
+    }, 250);
+
+    if (nameInput) nameInput.addEventListener('input', fetchSuggestions);
+
+    function getSelectText(id) {
+        const el = document.getElementById(id);
+        if (!el) return '';
+        const opt = el.options && el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
+        return opt ? (opt.textContent || '') : '';
+    }
+
+    function openPreview() {
+        if (!previewModalEl) return;
+        const n = document.getElementById('name') ? document.getElementById('name').value : '';
+        const d = document.getElementById('description') ? document.getElementById('description').value : '';
+        const cat = getSelectText('category_id');
+        const br = getSelectText('brand_id');
+        const sku = document.getElementById('sku') ? document.getElementById('sku').value : '';
+        const buy = document.getElementById('price') ? document.getElementById('price').value : '';
+        const sell = document.getElementById('price2') ? document.getElementById('price2').value : '';
+        const whole = document.getElementById('price3') ? document.getElementById('price3').value : '';
+        const stock = document.getElementById('stock_quantity') ? document.getElementById('stock_quantity').value : '';
+        const exp = document.getElementById('expiry_date') ? document.getElementById('expiry_date').value : '';
+        if (previewName) previewName.textContent = n || 'New Product';
+        if (previewMeta) previewMeta.textContent = [cat ? ('Category: ' + cat) : '', br ? ('Brand: ' + br) : '', sku ? ('SKU: ' + sku) : ''].filter(Boolean).join(' • ');
+        if (previewPricing) previewPricing.textContent = [buy ? ('Buying: CHF ' + buy) : '', sell ? ('Sales: CHF ' + sell) : '', whole ? ('Wholesale: CHF ' + whole) : ''].filter(Boolean).join(' | ');
+        if (previewInventory) previewInventory.textContent = [stock ? ('Stock: ' + stock) : '', exp ? ('Expiry: ' + exp) : ''].filter(Boolean).join(' • ');
+        if (previewDescription) previewDescription.textContent = d || '';
+        if (previewImg) {
+            const shown = imagePreview && imagePreview.style.display !== 'none' && imagePreview.src;
+            if (shown) {
+                previewImg.src = imagePreview.src;
+                previewImg.style.display = '';
+            } else {
+                previewImg.src = '';
+                previewImg.style.display = 'none';
+            }
+        }
+        try { $(previewModalEl).modal('show'); } catch (e) { /* ignore */ }
+    }
+
+    if (previewBtn) previewBtn.addEventListener('click', openPreview);
     
     // Function to show alert messages
     function showAlert(message, type = 'success') {
@@ -1197,6 +1507,61 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<div class="modal fade" id="postSaveModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <h5 class="modal-title" style="margin: 0;">Saved</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div style="font-weight: 700; color: var(--text-color);">What would you like to do next?</div>
+                <div class="form-text">Choose the next step to keep your workflow fast.</div>
+            </div>
+            <div class="modal-footer" style="gap: 8px;">
+                <button type="button" class="btn btn-outline-secondary" id="postSaveContinue">Save & Continue Editing</button>
+                <button type="button" class="btn btn-outline-primary" id="postSaveGoList">Save & Go to Product List</button>
+                <button type="button" class="btn admin-btn-primary text-white" id="postSaveAddAnother">Save & Add Another</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="productPreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <h5 class="modal-title" style="margin: 0;">Preview</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="row-gap: 12px;">
+                    <div class="col-12 col-md-5">
+                        <img id="previewImg" src="" alt="" style="width: 100%; border-radius: 12px; border: 1px solid var(--border-color); background: var(--surface-muted); display:none;">
+                        <div class="form-text" style="margin-top: 8px;">Preview shows the content entered so far.</div>
+                    </div>
+                    <div class="col-12 col-md-7">
+                        <div style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em;" id="previewName">New Product</div>
+                        <div class="form-text" id="previewMeta"></div>
+                        <div class="pm-divider"></div>
+                        <div class="form-text" style="font-weight: 700; color: var(--text-color);">Pricing</div>
+                        <div id="previewPricing" style="font-variant-numeric: tabular-nums;"></div>
+                        <div class="pm-divider"></div>
+                        <div class="form-text" style="font-weight: 700; color: var(--text-color);">Inventory</div>
+                        <div id="previewInventory"></div>
+                        <div class="pm-divider"></div>
+                        <div class="form-text" style="font-weight: 700; color: var(--text-color);">Description</div>
+                        <div id="previewDescription" style="white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Add Country Modal -->
 <div class="modal fade" id="addCountryModal" tabindex="-1" aria-labelledby="addCountryModalLabel" aria-hidden="true">

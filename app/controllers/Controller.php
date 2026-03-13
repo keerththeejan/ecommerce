@@ -66,9 +66,21 @@ class Controller {
      * @return void
      */
     public function json($data, $statusCode = 200) {
-        header('Content-Type: application/json');
+        // Ensure no prior output corrupts JSON responses (e.g., notices, whitespace, buffered HTML)
+        try {
+            while (ob_get_level() > 0) {
+                @ob_end_clean();
+            }
+        } catch (Exception $e) {
+            // ignore
+        }
+
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
         http_response_code($statusCode);
         echo json_encode($data);
+        exit;
     }
     
     /**

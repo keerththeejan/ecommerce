@@ -77,7 +77,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
                             <i class="fas fa-arrow-left me-1"></i> Back to Product
                         </a>
-                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addCountryModal">
+                        <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addCountryModal">
                             <i class="fas fa-plus me-1"></i> Add New Country
                         </button>
                     </div>
@@ -175,7 +175,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
             <form id="addCountryForm" action="?controller=country&action=create" method="POST" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addCountryModalLabel">Add New Country</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -198,7 +198,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Add Country</button>
                 </div>
             </form>
@@ -679,14 +679,14 @@ $(document).ready(function() {
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteCountryModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete <strong id="countryNameToDelete"></strong>? This action cannot be undone.</p>
                 <p class="text-danger"><strong>Note:</strong> You cannot delete a country that has associated products.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <form id="deleteForm" action="?controller=country&action=delete" method="POST">
                     <input type="hidden" name="id" id="deleteCountryId" value="">
                     <button type="submit" class="btn btn-danger">
@@ -727,36 +727,6 @@ $(document).ready(function() {
             reader.readAsDataURL(input.files[0]);
         }
     }
-}
-
-// Handle delete button click
-$(document).on('click', '.delete-country', function() {
-    var countryId = $(this).data('id');
-    var countryName = $(this).data('name');
-    
-    // Set the country name and ID in the modal
-    $('#countryNameToDelete').text(countryName);
-    $('#deleteCountryId').val(countryId);
-    
-    // Show the modal
-    var deleteModal = new bootstrap.Modal(document.getElementById('deleteCountryModal'));
-    deleteModal.show();
-});
-
-// Initialize Select2 for the country dropdown
-$(document).ready(function() {
-    // Handle delete button click
-    $('.delete-country').on('click', function(e) {
-        e.preventDefault();
-        var form = $(this).closest('form');
-        var countryName = $(this).data('name');
-        
-        if (confirm('Are you sure you want to delete ' + countryName + '? This action cannot be undone.')) {
-            form.submit();
-        }
-    });
-    // ... (existing Select2 initialization code) ...
-});
 </script>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

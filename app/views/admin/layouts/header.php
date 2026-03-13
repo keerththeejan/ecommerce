@@ -655,6 +655,14 @@ if (!defined('BASE_URL')) {
                                     ],
                                 ],
                                 [
+                                    'label' => 'Country',
+                                    'icon' => 'globe',
+                                    'items' => [
+                                        ['label' => 'All Countries', 'icon' => 'list', 'href' => BASE_URL . '?controller=country&action=adminIndex', 'controller' => 'country', 'action' => 'adminindex'],
+                                        ['label' => 'Add Country', 'icon' => 'plus', 'href' => BASE_URL . '?controller=country&action=create', 'controller' => 'country', 'action' => 'create'],
+                                    ],
+                                ],
+                                [
                                     'label' => 'Orders',
                                     'icon' => 'shopping-cart',
                                     'items' => [
