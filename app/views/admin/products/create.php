@@ -108,6 +108,59 @@
     box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.15);
 }
 
+/* Theme-aware form controls - Light mode only to avoid breaking dark mode */
+html[data-theme="light"] .create-product-form .form-control,
+html[data-theme="light"] .create-product-form .form-select {
+    background-color: var(--surface-color) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color);
+}
+
+/* Dark mode form controls - ensure light text on dark background */
+html[data-theme="dark"] .create-product-form .form-control,
+html[data-theme="dark"] .create-product-form .form-select {
+    background-color: #2c3034 !important;
+    color: #f8f9fa !important;
+    border-color: #495057;
+}
+
+html[data-theme="light"] .create-product-form .form-control::placeholder {
+    color: var(--muted-color) !important;
+}
+
+html[data-theme="dark"] .create-product-form .form-control::placeholder {
+    color: #adb5bd !important;
+}
+
+/* Input group text theming */
+html[data-theme="light"] .create-product-form .input-group-text {
+    background-color: var(--surface-muted) !important;
+    color: var(--muted-color) !important;
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .create-product-form .input-group-text {
+    background-color: #343a40 !important;
+    color: #adb5bd !important;
+    border-color: #495057;
+}
+
+/* Ensure labels are visible in both modes */
+.create-product-form .form-label {
+    color: var(--text-color) !important;
+}
+
+/* Form text/help text */
+.create-product-form .form-text {
+    color: var(--muted-color) !important;
+}
+
+/* Invalid feedback */
+.create-product-form .invalid-feedback {
+    color: #dc2626 !important;
+}
+
+
 .create-product-form .form-text,
 .create-product-form .invalid-feedback {
     margin-top: 6px;
@@ -317,13 +370,71 @@
     display: flex;
     align-items: center;
     padding: 0 12px;
+    background-color: var(--surface-color);
 }
+
 .create-product-form .select2-container--default .select2-selection--single .select2-selection__rendered {
     line-height: 1.2;
     padding-left: 0;
+    color: var(--text-color);
 }
+
+.create-product-form .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: var(--muted-color);
+}
+
 .create-product-form .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 38px;
+}
+
+/* Select2 dropdown theming */
+.select2-dropdown {
+    background-color: var(--surface-color);
+    border-color: var(--border-color);
+}
+
+.select2-container--default .select2-results__option {
+    color: var(--text-color);
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: rgba(37,99,235,0.15);
+    color: var(--text-color);
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+/* Dark mode Select2 specific overrides */
+html[data-theme="dark"] .select2-dropdown {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+}
+
+html[data-theme="dark"] .select2-container--default .select2-results__option {
+    color: #f8f9fa !important;
+}
+
+html[data-theme="dark"] .select2-container--default .select2-selection--single {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+}
+
+html[data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #f8f9fa !important;
+}
+
+html[data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #adb5bd !important;
+}
+
+html[data-theme="dark"] .select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: #343a40 !important;
+    color: #f8f9fa !important;
+    border-color: #495057 !important;
 }
 
 @media (max-width: 767.98px) {

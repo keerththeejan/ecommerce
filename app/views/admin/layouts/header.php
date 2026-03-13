@@ -399,6 +399,36 @@ if (!defined('BASE_URL')) {
             background: var(--sidebar-bg);
         }
 
+        /* Light mode sidebar - force white text for visibility */
+        :not([data-theme="dark"]) .admin-sidebar__section-title {
+            color: rgba(255,255,255,0.72) !important;
+        }
+
+        :not([data-theme="dark"]) .admin-nav-link,
+        :not([data-theme="dark"]) .admin-nav-trigger {
+            color: rgba(255,255,255,0.92) !important;
+        }
+
+        :not([data-theme="dark"]) .admin-nav-icon {
+            color: rgba(255,255,255,0.88) !important;
+        }
+
+        :not([data-theme="dark"]) .admin-nav-text {
+            color: rgba(255,255,255,0.92) !important;
+        }
+
+        :not([data-theme="dark"]) .admin-sidebar__brand a {
+            color: rgba(255,255,255,0.92) !important;
+        }
+
+        :not([data-theme="dark"]) .admin-sidebar__brand .brand-subtitle {
+            color: rgba(255,255,255,0.72) !important;
+        }
+
+        :not([data-theme="dark"]) .admin-submenu .admin-nav-link {
+            color: rgba(255,255,255,0.84) !important;
+        }
+
         /* Custom scrollbar for sidebar menu */
         .admin-sidebar__scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.22) transparent; }
         .admin-sidebar__scroll::-webkit-scrollbar{ width:10px; height:10px; }
