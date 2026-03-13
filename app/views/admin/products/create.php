@@ -634,10 +634,7 @@
                                         </div>
 
                                         <div class="pm-divider"></div>
-                                        <a class="btn btn-link p-0" data-toggle="collapse" href="#moreOptions" role="button" aria-expanded="false" aria-controls="moreOptions" style="font-size: 12px;">
-                                            More options
-                                        </a>
-                                        <div class="collapse" id="moreOptions" style="margin-top: 10px;">
+                                        <div style="margin-top: 10px;">
                                             <div class="form-group">
                                                 <label for="country_id" class="form-label">Country</label>
                                                 <div class="pm-select-add">
@@ -665,6 +662,41 @@
                                                     </a>
                                                     <?php if(isset($errors['country_id'])): ?>
                                                         <div class="invalid-feedback d-block w-100"><?php echo $errors['country_id']; ?></div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+
+                                            <div class="row" style="row-gap: 12px;">
+                                                <div class="col-12 col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="hsn_code" class="form-label">HSN Code</label>
+                                                        <input type="text" class="form-control <?php echo isset($errors['hsn_code']) ? 'is-invalid' : ''; ?>" id="hsn_code" name="hsn_code" value="<?php echo $data['hsn_code'] ?? ''; ?>" maxlength="50" aria-label="HSN code">
+                                                        <?php if(isset($errors['hsn_code'])): ?>
+                                                            <div class="invalid-feedback"><?php echo $errors['hsn_code']; ?></div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="customs_charge" class="form-label">Customs Charge</label>
+                                                        <div class="input-group">
+                                                            <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                            <input type="text" class="form-control <?php echo isset($errors['customs_charge']) ? 'is-invalid' : ''; ?>" id="customs_charge" name="customs_charge" value="<?php echo $data['customs_charge'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Customs charge">
+                                                            <?php if(isset($errors['customs_charge'])): ?>
+                                                                <div class="invalid-feedback"><?php echo $errors['customs_charge']; ?></div>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="transport_charge" class="form-label">Transport Charge</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend"><span class="input-group-text">CHF</span></div>
+                                                    <input type="text" class="form-control <?php echo isset($errors['transport_charge']) ? 'is-invalid' : ''; ?>" id="transport_charge" name="transport_charge" value="<?php echo $data['transport_charge'] ?? ''; ?>" inputmode="decimal" autocomplete="off" aria-label="Transport charge">
+                                                    <?php if(isset($errors['transport_charge'])): ?>
+                                                        <div class="invalid-feedback"><?php echo $errors['transport_charge']; ?></div>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>

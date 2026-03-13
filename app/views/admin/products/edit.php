@@ -256,6 +256,15 @@
                             </div>
                             <div class="col-12 col-sm-6 col-md-4">
                                 <div class="mb-3">
+                                    <label for="hsn_code" class="form-label">HSN Code</label>
+                                    <input type="text" class="form-control <?php echo isset($errors['hsn_code']) ? 'is-invalid' : ''; ?>" id="hsn_code" name="hsn_code" value="<?php echo isset($product['hsn_code']) ? htmlspecialchars($product['hsn_code']) : ''; ?>" maxlength="50">
+                                    <?php if(isset($errors['hsn_code'])): ?>
+                                        <div class="invalid-feedback"><?php echo $errors['hsn_code']; ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="mb-3">
                                     <label for="expiry_date" class="form-label">Expiry Date</label>
                                     <input type="date" class="form-control <?php echo isset($errors['expiry_date']) ? 'is-invalid' : ''; ?>" id="expiry_date" name="expiry_date" value="<?php echo isset($product['expiry_date']) ? htmlspecialchars($product['expiry_date']) : ''; ?>">
                                     <?php if(isset($errors['expiry_date'])): ?>
@@ -287,6 +296,30 @@
                                     <?php if(isset($errors['batch_number'])): ?>
                                         <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
                                     <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="mb-3">
+                                    <label for="customs_charge" class="form-label">Customs Charge</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">CHF</span>
+                                        <input type="text" class="form-control <?php echo isset($errors['customs_charge']) ? 'is-invalid' : ''; ?>" id="customs_charge" name="customs_charge" value="<?php echo isset($product['customs_charge']) ? htmlspecialchars($product['customs_charge']) : ''; ?>" inputmode="decimal" autocomplete="off">
+                                        <?php if(isset($errors['customs_charge'])): ?>
+                                            <div class="invalid-feedback"><?php echo $errors['customs_charge']; ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <div class="mb-3">
+                                    <label for="transport_charge" class="form-label">Transport Charge</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">CHF</span>
+                                        <input type="text" class="form-control <?php echo isset($errors['transport_charge']) ? 'is-invalid' : ''; ?>" id="transport_charge" name="transport_charge" value="<?php echo isset($product['transport_charge']) ? htmlspecialchars($product['transport_charge']) : ''; ?>" inputmode="decimal" autocomplete="off">
+                                        <?php if(isset($errors['transport_charge'])): ?>
+                                            <div class="invalid-feedback"><?php echo $errors['transport_charge']; ?></div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4">
