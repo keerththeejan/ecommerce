@@ -389,6 +389,11 @@ class OrderController extends Controller {
             }
             redirect('user/login');
         }
+
+        // Allow id from POST when routed without param (e.g. form submit)
+        if(!$id && $this->isPost() && isset($_POST['id'])) {
+            $id = (int)$_POST['id'];
+        }
         
         // Check if ID is provided
         if(!$id) {
@@ -452,8 +457,12 @@ class OrderController extends Controller {
         // Read filters from GET
         $page = (int)$this->get('page', 1);
         $filters = [
+            'order_id' => $this->get('order_id'),
+            'customer_name' => $this->get('customer_name'),
+            'email' => $this->get('email'),
             'status' => $this->get('status'),
             'payment_status' => $this->get('payment_status'),
+            'payment_method' => $this->get('payment_method'),
             'date_from' => $this->get('date_from'),
             'date_to' => $this->get('date_to'),
             'q' => $this->get('q'),
@@ -467,6 +476,76 @@ class OrderController extends Controller {
             'orders' => $orders,
             'filters' => $filters
         ]);
+    }
+
+    /**
+     * Admin: Update basic order fields from the Orders list modal
+     * Updates status, payment_status, and payment_method
+     */
+    public function adminUpdate() {
+        if(!isAdmin()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Unauthorized access'], 403);
+                return;
+            }
+            redirect('?controller=user&action=login');
+        }
+
+        if(!$this->isPost()) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Invalid request'], 405);
+                return;
+            }
+            redirect('?controller=order&action=adminIndex');
+        }
+
+        $data = [
+            'id' => (int)$this->post('id'),
+            'status' => sanitize($this->post('status')),
+            'payment_status' => sanitize($this->post('payment_status')),
+            'payment_method' => sanitize($this->post('payment_method')),
+        ];
+
+        if (empty($data['id'])) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Order ID is required'], 400);
+                return;
+            }
+            flash('order_error', 'Order ID is required', 'alert alert-danger');
+            redirect('?controller=order&action=adminIndex');
+        }
+
+        $order = $this->orderModel->getById($data['id']);
+        if(!$order) {
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => 'Order not found'], 404);
+                return;
+            }
+            flash('order_error', 'Order not found', 'alert alert-danger');
+            redirect('?controller=order&action=adminIndex');
+        }
+
+        if($this->orderModel->updateAdminFields($data)) {
+            if($this->isAjax()) {
+                $updated = $this->orderModel->getById($data['id']);
+                $this->jsonResponse([
+                    'success' => true,
+                    'message' => 'Order updated successfully',
+                    'order' => $updated
+                ]);
+                return;
+            }
+            flash('order_success', 'Order updated successfully', 'alert alert-success');
+        } else {
+            $msg = $this->orderModel->getLastError() ?: 'Failed to update order';
+            if($this->isAjax()) {
+                $this->jsonResponse(['success' => false, 'message' => $msg], 422);
+                return;
+            }
+            flash('order_error', $msg, 'alert alert-danger');
+        }
+
+        redirect('?controller=order&action=adminIndex');
     }
     
     /**

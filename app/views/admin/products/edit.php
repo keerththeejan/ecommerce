@@ -134,8 +134,10 @@
                                                 <label for="category_id" class="form-label is-required">Category</label>
                                                 <select class="form-select select2 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required>
                                                     <option value="">Select Category</option>
-                                                    <?php foreach($categories as $category): ?>
-                                                        <option value="<?php echo $category['id']; ?>" <?php echo ($product['category_id'] == $category['id']) ? 'selected' : ''; ?>>
+                                                    <?php foreach($categories as $category):
+                                                        $catTaxRate = isset($category['tax_rate']) ? $category['tax_rate'] : '';
+                                                    ?>
+                                                        <option value="<?php echo $category['id']; ?>" data-tax-rate="<?php echo htmlspecialchars((string)$catTaxRate); ?>" <?php echo ($product['category_id'] == $category['id']) ? 'selected' : ''; ?>>
                                                             <?php echo htmlspecialchars($category['name']); ?>
                                                         </option>
                                                     <?php endforeach; ?>
@@ -143,6 +145,12 @@
                                                 <?php if(isset($errors['category_id'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['category_id']; ?></div>
                                                 <?php endif; ?>
+                                            </div>
+
+                                            <div class="col-12 col-md-6">
+                                                <label for="category_tax_rate" class="form-label">Category Tax Rate</label>
+                                                <input type="text" class="form-control" id="category_tax_rate" value="" readonly aria-readonly="true" tabindex="-1">
+                                                <div class="form-text">Auto-filled from the selected category. Read-only for accuracy.</div>
                                             </div>
                                             <div class="col-12 col-md-6">
                                                 <label for="brand_id" class="form-label">Brand</label>
@@ -173,7 +181,7 @@
                                                 <?php endif; ?>
                                             </div>
                                             <div class="col-12 col-md-6">
-                                                <label for="hsn_code" class="form-label">HSN Code</label>
+                                                <label for="hsn_code" class="form-label">HSS Code</label>
                                                 <input type="text" class="form-control <?php echo isset($errors['hsn_code']) ? 'is-invalid' : ''; ?>" id="hsn_code" name="hsn_code" value="<?php echo isset($product['hsn_code']) ? htmlspecialchars($product['hsn_code']) : ''; ?>" maxlength="50">
                                                 <?php if(isset($errors['hsn_code'])): ?>
                                                     <div class="invalid-feedback"><?php echo $errors['hsn_code']; ?></div>
@@ -777,7 +785,32 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
         // ignore
     }
-    
+
+    function updateCategoryTaxRateUI() {
+        var categorySelect = document.getElementById('category_id');
+        var out = document.getElementById('category_tax_rate');
+        if (!categorySelect || !out) return;
+        var opt = categorySelect.options && categorySelect.selectedIndex >= 0 ? categorySelect.options[categorySelect.selectedIndex] : null;
+        var rate = opt ? opt.getAttribute('data-tax-rate') : '';
+        rate = (rate === null || rate === undefined) ? '' : String(rate);
+        out.value = rate && rate.trim() !== '' ? (rate.trim() + '%') : '—';
+    }
+
+    var categorySelectEl = document.getElementById('category_id');
+    if (categorySelectEl) {
+        categorySelectEl.addEventListener('change', function() {
+            updateCategoryTaxRateUI();
+        });
+        try {
+            if (window.jQuery && $(categorySelectEl).hasClass('select2-hidden-accessible')) {
+                $(categorySelectEl).on('change.select2', function() {
+                    updateCategoryTaxRateUI();
+                });
+            }
+        } catch (e) { /* ignore */ }
+    }
+    updateCategoryTaxRateUI();
+
     // Function to show alert messages
     function showAlert(message, type = 'success') {
         const alertMessages = document.getElementById('alert-messages');

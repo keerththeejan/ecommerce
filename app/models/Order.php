@@ -129,8 +129,12 @@ class Order extends Model {
      * Paginate orders with filters
      *
      * Supported filters keys:
+     *  - order_id: int
+     *  - customer_name: string
+     *  - email: string
      *  - status: pending|processing|shipped|delivered|cancelled
      *  - payment_status: pending|paid|failed|refunded
+     *  - payment_method: string
      *  - date_from: Y-m-d
      *  - date_to: Y-m-d
      *  - q: search term (order id, customer name, or email)
@@ -141,6 +145,22 @@ class Order extends Model {
         $where = [];
         $params = [];
 
+        if (!empty($filters['order_id'])) {
+            $where[] = 'o.id = :order_id';
+            $params[':order_id'] = (int)$filters['order_id'];
+        }
+        if (!empty($filters['customer_name'])) {
+            $where[] = '(u.first_name LIKE :customer_name OR u.last_name LIKE :customer_name)';
+            $params[':customer_name'] = '%' . $filters['customer_name'] . '%';
+        }
+        if (!empty($filters['email'])) {
+            $where[] = 'u.email LIKE :email';
+            $params[':email'] = '%' . $filters['email'] . '%';
+        }
+        if (!empty($filters['payment_method'])) {
+            $where[] = 'o.payment_method = :payment_method';
+            $params[':payment_method'] = $filters['payment_method'];
+        }
         if (!empty($filters['status'])) {
             $where[] = 'o.status = :status';
             $params[':status'] = $filters['status'];
@@ -390,6 +410,66 @@ class Order extends Model {
         $this->db->bind(':id', $orderId);
         
         return $this->db->execute();
+    }
+
+    /**
+     * Admin: Update order fields from modal (status/payment_status/payment_method)
+     *
+     * @param array $data
+     * @return bool
+     */
+    public function updateAdminFields($data) {
+        if(!$this->db->tableExists($this->table)) {
+            $this->lastError = 'Orders table does not exist';
+            return false;
+        }
+
+        $id = isset($data['id']) ? (int)$data['id'] : 0;
+        if ($id <= 0) {
+            $this->lastError = 'Invalid order id';
+            return false;
+        }
+
+        $validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+        $validPaymentStatuses = ['pending', 'paid', 'failed', 'refunded'];
+
+        if (!isset($data['status']) || !in_array($data['status'], $validStatuses)) {
+            $this->lastError = 'Invalid order status';
+            return false;
+        }
+        if (!isset($data['payment_status']) || !in_array($data['payment_status'], $validPaymentStatuses)) {
+            $this->lastError = 'Invalid payment status';
+            return false;
+        }
+
+        // payment_method can be null/empty depending on checkout choice
+        $paymentMethod = isset($data['payment_method']) ? trim((string)$data['payment_method']) : '';
+        $paymentMethod = $paymentMethod === '' ? null : $paymentMethod;
+
+        $sql = "UPDATE {$this->table}
+                SET status = :status,
+                    payment_status = :payment_status,
+                    payment_method = :payment_method,
+                    updated_at = :updated_at
+                WHERE id = :id";
+
+        if(!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return false;
+        }
+
+        $this->db->bind(':id', $id);
+        $this->db->bind(':status', $data['status']);
+        $this->db->bind(':payment_status', $data['payment_status']);
+        $this->db->bind(':payment_method', $paymentMethod);
+        $this->db->bind(':updated_at', date('Y-m-d H:i:s'));
+
+        if($this->db->execute()) {
+            return true;
+        }
+
+        $this->lastError = $this->db->getError();
+        return false;
     }
     
     /**

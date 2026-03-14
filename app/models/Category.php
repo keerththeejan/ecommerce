@@ -59,6 +59,47 @@ class Category extends Model {
         
         return $this->db->resultSet();
     }
+
+    /**
+     * Get all active categories including their tax rate (if available)
+     *
+     * Returns categories with:
+     *  - tax_id (if column exists)
+     *  - tax_rate (if tax_rates table exists and relation is present)
+     *
+     * @return array
+     */
+    public function getActiveCategoriesWithTaxRate() {
+        // Check if categories table exists
+        if(!$this->db->tableExists($this->table)) {
+            return [];
+        }
+
+        $hasTaxId = $this->db->columnExists($this->table, 'tax_id');
+        $hasTaxTable = $this->db->tableExists('tax_rates');
+
+        if ($hasTaxId && $hasTaxTable) {
+            $sql = "SELECT c.*, t.rate AS tax_rate
+                    FROM {$this->table} c
+                    LEFT JOIN tax_rates t ON c.tax_id = t.id
+                    WHERE c.status = :status
+                    ORDER BY c.name ASC";
+        } else {
+            // Fallback: same as getActiveCategories, but keep a consistent output field
+            $sql = "SELECT c.*, NULL AS tax_rate
+                    FROM {$this->table} c
+                    WHERE c.status = :status
+                    ORDER BY c.name ASC";
+        }
+
+        if(!$this->db->query($sql)) {
+            $this->lastError = $this->db->getError();
+            return [];
+        }
+
+        $this->db->bind(':status', 1);
+        return $this->db->resultSet();
+    }
     
     /**
      * Get all active categories

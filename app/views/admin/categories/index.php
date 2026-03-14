@@ -1,158 +1,293 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
 
 <style>
-    /* Inside scrollbar: table scrolls within this container */
+    .page-shell {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+    }
+
+    .page-title {
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-bottom: 0;
+    }
+    .page-subtitle {
+        color: var(--muted-color);
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+        margin-bottom: 0;
+    }
+
+    .categories-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        padding: 1rem 1rem 0.5rem 1rem;
+    }
+    .categories-toolbar__left {
+        min-width: 260px;
+        flex: 1 1 420px;
+    }
+    .categories-toolbar__right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+    }
+
     .categories-table-scroll {
         max-height: 65vh;
         overflow: auto;
         -webkit-overflow-scrolling: touch;
-        border-radius: 10px;
-        border: 1px solid rgba(0,0,0,.08);
+        border-top: 1px solid var(--border-color);
     }
-    .categories-table-scroll .table { margin-bottom: 0; }
-    .categories-table-scroll thead th {
+
+    .categories-table {
+        margin-bottom: 0;
+    }
+
+    .categories-table thead th {
         position: sticky;
         top: 0;
-        z-index: 1;
-        background: var(--bs-body-bg, #fff);
-        color: var(--bs-body-color, #212529);
-        box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
-        padding: 0.75rem;
+        z-index: 2;
+        background: var(--surface-color);
+        box-shadow: 0 1px 0 0 var(--border-color);
+        border-top: 0;
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.02em;
+        color: var(--muted-color);
+        text-transform: uppercase;
+        padding: 0.75rem 0.9rem;
+        white-space: nowrap;
     }
-    @media (max-width: 575.98px) {
-        .categories-table-scroll { max-height: 55vh; }
-    }
-    /* Responsive tweaks for header action buttons */
-    @media (max-width: 576px) {
-        .card-header {
-            flex-wrap: nowrap;          /* keep everything on one line */
-            gap: .25rem .25rem;
-        }
-        .card-header .card-title {
-            flex: 1 1 auto;             /* title can shrink */
-            min-width: 0;               /* allow ellipsis */
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-size: .95rem;          /* smaller title saves space */
-            margin-bottom: 0;
-        }
-        .admin-actions {
-            flex-wrap: nowrap;           /* keep buttons on one line */
-            overflow: hidden;            /* no scrollbar */
-            gap: .25rem;                 /* tighter spacing */
-            width: auto;                 /* stay inline with title */
-            justify-content: flex-end;   /* align buttons to right */
-        }
-        .admin-actions .btn {
-            white-space: nowrap;
-            padding: .2rem .35rem;      /* smaller padding */
-            font-size: .75rem;          /* smaller text */
-            border-radius: .3rem;
-        }
-        .admin-actions .btn i {
-            font-size: .8em;            /* smaller icon */
-            margin-right: .25rem;       /* compact spacing */
-        }
 
-        /* Categories table -> stacked cards on mobile */
-        #categoriesTable thead {
-            display: none;
-        }
+    .categories-table tbody td {
+        padding: 0.8rem 0.9rem;
+        vertical-align: middle;
+    }
+
+    .categories-table tbody tr {
+        background: transparent;
+    }
+
+    .categories-table tbody tr:nth-child(even) {
+        background: rgba(17, 24, 39, 0.02);
+    }
+
+    [data-theme="dark"] .categories-table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .categories-table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.06);
+    }
+
+    .cat-thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 1px solid var(--border-color);
+        background: var(--surface-muted);
+    }
+
+    .cat-name {
+        font-weight: 600;
+        line-height: 1.1;
+    }
+
+    .cat-meta {
+        color: var(--muted-color);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .badge-status {
+        padding: 0.35rem 0.55rem;
+        font-weight: 600;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-size: 0.78rem;
+        letter-spacing: 0.01em;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .badge-status--active {
+        color: #146c43;
+        background: rgba(25, 135, 84, 0.12);
+        border-color: rgba(25, 135, 84, 0.22);
+    }
+    .badge-status--inactive {
+        color: #5c636a;
+        background: rgba(108, 117, 125, 0.12);
+        border-color: rgba(108, 117, 125, 0.22);
+    }
+
+    [data-theme="dark"] .badge-status--active {
+        color: #7ee2b8;
+        background: rgba(25, 135, 84, 0.20);
+        border-color: rgba(25, 135, 84, 0.35);
+    }
+    [data-theme="dark"] .badge-status--inactive {
+        color: rgba(248,249,250,0.82);
+        background: rgba(108, 117, 125, 0.18);
+        border-color: rgba(108, 117, 125, 0.35);
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .table-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .table-topbar .form-label { margin-bottom: 0; }
+
+    /* Mobile: stacked cards */
+    @media (max-width: 575.98px) {
+        .categories-table-scroll { max-height: 60vh; }
+        #categoriesTable thead { display: none; }
         #categoriesTable tbody tr {
             display: block;
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: .5rem;
-            margin-bottom: .75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            margin: 0.75rem;
+            background: var(--surface-color);
+            overflow: hidden;
         }
         #categoriesTable tbody td {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: .75rem;
-            padding: .5rem .75rem;
-            border: 0 !important;
+            gap: 0.75rem;
+            padding: 0.7rem 0.85rem;
+            border: 0;
+            border-bottom: 1px solid var(--border-color);
         }
+        #categoriesTable tbody td:last-child { border-bottom: 0; }
         #categoriesTable tbody td::before {
             content: attr(data-label);
             font-weight: 600;
-            color: #6c757d;
+            color: var(--muted-color);
         }
         #categoriesTable tbody td[data-label="Actions"] {
             justify-content: flex-start;
             flex-wrap: wrap;
-            gap: .5rem;
+            gap: 0.5rem;
         }
-        #categoriesTable tbody td[data-label="Actions"] .btn {
-            padding: .25rem .5rem;
-            font-size: .8rem;
-        }
-        #categoriesTable tbody td img {
-            width: 44px;
-            height: 44px;
-            object-fit: cover;
-            border-radius: 4px;
+
+        .btn-action {
+            padding: 0.35rem 0.55rem;
         }
     }
-    /* Extra-tight sizes to avoid horizontal scroll on very small devices */
-    @media (max-width: 420px) {
-        .admin-actions { gap: .2rem; }
-        .admin-actions .btn { padding: .18rem .3rem; font-size: .72rem; }
-        .admin-actions .btn i { font-size: .75em; margin-right: .22rem; }
+
+    .style-guide {
+        border-top: 1px dashed var(--border-color);
+        margin-top: 1rem;
+        padding-top: 1rem;
     }
-    @media (max-width: 360px) {
-        .admin-actions { gap: .15rem; }
-        .admin-actions .btn { padding: .16rem .26rem; font-size: .68rem; }
-        .admin-actions .btn i { font-size: .7em; margin-right: .2rem; }
+    .sg-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.55rem;
+        border: 1px solid var(--border-color);
+        border-radius: 999px;
+        background: var(--surface-muted);
+        font-size: 0.85rem;
+        color: var(--text-color);
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
+        white-space: nowrap;
+    }
+    .sg-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1px solid var(--border-color);
+        flex: 0 0 auto;
     }
 </style>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">Categories</h3>
-                    <div class="admin-actions d-flex gap-2">
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light">
-                            <i class="fas fa-arrow-left me-1"></i>
-                            <span class="d-none d-sm-inline">Back to Product</span>
-                            <span class="d-inline d-sm-none">Back</span>
-                        </a>
-                        <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-light">
-                            <i class="fas fa-plus me-1"></i>
-                            <span class="d-none d-sm-inline">Add New Category</span>
-                            <span class="d-inline d-sm-none">Add</span>
-                        </a>
+<div class="container-fluid page-shell">
+    <div class="d-flex align-items-start justify-content-between flex-wrap" style="gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+            <h1 class="page-title">Category Management</h1>
+            <p class="page-subtitle">Organize your catalog with parent categories, tax rules, and visibility status.</p>
+        </div>
+        <div class="d-flex align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i>
+                <span class="ml-1">Products</span>
+            </a>
+            <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                <span class="ml-1">Add Category</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="categories-toolbar">
+            <div class="categories-toolbar__left">
+                <form method="GET" action="<?php echo BASE_URL; ?>" class="mb-0">
+                    <input type="hidden" name="controller" value="category">
+                    <input type="hidden" name="action" value="adminIndex">
+                    <input type="hidden" name="per_page" value="<?php echo htmlspecialchars($categories['per_page_param'] ?? '20'); ?>">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        </div>
+                        <input type="text" name="search" class="form-control" placeholder="Search categories..." value="<?php echo htmlspecialchars($categories['search'] ?? ''); ?>" aria-label="Search categories">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-outline-primary">Search</button>
+                            <?php if(!empty($categories['search'])): ?>
+                                <a href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex&per_page=<?php echo htmlspecialchars($categories['per_page_param'] ?? '20'); ?>" class="btn btn-outline-secondary">Clear</a>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body">
+                </form>
+            </div>
+
+            <div class="categories-toolbar__right">
+                <a href="<?php echo BASE_URL; ?>?controller=category&action=create" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i>
+                    <span class="ml-1">New</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body pt-2">
                     <div id="alert-messages">
                         <?php flash('category_success'); ?>
                         <?php flash('category_error', '', 'alert alert-danger'); ?>
                     </div>
-                    
-                    <!-- Search -->
-                    <form method="GET" action="<?php echo BASE_URL; ?>" class="mb-4">
-                        <input type="hidden" name="controller" value="category">
-                        <input type="hidden" name="action" value="adminIndex">
-                        <input type="hidden" name="per_page" value="<?php echo htmlspecialchars($categories['per_page_param'] ?? '20'); ?>">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-12 col-md-8 col-lg-6">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <input type="text" name="search" class="form-control" 
-                                           placeholder="Search by name, description, parent, tax rate..." 
-                                           value="<?php echo htmlspecialchars($categories['search'] ?? ''); ?>">
-                                    <button type="submit" class="btn btn-primary">Search</button>
-                                    <?php if(!empty($categories['search'])): ?>
-                                    <a href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex&per_page=<?php echo htmlspecialchars($categories['per_page_param'] ?? '20'); ?>" class="btn btn-outline-secondary">Clear</a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
                     
                     <?php if(empty($categories['data'])): ?>
                         <div class="alert alert-info">
@@ -163,8 +298,51 @@
                             <?php endif; ?>
                         </div>
                     <?php else: ?>
-                        <div class="categories-table-scroll table-responsive">
-                            <table id="categoriesTable" class="table table-striped table-hover">
+                        <?php
+                            $cur = (int)($categories['current_page'] ?? 1);
+                            $last = (int)($categories['last_page'] ?? 1);
+                            $perParam = $categories['per_page_param'] ?? '20';
+                            $s = trim((string)($categories['search'] ?? ''));
+                            $pageBase = BASE_URL . '?controller=category&action=adminIndex&per_page=' . urlencode((string)$perParam);
+                            if ($s !== '') $pageBase .= '&search=' . urlencode($s);
+                        ?>
+
+                        <div class="table-topbar">
+                            <div class="d-flex align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+                                <label for="perPageFilter" class="form-label small text-muted">Rows</label>
+                                <select id="perPageFilter" class="custom-select custom-select-sm" style="width: auto;">
+                                <?php 
+                                $currentPerPage = $categories['per_page_param'] ?? '20';
+                                $currentSearch = $categories['search'] ?? '';
+                                $baseUrl = BASE_URL . '?controller=category&action=adminIndex';
+                                foreach (['20', '50', '100', 'all'] as $opt): 
+                                    $sel = ($currentPerPage === $opt) ? ' selected' : '';
+                                    $url = $baseUrl . '&per_page=' . $opt;
+                                    if ($currentSearch !== '') {
+                                        $url .= '&search=' . urlencode($currentSearch);
+                                    }
+                                ?>
+                                    <option value="<?php echo htmlspecialchars($url); ?>"<?php echo $sel; ?>><?php echo $opt === 'all' ? 'All' : $opt; ?></option>
+                                <?php endforeach; ?>
+                                </select>
+                                <span class="small text-muted"><?php echo (int)($categories['total'] ?? 0); ?> total</span>
+                            </div>
+
+                            <div class="d-flex align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+                                <a class="btn btn-sm btn-outline-secondary <?php echo ($cur <= 1) ? 'disabled' : ''; ?>" href="<?php echo $pageBase . '&page=' . max(1, $cur - 1); ?>" aria-label="Previous page">Prev</a>
+                                <span class="small text-muted">Page <?php echo $cur; ?> / <?php echo $last; ?></span>
+                                <a class="btn btn-sm btn-outline-secondary <?php echo ($cur >= $last) ? 'disabled' : ''; ?>" href="<?php echo $pageBase . '&page=' . min($last, $cur + 1); ?>" aria-label="Next page">Next</a>
+                            </div>
+                        </div>
+
+                        <script>
+                        document.getElementById('perPageFilter').addEventListener('change', function() {
+                            window.location.href = this.value;
+                        });
+                        </script>
+
+                        <div class="categories-table-scroll" role="region" aria-label="Categories table" tabindex="0">
+                            <table id="categoriesTable" class="table categories-table" aria-describedby="categories-helptext">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -193,9 +371,12 @@
                                                             : BASE_URL . 'uploads/categories/' . $category['image']) 
                                                         : BASE_URL . 'assets/img/no-image.png';
                                                 ?>
-                                                <img src="<?php echo $thumb; ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" style="width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #dee2e6;">
+                                                <img src="<?php echo $thumb; ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" class="cat-thumb" loading="lazy">
                                             </td>
-                                            <td data-label="Name"><?php echo htmlspecialchars($category['name']); ?></td>
+                                            <td data-label="Name">
+                                                <div class="cat-name"><?php echo htmlspecialchars($category['name']); ?></div>
+                                                <div class="cat-meta">ID: <?php echo (int)$category['id']; ?></div>
+                                            </td>
                                             <td data-label="Parent">
                                                 <?php if(!empty($category['parent_name'])): ?>
                                                     <?php echo htmlspecialchars($category['parent_name']); ?>
@@ -211,21 +392,20 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td data-label="Status">
-                                                <?php if($category['status'] == 1): ?>
-                                                    <span class="badge bg-success">Active</span>
+                                                <?php if((int)($category['status'] ?? 0) === 1): ?>
+                                                    <span class="badge-status badge-status--active"><span style="width:6px;height:6px;border-radius:999px;background:#198754;display:inline-block;"></span>Active</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-secondary">Inactive</span>
+                                                    <span class="badge-status badge-status--inactive"><span style="width:6px;height:6px;border-radius:999px;background:#6c757d;display:inline-block;"></span>Inactive</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td data-label="Actions">
-                                                <a href="<?php echo BASE_URL; ?>?controller=category&action=edit&id=<?php echo $category['id']; ?>" class="btn btn-sm btn-primary">
-                                                    <i class="fas fa-edit"></i> Edit
+                                                <a href="<?php echo BASE_URL; ?>?controller=category&action=edit&id=<?php echo $category['id']; ?>" class="btn btn-sm btn-outline-primary btn-action" aria-label="Edit category <?php echo htmlspecialchars($category['name']); ?>">
+                                                    <i class="fas fa-pen"></i>
+                                                    <span class="d-none d-sm-inline">Edit</span>
                                                 </a>
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-danger delete-category" 
-                                                        data-id="<?php echo $category['id']; ?>"
-                                                        data-name="<?php echo htmlspecialchars($category['name']); ?>">
-                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                <button type="button" class="btn btn-sm btn-outline-danger btn-action delete-category" data-id="<?php echo $category['id']; ?>" data-name="<?php echo htmlspecialchars($category['name']); ?>" aria-label="Delete category <?php echo htmlspecialchars($category['name']); ?>">
+                                                    <i class="fas fa-trash"></i>
+                                                    <span class="d-none d-sm-inline">Delete</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -233,35 +413,22 @@
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <!-- Show per page: 20 / 50 / 100 / All -->
-                        <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
-                            <label for="perPageFilter" class="form-label mb-0 small text-muted">Show:</label>
-                            <select id="perPageFilter" class="form-select form-select-sm" style="width: auto;">
-                                <?php 
-                                $currentPerPage = $categories['per_page_param'] ?? '20';
-                                $currentSearch = $categories['search'] ?? '';
-                                $baseUrl = BASE_URL . '?controller=category&action=adminIndex';
-                                foreach (['20', '50', '100', 'all'] as $opt): 
-                                    $sel = ($currentPerPage === $opt) ? ' selected' : '';
-                                    $url = $baseUrl . '&per_page=' . $opt;
-                                    if ($currentSearch !== '') {
-                                        $url .= '&search=' . urlencode($currentSearch);
-                                    }
-                                ?>
-                                    <option value="<?php echo htmlspecialchars($url); ?>"<?php echo $sel; ?>><?php echo $opt === 'all' ? 'All' : $opt; ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <span class="small text-muted">(<?php echo count($categories['data']); ?> shown)</span>
+                        <div id="categories-helptext" class="sr-only">Use search to filter categories. Use edit and delete buttons in the actions column to manage a category.</div>
+
+                        <div class="style-guide">
+                            <h6 class="mb-2">Style Guide</h6>
+                            <div class="mb-2">
+                                <span class="sg-chip"><span class="sg-swatch" style="background:#3b82f6"></span>Primary</span>
+                                <span class="sg-chip"><span class="sg-swatch" style="background:#0f172a"></span>Sidebar</span>
+                                <span class="sg-chip"><span class="sg-swatch" style="background:#198754"></span>Success</span>
+                                <span class="sg-chip"><span class="sg-swatch" style="background:#dc3545"></span>Danger</span>
+                                <span class="sg-chip"><span class="sg-swatch" style="background:#6b7280"></span>Muted</span>
+                            </div>
+                            <div class="small text-muted">
+                                Font: Inter (400/500/600). Spacing: 8px grid (8, 16, 24). Corners: 10–14px. Focus: preserve keyboard navigation and high contrast.
+                            </div>
                         </div>
-                        <script>
-                        document.getElementById('perPageFilter').addEventListener('change', function() {
-                            window.location.href = this.value;
-                        });
-                        </script>
                     <?php endif; ?>
-                </div>
-            </div>
         </div>
     </div>
 </div>

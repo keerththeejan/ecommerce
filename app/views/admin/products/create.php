@@ -612,12 +612,15 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                                     <option value="">Select Category</option>
                                                     <?php 
                                                     $categoryModel = new Category();
-                                                    $categories = $categoryModel->getActiveCategories();
+                                                    $categories = method_exists($categoryModel, 'getActiveCategoriesWithTaxRate')
+                                                        ? $categoryModel->getActiveCategoriesWithTaxRate()
+                                                        : $categoryModel->getActiveCategories();
                                                     if(!empty($categories)) :
                                                         foreach($categories as $category) :
                                                             $selected = (isset($data['category_id']) && $data['category_id'] == $category['id']) ? 'selected' : '';
+                                                            $catTaxRate = isset($category['tax_rate']) ? $category['tax_rate'] : '';
                                                     ?>
-                                                        <option value="<?php echo $category['id']; ?>" <?php echo $selected; ?>><?php echo $category['name']; ?></option>
+                                                        <option value="<?php echo $category['id']; ?>" data-tax-rate="<?php echo htmlspecialchars((string)$catTaxRate); ?>" <?php echo $selected; ?>><?php echo $category['name']; ?></option>
                                                     <?php
                                                         endforeach;
                                                     endif;
@@ -789,6 +792,12 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                             </div>
                                         </div>
 
+                                        <div class="form-group" style="margin-top: 10px; margin-bottom: 0;">
+                                            <label for="category_tax_rate" class="form-label">Category Tax Rate</label>
+                                            <input type="text" class="form-control" id="category_tax_rate" value="" readonly aria-readonly="true" tabindex="-1">
+                                            <div class="form-text" style="font-size: 12px;">Auto-filled from the selected category. Read-only for accuracy.</div>
+                                        </div>
+
                                         <div class="pm-divider"></div>
                                         <div class="row" style="row-gap: 12px;">
                                             <div class="col-6">
@@ -942,7 +951,7 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                             <div class="row" style="row-gap: 12px;">
                                                 <div class="col-12 col-sm-6">
                                                     <div class="form-group">
-                                                        <label for="hsn_code" class="form-label">HSN Code</label>
+                                                        <label for="hsn_code" class="form-label">HSS Code</label>
                                                         <input type="text" class="form-control <?php echo isset($errors['hsn_code']) ? 'is-invalid' : ''; ?>" id="hsn_code" name="hsn_code" value="<?php echo $data['hsn_code'] ?? ''; ?>" maxlength="50" aria-label="HSN code">
                                                         <?php if(isset($errors['hsn_code'])): ?>
                                                             <div class="invalid-feedback"><?php echo $errors['hsn_code']; ?></div>
@@ -1505,6 +1514,32 @@ document.addEventListener('DOMContentLoaded', function() {
             msg.remove();
         });
     }
+
+    function updateCategoryTaxRateUI() {
+        var categorySelect = document.getElementById('category_id');
+        var out = document.getElementById('category_tax_rate');
+        if (!categorySelect || !out) return;
+        var opt = categorySelect.options && categorySelect.selectedIndex >= 0 ? categorySelect.options[categorySelect.selectedIndex] : null;
+        var rate = opt ? opt.getAttribute('data-tax-rate') : '';
+        rate = (rate === null || rate === undefined) ? '' : String(rate);
+        out.value = rate && rate.trim() !== '' ? (rate.trim() + '%') : '—';
+    }
+
+    var categorySelectEl = document.getElementById('category_id');
+    if (categorySelectEl) {
+        categorySelectEl.addEventListener('change', function() {
+            updateCategoryTaxRateUI();
+        });
+        try {
+            if (window.jQuery && $(categorySelectEl).hasClass('select2-hidden-accessible')) {
+                $(categorySelectEl).on('change.select2', function() {
+                    updateCategoryTaxRateUI();
+                });
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    updateCategoryTaxRateUI();
 });
 </script>
 

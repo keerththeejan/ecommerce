@@ -5,693 +5,340 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
 ?>
 
 <style>
-/* Countries admin – responsive, current trending */
-.countries-admin .card-body { padding: 1rem; }
-@media (min-width: 768px) { .countries-admin .card-body { padding: 1.25rem; } }
-.countries-table-scroll {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.08);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
-}
-.countries-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
-.countries-table-scroll thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  white-space: nowrap;
-  font-weight: 600;
-  font-size: 0.85rem;
-  padding: 0.75rem;
-  background: var(--bs-body-bg, #fff);
-  color: var(--bs-body-color, #212529);
-  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
-}
-.countries-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
-@media (max-width: 575.98px) { .countries-table-scroll { max-height: 55vh; } }
-@media (min-width: 576px) and (max-width: 991.98px) { .countries-table-scroll { max-height: 60vh; } }
-@media (min-width: 992px) { .countries-table-scroll { max-height: 70vh; } }
-@media (max-width: 575.98px) {
-  #countriesTable thead { display: none; }
-  #countriesTable tbody tr {
-    display: block;
-    margin-bottom: 1rem;
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--bs-body-bg, #fff);
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  }
-  #countriesTable tbody td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid rgba(0,0,0,.06);
-  }
-  #countriesTable tbody td:last-child { border-bottom: 0; }
-  #countriesTable tbody td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    font-size: 0.8rem;
-    color: var(--bs-secondary, #6c757d);
-    margin-right: 0.5rem;
-    flex-shrink: 0;
-  }
-  #countriesTable tbody td[data-label="Flag"] { display: block; padding: 0.5rem 0.75rem; }
-  #countriesTable tbody td[data-label="Flag"]::before { content: none; }
-  #countriesTable tbody td[data-label="Actions"] .btn-group, #countriesTable tbody td[data-label="Actions"] .d-inline { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-}
+    .page-shell {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+    }
+
+    .page-title {
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0;
+    }
+    .page-subtitle {
+      color: var(--muted-color);
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0;
+    }
+
+    .countries-admin .card { border-radius: 14px; border: 1px solid var(--border-color); }
+    .countries-admin .card-header {
+      background: var(--surface-color);
+      border-bottom: 1px solid var(--border-color);
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+    }
+
+    .countries-admin .btn { border-radius: 10px; }
+    .countries-admin .btn:focus { box-shadow: 0 0 0 .2rem rgba(59,130,246,.25); }
+
+    .countries-admin .form-control,
+    .countries-admin .custom-file-input,
+    .countries-admin .custom-select {
+      border-radius: 10px;
+    }
+    .countries-admin .form-control:focus,
+    .countries-admin .custom-file-input:focus,
+    .countries-admin .custom-select:focus {
+      border-color: rgba(59,130,246,.6);
+      box-shadow: 0 0 0 .2rem rgba(59,130,246,.15);
+    }
+
+    .countries-table-scroll {
+      max-height: 65vh;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .countries-table-scroll .table { margin-bottom: 0; }
+
+    .countries-table-scroll thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--surface-color);
+      box-shadow: 0 1px 0 0 var(--border-color);
+      border-top: 0;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      color: var(--muted-color);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .countries-admin #countriesTable tbody tr { transition: background-color .15s ease, box-shadow .15s ease; }
+    .countries-admin #countriesTable tbody tr:hover { background: rgba(59,130,246,.06); }
+
+    .table-flag {
+      width: 28px;
+      height: 20px;
+      object-fit: cover;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      background: #fff;
+    }
+
+    .status-badge { font-weight: 600; }
+
+    @media (max-width: 575.98px) {
+      #countriesTable thead { display: none; }
+      #countriesTable tbody tr {
+        display: block;
+        margin-bottom: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--surface-color);
+      }
+      #countriesTable tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+      #countriesTable tbody td:last-child { border-bottom: 0; }
+      #countriesTable tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: var(--muted-color);
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+      }
+      #countriesTable tbody td[data-label="Flag"] { display: block; }
+      #countriesTable tbody td[data-label="Flag"]::before { content: none; }
+      #countriesTable tbody td[data-label="Actions"] .btn-group { width: 100%; display: flex; gap: 0.5rem; }
+      #countriesTable tbody td[data-label="Actions"] .btn { flex: 1 1 auto; }
+    }
 </style>
 
 <div class="container-fluid py-3 py-md-4 px-2 px-sm-3 countries-admin">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white d-flex flex-column flex-sm-row flex-md-wrap justify-content-between align-items-stretch align-items-sm-center gap-2">
-                    <h5 class="mb-0">
-                        <?php echo $selectedCountry ? 'Edit Country: ' . htmlspecialchars($selectedCountry['name']) : 'Add New Country'; ?>
-                    </h5>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
-                            <i class="fas fa-arrow-left me-1"></i> Back to Product
-                        </a>
-                        <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addCountryModal">
-                            <i class="fas fa-plus me-1"></i> Add New Country
+    <div class="page-shell">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4">
+            <div>
+                <h2 class="h4 page-title">Manage Countries</h2>
+                <p class="page-subtitle">Add, edit, and maintain countries of origin used in your product system.</p>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex flex-wrap" style="gap: .5rem;">
+                <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i> Back
+                </a>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3 mb-md-4">
+            <div class="card-header py-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center" style="gap: .75rem;">
+                    <div>
+                        <div class="font-weight-600" id="countryFormTitle">Add New Country</div>
+                        <div class="text-muted small">Use the form below to add a new country or edit an existing one.</div>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="cancelEditBtn">
+                        Cancel Edit
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <form id="countryForm" action="?controller=country&action=create" method="POST" enctype="multipart/form-data" novalidate>
+                    <input type="hidden" name="id" id="country_id" value="">
+
+                    <div class="form-row">
+                        <div class="form-group col-12 col-md-5">
+                            <label for="country_name" class="mb-1">Country</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="country_name"
+                                name="name"
+                                list="countryNameList"
+                                placeholder="Start typing to search / add a country"
+                                required
+                                autocomplete="off"
+                            >
+                            <datalist id="countryNameList">
+                                <?php foreach ($countries as $country): ?>
+                                    <option value="<?php echo htmlspecialchars($country['name'] ?? ''); ?>"></option>
+                                <?php endforeach; ?>
+                            </datalist>
+                            <div class="invalid-feedback">Please enter a country name.</div>
+                            <small class="text-muted">Tip: type to search existing, or enter a new name to add.</small>
+                        </div>
+
+                        <div class="form-group col-12 col-md-5">
+                            <label for="flag_image" class="mb-1">Flag Image</label>
+                            <div class="d-flex align-items-center" style="gap: .5rem;">
+                                <div class="custom-file" style="flex: 1 1 auto;">
+                                    <input type="file" class="custom-file-input" id="flag_image" name="flag_image" accept="image/*">
+                                    <label class="custom-file-label" for="flag_image">Choose image</label>
+                                </div>
+                                <img id="flagPreview" src="https://flagcdn.com/24x18/xx.png" alt="Flag preview" class="table-flag" style="opacity: .55; width: 34px; height: 24px;">
+                            </div>
+                            <small class="text-muted">Recommended: square image, e.g. 64×64px (max 2MB).</small>
+                        </div>
+
+                        <div class="form-group col-12 col-md-2">
+                            <label class="mb-1 d-block">Status</label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="status" name="status" value="1" checked>
+                                <label class="custom-control-label" for="status">Active</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row" style="gap: .5rem;">
+                        <button type="submit" class="btn btn-primary" id="countrySubmitBtn">
+                            <i class="fas fa-plus mr-2"></i> Add New Country
                         </button>
+                        <small class="text-muted align-self-center">Changes save immediately and will reflect in product forms.</small>
                     </div>
-                </div>
-                <div class="card-body">
-                    <?php if ($selectedCountry): ?>
-                        <form action="?controller=country&action=update" method="POST" enctype="multipart/form-data" id="countryForm">
-                            <input type="hidden" name="id" value="<?php echo $selectedCountry['id']; ?>">
-                            
-                            <div class="row g-3 mb-3">
-                                <div class="col-12 col-md-6">
-                                    <div class="mb-0">
-                                        <label for="countrySelect" class="form-label">Select Country</label>
-                                        <select name="id" id="countrySelect" class="form-select select2">
-                                            <option value="">-- Select a Country --</option>
-                                            <?php 
-                                            foreach ($countries as $country): 
-                                                // Get country code from the country name (first 2 characters in lowercase)
-                                                $countryCode = strtolower(substr($country['name'], 0, 2));
-                                                $flagImage = !empty($country['flag_image']) ? 
-                                                    BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
-                                                    'https://flagcdn.com/24x18/' . $countryCode . '.png';
-                                                $selected = ($selectedCountry && isset($selectedCountry['id']) && $selectedCountry['id'] == $country['id']) ? 'selected' : '';
-                                                $countryName = htmlspecialchars($country['name']);
-                                            ?>
-                                            <option value="<?php echo $country['id']; ?>" 
-                                                data-flag="<?php echo $countryCode; ?>" 
-                                                data-flag-image="<?php echo $flagImage; ?>"
-                                                data-flag-path="<?php echo $flagImage; ?>"
-                                                <?php echo $selected; ?>>
-                                                <?php echo $countryName; ?>
-                                            </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                        <input type="hidden" id="name" name="name" value="">
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <label for="flag_image" class="form-label">Flag Image</label>
-                                    <div class="input-group">
-                                        <input type="file" class="form-control" id="flag_image" name="flag_image" accept="image/*" onchange="previewFlagImage(this)">
-                                        <?php if ($selectedCountry && !empty($selectedCountry['flag_image'])): 
-                                                $flagImage = BASE_URL . 'uploads/flags/' . $selectedCountry['flag_image'];
-                                            ?>
-                                                <div class="input-group-text p-0 overflow-hidden" style="width: 40px;">
-                                                    <img src="<?php echo $flagImage; ?>" 
-                                                         alt="Flag" 
-                                                         id="flagPreview"
-                                                         class="img-fluid"
-                                                         style="width: 100%; height: 100%; object-fit: cover;">
-                                                </div>
-                                                <a href="<?php echo $flagImage; ?>" 
-                                                   target="_blank" 
-                                                   class="btn btn-outline-secondary" 
-                                                   title="View Current Flag">
-                                                    <i class="fas fa-expand"></i>
-                                                </a>
-                                            <?php else: ?>
-                                                <div class="input-group-text p-0 overflow-hidden" style="width: 40px;">
-                                                    <img src="https://flagcdn.com/24x18/xx.png" 
-                                                         alt="No Flag" 
-                                                         id="flagPreview"
-                                                         class="img-fluid"
-                                                         style="width: 100%; height: 100%; object-fit: cover; opacity: 0.5;">
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    <small class="text-muted">Upload a square flag image (recommended: 64x64px)</small>
-                                </div>
-                            </div>
-
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="status" name="status" value="1"
-                                    <?php echo (!$selectedCountry || empty($selectedCountry['status']) || $selectedCountry['status'] === 'active') ? 'checked' : ''; ?>>
-                                <label class="form-check-label" for="status">Active</label>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">Update Country</button>
-                        </form>
-                    <?php else: ?>
-                        <div class="alert alert-info">
-                            Please select a country from the dropdown or add a new one.
-                        </div>
-                    <?php endif; ?>
-                </div>
+                </form>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Add Country Modal -->
-<div class="modal fade" id="addCountryModal" tabindex="-1" aria-labelledby="addCountryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="addCountryForm" action="?controller=country&action=create" method="POST" enctype="multipart/form-data">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addCountryModalLabel">Add New Country</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="new_country_name" class="form-label">Country Name</label>
-                        <input type="text" class="form-control" id="new_country_name" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_flag_image" class="form-label">Flag Image</label>
-                        <div class="input-group">
-                            <input type="file" class="form-control" id="new_flag_image" name="flag_image" accept="image/*" onchange="previewNewFlagImage(this)">
-                            <div class="input-group-text p-0 overflow-hidden" style="width: 40px;">
-                                <img src="https://flagcdn.com/24x18/xx.png" 
-                                     alt="No Flag" 
-                                     id="newFlagPreview"
-                                     class="img-fluid"
-                                     style="width: 100%; height: 100%; object-fit: cover; opacity: 0.5;">
-                            </div>
-                        </div>
-                        <small class="text-muted">Upload a square flag image (recommended: 64x64px)</small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Country</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Initialize Select2 for the country dropdown -->
-<style>
-.select2-container--default .select2-selection--single {
-    height: 38px;
-    padding: 5px;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-}
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 36px;
-}
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 26px;
-}
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #0d6efd;
-}
-.select2-container--default .select2-results__option[aria-selected=true] {
-    background-color: #e9ecef;
-}
-.flag-icon {
-    width: 20px;
-    height: 15px;
-    object-fit: cover;
-    margin-right: 8px;
-    display: inline-block;
-    vertical-align: middle;
-}
-</style>
-
-<script>
-$(document).ready(function() {
-    // Handle add country form submission
-    $('#addCountryForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        var formData = new FormData(this);
-        var $form = $(this);
-        var $submitBtn = $form.find('button[type="submit"]');
-        var originalBtnText = $submitBtn.html();
-        
-        // Show loading state
-        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...');
-        
-        $.ajax({
-            url: $form.attr('action'),
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    // Close the modal
-                    $('#addCountryModal').modal('hide');
-                    
-                    // Add the new country to the dropdown
-                    var country = response.country;
-                    var countryCode = country.code ? country.code.toLowerCase() : country.name.substring(0, 2).toLowerCase();
-                    var flagImagePath = country.flag_image ? 
-                        '<?php echo BASE_URL; ?>uploads/flags/' + country.flag_image : 
-                        'https://flagcdn.com/24x18/' + countryCode + '.png';
-                        
-                    // Add to select2 dropdown
-                    var $option = $('<option>', {
-                        value: country.id,
-                        'data-flag': countryCode,
-                        'data-flag-image': flagImagePath,
-                        'data-flag-path': flagImagePath,
-                        selected: true
-                    }).text(country.name);
-                    
-                    // Add the new option to the dropdown
-                    $('#countrySelect').append($option).trigger('change');
-                    
-                    // Update the select2 to refresh the dropdown
-                    if ($.fn.select2) {
-                        $('#countrySelect').select2('destroy');
-                        $('#countrySelect').select2({
-                            templateResult: formatCountry,
-                            templateSelection: formatCountry,
-                            escapeMarkup: function(m) { return m; }
-                        });
-                    }
-                    
-                    // Create the new row with proper flag image - matching website style
-                    var flagImg = '';
-                    if (country.flag_image) {
-                        flagImg = '<img src="' + '<?php echo BASE_URL; ?>uploads/flags/' + country.flag_image + '" ' +
-                                 'alt="' + country.name + '" ' +
-                                 'class="table-flag" ' +
-                                 'style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px; vertical-align: middle; margin-right: 8px;">';
-                    } else {
-                        flagImg = '<img src="https://flagcdn.com/24x18/' + countryCode + '.png" ' +
-                                 'alt="' + country.name + '" ' +
-                                 'class="table-flag" ' +
-                                 'style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px; vertical-align: middle; margin-right: 8px;">';
-                    }
-                    
-                    var $newRow = $('<tr>' +
-                        '<td data-label="#">1</td>' +
-                        '<td class="text-center" data-label="Flag">' + flagImg + '</td>' +
-                        '<td data-label="Name">' + country.name + '</td>' +
-                        '<td data-label="Status"><span class="badge bg-success">' + (country.status === 'active' ? 'Active' : 'Inactive') + '</span></td>' +
-                        '<td data-label="Actions">' +
-                            '<a href="?controller=country&action=adminIndex&id=' + country.id + '" ' +
-                               'class="btn btn-sm btn-primary" title="Edit">' +
-                                '<i class="fas fa-edit"></i>' +
-                            '</a> ' +
-                            '<form action="?controller=country&action=delete" method="POST" class="d-inline" ' +
-                                  'onsubmit="return confirm(\'Are you sure you want to delete this country? This action cannot be undone.\');">' +
-                                '<input type="hidden" name="id" value="' + country.id + '">' +
-                                '<button type="submit" class="btn btn-sm btn-danger" title="Delete">' +
-                                    '<i class="fas fa-trash"></i>' +
-                                '</button>' +
-                            '</form>' +
-                        '</td>' +
-                    '</tr>');
-                    
-                    $('table tbody').prepend($newRow);
-                    
-                    // Show success message
-                    showAlert('Country added successfully', 'success');
-                    
-                    // Reset the form
-                    $form.trigger('reset');
-                    $('#newFlagPreview').attr('src', 'https://flagcdn.com/24x18/xx.png').css('opacity', '0.5');
-                } else {
-                    showAlert(response.message || 'Error adding country', 'danger');
-                }
-            },
-            error: function(xhr, status, error) {
-                var errorMessage = 'Error adding country: ';
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    errorMessage += response.message || 'Unknown error';
-                } catch (e) {
-                    errorMessage += xhr.statusText || 'Unknown error';
-                }
-                showAlert(errorMessage, 'danger');
-            },
-            complete: function() {
-                // Reset button state
-                $submitBtn.prop('disabled', false).html(originalBtnText);
-            }
-        });
-    });
-    
-    // Helper function to show alerts
-    function showAlert(message, type) {
-        var $alert = $('<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
-                       message +
-                       '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-                       '</div>');
-        
-        $('.container-fluid').prepend($alert);
-        
-        // Auto dismiss after 5 seconds
-        setTimeout(function() {
-            $alert.alert('close');
-        }, 5000);
-    }
-
-    // Function to format the country option
-    function formatCountry(country) {
-        if (!country.id) { return country.text; }
-        
-        var $country = $(
-            '<div class="d-flex align-items-center">' +
-            '<img src="' + $(country.element).data('flag-image') + '" class="flag-icon me-2" alt="' + country.text + '">' +
-            '<span>' + country.text + '</span>' +
-            '</div>'
-        );
-        return $country;
-    };
-
-    // Initialize Select2 for the country dropdown
-    $('#countrySelect').select2({
-        placeholder: 'Search for a country...',
-        width: '100%',
-        templateResult: formatCountry,
-        templateSelection: formatCountry,
-        escapeMarkup: function(m) { return m; },
-        allowClear: true,
-        templateResult: formatCountry,
-        templateSelection: formatCountrySelection,
-        escapeMarkup: function(markup) {
-            return markup;
-        }
-    });
-    
-        // Format country with flag
-    function formatCountry(country) {
-        if (!country.id) return country.text;
-        var $country = $(
-            '<div class="d-flex align-items-center">' +
-            '   <img src="' + $(country.element).data('flag-image') + '" ' +
-            '        alt="' + country.text.trim() + '" ' +
-            '        class="me-2" ' +
-            '        style="width: 20px; height: 15px; object-fit: cover; border: 1px solid #dee2e6;">' +
-            '   <span>' + country.text + '</span>' +
-            '</div>'
-        );
-        return $country;
-    }
-    
-    // Format selected country
-    function formatCountrySelection(country) {
-        if (!country.id) return country.text;
-        
-        var flagImage = $(country.element).data('flag-image');
-        if (!flagImage) {
-            // If no flag image is set, use the flag from the country code
-            var countryCode = $(country.element).data('flag');
-            flagImage = 'https://flagcdn.com/24x18/' + countryCode + '.png';
-        }
-        
-        return $(
-            '<div class="d-flex align-items-center">' +
-            '   <img src="' + flagImage + '" ' +
-            '        alt="' + (country.text || '').trim() + '" ' +
-            '        class="me-2" ' +
-            '        style="width: 20px; height: 15px; object-fit: cover; border: 1px solid #dee2e6;">' +
-            '   <span>' + (country.text || '') + '</span>' +
-            '</div>'
-        );
-    }
-    
-        // Handle country selection
-    $('#countrySelect').on('change', function() {
-        var selectedOption = $(this).find('option:selected');
-        var countryName = selectedOption.text();
-        var countryId = $(this).val();
-        var flagImage = selectedOption.data('flag-image');
-        
-        // Update the hidden name field with the selected country name
-        $('#name').val(countryName);
-        
-        // Update flag preview if available
-        var $flagPreview = $('#flagPreview');
-        var $flagLink = $flagPreview.closest('.input-group').find('a');
-        
-        if (flagImage) {
-            $flagPreview.attr('src', flagImage).css('opacity', '1');
-            $flagLink.attr('href', flagImage);
-        } else {
-            // Try to get flag from country code if no image is set
-            var countryCode = selectedOption.data('flag');
-            if (countryCode) {
-                var flagUrl = 'https://flagcdn.com/24x18/' + countryCode + '.png';
-                $flagPreview.attr('src', flagUrl).css('opacity', '1');
-                $flagLink.attr('href', flagUrl);
-            } else {
-                $flagPreview.attr('src', 'https://flagcdn.com/24x18/xx.png').css('opacity', '0.5');
-                $flagLink.attr('href', '#');
-            }
-        }
-        
-        if (countryId) {
-            // Only redirect if this is a predefined country (not a new one being added)
-            var $matchingOption = $(this).find('option[value="' + countryId + '"]');
-            if ($matchingOption.length > 0) {
-                // If we're not already on this country's edit page, redirect to it
-                var currentUrl = new URL(window.location.href);
-                var currentId = currentUrl.searchParams.get('id');
-                
-                if (currentId !== countryId) {
-                    // Update the form action to point to the update URL for the selected country
-                    $('#countryForm').attr('action', '?controller=country&action=update&id=' + countryId);
-                    
-                    // Redirect to the country's edit page
-                    window.location.href = '?controller=country&action=adminIndex&id=' + countryId;
-                }
-            } else {
-                // For new countries, update the form action to point to the add URL
-                $('#countryForm').attr('action', '?controller=country&action=add');
-            }
-        } else {
-            // Clear the name field if no country is selected
-            $('#name').val('');
-            $('#flagPreview').attr('src', 'https://flagcdn.com/24x18/xx.png').css('opacity', '0.5');
-        }
-    });
-    
-    // Prevent form submission when pressing Enter in the search box
-    $('#countrySelect').on('select2:opening select2:closing', function(event) {
-        var $searchfield = $(this).parent().find('.select2-search__field');
-        $searchfield.prop('disabled', true);
-    });
-
-    // Set the selected value when the page loads
-    <?php if ($selectedCountry): ?>
-        var selectedCountryId = '<?php echo (int)$selectedCountry['id']; ?>';
-        var selectedCountryName = '<?php echo addslashes($selectedCountry['name'] ?? ''); ?>';
-        
-        // Update the flag preview with the selected country's flag
-        var selectedFlagImage = $('#countrySelect option:selected').data('flag-image');
-        if (!selectedFlagImage && '<?php echo !empty($selectedCountry['flag_image']) ? 'true' : ''; ?>') {
-            selectedFlagImage = '<?php echo BASE_URL; ?>uploads/flags/<?php echo htmlspecialchars($selectedCountry['flag_image'] ?? ''); ?>';
-        }
-        
-        if (selectedFlagImage) {
-            $('#flagPreview').attr('src', selectedFlagImage).css('opacity', '1');
-        }
-        
-        if (selectedCountryId) {
-            // Try to find the option with matching ID or name
-            var $option = $('#countrySelect option[value="' + selectedCountryId + '"]');
-            
-            // If not found by ID, try to find by name
-            if ($option.length === 0) {
-                $option = $('#countrySelect option').filter(function() {
-                    return $(this).text().trim() === selectedCountryName;
-                }).first();
-            }
-            
-            if ($option.length > 0) {
-                $option.prop('selected', true);
-                $('#countrySelect').trigger('change');
-            } else {
-                // If the country is not in the dropdown, update the name field directly
-                $('#name').val(selectedCountryName);
-            }
-            
-            // Set the form action to update the current country
-            $('#countryForm').attr('action', '?controller=country&action=update&id=' + selectedCountryId);
-        }
-    <?php endif; ?>
-});
-</script>
-
-<!-- Add Select2 CSS and JS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<style>
-/* Style for table flags - Match website country of origin dropdown */
-.table-flag {
-    width: 24px;
-    height: 18px;
-    object-fit: cover;
-    border: 1px solid #dee2e6;
-    border-radius: 2px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    vertical-align: middle;
-    margin-right: 8px;
-}
-
-/* Style for Select2 dropdown with flags */
-.select2-container--bootstrap-5 .select2-selection {
-    min-height: 38px;
-    padding: 5px;
-}
-.select2-container--bootstrap-5 .select2-selection--single {
-    padding: 0.375rem 0.75rem;
-    height: auto;
-}
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
-    padding-left: 0;
-    line-height: 1.5;
-}
-
-/* Style for flag images in dropdown - Match website country of origin dropdown */
-.select2-container--bootstrap-5 .select2-results__option {
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-}
-
-.select2-container--bootstrap-5 .select2-results__option img {
-    width: 24px;
-    height: 18px;
-    object-fit: cover;
-    border: 1px solid #dee2e6;
-    margin-right: 10px;
-    border-radius: 2px;
-}
-
-/* Selected item in dropdown */
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
-    display: flex;
-    align-items: center;
-}
-
-/* Flag preview in the form */
-.flag-preview {
-    width: 32px;
-    height: 24px;
-    object-fit: cover;
-    border: 1px solid #dee2e6;
-    margin-right: 8px;
-}
-</style>
-
-<!-- List of All Countries -->
-<div class="row mt-4">
-    <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header bg-secondary text-white d-flex flex-wrap align-items-center gap-2">
-                <h5 class="mb-0">All Countries</h5>
+            <div class="card-header py-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center" style="gap: .75rem;">
+                    <div>
+                        <div class="font-weight-600">All Countries</div>
+                        <div class="text-muted small">Flag, status and actions. On mobile, rows stack for readability.</div>
+                    </div>
+                    <div class="text-muted small">Total: <strong><?php echo count($countries); ?></strong></div>
+                </div>
             </div>
-            <div class="card-body p-0 p-md-3">
-                <div class="countries-table-scroll table-responsive">
-                    <table id="countriesTable" class="table table-bordered table-hover align-middle mb-0">
-                        <thead class="table-light">
+            <div class="countries-table-scroll">
+                <div class="table-responsive">
+                    <table id="countriesTable" class="table table-hover align-middle mb-0">
+                        <thead>
                             <tr>
-                                <th style="width: 60px;">#</th>
-                                <th style="width: 80px;">Flag</th>
+                                <th style="width: 72px;">Flag</th>
                                 <th>Name</th>
-                                <th>Status</th>
-                                <th style="width: 140px;">Actions</th>
+                                <th style="width: 120px;">Status</th>
+                                <th style="width: 160px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $rowNum = 0; foreach ($countries as $index => $country): $rowNum++; ?>
+                            <?php if (!empty($countries)): ?>
+                                <?php foreach ($countries as $country):
+                                    $countryName = htmlspecialchars($country['name'] ?? '');
+                                    $status = ($country['status'] ?? 'inactive') === 'active' ? 'active' : 'inactive';
+                                    $isActive = $status === 'active';
+                                    $code = strtolower(substr($country['name'] ?? '', 0, 2));
+                                    $hasLocalFlag = !empty($country['flag_image']) && defined('UPLOAD_PATH') && file_exists(UPLOAD_PATH . 'flags/' . $country['flag_image']);
+                                    $flagUrl = $hasLocalFlag
+                                        ? (BASE_URL . 'uploads/flags/' . $country['flag_image'])
+                                        : ('https://flagcdn.com/24x18/' . $code . '.png');
+                                ?>
                                 <tr>
-                                    <td data-label="#"><?php echo $rowNum; ?></td>
-                                    <td class="text-center" data-label="Flag">
-                                        <?php 
-                                        $countryCode = strtolower(substr($country['name'], 0, 2));
-                                        $flagImage = !empty($country['flag_image']) ? 
-                                            BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
-                                            'https://flagcdn.com/24x18/' . $countryCode . '.png';
-                                        ?>
-                                        <?php if (!empty($country['flag_image']) && file_exists(UPLOAD_PATH . 'flags/' . $country['flag_image'])): ?>
-                                            <img src="<?php echo BASE_URL . 'uploads/flags/' . $country['flag_image']; ?>" 
-                                                 alt="<?php echo htmlspecialchars($country['name']); ?>" 
-                                                 class="table-flag"
-                                                 style="width: 30px; height: 20px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">
-                                        <?php else: ?>
-                                            <img src="https://flagcdn.com/24x18/<?php echo $countryCode; ?>.png" 
-                                                 alt="<?php echo htmlspecialchars($country['name']); ?>" 
-                                                 class="table-flag"
-                                                 style="width: 30px; height: 20px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">
+                                    <td data-label="Flag" class="text-center">
+                                        <img src="<?php echo htmlspecialchars($flagUrl); ?>" alt="<?php echo $countryName; ?> flag" class="table-flag">
+                                    </td>
+                                    <td data-label="Name">
+                                        <div class="font-weight-600"><?php echo $countryName; ?></div>
+                                        <?php if (!empty($country['code'])): ?>
+                                            <div class="text-muted small">Code: <?php echo htmlspecialchars($country['code']); ?></div>
                                         <?php endif; ?>
                                     </td>
-                                    <td data-label="Name"><?php echo htmlspecialchars($country['name']); ?></td>
                                     <td data-label="Status">
-                                        <span class="badge bg-<?php echo ($country['status'] ?? '') === 'active' ? 'success' : 'secondary'; ?>">
-                                            <?php echo ucfirst($country['status'] ?? 'inactive'); ?>
+                                        <span class="badge badge-<?php echo $isActive ? 'success' : 'secondary'; ?> status-badge">
+                                            <?php echo $isActive ? 'Active' : 'Inactive'; ?>
                                         </span>
                                     </td>
-                                    <td data-label="Actions">
-                                        <a href="?controller=country&action=adminIndex&id=<?php echo $country['id']; ?>" 
-                                           class="btn btn-sm btn-primary" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="?controller=country&action=delete" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this country? This action cannot be undone.');">
-                                            <input type="hidden" name="id" value="<?php echo $country['id']; ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete" <?php echo (isset($country['products_count']) && $country['products_count'] > 0) ? 'disabled' : ''; ?>>
-                                                <i class="fas fa-trash"></i>
+                                    <td data-label="Actions" class="text-nowrap" onclick="event.stopPropagation();">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Country actions">
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-primary edit-country"
+                                                data-id="<?php echo (int)$country['id']; ?>"
+                                                data-name="<?php echo $countryName; ?>"
+                                                data-status="<?php echo $status; ?>"
+                                                data-flag-url="<?php echo htmlspecialchars($flagUrl); ?>"
+                                                data-has-products="<?php echo (int)($country['products_count'] ?? 0); ?>"
+                                            >
+                                                <i class="fas fa-edit"></i> <span class="d-none d-sm-inline">Edit</span>
                                             </button>
-                                        </form>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-danger delete-country"
+                                                data-id="<?php echo (int)$country['id']; ?>"
+                                                data-name="<?php echo $countryName; ?>"
+                                                data-disabled="<?php echo (!empty($country['products_count']) && (int)$country['products_count'] > 0) ? '1' : '0'; ?>"
+                                            >
+                                                <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete</span>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No countries found.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <div class="card shadow-sm mt-3 mt-md-4">
+            <div class="card-header py-3">
+                <div class="font-weight-600">Style Guide</div>
+                <div class="text-muted small">Tokens aligned with your admin layout (Inter font, 8px spacing rhythm, rounded corners).</div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <div class="text-muted small mb-2">Colors</div>
+                        <div class="d-flex flex-wrap" style="gap: .5rem;">
+                            <div class="p-2" style="border:1px solid var(--border-color); border-radius: 12px; min-width: 160px;">
+                                <div class="small text-muted">Primary</div>
+                                <div class="font-weight-600">#3b82f6</div>
+                            </div>
+                            <div class="p-2" style="border:1px solid var(--border-color); border-radius: 12px; min-width: 160px;">
+                                <div class="small text-muted">Success</div>
+                                <div class="font-weight-600">#198754</div>
+                            </div>
+                            <div class="p-2" style="border:1px solid var(--border-color); border-radius: 12px; min-width: 160px;">
+                                <div class="small text-muted">Danger</div>
+                                <div class="font-weight-600">#dc3545</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 mt-3 mt-md-0">
+                        <div class="text-muted small mb-2">Component states</div>
+                        <div class="text-muted small">
+                            Buttons: hover highlight, focus ring visible, disabled state for restricted delete.
+                            Inputs: blue focus ring, invalid feedback on required fields.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteCountryModal" tabindex="-1" aria-labelledby="deleteCountryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteCountryModalLabel">Confirm Delete</h5>
+<div class="modal fade" id="deleteCountryModal" tabindex="-1" role="dialog" aria-labelledby="deleteCountryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 14px; overflow: hidden;">
+            <div class="modal-header" style="background: rgba(220,53,69,0.08); border-bottom: 1px solid var(--border-color);">
+                <h5 class="modal-title" id="deleteCountryModalLabel">Delete Country</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete <strong id="countryNameToDelete"></strong>? This action cannot be undone.</p>
-                <p class="text-danger"><strong>Note:</strong> You cannot delete a country that has associated products.</p>
+                <div class="mb-2">Are you sure you want to delete <strong id="countryNameToDelete"></strong>?</div>
+                <div class="text-muted small" id="deleteCountryHint">This action cannot be undone.</div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <form id="deleteForm" action="?controller=country&action=delete" method="POST">
+            <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <form id="deleteCountryForm" action="?controller=country&action=delete" method="POST" class="mb-0">
                     <input type="hidden" name="id" id="deleteCountryId" value="">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i> Delete
-                    </button>
+                    <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
                 </form>
             </div>
         </div>
@@ -699,34 +346,128 @@ $(document).ready(function() {
 </div>
 
 <script>
-    // Preview flag image when a file is selected in edit form
-    function previewFlagImage(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                $('#flagPreview')
-                    .attr('src', e.target.result)
-                    .css('opacity', '1')
-                    .closest('.input-group')
-                    .find('a')
-                    .attr('href', e.target.result);
-            }
-            reader.readAsDataURL(input.files[0]);
+(function() {
+    var form = document.getElementById('countryForm');
+    var formTitle = document.getElementById('countryFormTitle');
+    var cancelEditBtn = document.getElementById('cancelEditBtn');
+    var idInput = document.getElementById('country_id');
+    var nameInput = document.getElementById('country_name');
+    var statusInput = document.getElementById('status');
+    var submitBtn = document.getElementById('countrySubmitBtn');
+    var fileInput = document.getElementById('flag_image');
+    var fileLabel = document.querySelector('label.custom-file-label[for="flag_image"]');
+    var preview = document.getElementById('flagPreview');
+
+    function setModeAdd() {
+        if (!form) return;
+        form.action = '?controller=country&action=create';
+        if (idInput) idInput.value = '';
+        if (formTitle) formTitle.textContent = 'Add New Country';
+        if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-plus mr-2"></i> Add New Country';
+        if (cancelEditBtn) cancelEditBtn.classList.add('d-none');
+        if (nameInput) nameInput.value = '';
+        if (statusInput) statusInput.checked = true;
+        if (preview) { preview.src = 'https://flagcdn.com/24x18/xx.png'; preview.style.opacity = '.55'; }
+        if (fileInput) fileInput.value = '';
+        if (fileLabel) fileLabel.textContent = 'Choose image';
+        if (nameInput) { nameInput.classList.remove('is-invalid'); }
+    }
+
+    function setModeEdit(country) {
+        if (!form || !country) return;
+        form.action = '?controller=country&action=update';
+        if (idInput) idInput.value = country.id || '';
+        if (nameInput) nameInput.value = country.name || '';
+        if (statusInput) statusInput.checked = (country.status === 'active');
+        if (preview && country.flagUrl) { preview.src = country.flagUrl; preview.style.opacity = '1'; }
+        if (formTitle) formTitle.textContent = 'Edit Country';
+        if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Country';
+        if (cancelEditBtn) cancelEditBtn.classList.remove('d-none');
+        if (fileInput) fileInput.value = '';
+        if (fileLabel) fileLabel.textContent = 'Choose image';
+
+        try {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) {
+            // ignore
         }
     }
-    
-    // Preview flag image when a file is selected in add form
-    function previewNewFlagImage(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                $('#newFlagPreview')
-                    .attr('src', e.target.result)
-                    .css('opacity', '1');
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function() {
+            setModeAdd();
+            try { nameInput && nameInput.focus(); } catch (e) {}
+        });
     }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (fileLabel && fileInput.files && fileInput.files[0]) {
+                fileLabel.textContent = fileInput.files[0].name;
+            }
+            if (fileInput.files && fileInput.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    if (preview) { preview.src = e.target.result; preview.style.opacity = '1'; }
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        var editBtn = e.target.closest('.edit-country');
+        if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            setModeEdit({
+                id: editBtn.getAttribute('data-id'),
+                name: editBtn.getAttribute('data-name') || '',
+                status: editBtn.getAttribute('data-status') || 'inactive',
+                flagUrl: editBtn.getAttribute('data-flag-url') || ''
+            });
+            return;
+        }
+
+        var delBtn = e.target.closest('.delete-country');
+        if (delBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var disabled = delBtn.getAttribute('data-disabled') === '1';
+            var id = delBtn.getAttribute('data-id');
+            var name = delBtn.getAttribute('data-name') || 'this country';
+
+            document.getElementById('countryNameToDelete').textContent = name;
+            document.getElementById('deleteCountryId').value = id;
+
+            var hint = document.getElementById('deleteCountryHint');
+            var confirmBtn = document.getElementById('confirmDeleteBtn');
+            if (disabled) {
+                if (hint) hint.textContent = 'You cannot delete a country that has associated products.';
+                if (confirmBtn) confirmBtn.disabled = true;
+            } else {
+                if (hint) hint.textContent = 'This action cannot be undone.';
+                if (confirmBtn) confirmBtn.disabled = false;
+            }
+
+            $('#deleteCountryModal').modal('show');
+            return;
+        }
+    });
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!nameInput || !nameInput.value || !nameInput.value.trim()) {
+                e.preventDefault();
+                nameInput.classList.add('is-invalid');
+                try { nameInput.focus(); } catch (ex) {}
+                return false;
+            }
+            nameInput.classList.remove('is-invalid');
+        });
+    }
+})();
 </script>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>

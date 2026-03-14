@@ -787,7 +787,9 @@ class ProductController extends Controller {
         }
         
         // Get categories for dropdown
-        $categories = $this->categoryModel->getActiveCategories();
+        $categories = method_exists($this->categoryModel, 'getActiveCategoriesWithTaxRate')
+            ? $this->categoryModel->getActiveCategoriesWithTaxRate()
+            : $this->categoryModel->getActiveCategories();
         // Get suppliers for dropdown
         $suppliers = method_exists($this->supplierModel, 'getAllSuppliers') ? $this->supplierModel->getAllSuppliers() : [];
         
@@ -1123,7 +1125,9 @@ class ProductController extends Controller {
         }
         
         // Get categories for dropdown
-        $categories = $this->categoryModel->getActiveCategories();
+        $categories = method_exists($this->categoryModel, 'getActiveCategoriesWithTaxRate')
+            ? $this->categoryModel->getActiveCategoriesWithTaxRate()
+            : $this->categoryModel->getActiveCategories();
         // Get suppliers for dropdown
         $suppliers = method_exists($this->supplierModel, 'getAllSuppliers') ? $this->supplierModel->getAllSuppliers() : [];
         

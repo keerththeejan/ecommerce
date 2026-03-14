@@ -3,33 +3,96 @@ $suppliers = $suppliers ?? [];
 require_once APP_PATH . 'views/admin/layouts/header.php';
 ?>
 <style>
-/* Suppliers admin – trending responsive */
-.suppliers-admin .card-body { padding: 1rem; }
-@media (min-width: 768px) { .suppliers-admin .card-body { padding: 1.25rem; } }
-.suppliers-table-scroll {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.08);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
-}
-.suppliers-table-scroll .table { margin-bottom: 0; border-radius: 12px; }
-.suppliers-table-scroll thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  white-space: nowrap;
-  font-weight: 600;
-  font-size: 0.85rem;
-  padding: 0.75rem;
-  background: var(--bs-body-bg, #fff);
-  color: var(--bs-body-color, #212529);
-  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
-}
-.suppliers-table-scroll tbody td { padding: 0.65rem 0.75rem; vertical-align: middle; }
-@media (max-width: 575.98px) { .suppliers-table-scroll { max-height: 55vh; } }
-@media (min-width: 576px) and (max-width: 991.98px) { .suppliers-table-scroll { max-height: 60vh; } }
-@media (min-width: 992px) { .suppliers-table-scroll { max-height: 70vh; } }
+    .page-shell {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+    }
+
+    .page-title {
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0;
+    }
+    .page-subtitle {
+      color: var(--muted-color);
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0;
+    }
+
+    .suppliers-admin .card-body { padding: 1rem; }
+    @media (min-width: 768px) { .suppliers-admin .card-body { padding: 1.25rem; } }
+
+    .suppliers-table-scroll {
+      max-height: 65vh;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .suppliers-table-scroll .table { margin-bottom: 0; }
+
+    .suppliers-table-scroll thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--surface-color);
+      box-shadow: 0 1px 0 0 var(--border-color);
+      border-top: 0;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      color: var(--muted-color);
+      text-transform: uppercase;
+      padding: 0.75rem 0.9rem;
+      white-space: nowrap;
+    }
+
+    .suppliers-table-scroll tbody td { padding: 0.8rem 0.9rem; vertical-align: middle; }
+
+    #suppliersTable tbody tr:nth-child(even) { background: rgba(17, 24, 39, 0.02); }
+    [data-theme="dark"] #suppliersTable tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.04); }
+    #suppliersTable tbody tr:hover { background: rgba(59, 130, 246, 0.06) !important; }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .style-guide {
+      border-top: 1px dashed var(--border-color);
+      margin-top: 1rem;
+      padding-top: 1rem;
+    }
+    .sg-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      background: var(--surface-muted);
+      font-size: 0.85rem;
+      color: var(--text-color);
+      margin-right: 0.4rem;
+      margin-bottom: 0.4rem;
+      white-space: nowrap;
+    }
+    .sg-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid var(--border-color);
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 575.98px) { .suppliers-table-scroll { max-height: 60vh; } }
+    @media (min-width: 576px) and (max-width: 991.98px) { .suppliers-table-scroll { max-height: 60vh; } }
+    @media (min-width: 992px) { .suppliers-table-scroll { max-height: 70vh; } }
 @media (min-width: 576px) and (max-width: 991.98px) {
   #suppliersTable th:nth-child(4), #suppliersTable td:nth-child(4),
   #suppliersTable th:nth-child(5), #suppliersTable td:nth-child(5) { display: none !important; }
@@ -74,33 +137,62 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
 </style>
 <div class="sidebar-backdrop d-md-none" id="sidebarBackdrop"></div>
 
-<div class="container-fluid py-3 py-md-4 px-2 px-sm-3 suppliers-admin">
+<div class="container-fluid py-3 py-md-4 px-2 px-sm-3 suppliers-admin page-shell">
+    <div class="d-flex align-items-start justify-content-between flex-wrap" style="gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+            <h1 class="page-title">Manage Suppliers</h1>
+            <p class="page-subtitle">Maintain supplier contacts and quickly view details.</p>
+        </div>
+        <div class="d-flex align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-secondary btn-action">
+                <i class="fas fa-arrow-left"></i>
+                <span class="ml-1">Products</span>
+            </a>
+            <a href="#" class="btn btn-primary btn-action" data-toggle="modal" data-target="#addSupplierModal">
+                <i class="fas fa-plus"></i>
+                <span class="ml-1">Add Supplier</span>
+            </a>
+        </div>
+    </div>
+
     <div class="row g-3">
         <!-- Main Content -->
         <div class="col-12 col-lg-9">
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mb-3">
-                <h1 class="h3 mb-0">Manage Suppliers</h1>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Product
-                    </a>
-                    <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                        <i class="fas fa-plus me-1"></i> Add New Supplier
-                    </a>
-                </div>
-            </div>
-
-            <div class="card shadow-sm rounded-3 border-0">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0">All Suppliers</h5>
-                </div>
-                <div class="card-body p-0 p-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body pt-2">
                     <?php flash('supplier_success'); ?>
                     <?php flash('supplier_error'); ?>
 
-                    <div class="suppliers-table-scroll table-responsive">
-                        <table id="suppliersTable" class="table table-striped table-hover align-middle mb-0">
-                            <thead class="table-light">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                        <div class="d-flex align-items-center" style="gap: 0.5rem; flex-wrap: wrap; flex: 1 1 360px;">
+                            <div class="input-group input-group-sm" style="max-width: 420px;">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" class="form-control" id="supplierSearch" placeholder="Search suppliers..." aria-label="Search suppliers">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-secondary" id="supplierSearchClear">Clear</button>
+                                </div>
+                            </div>
+                            <span class="small text-muted" id="supplierCount"></span>
+                        </div>
+                        <div class="d-flex align-items-center" style="gap: 0.5rem; flex-wrap: wrap;">
+                            <label for="supplierPerPage" class="form-label small text-muted">Rows</label>
+                            <select id="supplierPerPage" class="custom-select custom-select-sm" style="width: auto;">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="supplierPrevBtn" aria-label="Previous page">Prev</button>
+                            <span class="small text-muted" id="supplierPageInfo">Page 1 / 1</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="supplierNextBtn" aria-label="Next page">Next</button>
+                        </div>
+                    </div>
+
+                    <div class="suppliers-table-scroll" role="region" aria-label="Suppliers table" tabindex="0">
+                        <table id="suppliersTable" class="table align-middle mb-0" aria-describedby="suppliers-helptext">
+                            <thead>
                                 <tr>
                                     <th style="width: 60px;">#</th>
                                     <th>Supplier Name</th>
@@ -127,14 +219,12 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                                                             data-product_name="<?php echo htmlspecialchars($supplier['product_name'] ?? ''); ?>"
                                                             data-email="<?php echo htmlspecialchars($supplier['email'] ?? ''); ?>"
                                                             data-phone="<?php echo htmlspecialchars($supplier['phone'] ?? ''); ?>"
-                                                            data-address="<?php echo htmlspecialchars($supplier['address'] ?? ''); ?>"
-                                                            onclick="handleEditClick(event); return false;">
+                                                            data-address="<?php echo htmlspecialchars($supplier['address'] ?? ''); ?>">
                                                         <i class="fas fa-edit"></i> <span class="d-none d-sm-inline">Edit</span>
                                                     </button>
                                                     <button type="button" class="btn btn-outline-danger delete-supplier"
                                                             data-id="<?php echo $supplier['id']; ?>"
-                                                            data-name="<?php echo htmlspecialchars($supplier['name'] ?? ''); ?>"
-                                                            onclick="handleDeleteClick(event); return false;">
+                                                            data-name="<?php echo htmlspecialchars($supplier['name'] ?? ''); ?>">
                                                         <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Delete</span>
                                                     </button>
                                                 </div>
@@ -148,6 +238,21 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                                 <?php endif; ?>
                             </tbody>
                         </table>
+                    </div>
+                    <div id="suppliers-helptext" class="sr-only">Select a row to view supplier details. Use the edit and delete buttons in the actions column to manage suppliers.</div>
+
+                    <div class="style-guide">
+                        <h6 class="mb-2">Style Guide</h6>
+                        <div class="mb-2">
+                            <span class="sg-chip"><span class="sg-swatch" style="background:#3b82f6"></span>Primary</span>
+                            <span class="sg-chip"><span class="sg-swatch" style="background:#0f172a"></span>Sidebar</span>
+                            <span class="sg-chip"><span class="sg-swatch" style="background:#198754"></span>Success</span>
+                            <span class="sg-chip"><span class="sg-swatch" style="background:#dc3545"></span>Danger</span>
+                            <span class="sg-chip"><span class="sg-swatch" style="background:#6b7280"></span>Muted</span>
+                        </div>
+                        <div class="small text-muted">
+                            Font: Inter (400/500/600). Spacing: 8px grid. Corners: 10–14px. Actions: clear hover + focus ring.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -176,7 +281,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editSupplierModalLabel">Edit Supplier</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <form id="editSupplierForm" method="POST" action="">
                 <input type="hidden" id="edit_id" name="id">
@@ -205,7 +310,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary" id="updateSupplierBtn">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         Update Supplier
@@ -222,14 +327,14 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteSupplierModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete <strong id="deleteSupplierName"></strong>?</p>
                 <p class="text-danger">This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
                     <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     <span class="button-text">Delete</span>
@@ -245,7 +350,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addSupplierModalLabel">Add New Supplier</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <form id="addSupplierForm" method="POST" action="<?php echo BASE_URL; ?>?controller=supplier&action=create">
                 <div class="modal-body">
@@ -291,7 +396,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </form>
         </div>
@@ -307,7 +412,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                 <i class="fas fa-check-circle me-2"></i>
                 <span id="toastMessage"></span>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="close text-white mr-2 m-auto" data-dismiss="toast" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
     </div>
     
@@ -318,7 +423,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                 <i class="fas fa-exclamation-circle me-2"></i>
                 <span id="errorToastMessage"></span>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="close text-white mr-2 m-auto" data-dismiss="toast" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
     </div>
 </div>
@@ -353,7 +458,7 @@ function showAlert(message, type = 'success') {
     alertDiv.role = 'alert';
     alertDiv.innerHTML = `
         ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     `;
 
     // Add to DOM
@@ -361,8 +466,7 @@ function showAlert(message, type = 'success') {
 
     // Auto-remove after 5 seconds
     setTimeout(() => {
-        const alert = bootstrap.Alert.getOrCreateInstance(alertDiv);
-        alert.close();
+        try { $(alertDiv).alert('close'); } catch (e) { /* ignore */ }
     }, 5000);
 }
 
@@ -404,7 +508,7 @@ document.addEventListener('click', function(e) {
             return;
         }
         
-        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        const modal = $(modalElement).modal();
         
         // Populate form fields
         const form = modalElement.querySelector('form');
@@ -423,7 +527,7 @@ document.addEventListener('click', function(e) {
             formInputs.forEach(input => input.classList.remove('is-invalid'));
             
             // Show the modal
-            modal.show();
+            $(modalElement).modal('show');
         } else {
             console.error('Edit form not found in modal');
         }
@@ -448,8 +552,7 @@ document.addEventListener('click', function(e) {
         confirmBtn.setAttribute('data-id', supplierId);
         
         // Show the modal
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteSupplierModal'));
-        deleteModal.show();
+        $(document.getElementById('deleteSupplierModal')).modal('show');
     }
 });
 
@@ -487,8 +590,7 @@ document.addEventListener('submit', function(e) {
         .then(({ ok, data }) => {
             if (ok && data.success) {
                 // Close the modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
-                if (modal) modal.hide();
+                $(document.getElementById('editSupplierModal')).modal('hide');
                 
                 // Show success message and reload
                 showAlert(data.message || 'Supplier updated successfully');
@@ -552,11 +654,7 @@ document.addEventListener('click', function(e) {
     .then(({ ok, data }) => {
         if (ok && data && data.success) {
             // Close the modal
-            const modalElement = document.getElementById('deleteSupplierModal');
-            if (modalElement) {
-                const modal = bootstrap.Modal.getInstance(modalElement);
-                if (modal) modal.hide();
-            }
+            $(document.getElementById('deleteSupplierModal')).modal('hide');
             
             // Show success message and reload
             showAlert(data.message || 'Supplier deleted successfully');
@@ -575,1050 +673,144 @@ document.addEventListener('click', function(e) {
     });
 });
 
-
-
-// Handle edit form submission
-function handleEditFormSubmit(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const formData = new FormData(form);
-    const updateBtn = form.querySelector('button[type="submit"]');
-    const spinner = updateBtn.querySelector('.spinner-border');
-    
-    // Show loading state
-    updateBtn.disabled = true;
-    spinner.classList.remove('d-none');
-    
-    // Submit form via AJAX
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(async (response) => {
-        const text = await response.text();
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            console.error('Failed to parse response:', text);
-            throw new Error('Invalid server response');
-        }
-        return { ok: response.ok, data };
-    })
-    .then(({ ok, data }) => {
-        if (ok && data.success) {
-            // Close modal first to prevent issues
-            const modalElement = document.getElementById('editSupplierModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            }
-            
-            // Show success message
-            showAlert(data.message || 'Supplier updated successfully');
-            
-            // Reload the page to reflect changes
-            setTimeout(() => window.location.reload(), 1000);
-        } else if (data && data.errors) {
-            // Show validation errors
-            showFormErrors(data.errors);
-        } else {
-            throw new Error(data && data.message ? data.message : 'Failed to update supplier');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert(error.message || 'Failed to update supplier. Please try again.', 'danger');
-    })
-    .finally(() => {
-        if (updateBtn) {
-            updateBtn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-        }
-    });
-}
-
-// Handle delete supplier button click
-function handleDeleteSupplier(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const deleteBtn = e.target.closest('.delete-supplier');
-    if (!deleteBtn) return;
-    
-    const supplierId = deleteBtn.getAttribute('data-id');
-    const supplierName = deleteBtn.getAttribute('data-name');
-    
-    // Set supplier name in confirmation modal
-    document.getElementById('deleteSupplierName').textContent = supplierName;
-    
-    // Store the ID in the confirm button
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    confirmBtn.setAttribute('data-id', supplierId);
-    
-    // Show the modal
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteSupplierModal'));
-    deleteModal.show();
-    
-    // Stop the row click event from triggering
-    return false;
-}
-
-// Handle delete confirmation
-function handleDeleteConfirm(e) {
-    e.preventDefault();
-    
-    const supplierId = this.getAttribute('data-id');
-    const spinner = this.querySelector('.spinner-border');
-    
-    // Show loading state
-    this.disabled = true;
-    if (spinner) spinner.classList.remove('d-none');
-    
-    // Create form data
-    const formData = new FormData();
-    formData.append('id', supplierId);
-    
-    // Send delete request
-    fetch(BASE_URL + '?controller=supplier&action=delete', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(async (response) => {
-        const text = await response.text();
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            console.error('Failed to parse response:', text);
-            throw new Error('Invalid server response');
-        }
-        return { ok: response.ok, data };
-    })
-    .then(({ ok, data }) => {
-        if (ok && data && data.success) {
-            // Close the modal first to prevent issues
-            const modalElement = document.getElementById('deleteSupplierModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            }
-            
-            // Show success message
-            showAlert(data.message || 'Supplier deleted successfully');
-            
-            // Reload the page to reflect changes
-            setTimeout(() => window.location.reload(), 1000);
-        } else {
-            throw new Error(data && data.message ? data.message : 'Failed to delete supplier');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert(error.message || 'An error occurred while deleting the supplier', 'danger');
-    })
-    .finally(() => {
-        this.disabled = false;
-        if (spinner) spinner.classList.add('d-none');
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Close sidebar when clicking on backdrop
-    const backdrop = document.getElementById('sidebarBackdrop');
-    if (backdrop) {
-        backdrop.addEventListener('click', function() {
-            const sidebar = document.getElementById('supplierSidebar');
-            if (sidebar) {
-                sidebar.classList.remove('show');
-                this.style.display = 'none';
-            }
-        });
-    }
-    
-    // Handle form reset
-    const resetSupplierForm = document.getElementById('resetSupplierForm');
-    if (resetSupplierForm) {
-        resetSupplierForm.addEventListener('click', function() {
-            const form = document.getElementById('addSupplierForm');
-            if (form) {
+// Handle Add Supplier form submission (AJAX)
+const addSupplierForm = document.getElementById('addSupplierForm');
+if (addSupplierForm) {
+    addSupplierForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        const formData = new FormData(form);
+        const saveBtn = document.getElementById('saveSupplierBtn');
+        const spinner = saveBtn.querySelector('.spinner-border');
+        
+        // Loading state
+        saveBtn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(async (response) => {
+            const text = await response.text();
+            let data;
+            try { data = JSON.parse(text); } catch (_) { throw new Error(text && text.trim() ? text : 'Invalid server response'); }
+            return { ok: response.ok, data };
+        })
+        .then(({ ok, data }) => {
+            if (ok && data.success) {
+                // Toast
+                document.getElementById('toastMessage').textContent = data.message || 'Supplier added successfully';
+                $(document.getElementById('successToast')).toast('show');
+                
+                // Close modal
+                $(document.getElementById('addSupplierModal')).modal('hide');
+                
+                // Add row to table
+                const s = data.supplier;
+                const tbody = document.querySelector('table tbody');
+                if (tbody && s) {
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.setAttribute('onclick', `loadSupplierDetails('${BASE_URL}?controller=supplier&action=details&id=${s.id}')`);
+                    tr.innerHTML = `
+                        <td>${s.id}</td>
+                        <td>${escapeHtml(s.name)}</td>
+                        <td>${s.product_name ? escapeHtml(s.product_name) : '-'}</td>
+                        <td>${s.email ? escapeHtml(s.email) : '-'}</td>
+                        <td>${s.phone ? escapeHtml(s.phone) : '-'}</td>
+                        <td class="text-nowrap">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Supplier Actions">
+                                <button type="button" class="btn btn-outline-primary edit-supplier"
+                                        data-id="${s.id}"
+                                        data-name="${escapeHtml(s.name)}"
+                                        data-product_name="${escapeHtml(s.product_name || '')}"
+                                        data-email="${escapeHtml(s.email || '')}"
+                                        data-phone="${escapeHtml(s.phone || '')}"
+                                        data-address="${escapeHtml(s.address || '')}"
+                                        onclick="event.stopPropagation();">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button type="button" class="btn btn-outline-danger delete-supplier"
+                                        data-id="${s.id}"
+                                        data-name="${escapeHtml(s.name)}"
+                                        onclick="event.stopPropagation();">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>`;
+                    const placeholder = tbody.querySelector('td[colspan]');
+                    if (placeholder) placeholder.closest('tr').remove();
+                    tbody.prepend(tr);
+                }
+                
+                // Reset form
                 form.reset();
-                // Clear validation errors
-                showFormErrors({});
+            } else if (data.errors) {
+                showFormErrors(data.errors);
+            } else {
+                throw new Error(data.message || 'Failed to add supplier');
             }
+        })
+        .catch(err => {
+            document.getElementById('errorToastMessage').textContent = err.message || 'Failed to save supplier.';
+            $(document.getElementById('errorToast')).toast('show');
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            if (spinner) spinner.classList.add('d-none');
         });
-    }
-    
-        // Add event delegation for edit and delete buttons
-    document.addEventListener('click', function(e) {
-        // Handle edit button
-        let editBtn = e.target.closest('.edit-supplier');
-        if (editBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleEditSupplier(e);
-            return false;
-        }
-        
-        // Handle delete button
-        let deleteBtn = e.target.closest('.delete-supplier');
-        if (deleteBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleDeleteSupplier(e);
-            return false;
-        }
     });
-    
-    // Add event listener for delete confirmation
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            handleDeleteConfirm.call(this, e);
-        });
+}
+
+// Client-side search + pagination for suppliers table
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('suppliersTable');
+    const tbody = table ? table.querySelector('tbody') : null;
+    const searchInput = document.getElementById('supplierSearch');
+    const clearBtn = document.getElementById('supplierSearchClear');
+    const perPageSel = document.getElementById('supplierPerPage');
+    const prevBtn = document.getElementById('supplierPrevBtn');
+    const nextBtn = document.getElementById('supplierNextBtn');
+    const pageInfo = document.getElementById('supplierPageInfo');
+    const countEl = document.getElementById('supplierCount');
+    if (!tbody || !searchInput || !perPageSel || !prevBtn || !nextBtn || !pageInfo || !countEl) return;
+
+    const allRows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.querySelector('td'));
+    let state = { q: '', page: 1, per: parseInt(perPageSel.value, 10) || 20 };
+
+    function rowText(r) { return (r.innerText || '').toLowerCase(); }
+    function filteredRows() {
+        const q = (state.q || '').trim().toLowerCase();
+        if (!q) return allRows;
+        return allRows.filter(r => rowText(r).includes(q));
     }
-    
-    // Initialize edit form submission
-    const editForm = document.getElementById('editSupplierForm');
-    if (editForm) {
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            handleEditFormSubmit(e);
-        });
+    function render() {
+        const rows = filteredRows();
+        const total = rows.length;
+        const per = Math.max(1, state.per);
+        const pages = Math.max(1, Math.ceil(total / per));
+        state.page = Math.min(Math.max(1, state.page), pages);
+        const start = (state.page - 1) * per;
+        const end = start + per;
+
+        allRows.forEach(r => { r.style.display = 'none'; });
+        rows.slice(start, end).forEach(r => { r.style.display = ''; });
+        pageInfo.textContent = 'Page ' + state.page + ' / ' + pages;
+        countEl.textContent = total + ' total';
+        prevBtn.disabled = state.page <= 1;
+        nextBtn.disabled = state.page >= pages;
     }
 
-    // Handle Add Supplier form submission (AJAX)
-    const addSupplierForm = document.getElementById('addSupplierForm');
-    if (addSupplierForm) {
-        addSupplierForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-            const formData = new FormData(form);
-            const saveBtn = document.getElementById('saveSupplierBtn');
-            const spinner = saveBtn.querySelector('.spinner-border');
-            
-            // Loading state
-            saveBtn.disabled = true;
-            if (spinner) spinner.classList.remove('d-none');
-            
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(async (response) => {
-                const text = await response.text();
-                let data;
-                try { data = JSON.parse(text); } catch (_) { throw new Error(text && text.trim() ? text : 'Invalid server response'); }
-                return { ok: response.ok, data };
-            })
-            .then(({ ok, data }) => {
-                if (ok && data.success) {
-                    // Toast
-                    const successToast = new bootstrap.Toast(document.getElementById('successToast'));
-                    document.getElementById('toastMessage').textContent = data.message || 'Supplier added successfully';
-                    successToast.show();
-                    
-                    // Close modal
-                    const addModal = bootstrap.Modal.getInstance(document.getElementById('addSupplierModal'));
-                    if (addModal) addModal.hide();
-                    
-                    // Add row to table
-                    const s = data.supplier;
-                    const tbody = document.querySelector('table tbody');
-                    if (tbody && s) {
-                        const tr = document.createElement('tr');
-                        tr.style.cursor = 'pointer';
-                        tr.setAttribute('onclick', `loadSupplierDetails('${BASE_URL}?controller=supplier&action=details&id=${s.id}')`);
-                        tr.innerHTML = `
-                            <td>${s.id}</td>
-                            <td>${escapeHtml(s.name)}</td>
-                            <td>${s.product_name ? escapeHtml(s.product_name) : '-'}</td>
-                            <td>${s.email ? escapeHtml(s.email) : '-'}</td>
-                            <td>${s.phone ? escapeHtml(s.phone) : '-'}</td>
-                            <td class="text-nowrap">
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Supplier Actions">
-                                    <button type="button" class="btn btn-outline-primary edit-supplier"
-                                            data-id="${s.id}"
-                                            data-name="${escapeHtml(s.name)}"
-                                            data-product_name="${escapeHtml(s.product_name || '')}"
-                                            data-email="${escapeHtml(s.email || '')}"
-                                            data-phone="${escapeHtml(s.phone || '')}"
-                                            data-address="${escapeHtml(s.address || '')}"
-                                            onclick="event.stopPropagation();">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger delete-supplier"
-                                            data-id="${s.id}"
-                                            data-name="${escapeHtml(s.name)}"
-                                            onclick="event.stopPropagation();">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </div>
-                            </td>`;
-                        const placeholder = tbody.querySelector('td[colspan]');
-                        if (placeholder) placeholder.closest('tr').remove();
-                        tbody.prepend(tr);
-                    }
-                    
-                    // Reset form
-                    form.reset();
-                } else if (data.errors) {
-                    showFormErrors(data.errors);
-                } else {
-                    throw new Error(data.message || 'Failed to add supplier');
-                }
-            })
-            .catch(err => {
-                const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
-                document.getElementById('errorToastMessage').textContent = err.message || 'Failed to save supplier.';
-                errorToast.show();
-            })
-            .finally(() => {
-                saveBtn.disabled = false;
-                if (spinner) spinner.classList.add('d-none');
-            });
-        });
-    }
-        // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Remove duplicate, unused handlers defined below (cleaned up)
-    // Add new event listeners
-    document.addEventListener('click', handleEditClick);
-    document.addEventListener('click', handleDeleteClick);
-    
-    // Initialize delete confirmation handler
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.onclick = function() {
-            const supplierId = this.getAttribute('data-id');
-            if (!supplierId) {
-                console.error('No supplier ID found for deletion');
-                return;
-            }
-            
-            console.log(`Confirming delete for supplier ID: ${supplierId}`);
-            
-            const spinner = this.querySelector('.spinner-border');
-            const originalText = this.innerHTML;
-            
-            // Show loading state
-            this.disabled = true;
-            if (spinner) spinner.classList.remove('d-none');
-            
-            // Send delete request
-            fetch(`${BASE_URL}?controller=supplier&action=delete`, {
-                method: 'POST',
-                body: new URLSearchParams({ id: supplierId }),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Supplier deleted successfully');
-                    // Close the modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteSupplierModal'));
-                    if (modal) modal.hide();
-                    
-                    // Show success message and reload
-                    showAlert('Supplier deleted successfully');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    throw new Error(data.message || 'Failed to delete supplier');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert(error.message || 'Failed to delete supplier. Please try again.', 'danger');
-            })
-            .finally(() => {
-                this.disabled = false;
-                if (spinner) spinner.classList.add('d-none');
-                this.innerHTML = originalText;
-            });
-        };
-    }
-    
-    // Initialize edit form submission
-    const editForm = document.getElementById('editSupplierForm');
-    if (editForm) {
-        editForm.onsubmit = function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
-            
-            // Submit the form
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Supplier updated successfully');
-                    // Close the modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
-                    if (modal) modal.hide();
-                    
-                    // Show success message and reload
-                    showAlert('Supplier updated successfully');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    throw new Error(data.message || 'Failed to update supplier');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert(error.message || 'Failed to update supplier. Please try again.', 'danger');
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            });
-        };
-    }
-                
-                const modal = new bootstrap.Modal(modalElement);
-                
-                // Populate form fields
-                const form = modalElement.querySelector('form');
-                if (form) {
-                    form.reset();
-                    form.action = `${BASE_URL}?controller=supplier&action=update`;
-                    document.getElementById('edit_id').value = editBtn.getAttribute('data-id');
-                    document.getElementById('edit_name').value = editBtn.getAttribute('data-name') || '';
-                    document.getElementById('edit_product_name').value = editBtn.getAttribute('data-product_name') || '';
-                    document.getElementById('edit_email').value = editBtn.getAttribute('data-email') || '';
-                    document.getElementById('edit_phone').value = editBtn.getAttribute('data-phone') || '';
-                    document.getElementById('edit_address').value = editBtn.getAttribute('data-address') || '';
-                    
-                    // Clear any previous errors
-                    const formInputs = form.querySelectorAll('.is-invalid');
-                    formInputs.forEach(input => input.classList.remove('is-invalid'));
-                    
-                    // Show the modal
-                    modal.show();
-                } else {
-                    console.error('Edit form not found in modal');
-                }
-                return false;
-            }
-            
-            // Delete button click
-            const deleteBtn = e.target.closest('.delete-supplier');
-            if (deleteBtn) {
-                console.log('Delete button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const supplierId = deleteBtn.getAttribute('data-id');
-                const supplierName = deleteBtn.getAttribute('data-name');
-                
-                if (!supplierId) {
-                    console.error('No supplier ID found for deletion');
-                    return;
-                }
-                
-                // Update the confirmation modal
-                const deleteSupplierName = document.getElementById('deleteSupplierName');
-                if (deleteSupplierName) {
-                    deleteSupplierName.textContent = supplierName;
-                }
-                
-                // Store the ID in the confirm button
-                const confirmBtn = document.getElementById('confirmDeleteBtn');
-                if (confirmBtn) {
-                    confirmBtn.setAttribute('data-id', supplierId);
-                }
-                
-                // Show the modal
-                const modalElement = document.getElementById('deleteSupplierModal');
-                if (modalElement) {
-                    const deleteModal = new bootstrap.Modal(modalElement);
-                    deleteModal.show();
-                } else {
-                    console.error('Delete confirmation modal not found');
-                }
-                
-                return false;
-            }
-        });
-        
-        // Handle edit form submission
-        const editForm = document.getElementById('editSupplierForm');
-        if (editForm) {
-            editForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn.innerHTML;
-                
-                // Show loading state
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
-                
-                // Submit the form
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(async (response) => {
-                    const text = await response.text();
-                    try {
-                        return { ok: response.ok, data: JSON.parse(text) };
-                    } catch (e) {
-                        console.error('Failed to parse response:', text);
-                        throw new Error('Invalid server response');
-                    }
-                })
-                .then(({ ok, data }) => {
-                    if (ok && data.success) {
-                        // Close the modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
-                        if (modal) modal.hide();
-                        
-                        // Show success message and reload
-                        showAlert(data.message || 'Supplier updated successfully');
-                        setTimeout(() => window.location.reload(), 1000);
-                    } else if (data && data.errors) {
-                        // Show validation errors
-                        showFormErrors(data.errors);
-                    } else {
-                        throw new Error(data?.message || 'Failed to update supplier');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert(error.message || 'Failed to update supplier. Please try again.', 'danger');
-                })
-                .finally(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                });
-            });
-        }
-        
-        // Handle delete confirmation
-        document.addEventListener('click', function(e) {
-            const confirmBtn = e.target.closest('#confirmDeleteBtn');
-            if (!confirmBtn) return;
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const supplierId = confirmBtn.getAttribute('data-id');
-            if (!supplierId) {
-                console.error('No supplier ID found for deletion');
-                return;
-            }
-            
-            const spinner = confirmBtn.querySelector('.spinner-border');
-            
-            // Show loading state
-            confirmBtn.disabled = true;
-            if (spinner) spinner.classList.remove('d-none');
-            
-            // Send delete request
-            fetch(`${BASE_URL}?controller=supplier&action=delete`, {
-                method: 'POST',
-                body: new URLSearchParams({ id: supplierId }),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(async (response) => {
-                const text = await response.text();
-                try {
-                    return { ok: response.ok, data: JSON.parse(text) };
-                } catch (e) {
-                    console.error('Failed to parse response:', text);
-                    throw new Error('Invalid server response');
-                }
-            })
-            .then(({ ok, data }) => {
-                if (ok && data && data.success) {
-                    // Close the modal
-                    const modalElement = document.getElementById('deleteSupplierModal');
-                    if (modalElement) {
-                        const modal = bootstrap.Modal.getInstance(modalElement);
-                        if (modal) modal.hide();
-                    }
-                    
-                    // Show success message and reload
-                    showAlert(data.message || 'Supplier deleted successfully');
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    throw new Error(data?.message || 'Failed to delete supplier');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert(error.message || 'Failed to delete supplier. Please try again.', 'danger');
-                
-                // Reset button state
-                confirmBtn.disabled = false;
-                if (spinner) spinner.classList.add('d-none');
-            });
-        });
-        
-        // Helper function to show alerts
-        function showAlert(message, type = 'success') {
-            console.log(`Showing alert: ${message} (${type})`);
-            // Remove any existing alerts
-            const existingAlert = document.querySelector('.alert-dismissible');
-            if (existingAlert) {
-                existingAlert.remove();
-            }
+    searchInput.addEventListener('input', function() { state.q = searchInput.value || ''; state.page = 1; render(); });
+    if (clearBtn) clearBtn.addEventListener('click', function() { searchInput.value=''; state.q=''; state.page=1; render(); try{searchInput.focus();}catch(e){} });
+    perPageSel.addEventListener('change', function() { state.per = parseInt(perPageSel.value, 10) || 20; state.page = 1; render(); });
+    prevBtn.addEventListener('click', function() { state.page = Math.max(1, state.page - 1); render(); });
+    nextBtn.addEventListener('click', function() { state.page = state.page + 1; render(); });
 
-            // Create alert element
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
-            alertDiv.role = 'alert';
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-
-            // Add to DOM
-            document.body.appendChild(alertDiv);
-
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                const alert = bootstrap.Alert.getOrCreateInstance(alertDiv);
-                alert.close();
-            }, 5000);
-        }
-        
-        // Helper function to show form errors
-        function showFormErrors(errors) {
-            // Reset all error states
-            document.querySelectorAll('.is-invalid').forEach(el => {
-                el.classList.remove('is-invalid');
-            });
-            document.querySelectorAll('.invalid-feedback').forEach(el => {
-                el.textContent = '';
-            });
-            
-            // Show new errors
-            if (errors) {
-                Object.keys(errors).forEach(field => {
-                    const input = document.querySelector(`[name="${field}"]`);
-                    const feedback = input ? input.nextElementSibling : null;
-                    
-                    if (input && feedback && feedback.classList.contains('invalid-feedback')) {
-                        input.classList.add('is-invalid');
-                        feedback.textContent = errors[field];
-                    }
-                });
-            }
-        }
-    });
-
-    // Function to handle edit button clicks
-    function handleEditClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const editBtn = e.currentTarget;
-        console.log('Edit button clicked', editBtn);
-        
-        // Get all data attributes
-        const supplierData = {
-            id: editBtn.getAttribute('data-id'),
-            name: editBtn.getAttribute('data-name') || '',
-            product_name: editBtn.getAttribute('data-product_name') || '',
-            email: editBtn.getAttribute('data-email') || '',
-            phone: editBtn.getAttribute('data-phone') || '',
-            address: editBtn.getAttribute('data-address') || ''
-        };
-        
-        console.log('Supplier data:', supplierData);
-        
-        // Set form values
-        document.getElementById('edit_id').value = supplierData.id;
-        document.getElementById('edit_name').value = supplierData.name;
-        document.getElementById('edit_product_name').value = supplierData.product_name;
-        document.getElementById('edit_email').value = supplierData.email;
-        document.getElementById('edit_phone').value = supplierData.phone;
-        document.getElementById('edit_address').value = supplierData.address;
-        
-        // Set form action and clear errors
-        const form = document.getElementById('editSupplierForm');
-        if (form) {
-            form.action = `${BASE_URL}?controller=supplier&action=update`;
-            form.querySelectorAll('.is-invalid').forEach(input => input.classList.remove('is-invalid'));
-        }
-        
-        // Show the modal
-        const modal = new bootstrap.Modal(document.getElementById('editSupplierModal'));
-        modal.show();
-        
-        return false;
-    }
-    
-    // Function to handle delete button clicks
-    function handleDeleteClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const deleteBtn = e.currentTarget;
-        if (!deleteBtn) return;
-        
-        console.log('Delete button clicked', deleteBtn);
-        
-        const supplierId = deleteBtn.getAttribute('data-id');
-        const supplierName = deleteBtn.getAttribute('data-name');
-        
-        if (!supplierId) {
-            console.error('No supplier ID found for deletion');
-            return;
-        }
-        
-        // Update the confirmation modal
-        const deleteSupplierName = document.getElementById('deleteSupplierName');
-        if (deleteSupplierName) {
-            deleteSupplierName.textContent = supplierName || 'this supplier';
-        }
-        
-        // Store the ID in the confirm button
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-        if (confirmBtn) {
-            confirmBtn.setAttribute('data-id', supplierId);
-            
-            // Remove any existing click handlers to prevent duplicates
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            
-            // Add click handler to the new button
-            newConfirmBtn.addEventListener('click', function() {
-                const supplierId = this.getAttribute('data-id');
-                if (!supplierId) {
-                    console.error('No supplier ID found for deletion');
-                    return;
-                }
-                
-                // Show loading state
-                const spinner = this.querySelector('.spinner-border');
-                const buttonText = this.querySelector('.button-text');
-                const originalText = buttonText ? buttonText.textContent : 'Delete';
-                
-                if (buttonText) buttonText.textContent = 'Deleting...';
-                if (spinner) spinner.classList.remove('d-none');
-                this.disabled = true;
-                
-                // Create form data for the delete request
-                const formData = new FormData();
-                formData.append('id', supplierId);
-                
-                // Send delete request
-                fetch(`${BASE_URL}?controller=supplier&action=delete`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: new URLSearchParams(formData).toString()
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Close the modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteSupplierModal'));
-                        if (modal) modal.hide();
-                        
-                        // Show success message
-                        showToast('success', data.message || 'Supplier deleted successfully');
-                        
-                        // Remove the deleted row from the table
-                        const row = deleteBtn.closest('tr');
-                        if (row) {
-                            row.remove();
-                        }
-                        
-                        // Reload the page after a short delay
-                        setTimeout(() => window.location.reload(), 1000);
-                    } else {
-                        showToast('error', data.message || 'Failed to delete supplier');
-                        
-                        // Reset button state
-                        if (buttonText) buttonText.textContent = originalText;
-                        if (spinner) spinner.classList.add('d-none');
-                        this.disabled = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('error', 'An error occurred while deleting the supplier');
-                    
-                    // Reset button state
-                    if (buttonText) buttonText.textContent = originalText;
-                    if (spinner) spinner.classList.add('d-none');
-                    this.disabled = false;
-                });
-            });
-        }
-        
-        // Show the modal
-        const modalElement = document.getElementById('deleteSupplierModal');
-        if (modalElement) {
-            const deleteModal = new bootstrap.Modal(modalElement);
-            deleteModal.show();
-        } else {
-            console.error('Delete confirmation modal not found');
-        }
-    }
-    
-    // Make functions globally available
-    window.handleEditClick = handleEditClick;
-    window.handleDeleteClick = handleDeleteClick;
-    
-    // Initialize all event listeners when the page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM fully loaded');
-        
-        // Initialize other event listeners
-        initializeEventListeners();
-    });
-    
-    // ... (rest of the code remains the same)
-    function loadSupplierDetails(url) {
-        // Show loading state
-        const sidebar = document.getElementById('supplierSidebar');
-        const backdrop = document.getElementById('sidebarBackdrop');
-        
-        // Show sidebar and backdrop on mobile
-        if (window.innerWidth < 768) {
-            sidebar.classList.add('show');
-            backdrop.style.display = 'block';
-        }
-        fetch(url + '&ajax=1')
-            .then(async (response) => {
-                const text = await response.text();
-                let data;
-                try { data = JSON.parse(text); } catch (e) {
-                    throw new Error(text && text.trim().length ? text : 'Invalid server response');
-                }
-                return { ok: response.ok, status: response.status, data };
-            })
-            .then(({ ok, status, data }) => {
-                if (data.success) {
-                    const supplierDetails = `
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">${data.supplier.name}</h5>
-                            </div>
-                            <div class="card-body">
-                                ${data.supplier.product_name ? `<p class="mb-1"><strong>Product:</strong> ${data.supplier.product_name}</p>` : ''}
-                                <p class="mb-1"><strong>Email:</strong> ${data.supplier.email || 'N/A'}</p>
-                                <p class="mb-1"><strong>Phone:</strong> ${data.supplier.phone || 'N/A'}</p>
-                                <p class="mb-0"><strong>Address:</strong> ${data.supplier.address || 'N/A'}</p>
-                            </div>
-                        </div>`;
-                    
-                    document.getElementById('supplierDetails').innerHTML = supplierDetails;
-                    
-                    // Show the sidebar on mobile
-                    if (window.innerWidth < 768) {
-                        const sidebar = document.getElementById('supplierSidebar');
-                        const backdrop = document.getElementById('sidebarBackdrop');
-                        sidebar.classList.add('show');
-                        backdrop.style.display = 'block';
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error loading supplier details:', error);
-            });
-    }
-    
-    // Handle add supplier form submission
-    const addSupplierForm = document.getElementById('addSupplierForm');
-    if (addSupplierForm) {
-        addSupplierForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const form = e.target;
-            const formData = new FormData(form);
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const spinner = submitBtn.querySelector('.spinner-border');
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            spinner.classList.remove('d-none');
-            
-            // Clear previous errors
-            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            
-            // Convert form data to URL-encoded format
-            const formDataObj = {};
-            formData.forEach((value, key) => {
-                formDataObj[key] = value;
-            });
-            
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams(formDataObj).toString()
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addSupplierModal'));
-                    if (modal) modal.hide();
-                    
-                    // Show success message
-                    showToast('success', data.message || 'Supplier added successfully');
-                    
-                    // Reset form
-                    form.reset();
-                    
-                    // Reload the page to show new supplier
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    // Show validation errors
-                    if (data.errors) {
-                        Object.entries(data.errors).forEach(([field, message]) => {
-                            const input = form.querySelector(`[name="${field}"]`);
-                            if (input) {
-                                input.classList.add('is-invalid');
-                                const feedback = input.nextElementSibling;
-                                if (feedback && feedback.classList.contains('invalid-feedback')) {
-                                    feedback.textContent = message;
-                                } else {
-                                    // Create feedback element if it doesn't exist
-                                    const newFeedback = document.createElement('div');
-                                    newFeedback.className = 'invalid-feedback';
-                                    newFeedback.textContent = message;
-                                    input.parentNode.insertBefore(newFeedback, input.nextSibling);
-                                }
-                            }
-                        });
-                    } else {
-                        showToast('error', data.message || 'Failed to add supplier');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('error', 'An error occurred while adding the supplier');
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-            });
-        });
-    }
-    
-    // Handle edit form submission
-    const editForm = document.getElementById('editSupplierForm');
-    if (editForm) {
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const form = e.target;
-            const formData = new FormData(form);
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const spinner = submitBtn.querySelector('.spinner-border');
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            spinner.classList.remove('d-none');
-            
-            // Clear previous errors
-            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            
-            // Convert form data to URL-encoded format
-            const formDataObj = {};
-            formData.forEach((value, key) => {
-                formDataObj[key] = value;
-            });
-            
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams(formDataObj).toString()
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
-                    if (modal) modal.hide();
-                    
-                    // Show success message
-                    showToast('success', data.message || 'Supplier updated successfully');
-                    
-                    // Reload the page to show updated data
-                    setTimeout(() => window.location.reload(), 1000);
-                } else {
-                    // Show validation errors
-                    if (data.errors) {
-                        Object.entries(data.errors).forEach(([field, message]) => {
-                            const input = form.querySelector(`[name="${field}"]`);
-                            if (input) {
-                                input.classList.add('is-invalid');
-                                const feedback = input.nextElementSibling;
-                                if (feedback && feedback.classList.contains('invalid-feedback')) {
-                                    feedback.textContent = message;
-                                } else {
-                                    // Create feedback element if it doesn't exist
-                                    const newFeedback = document.createElement('div');
-                                    newFeedback.className = 'invalid-feedback';
-                                    newFeedback.textContent = message;
-                                    input.parentNode.insertBefore(newFeedback, input.nextSibling);
-                                }
-                            }
-                        });
-                    } else {
-                        showToast('error', data.message || 'Failed to update supplier');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('error', 'An error occurred while updating the supplier');
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-            });
-        });
-    }
+    render();
+});
 });
 </script>
 
