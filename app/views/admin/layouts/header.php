@@ -44,13 +44,45 @@ if (!defined('BASE_URL')) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Bootstrap 4 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom CSS (cache-busted) -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : '1'; ?>">
     <style>
+        /* Bootstrap 4 -> 5 utility compatibility layer */
+        .mr-1 { margin-right: .25rem !important; }
+        .mr-2 { margin-right: .5rem !important; }
+        .mr-3 { margin-right: 1rem !important; }
+        .ml-1 { margin-left: .25rem !important; }
+        .ml-2 { margin-left: .5rem !important; }
+        .ml-3 { margin-left: 1rem !important; }
+        .text-right { text-align: right !important; }
+        .text-left { text-align: left !important; }
+        .font-weight-bold { font-weight: 700 !important; }
+        .custom-select { display: block; width: 100%; padding: .375rem 2.25rem .375rem .75rem; }
+        .custom-control { position: relative; display: block; min-height: 1.5rem; padding-left: 2.25rem; }
+        .custom-control-input { position: absolute; z-index: -1; opacity: 0; }
+        .custom-control-label { margin-bottom: 0; }
+        .custom-switch .custom-control-label::before {
+            position: absolute; top: .2rem; left: -2.25rem; width: 1.75rem; height: 1rem;
+            pointer-events: all; content: ""; background-color: #adb5bd; border-radius: 50rem; transition: .15s;
+        }
+        .custom-switch .custom-control-label::after {
+            position: absolute; top: calc(.2rem + 2px); left: calc(-2.25rem + 2px); width: calc(1rem - 4px); height: calc(1rem - 4px);
+            content: ""; background-color: #fff; border-radius: 50rem; transition: transform .15s;
+        }
+        .custom-switch .custom-control-input:checked ~ .custom-control-label::before { background-color: #0d6efd; }
+        .custom-switch .custom-control-input:checked ~ .custom-control-label::after { transform: translateX(.75rem); }
+        .input-group-prepend, .input-group-append { display: flex; }
+        .badge-warning { background-color: #ffc107; color: #212529; }
+        .badge-info { background-color: #0dcaf0; color: #212529; }
+        .badge-primary { background-color: #0d6efd; color: #fff; }
+        .badge-success { background-color: #198754; color: #fff; }
+        .badge-danger { background-color: #dc3545; color: #fff; }
+
         /* Theme tokens (Light defaults) */
         :root,
         [data-theme="light"],
@@ -562,9 +594,8 @@ if (!defined('BASE_URL')) {
             }
         }
     </style>
-    <!-- jQuery and Bootstrap 4 in head so inline scripts can use them -->
+    <!-- jQuery in head (legacy scripts rely on it) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -1070,41 +1101,40 @@ if (!defined('BASE_URL')) {
                 <?php flash('banner_error'); ?>
 
                 <script>
-                    // Bootstrap 4: mobile sidebar UX – backdrop and body scroll
+                    // Mobile sidebar auto-hide/focus behavior (Bootstrap-agnostic)
                     (function() {
                         var sidebar = document.getElementById('sidebar');
                         var backdrop = document.getElementById('sidebarBackdrop');
-                        function updateState() {
-                            var isOpen = sidebar && sidebar.classList.contains('show');
-                            document.body.classList.toggle('sidebar-open', isOpen);
-                            if (backdrop) backdrop.classList.toggle('active', isOpen);
+                        function isMobile() { return window.innerWidth < 768; }
+                        function openSidebar() {
+                            if (!sidebar) return;
+                            sidebar.classList.add('show');
+                            document.body.classList.add('sidebar-open');
+                            if (backdrop) backdrop.classList.add('active');
                         }
-                        $(document).on('shown.bs.collapse', '#sidebar', function() { updateState(); });
-                        $(document).on('hidden.bs.collapse', '#sidebar', function() { updateState(); });
+                        function closeSidebar() {
+                            if (!sidebar) return;
+                            sidebar.classList.remove('show');
+                            document.body.classList.remove('sidebar-open');
+                            if (backdrop) backdrop.classList.remove('active');
+                        }
                         if (backdrop) {
-                            backdrop.addEventListener('click', function() {
-                                $('#sidebar').collapse('hide');
-                            });
+                            backdrop.addEventListener('click', closeSidebar);
                         }
                         if (sidebar) {
                             sidebar.addEventListener('click', function(e) {
-                                if (window.innerWidth < 768) {
-                                    var link = e.target.closest('a.nav-link');
-                                    if (!link) return;
-                                    var isDropdownToggle = link.classList.contains('dropdown-toggle') || link.getAttribute('data-toggle') === 'dropdown';
-                                    if (link.id === 'policyLink' || link.getAttribute('data-keep-open') === '1' || isDropdownToggle) return;
-                                    $('#sidebar').collapse('hide');
-                                }
+                                if (!isMobile()) return;
+                                var link = e.target.closest('a.admin-nav-link');
+                                if (!link) return;
+                                var keepOpen = link.getAttribute('data-keep-open') === '1';
+                                if (!keepOpen) closeSidebar();
                             });
                         }
                         (function autoOpenForPolicy() {
                             try {
                                 var params = new URLSearchParams(window.location.search);
                                 var isPolicy = (params.get('controller') || '').toLowerCase() === 'policy';
-                                if (isPolicy && window.innerWidth < 768 && $('#sidebar').length) {
-                                    $('#sidebar').collapse('show');
-                                    updateState();
-                                }
+                                if (isPolicy && isMobile()) openSidebar();
                             } catch (_) { /* no-op */ }
                         })();
                     })();
@@ -1113,15 +1143,16 @@ if (!defined('BASE_URL')) {
                     // Bootstrap 4: open sidebar and highlight Customers (e.g. from dashboard)
                     window.openCustomersSidebar = function() {
                         try {
-                            $('#sidebar').collapse('show');
-                            $('#sidebar .nav-link').removeClass('active');
+                            var sidebar = document.getElementById('sidebar');
+                            var backdrop = document.getElementById('sidebarBackdrop');
+                            if (sidebar) sidebar.classList.add('show');
+                            document.querySelectorAll('#sidebar .admin-nav-link').forEach(function(el){ el.classList.remove('active'); });
                             var customersLink = document.getElementById('customersSidebarLink');
                             if (customersLink) {
                                 customersLink.classList.add('active');
                                 customersLink.scrollIntoView({ block: 'nearest' });
                             }
                             document.body.classList.add('sidebar-open');
-                            var backdrop = document.getElementById('sidebarBackdrop');
                             if (backdrop) backdrop.classList.add('active');
                         } catch (e) { /* no-op */ }
                     };

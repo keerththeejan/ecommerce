@@ -130,42 +130,9 @@ class SupplierController extends Controller {
     }
     
     public function details($id = null) {
-        if (!$id) {
-            redirect('?controller=supplier&action=index');
-        }
-        
-        // Get supplier details
-        $supplier = $this->supplierModel->getSupplierById($id);
-        
-        if (!$supplier) {
-            flash('supplier_error', 'Supplier not found', 'alert alert-danger');
-            redirect('?controller=supplier&action=index');
-        }
-        
-        $data = [
-            'title' => 'Supplier Details',
-            'supplier' => $supplier
-        ];
-        
-        // Check if it's an AJAX request for sidebar
-        if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
-            while (ob_get_level()) { ob_end_clean(); }
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'success' => true,
-                'supplier' => [
-                    'id' => $supplier['id'],
-                    'name' => htmlspecialchars($supplier['name']),
-                    'product_name' => !empty($supplier['product_name']) ? htmlspecialchars($supplier['product_name']) : null,
-                    'email' => $supplier['email'] ? htmlspecialchars($supplier['email']) : null,
-                    'phone' => $supplier['phone'] ? htmlspecialchars($supplier['phone']) : null,
-                    'address' => $supplier['address'] ? nl2br(htmlspecialchars($supplier['address'])) : null
-                ]
-            ]);
-            exit;
-        }
-        
-        $this->view('admin/suppliers/details', $data);
+        // Supplier details panel/page has been removed from the UI.
+        // Keep this endpoint safe by redirecting old links to the index.
+        redirect('?controller=supplier&action=index');
     }
     
     /**

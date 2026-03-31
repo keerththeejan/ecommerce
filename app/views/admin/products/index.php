@@ -353,20 +353,20 @@
                         <div class="col-12 col-md-6">
                             <div class="card border-0 shadow-sm h-100 stat-card">
                                 <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div>
+                                        <div>
                                         <div class="stat-label mb-1">Products</div>
                                         <div class="stat-value text-primary">
-                                            <?php 
-                                            $totalProducts = 0;
-                                            if (isset($products['total_records'])) {
-                                                $totalProducts = $products['total_records'];
-                                            } elseif (isset($products['total'])) {
-                                                $totalProducts = $products['total'];
-                                            } elseif (isset($products['data']) && is_array($products['data'])) {
-                                                $totalProducts = count($products['data']);
-                                            }
-                                            echo number_format($totalProducts);
-                                            ?>
+                                                <?php 
+                                                $totalProducts = 0;
+                                                if (isset($products['total_records'])) {
+                                                    $totalProducts = $products['total_records'];
+                                                } elseif (isset($products['total'])) {
+                                                    $totalProducts = $products['total'];
+                                                } elseif (isset($products['data']) && is_array($products['data'])) {
+                                                    $totalProducts = count($products['data']);
+                                                }
+                                                echo number_format($totalProducts);
+                                                ?>
                                         </div>
                                         <div class="stat-subvalue">Total products</div>
                                     </div>
@@ -377,22 +377,22 @@
                         <div class="col-12 col-md-6">
                             <div class="card border-0 shadow-sm h-100 stat-card stat-success">
                                 <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div>
+                                        <div>
                                         <div class="stat-label mb-1">Stock</div>
                                         <div class="stat-value text-success">
-                                            <?php 
-                                            $totalStock = 0;
-                                            $totalStockValue = 0;
-                                            if (isset($products['data']) && is_array($products['data'])) {
-                                                foreach ($products['data'] as $product) {
-                                                    $quantity = (int)($product['stock_quantity'] ?? 0);
-                                                    $price = (float)($product['price'] ?? 0);
-                                                    $totalStock += $quantity;
-                                                    $totalStockValue += ($quantity * $price);
+                                                <?php 
+                                                $totalStock = 0;
+                                                $totalStockValue = 0;
+                                                if (isset($products['data']) && is_array($products['data'])) {
+                                                    foreach ($products['data'] as $product) {
+                                                        $quantity = (int)($product['stock_quantity'] ?? 0);
+                                                        $price = (float)($product['price'] ?? 0);
+                                                        $totalStock += $quantity;
+                                                        $totalStockValue += ($quantity * $price);
+                                                    }
                                                 }
-                                            }
-                                            echo number_format($totalStock);
-                                            ?>
+                                                echo number_format($totalStock);
+                                                ?>
                                         </div>
                                         <div class="stat-subvalue">Value: <?php echo formatPrice($totalStockValue); ?></div>
                                     </div>
@@ -421,7 +421,7 @@
                         $categoryOptions = array_keys($categoryOptions);
                         sort($categoryOptions, SORT_NATURAL | SORT_FLAG_CASE);
                     ?>
-
+                    
                     <?php if(empty($products['data'])): ?>
                         <div class="alert alert-info">No products found.</div>
                     <?php else: ?>
@@ -514,7 +514,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php 
+                                                <?php 
                                     $page = isset($products['current_page']) ? (int)$products['current_page'] : 1;
                                     $perPage = isset($products['per_page']) ? (int)$products['per_page'] : 15;
                                     foreach($products['data'] as $idx => $product): 
@@ -526,12 +526,12 @@
                                                 $rowCategoryName = 'Uncategorized';
                                             }
 
-                                            $supplierName = '';
-                                            if (!empty($product['supplier'])) {
-                                                $supplierName = $product['supplier'];
-                                            } elseif (!empty($product['supplier_id']) && !empty($supplierMap) && isset($supplierMap[$product['supplier_id']])) {
-                                                $supplierName = $supplierMap[$product['supplier_id']];
-                                            }
+                                                    $supplierName = '';
+                                                    if (!empty($product['supplier'])) {
+                                                        $supplierName = $product['supplier'];
+                                                    } elseif (!empty($product['supplier_id']) && !empty($supplierMap) && isset($supplierMap[$product['supplier_id']])) {
+                                                        $supplierName = $supplierMap[$product['supplier_id']];
+                                                    }
 
                                             $isExpired = false;
                                             if (!empty($product['expiry_date'])) {
@@ -553,9 +553,9 @@
                                             <td data-label="#"><?php echo $rowNum; ?></td>
                                             <td data-label="Img">
                                                 <?php if(!empty($product['image'])): ?>
-                                                    <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-thumbnail admin-product-img">
+                                                    <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-thumbnail admin-product-img" loading="lazy" decoding="async">
                                                 <?php else: ?>
-                                                    <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" alt="No Image" class="img-thumbnail admin-product-img">
+                                                    <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" alt="No Image" class="img-thumbnail admin-product-img" loading="lazy" decoding="async">
                                                 <?php endif; ?>
                                             </td>
                                             <td data-label="Name"><span class="text-ellipsis d-inline-block" title="<?php echo htmlspecialchars($product['name']); ?>"><?php echo htmlspecialchars($product['name']); ?></span></td>
@@ -634,12 +634,12 @@
                                                             data-toggle="tooltip" title="History">
                                                         <i class="fas fa-history"></i>
                                                     </button>
-                                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>"
+                                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $product['id']; ?>" 
                                                        class="btn btn-sm btn-light btn-icon mr-1"
                                                        data-toggle="tooltip" title="View">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <button type="button"
+                                                    <button type="button" 
                                                             class="btn btn-sm btn-outline-secondary btn-icon btn-stock-options mr-1"
                                                             data-product-id="<?php echo $product['id']; ?>"
                                                             data-product-name="<?php echo htmlspecialchars($product['name']); ?>"
@@ -1135,10 +1135,17 @@ $(document).ready(function() {
             r.style.display = text.includes(q) ? '' : 'none';
         });
     }
+    function debounce(fn, wait) {
+        let timer = null;
+        return function() {
+            const ctx = this;
+            const args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(function() { fn.apply(ctx, args); }, wait);
+        };
+    }
     if (tableSearch) {
-        tableSearch.addEventListener('input', function() {
-            applyTableSearch();
-        });
+        tableSearch.addEventListener('input', debounce(function() { applyTableSearch(); }, 180));
     }
     if (clearTableSearch) {
         clearTableSearch.addEventListener('click', function() {

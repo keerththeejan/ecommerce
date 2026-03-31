@@ -536,6 +536,52 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
     background: var(--border-color);
     margin: 10px 0;
 }
+
+/* Add Unit modal */
+.add-unit-modal .modal-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+}
+
+.add-unit-modal .modal-body { padding: 1rem; }
+@media (min-width: 768px) { .add-unit-modal .modal-body { padding: 1.25rem; } }
+
+.add-unit-card {
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    padding: 0.85rem;
+}
+@media (min-width: 768px) { .add-unit-card { padding: 1rem; } }
+
+.add-unit-modal .required-asterisk { color: #dc2626; }
+
+.add-unit-modal .form-control,
+.add-unit-modal .form-select {
+    border-radius: 10px;
+    min-height: 42px;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.add-unit-modal .form-control:hover,
+.add-unit-modal .form-select:hover { border-color: rgba(37, 99, 235, 0.45); }
+
+.add-unit-modal .form-control:focus,
+.add-unit-modal .form-select:focus {
+    border-color: rgba(37, 99, 235, 0.65);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+}
+
+.add-unit-modal .btn {
+    min-height: 40px;
+    border-radius: 10px;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.add-unit-modal .btn:hover { transform: translateY(-1px); }
+.add-unit-modal .btn-primary:hover { box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28); }
 </style>
 
 <div class="admin-page-shell">
@@ -862,6 +908,33 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
+                                        </div>
+
+                                        <div class="form-group mb-2">
+                                            <label for="unit_id" class="form-label">Unit</label>
+                                            <div class="pm-select-add">
+                                                <select class="form-select select2 flex-grow-1" id="unit_id" name="unit_id" style="min-width: 0;" aria-label="Product unit">
+                                                    <option value="">Select Unit</option>
+                                                    <?php if (!empty($units)): ?>
+                                                        <?php foreach ($units as $unit): ?>
+                                                            <?php
+                                                            $unitId = is_array($unit) ? ($unit['id'] ?? null) : ($unit->id ?? null);
+                                                            $unitName = is_array($unit) ? ($unit['name'] ?? '') : ($unit->name ?? '');
+                                                            $unitShort = is_array($unit) ? ($unit['short_name'] ?? '') : ($unit->short_name ?? '');
+                                                            $selected = (isset($data['unit_id']) && (string)$data['unit_id'] === (string)$unitId) ? 'selected' : '';
+                                                            ?>
+                                                            <option value="<?php echo htmlspecialchars((string)$unitId); ?>" <?php echo $selected; ?>>
+                                                                <?php echo htmlspecialchars(trim($unitName . ($unitShort ? ' (' . $unitShort . ')' : ''))); ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    <?php endif; ?>
+                                                </select>
+                                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUnitModal" data-toggle="modal" data-target="#addUnitModal" aria-label="Open Add Unit modal">
+                                                    <i class="fas fa-plus"></i>
+                                                    <span class="d-none d-sm-inline">Add New</span>
+                                                </button>
+                                            </div>
+                                            <div class="form-text mt-1">Manage units like category and quickly add a new one.</div>
                                         </div>
 
                                         <div class="form-group">
@@ -1539,6 +1612,126 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { /* ignore */ }
     }
 
+    // Add Unit modal UX
+    const addUnitForm = document.getElementById('addUnitForm');
+    const addUnitModal = document.getElementById('addUnitModal');
+    const isMultipleUnit = document.getElementById('isMultipleUnit');
+    const conversionWrap = document.getElementById('conversionWrap');
+    const unitMultiplier = document.getElementById('unitMultiplier');
+    const baseUnit = document.getElementById('baseUnit');
+    const productUnitSelect = document.getElementById('unit_id');
+
+    function toggleConversionFields() {
+        const enabled = !!(isMultipleUnit && isMultipleUnit.checked);
+        if (!conversionWrap || !unitMultiplier || !baseUnit) return;
+        conversionWrap.classList.toggle('d-none', !enabled);
+        unitMultiplier.required = enabled;
+        baseUnit.required = enabled;
+        unitMultiplier.setAttribute('aria-required', enabled ? 'true' : 'false');
+        baseUnit.setAttribute('aria-required', enabled ? 'true' : 'false');
+        if (!enabled) {
+            unitMultiplier.value = '';
+            baseUnit.value = '';
+            unitMultiplier.classList.remove('is-invalid');
+            baseUnit.classList.remove('is-invalid');
+        }
+    }
+
+    function validateAddUnitForm() {
+        if (!addUnitForm) return false;
+        let valid = true;
+        const requiredInputs = addUnitForm.querySelectorAll('[required]');
+        requiredInputs.forEach(function(input) {
+            const value = (input.value || '').trim();
+            const isEmpty = value === '';
+            input.classList.toggle('is-invalid', isEmpty);
+            if (isEmpty) valid = false;
+        });
+
+        if (isMultipleUnit && isMultipleUnit.checked && unitMultiplier) {
+            const multiplier = parseFloat(unitMultiplier.value || '0');
+            const badMultiplier = isNaN(multiplier) || multiplier <= 0;
+            unitMultiplier.classList.toggle('is-invalid', badMultiplier);
+            if (badMultiplier) valid = false;
+        }
+
+        return valid;
+    }
+
+    if (isMultipleUnit) {
+        isMultipleUnit.addEventListener('change', toggleConversionFields);
+        toggleConversionFields();
+    }
+
+    if (addUnitForm) {
+        addUnitForm.addEventListener('input', function(e) {
+            if (e.target && e.target.classList.contains('is-invalid')) {
+                e.target.classList.remove('is-invalid');
+            }
+        });
+
+        addUnitForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!validateAddUnitForm()) return;
+
+            const submitBtn = addUnitForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>Saving...';
+            }
+
+            const payload = new FormData(addUnitForm);
+            payload.set('is_multiple', (isMultipleUnit && isMultipleUnit.checked) ? '1' : '0');
+
+            fetch('<?php echo BASE_URL; ?>?controller=unit&action=create', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+                body: payload
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(result) {
+                if (!result || !result.success) {
+                    throw new Error((result && result.message) ? result.message : 'Failed to add unit');
+                }
+
+                const optionLabel = (result.name || '') + ((result.short_name || '') ? (' (' + result.short_name + ')') : '');
+                if (productUnitSelect) {
+                    const newOption = new Option(optionLabel.trim(), String(result.id), true, true);
+                    productUnitSelect.appendChild(newOption);
+                    try {
+                        if (window.jQuery && $(productUnitSelect).hasClass('select2-hidden-accessible')) {
+                            $(productUnitSelect).trigger('change.select2');
+                        }
+                    } catch (e2) { /* ignore */ }
+                }
+
+                if (baseUnit) {
+                    const baseOption = new Option(optionLabel.trim(), String(result.id), false, false);
+                    baseUnit.appendChild(baseOption);
+                }
+
+                try { $(addUnitModal).modal('hide'); } catch (err) { /* ignore */ }
+                addUnitForm.reset();
+                toggleConversionFields();
+            })
+            .catch(function(error) {
+                alert(error.message || 'Unable to save unit');
+            })
+            .finally(function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            });
+        });
+    }
+
+    if (window.jQuery && $.fn.tooltip) {
+        $('[data-toggle="tooltip"], [data-bs-toggle="tooltip"]').tooltip({ container: 'body' });
+    }
+
     updateCategoryTaxRateUI();
 });
 </script>
@@ -1593,6 +1786,93 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade add-unit-modal" id="addUnitModal" tabindex="-1" role="dialog" aria-labelledby="addUnitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title" id="addUnitModalLabel">Add Unit</h5>
+                    <p class="form-text mb-0">Create a clean unit setup for stock and POS workflows.</p>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="add-unit-card">
+                    <form id="addUnitForm" novalidate>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label for="unitName" class="form-label">Unit Name <span class="required-asterisk">*</span></label>
+                                <input type="text" class="form-control" id="unitName" name="unit_name" required aria-required="true" maxlength="60" placeholder="e.g., Kilogram">
+                                <div class="invalid-feedback">Unit Name is required.</div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="unitShortName" class="form-label">Short Name <span class="required-asterisk">*</span></label>
+                                <input type="text" class="form-control" id="unitShortName" name="short_name" required aria-required="true" maxlength="20" placeholder="e.g., kg">
+                                <div class="invalid-feedback">Short Name is required.</div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="allowDecimal" class="form-label">Allow Decimal <span class="required-asterisk">*</span></label>
+                                <select class="form-select" id="allowDecimal" name="allow_decimal" required aria-required="true">
+                                    <option value="">Select option</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                                <div class="invalid-feedback">Please select if decimals are allowed.</div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch mt-1">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="isMultipleUnit" name="is_multiple">
+                                    <label class="form-check-label d-flex align-items-center" for="isMultipleUnit" style="gap: 8px;">
+                                        <span>Add as multiple of another unit</span>
+                                        <i class="fas fa-info-circle text-muted" tabindex="0" role="button" data-bs-toggle="tooltip" data-toggle="tooltip" title="Use this for derived units, like 1 Box = 12 Pieces."></i>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12 d-none" id="conversionWrap" aria-live="polite">
+                                <div class="row g-2 g-md-3 align-items-end">
+                                    <div class="col-12 col-md-6">
+                                        <label for="unitMultiplier" class="form-label">1 Unit = [value] x Base Unit <span class="required-asterisk">*</span></label>
+                                        <input type="number" class="form-control" id="unitMultiplier" name="multiplier" min="0.0001" step="0.0001" placeholder="e.g., 12">
+                                        <div class="invalid-feedback">Enter a valid conversion value greater than 0.</div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="baseUnit" class="form-label">Select Base Unit <span class="required-asterisk">*</span></label>
+                                        <select class="form-select" id="baseUnit" name="base_unit">
+                                            <option value="">Choose base unit</option>
+                                            <?php if (!empty($units)): ?>
+                                                <?php foreach ($units as $unit): ?>
+                                                    <?php
+                                                    $baseUnitId = is_array($unit) ? ($unit['id'] ?? null) : ($unit->id ?? null);
+                                                    $baseUnitName = is_array($unit) ? ($unit['name'] ?? '') : ($unit->name ?? '');
+                                                    $baseUnitShort = is_array($unit) ? ($unit['short_name'] ?? '') : ($unit->short_name ?? '');
+                                                    ?>
+                                                    <option value="<?php echo htmlspecialchars((string)$baseUnitId); ?>">
+                                                        <?php echo htmlspecialchars(trim($baseUnitName . ($baseUnitShort ? ' (' . $baseUnitShort . ')' : ''))); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </select>
+                                        <div class="invalid-feedback">Please select a base unit.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-outline-dark" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-1"></i>Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

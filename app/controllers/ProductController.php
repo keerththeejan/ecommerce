@@ -7,11 +7,16 @@ class ProductController extends Controller {
     private $productModel;
     private $categoryModel;
     private $supplierModel;
+    private $unitModel;
     
     public function __construct() {
         $this->productModel = $this->model('Product');
         $this->categoryModel = $this->model('Category');
         $this->supplierModel = $this->model('Supplier');
+        $this->unitModel = $this->model('Unit');
+        if (method_exists($this->unitModel, 'ensureSchema')) {
+            $this->unitModel->ensureSchema();
+        }
     }
 
     /**
@@ -790,6 +795,9 @@ class ProductController extends Controller {
         $categories = method_exists($this->categoryModel, 'getActiveCategoriesWithTaxRate')
             ? $this->categoryModel->getActiveCategoriesWithTaxRate()
             : $this->categoryModel->getActiveCategories();
+        $units = method_exists($this->unitModel, 'getActiveUnits')
+            ? $this->unitModel->getActiveUnits()
+            : [];
         // Get suppliers for dropdown
         $suppliers = method_exists($this->supplierModel, 'getAllSuppliers') ? $this->supplierModel->getAllSuppliers() : [];
         
@@ -816,7 +824,8 @@ class ProductController extends Controller {
                 'expiry_date' => $this->post('expiry_date') ?: null,
                 'supplier' => sanitize($this->post('supplier')),
                 'batch_number' => sanitize($this->post('batch_number')),
-                'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null
+                'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null,
+                'unit_id' => ($uid = $this->post('unit_id')) && (int)$uid > 0 ? (int)$uid : null
             ];
 
             if ($data['price'] === null && ($data['price2'] !== '' && $data['price2'] !== null)) {
@@ -882,6 +891,7 @@ class ProductController extends Controller {
                 'batch_number' => 'nullable|max:100',
                 'expiry_date' => 'nullable',
                 'tax_id' => 'nullable|numeric'
+                ,'unit_id' => 'nullable|numeric'
             ];
             
             $validationErrors = $this->validate($data, $validationRules);
@@ -909,11 +919,11 @@ class ProductController extends Controller {
                             'stock_quantity' => '', 'sku' => '', 'category_id' => '', 'country_id' => '',
                             'brand_id' => '', 'status' => 'active', 'expiry_date' => '',
                             'hsn_code' => '', 'customs_charge' => '', 'transport_charge' => '',
-                            'supplier' => '', 'batch_number' => '', 'tax_id' => ''
+                            'supplier' => '', 'batch_number' => '', 'tax_id' => '', 'unit_id' => ''
                         ];
                         $this->view('admin/products/create', [
                             'data' => $data, 'categories' => $categories, 'suppliers' => $suppliers,
-                            'success' => $success, 'errors' => []
+                            'units' => $units, 'success' => $success, 'errors' => []
                         ]);
                         return;
                     }
@@ -944,7 +954,8 @@ class ProductController extends Controller {
                 'errors' => $errors,
                 'data' => $data,
                 'categories' => $categories,
-                'suppliers' => $suppliers
+                'suppliers' => $suppliers,
+                'units' => $units
             ]);
         } else {
             // Init data
@@ -965,7 +976,8 @@ class ProductController extends Controller {
                 'transport_charge' => '',
                 'supplier' => '',
                 'batch_number' => '',
-                'tax_id' => ''
+                'tax_id' => '',
+                'unit_id' => ''
             ];
             
             // Load view
@@ -973,6 +985,7 @@ class ProductController extends Controller {
                 'data' => $data,
                 'categories' => $categories,
                 'suppliers' => $suppliers,
+                'units' => $units,
                 'errors' => []
             ]);
         }
@@ -1128,6 +1141,9 @@ class ProductController extends Controller {
         $categories = method_exists($this->categoryModel, 'getActiveCategoriesWithTaxRate')
             ? $this->categoryModel->getActiveCategoriesWithTaxRate()
             : $this->categoryModel->getActiveCategories();
+        $units = method_exists($this->unitModel, 'getActiveUnits')
+            ? $this->unitModel->getActiveUnits()
+            : [];
         // Get suppliers for dropdown
         $suppliers = method_exists($this->supplierModel, 'getAllSuppliers') ? $this->supplierModel->getAllSuppliers() : [];
         
@@ -1154,7 +1170,8 @@ class ProductController extends Controller {
                     'expiry_date' => $this->post('expiry_date') ?: null,
                     'supplier' => sanitize($this->post('supplier')),
                     'batch_number' => sanitize($this->post('batch_number')),
-                    'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null
+                    'tax_id' => ($tid = $this->post('tax_id')) && (int)$tid > 0 ? (int)$tid : null,
+                    'unit_id' => ($uid = $this->post('unit_id')) && (int)$uid > 0 ? (int)$uid : null
                 ];
 
                 if ($data['price'] === null && ($data['price2'] !== '' && $data['price2'] !== null)) {
@@ -1177,7 +1194,8 @@ class ProductController extends Controller {
                     'supplier' => 'nullable|max:255',
                     'batch_number' => 'nullable|max:100',
                     'expiry_date' => 'nullable',
-                    'tax_id' => 'nullable|numeric'
+                    'tax_id' => 'nullable|numeric',
+                    'unit_id' => 'nullable|numeric'
                 ]);
                 
                 if(!empty($errors)) {
@@ -1232,6 +1250,8 @@ class ProductController extends Controller {
                     $data['image'] = $imagePath;
                 }
                 
+                $before = is_array($product) ? $product : [];
+
                 // Update product in database
                 if(!$this->productModel->update($id, $data)) {
                     $lastError = method_exists($this->productModel, 'getLastError') ? $this->productModel->getLastError() : '';
@@ -1242,11 +1262,23 @@ class ProductController extends Controller {
                 // Get updated product data
                 $updatedProduct = $this->productModel->getById($id);
                 
+                $changeSet = [];
+                foreach ($data as $field => $newVal) {
+                    $oldVal = $before[$field] ?? null;
+                    if ((string)$oldVal !== (string)$newVal) {
+                        $changeSet[$field] = ['before' => $oldVal, 'after' => $newVal];
+                    }
+                }
+
                 // Prepare response using updated product data
                 $payload = is_array($updatedProduct) ? $updatedProduct : $data;
                 $response = [
                     'success' => true,
                     'message' => 'Product updated successfully',
+                    'meta' => [
+                        'last_updated' => date('Y-m-d H:i:s'),
+                        'changes' => $changeSet
+                    ],
                     'data' => [
                         'id' => $id,
                         'name' => $payload['name'] ?? $data['name'] ?? $product['name'],
@@ -1269,6 +1301,7 @@ class ProductController extends Controller {
                         'supplier' => $payload['supplier'] ?? ($data['supplier'] ?? null),
                         'batch_number' => $payload['batch_number'] ?? ($data['batch_number'] ?? null),
                         'tax_id' => $payload['tax_id'] ?? ($data['tax_id'] ?? ($product['tax_id'] ?? null)),
+                        'unit_id' => $payload['unit_id'] ?? ($data['unit_id'] ?? ($product['unit_id'] ?? null)),
                     ]
                 ];
                 
@@ -1296,7 +1329,8 @@ class ProductController extends Controller {
                     'errors' => ['form' => $errorMsg],
                     'product' => array_merge($product, $data ?? []),
                     'categories' => $categories,
-                    'suppliers' => $suppliers
+                    'suppliers' => $suppliers,
+                    'units' => $units
                 ]);
                 return;
             }
@@ -1311,6 +1345,7 @@ class ProductController extends Controller {
                 'product' => $product,
                 'categories' => $categories,
                 'suppliers' => $suppliers,
+                'units' => $units,
                 'errors' => []
             ]);
             return;

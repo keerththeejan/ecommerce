@@ -666,7 +666,7 @@ class Product extends Model {
      */
     public function getLowStockProducts($threshold = 10) {
         try {
-            $sql = "SELECT p.*, c.name as category_name 
+            $sql = "SELECT p.id, p.name, p.stock_quantity, p.status, p.category_id, c.name as category_name 
                     FROM {$this->table} p
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.stock_quantity <= :threshold

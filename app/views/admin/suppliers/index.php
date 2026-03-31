@@ -63,33 +63,6 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
       font-weight: 600;
     }
 
-    .style-guide {
-      border-top: 1px dashed var(--border-color);
-      margin-top: 1rem;
-      padding-top: 1rem;
-    }
-    .sg-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.35rem 0.55rem;
-      border: 1px solid var(--border-color);
-      border-radius: 999px;
-      background: var(--surface-muted);
-      font-size: 0.85rem;
-      color: var(--text-color);
-      margin-right: 0.4rem;
-      margin-bottom: 0.4rem;
-      white-space: nowrap;
-    }
-    .sg-swatch {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-      border: 1px solid var(--border-color);
-      flex: 0 0 auto;
-    }
-
     @media (max-width: 575.98px) { .suppliers-table-scroll { max-height: 60vh; } }
     @media (min-width: 576px) and (max-width: 991.98px) { .suppliers-table-scroll { max-height: 60vh; } }
     @media (min-width: 992px) { .suppliers-table-scroll { max-height: 70vh; } }
@@ -128,14 +101,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
   #suppliersTable tbody td[data-label="Actions"] .supplier-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
   #suppliersTable tbody tr[onclick] { cursor: pointer; }
 }
-#supplierSidebar { transition: all 0.3s ease; }
-@media (max-width: 767.98px) {
-  #supplierSidebar { position: fixed; top: 0; right: -100%; height: 100%; z-index: 1040; overflow-y: auto; }
-  #supplierSidebar.show { right: 0; }
-  .sidebar-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1039; display: none; }
-}
 </style>
-<div class="sidebar-backdrop d-md-none" id="sidebarBackdrop"></div>
 
 <div class="container-fluid py-3 py-md-4 px-2 px-sm-3 suppliers-admin page-shell">
     <div class="d-flex align-items-start justify-content-between flex-wrap" style="gap: 0.75rem; margin-bottom: 0.75rem;">
@@ -156,8 +122,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
     </div>
 
     <div class="row g-3">
-        <!-- Main Content -->
-        <div class="col-12 col-lg-9">
+        <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-body pt-2">
                     <?php flash('supplier_success'); ?>
@@ -205,13 +170,13 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                             <tbody>
                                 <?php if (!empty($suppliers)): ?>
                                     <?php foreach ($suppliers as $idx => $supplier): $rowNum = $idx + 1; ?>
-                                        <tr style="cursor: pointer;" onclick="loadSupplierDetails('<?php echo BASE_URL; ?>?controller=supplier&action=details&id=<?php echo $supplier['id']; ?>')">
+                                        <tr>
                                             <td data-label="#"><?php echo $rowNum; ?></td>
                                             <td data-label="Supplier Name"><?php echo htmlspecialchars($supplier['name'] ?? ''); ?></td>
                                             <td data-label="Product"><?php echo !empty($supplier['product_name']) ? htmlspecialchars($supplier['product_name']) : '—'; ?></td>
                                             <td data-label="Email"><?php echo !empty($supplier['email']) ? htmlspecialchars($supplier['email']) : '—'; ?></td>
                                             <td data-label="Phone"><?php echo !empty($supplier['phone']) ? htmlspecialchars($supplier['phone']) : '—'; ?></td>
-                                            <td data-label="Actions" onclick="event.stopPropagation();">
+                                            <td data-label="Actions">
                                                 <div class="btn-group btn-group-sm supplier-actions" role="group" aria-label="Supplier Actions">
                                                     <button type="button" class="btn btn-outline-primary edit-supplier"
                                                             data-id="<?php echo $supplier['id']; ?>"
@@ -239,36 +204,7 @@ require_once APP_PATH . 'views/admin/layouts/header.php';
                             </tbody>
                         </table>
                     </div>
-                    <div id="suppliers-helptext" class="sr-only">Select a row to view supplier details. Use the edit and delete buttons in the actions column to manage suppliers.</div>
-
-                    <div class="style-guide">
-                        <h6 class="mb-2">Style Guide</h6>
-                        <div class="mb-2">
-                            <span class="sg-chip"><span class="sg-swatch" style="background:#3b82f6"></span>Primary</span>
-                            <span class="sg-chip"><span class="sg-swatch" style="background:#0f172a"></span>Sidebar</span>
-                            <span class="sg-chip"><span class="sg-swatch" style="background:#198754"></span>Success</span>
-                            <span class="sg-chip"><span class="sg-swatch" style="background:#dc3545"></span>Danger</span>
-                            <span class="sg-chip"><span class="sg-swatch" style="background:#6b7280"></span>Muted</span>
-                        </div>
-                        <div class="small text-muted">
-                            Font: Inter (400/500/600). Spacing: 8px grid. Corners: 10–14px. Actions: clear hover + focus ring.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-12 col-lg-3">
-            <div class="card shadow-sm bg-light border-0 position-sticky pt-3" id="supplierSidebar">
-                <div class="card-body">
-                    <h5 class="text-center mb-3">Supplier Details</h5>
-                    <div id="supplierDetails">
-                        <div class="text-center text-muted small">
-                            <i class="fas fa-truck fa-3x mb-2"></i>
-                            <p class="mb-0">Select a supplier to view details</p>
-                        </div>
-                    </div>
+                    <div id="suppliers-helptext" class="sr-only">Use the edit and delete buttons in the actions column to manage suppliers.</div>
                 </div>
             </div>
         </div>
@@ -712,8 +648,6 @@ if (addSupplierForm) {
                 const tbody = document.querySelector('table tbody');
                 if (tbody && s) {
                     const tr = document.createElement('tr');
-                    tr.style.cursor = 'pointer';
-                    tr.setAttribute('onclick', `loadSupplierDetails('${BASE_URL}?controller=supplier&action=details&id=${s.id}')`);
                     tr.innerHTML = `
                         <td>${s.id}</td>
                         <td>${escapeHtml(s.name)}</td>
@@ -810,7 +744,6 @@ document.addEventListener('DOMContentLoaded', function() {
     nextBtn.addEventListener('click', function() { state.page = state.page + 1; render(); });
 
     render();
-});
 });
 </script>
 

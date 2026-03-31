@@ -26,6 +26,8 @@ if (!defined('APP_PATH')) define('APP_PATH', ROOT_PATH . 'app/');
 if (!defined('PUBLIC_PATH')) define('PUBLIC_PATH', ROOT_PATH . 'public/');
 if (!defined('ASSETS_PATH')) define('ASSETS_PATH', ROOT_PATH . 'assets/');
 if (!defined('CONFIG_PATH')) define('CONFIG_PATH', ROOT_PATH . 'config/');
+if (!defined('ASSET_VERSION')) define('ASSET_VERSION', '20260331');
+if (!defined('ENABLE_QUERY_CACHE')) define('ENABLE_QUERY_CACHE', true);
 
 // URL Root (for links in views)
 if (!defined('URLROOT')) define('URLROOT', defined('BASE_URL') ? BASE_URL : 'http://localhost/ecommerce/');

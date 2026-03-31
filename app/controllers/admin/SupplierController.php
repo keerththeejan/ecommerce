@@ -25,36 +25,9 @@ class SupplierController extends Controller {
     }
     
     public function details($id = null) {
-        if (!$id) {
-            redirect('supplier');
-        }
-        
-        // Get supplier details
-        $result = $this->supplierModel->getSupplierById($id);
-        if (!$result || (is_array($result) && empty($result['success']))) {
-            $message = is_array($result) && isset($result['message']) ? $result['message'] : 'Supplier not found';
-            if (!empty($_GET['ajax'])) {
-                echo json_encode(['success' => false, 'message' => $message]);
-                return;
-            } else {
-                flash('supplier_error', $message, 'alert alert-danger');
-                redirect('supplier');
-            }
-        }
-        $supplierData = is_array($result) && isset($result['data']) ? $result['data'] : $result;
-        
-        // If AJAX requested, return JSON
-        if (!empty($_GET['ajax'])) {
-            echo json_encode(['success' => true, 'supplier' => $supplierData]);
-            return;
-        }
-        
-        $data = [
-            'title' => 'Supplier Details',
-            'supplier' => $supplierData
-        ];
-        
-        $this->view('admin/suppliers/details', $data);
+        // Supplier details panel/page has been removed from the UI.
+        // Keep this endpoint safe by redirecting old links to the index.
+        redirect('supplier');
     }
     
     public function update() {

@@ -11,6 +11,9 @@ class Database {
     private $conn;
     private $error;
     private $stmt;
+    private $currentQuery = '';
+    private $boundParams = [];
+    private static $queryCache = [];
     
     // Get PDO connection
     public function getConnection() {
@@ -48,6 +51,8 @@ class Database {
             throw new Exception('Database connection not established');
         }
         
+        $this->currentQuery = (string)$query;
+        $this->boundParams = [];
         try {
             $this->stmt = $this->conn->prepare($query);
             
@@ -92,6 +97,7 @@ class Database {
         
         try {
             $result = $this->stmt->bindValue($param, $value, $type);
+            $this->boundParams[(string)$param] = $value;
             if ($result === false) {
                 $error = $this->stmt->errorInfo();
                 error_log('Bind Error - Param: ' . $param . ' - Error: ' . print_r($error, true));
@@ -108,7 +114,12 @@ class Database {
     // Execute the prepared statement
     public function execute() {
         try {
-            return $this->stmt->execute();
+            $ok = $this->stmt->execute();
+            if ($ok && !$this->isSelectQuery($this->currentQuery)) {
+                // Keep cache coherent in the same request after writes.
+                self::$queryCache = [];
+            }
+            return $ok;
         } catch(PDOException $e) {
             $this->error = $e->getMessage();
             error_log('Execute Error: ' . $this->error);
@@ -125,11 +136,19 @@ class Database {
                 return [];
             }
             
+            $cacheKey = $this->buildCacheKey('all');
+            if ($cacheKey !== null && isset(self::$queryCache[$cacheKey])) {
+                return self::$queryCache[$cacheKey];
+            }
+
             if(!$this->execute()) {
                 return [];
             }
-            
-            return $this->stmt->fetchAll();
+            $data = $this->stmt->fetchAll();
+            if ($cacheKey !== null) {
+                self::$queryCache[$cacheKey] = $data;
+            }
+            return $data;
         } catch(PDOException $e) {
             $this->error = $e->getMessage();
             error_log('ResultSet Error: ' . $this->error);
@@ -146,11 +165,19 @@ class Database {
                 return false;
             }
             
+            $cacheKey = $this->buildCacheKey('one');
+            if ($cacheKey !== null && isset(self::$queryCache[$cacheKey])) {
+                return self::$queryCache[$cacheKey];
+            }
+
             if(!$this->execute()) {
                 return false;
             }
-            
-            return $this->stmt->fetch();
+            $data = $this->stmt->fetch();
+            if ($cacheKey !== null) {
+                self::$queryCache[$cacheKey] = $data;
+            }
+            return $data;
         } catch(PDOException $e) {
             $this->error = $e->getMessage();
             error_log('Single Error: ' . $this->error);
@@ -253,5 +280,20 @@ class Database {
             error_log('ColumnExists Error: ' . $this->error);
             return false;
         }
+    }
+
+    private function isSelectQuery($query) {
+        $q = ltrim((string)$query);
+        return stripos($q, 'SELECT ') === 0 || stripos($q, 'SHOW ') === 0 || stripos($q, 'DESCRIBE ') === 0;
+    }
+
+    private function buildCacheKey($mode) {
+        if (!defined('ENABLE_QUERY_CACHE') || ENABLE_QUERY_CACHE !== true) {
+            return null;
+        }
+        if (!$this->isSelectQuery($this->currentQuery)) {
+            return null;
+        }
+        return md5($mode . '|' . $this->currentQuery . '|' . serialize($this->boundParams));
     }
 }

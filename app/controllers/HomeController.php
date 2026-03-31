@@ -225,14 +225,28 @@ class HomeController extends Controller {
             redirect('user/login');
         }
         
-        // Get recent orders
-        $recentOrders = $this->model('Order')->getRecentOrders(5);
-        
-        // Get low stock products
-        $lowStockProducts = $this->productModel->getLowStockProducts();
-        
-        // Get sales statistics
-        $salesStats = $this->model('Order')->getSalesStats();
+        $cacheKey = 'admin_dashboard_v1';
+        $cached = $this->readCache($cacheKey, 20);
+        if (is_array($cached)) {
+            $recentOrders = $cached['recentOrders'] ?? [];
+            $lowStockProducts = $cached['lowStockProducts'] ?? [];
+            $salesStats = $cached['salesStats'] ?? [];
+        } else {
+            // Get recent orders
+            $recentOrders = $this->model('Order')->getRecentOrders(5);
+            
+            // Get low stock products
+            $lowStockProducts = $this->productModel->getLowStockProducts();
+            
+            // Get sales statistics
+            $salesStats = $this->model('Order')->getSalesStats();
+
+            $this->writeCache($cacheKey, [
+                'recentOrders' => $recentOrders,
+                'lowStockProducts' => $lowStockProducts,
+                'salesStats' => $salesStats
+            ]);
+        }
         
         // Load view
         $this->view('admin/dashboard', [
@@ -269,5 +283,38 @@ class HomeController extends Controller {
         // Return success response
         echo json_encode(['success' => true, 'message' => 'All cookies have been cleared successfully!']);
         exit;
+    }
+
+    private function cacheDir() {
+        $dir = ROOT_PATH . 'storage/cache/';
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0777, true);
+        }
+        return $dir;
+    }
+
+    private function cachePath($key) {
+        return $this->cacheDir() . md5($key) . '.json';
+    }
+
+    private function readCache($key, $ttlSeconds) {
+        $path = $this->cachePath($key);
+        if (!is_file($path)) {
+            return null;
+        }
+        if (filemtime($path) < (time() - (int)$ttlSeconds)) {
+            return null;
+        }
+        $raw = @file_get_contents($path);
+        if ($raw === false || $raw === '') {
+            return null;
+        }
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    private function writeCache($key, array $payload) {
+        $path = $this->cachePath($key);
+        @file_put_contents($path, json_encode($payload), LOCK_EX);
     }
 }
