@@ -289,6 +289,32 @@
 .table-topbar .btn { height: 32px; padding-top: 0.25rem; padding-bottom: 0.25rem; }
 .table-topbar .form-control { font-size: 0.85rem; }
 .table-topbar .table-meta { font-size: 0.8rem; color: rgba(17,24,39,.60); }
+.table-topbar .category-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.table-topbar .category-filter-group label {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+.table-topbar .category-filter-select {
+  min-width: 220px;
+  max-width: 360px;
+}
+
+@media (max-width: 575.98px) {
+  .table-topbar .category-filter-group,
+  .table-topbar .search-filter-group {
+    width: 100%;
+  }
+  .table-topbar .category-filter-select,
+  .table-topbar .search-filter-group .input-group {
+    width: 100% !important;
+  }
+}
 
 /* Inline editing */
 .cell-editable { cursor: text; position: relative; }
@@ -409,13 +435,24 @@
 
                     <?php
                         $categoryOptions = [];
+                        if (!empty($categories) && is_array($categories)) {
+                            foreach ($categories as $category) {
+                                $categoryRow = is_object($category) ? (array)$category : $category;
+                                $catName = trim((string)($categoryRow['name'] ?? ''));
+                                if ($catName !== '') {
+                                    $categoryOptions[$catName] = true;
+                                }
+                            }
+                        }
                         if (isset($products['data']) && is_array($products['data'])) {
                             foreach ($products['data'] as $p) {
                                 $catName = trim((string)($p['category_name'] ?? ''));
                                 if ($catName === '') {
                                     $catName = 'Uncategorized';
                                 }
-                                $categoryOptions[$catName] = true;
+                                if ($catName !== '') {
+                                    $categoryOptions[$catName] = true;
+                                }
                             }
                         }
                         $categoryOptions = array_keys($categoryOptions);
@@ -428,18 +465,20 @@
                         <div class="table-topbar">
                             <div class="d-flex flex-wrap align-items-center" style="gap: 0.5rem;">
                                 <?php if (!empty($categoryOptions)): ?>
-                                    <label for="categoryFilterSelect" class="small text-muted mb-0">Category</label>
-                                    <select id="categoryFilterSelect" class="form-control form-control-sm" style="width: auto; min-width: 220px;">
+                                    <div class="category-filter-group">
+                                    <label for="categoryFilterSelect">Category</label>
+                                    <select id="categoryFilterSelect" class="form-control form-control-sm category-filter-select">
                                         <option value="">All categories</option>
                                         <?php foreach ($categoryOptions as $cat): ?>
                                             <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                     <button type="button" class="btn btn-sm btn-light" id="clearCategoryFilter">Clear</button>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                             <div class="d-flex flex-wrap align-items-center" style="gap: 0.5rem;">
-                                <div class="input-group input-group-sm" style="width: min(420px, 100%);">
+                                <div class="input-group input-group-sm search-filter-group" style="width: min(420px, 100%);">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                                     </div>
@@ -803,18 +842,19 @@ $(document).ready(function() {
         return s;
     }
 
-    function applyCategoryFilterSelect() {
+    function applyTableFilters() {
         const select = document.getElementById('categoryFilterSelect');
+        const tableSearch = document.getElementById('tableSearch');
         const rows = document.querySelectorAll('#productsTable tbody tr');
         if (!select || !rows) return;
         const selected = normalizeCategoryValue(select.value || '');
-        if (selected === '') {
-            rows.forEach(r => { r.style.display = ''; });
-            return;
-        }
+        const q = (tableSearch && tableSearch.value ? tableSearch.value : '').trim().toLowerCase();
         rows.forEach(r => {
             const cat = normalizeCategoryValue(r.getAttribute('data-category') || '');
-            r.style.display = (cat === selected) ? '' : 'none';
+            const text = (r.innerText || '').toLowerCase();
+            const matchesCategory = selected === '' || cat === selected;
+            const matchesSearch = q === '' || text.includes(q);
+            r.style.display = (matchesCategory && matchesSearch) ? '' : 'none';
         });
     }
 
@@ -853,7 +893,7 @@ $(document).ready(function() {
     const categorySelect = document.getElementById('categoryFilterSelect');
     if (categorySelect) {
         categorySelect.addEventListener('change', function() {
-            applyCategoryFilterSelect();
+            applyTableFilters();
         });
     }
 
@@ -861,7 +901,7 @@ $(document).ready(function() {
     if (clearSelectBtn) {
         clearSelectBtn.addEventListener('click', function() {
             if (categorySelect) categorySelect.value = '';
-            applyCategoryFilterSelect();
+            applyTableFilters();
         });
     }
 
@@ -1125,16 +1165,6 @@ $(document).ready(function() {
     // Client-side search (filters current page only; server-side search remains supported)
     const tableSearch = document.getElementById('tableSearch');
     const clearTableSearch = document.getElementById('clearTableSearch');
-    function applyTableSearch() {
-        const q = (tableSearch && tableSearch.value ? tableSearch.value : '').trim().toLowerCase();
-        const rows = document.querySelectorAll('#productsTable tbody tr');
-        if (!rows) return;
-        rows.forEach(r => {
-            if (!q) { r.style.display = ''; return; }
-            const text = (r.innerText || '').toLowerCase();
-            r.style.display = text.includes(q) ? '' : 'none';
-        });
-    }
     function debounce(fn, wait) {
         let timer = null;
         return function() {
@@ -1145,12 +1175,12 @@ $(document).ready(function() {
         };
     }
     if (tableSearch) {
-        tableSearch.addEventListener('input', debounce(function() { applyTableSearch(); }, 180));
+        tableSearch.addEventListener('input', debounce(function() { applyTableFilters(); }, 180));
     }
     if (clearTableSearch) {
         clearTableSearch.addEventListener('click', function() {
             if (tableSearch) tableSearch.value = '';
-            applyTableSearch();
+            applyTableFilters();
         });
     }
 
