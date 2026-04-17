@@ -404,6 +404,7 @@ class Product extends Model {
                         p.category_id,
                         p.price,
                         p.sale_price,
+                        p.price2,
                         p.stock_quantity,
                         p.image,
                         p.status,

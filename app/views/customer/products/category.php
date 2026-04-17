@@ -135,13 +135,8 @@ $catId = isset($category['id']) ? (int)$category['id'] : 0;
                                     
                                     <div class="d-flex justify-content-between align-items-center" style="font-size: 0.9rem; min-height: 24px;">
                                         <?php if(isLoggedIn()): ?>
-                                            <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                                                <span class="text-danger fw-bold"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                                <span></span> <!-- Empty span for alignment -->
-                                            <?php else: ?>
-                                                <span class="text-danger fw-bold"><?php echo formatCurrency($product['price']); ?></span>
-                                                <span></span> <!-- Empty span for alignment -->
-                                            <?php endif; ?>
+                                            <span class="text-danger fw-bold"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
+                                            <span></span> <!-- Empty span for alignment -->
                                         <?php else: ?>
                                             <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-primary" style="font-size: 0.8rem;">Login to view price</a>
                                             <span></span> <!-- Empty span for alignment -->

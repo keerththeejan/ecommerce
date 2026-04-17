@@ -44,15 +44,7 @@
                                     <h6 class="card-title small mb-1"><?php echo truncateText($product['name'], 28); ?></h6>
                                     <p class="card-text small text-muted d-none d-md-block mb-1"><?php echo truncateText($product['description'], 40); ?></p>
                                     <?php if(isLoggedIn()): ?>
-                                        <?php if(!empty($product['sale_price'])) : ?>
-                                            <p class="card-text mb-1">
-                                                <span class="text-decoration-line-through text-muted small"><?php echo formatPrice($product['price']); ?></span>
-                                                <span class="text-danger fw-bold ms-1"><?php echo formatPrice($product['sale_price']); ?></span>
-                                                <span class="badge bg-danger ms-1 small"><?php echo calculateDiscountPercentage($product['price'], $product['sale_price']); ?>%</span>
-                                            </p>
-                                        <?php else : ?>
-                                            <p class="card-text fw-bold mb-1"><?php echo formatPrice($product['price']); ?></p>
-                                        <?php endif; ?>
+                                        <p class="card-text fw-bold mb-1"><?php echo formatPrice(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></p>
                                     <?php else: ?>
                                         <p class="card-text mb-1"><a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-primary small">Login to view price</a></p>
                                     <?php endif; ?>

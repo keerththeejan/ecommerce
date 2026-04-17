@@ -487,12 +487,12 @@ try {
 <!-- Ensure full-width helper is available globally (used by footer) -->
 <style>
     .full-width-section {
-        width: 100vw;
+        width: 100%;
         position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
+        left: auto;
+        right: auto;
+        margin-left: 0;
+        margin-right: 0;
         overflow: hidden;
         background-color: transparent;
     }

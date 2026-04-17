@@ -95,11 +95,11 @@ if (empty($banners)) {
     position: relative;
     background: transparent;
     padding: 1.5rem 0;
-    /* Break out of container - full viewport width */
-    width: 100vw;
-    max-width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    margin-right: calc(-50vw + 50%);
+    /* Prevent viewport-width overflow on mobile browsers */
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
     padding-left: 0;
     padding-right: 0;
 }

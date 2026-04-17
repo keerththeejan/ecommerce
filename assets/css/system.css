@@ -1,0 +1,211 @@
+/* System UI foundation (mobile-first, enterprise-grade)
+   Breakpoints (industry standard):
+   - XS: 320–479 (default)
+   - SM: 480–767
+   - MD: 768–1023
+   - LG: 1024–1439
+   - XL: 1440–1919
+   - 2XL: 1920+
+*/
+
+:root{
+  /* 8px spacing grid */
+  --sg-1: 8px;
+  --sg-2: 16px;
+  --sg-3: 24px;
+  --sg-4: 32px;
+  --sg-5: 40px;
+  --sg-6: 48px;
+
+  /* Content paddings (fluid) */
+  --page-px: 16px;
+  --page-py: 16px;
+
+  /* Typography scale */
+  --font-body: 14px;
+  --font-h1: clamp(1.375rem, 1.1rem + 1.2vw, 2rem);
+  --font-h2: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+  --font-h3: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  --lh-body: 1.55;
+  --lh-head: 1.2;
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(59,130,246,0.35);
+
+  /* Tables */
+  --table-sticky-bg: rgba(255,255,255,0.92);
+}
+
+@media (min-width: 480px){
+  :root{ --page-px: 20px; --page-py: 20px; --font-body: 15px; }
+}
+@media (min-width: 768px){
+  :root{ --page-px: 24px; --page-py: 24px; --font-body: 15px; }
+}
+@media (min-width: 1024px){
+  :root{ --page-px: 28px; --page-py: 24px; --font-body: 15px; }
+}
+@media (min-width: 1440px){
+  :root{ --page-px: 32px; --page-py: 28px; --font-body: 16px; }
+}
+@media (min-width: 1920px){
+  :root{ --page-px: 40px; --page-py: 32px; }
+}
+
+/* Base: predictable sizing + no horizontal overflow */
+*, *::before, *::after { box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: hidden; }
+body{ min-width: 0; overflow-x: hidden; font-size: var(--font-body); line-height: var(--lh-body); }
+img, video, canvas, svg{ max-width: 100%; height: auto; }
+iframe{ max-width: 100%; }
+pre, code{ max-width: 100%; }
+
+/* Better flex/grid overflow behavior */
+.row > *, .d-flex > *, .d-grid > *{ min-width: 0; }
+
+/* Typography */
+h1, h2, h3{ line-height: var(--lh-head); }
+h1{ font-size: var(--font-h1); }
+h2{ font-size: var(--font-h2); }
+h3{ font-size: var(--font-h3); }
+small, .text-muted{ line-height: 1.4; }
+
+/* Focus states (accessible, consistent) */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible{
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Forms (enterprise baseline) */
+.form-label{ margin-bottom: var(--sg-1); font-weight: 500; }
+.form-control, .form-select, .form-check-input{
+  min-height: 44px;
+}
+.input-group .btn{ min-height: 44px; }
+.form-control::placeholder{ opacity: 0.75; }
+.invalid-feedback, .valid-feedback{ margin-top: 6px; }
+
+@media (min-width: 1024px){
+  .form-control, .form-select, .form-check-input{ min-height: 40px; }
+  .input-group .btn{ min-height: 40px; }
+}
+
+/* Buttons (touch-friendly on mobile) */
+.btn{ min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn .bi, .btn i{ line-height: 1; }
+@media (min-width: 768px){
+  .btn.btn-sm{ min-height: 36px; }
+}
+@media (min-width: 1024px){
+  .btn{ min-height: 40px; }
+}
+
+/* Tables / grids */
+.table-responsive{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Sticky header on desktop: opt-in via .table-sticky */
+@media (min-width: 1024px){
+  .table-sticky thead th{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--table-sticky-bg);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Mobile card table: opt-in via .table-cardify (requires td[data-label]) */
+@media (max-width: 767px){
+  table.table.table-cardify thead{ display: none; }
+  table.table.table-cardify,
+  table.table.table-cardify tbody,
+  table.table.table-cardify tr,
+  table.table.table-cardify td{
+    display: block;
+    width: 100%;
+  }
+  table.table.table-cardify tr{
+    background: var(--bs-body-bg, #fff);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: var(--sg-2);
+  }
+  table.table.table-cardify td{
+    border: 0 !important;
+    padding: 10px 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  table.table.table-cardify td::before{
+    content: attr(data-label);
+    font-weight: 600;
+    opacity: 0.75;
+    flex: 0 0 auto;
+    max-width: 46%;
+  }
+  table.table.table-cardify td > *{ min-width: 0; }
+}
+
+/* Cards / widgets */
+.sg-grid{
+  display: grid;
+  gap: var(--sg-2);
+}
+.sg-grid--auto{
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.sg-card-eq > *{ height: 100%; }
+
+/* Page container utility (fluid with sensible max-width) */
+.sg-container{
+  width: 100%;
+  max-width: 1920px;
+  margin-inline: auto;
+  padding-inline: var(--page-px);
+}
+
+/* Admin app shell (targets only admin layout wrapper) */
+.admin-app #adminShell{ padding-left: 0; padding-right: 0; }
+.admin-app #adminShell > .row{
+  margin-left: 0;
+  margin-right: 0;
+}
+
+@media (min-width: 1024px){
+  .admin-app #adminShell > .row{
+    display: grid;
+    grid-template-columns: var(--sidebar-width, 280px) minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .admin-app.sidebar-collapsed #adminShell > .row{
+    grid-template-columns: var(--sidebar-width-collapsed, 84px) minmax(0, 1fr);
+  }
+  .admin-app #sidebar{ grid-column: 1; grid-row: 1; position: sticky; top: 0; height: 100vh; }
+  .admin-app main{ grid-column: 2; grid-row: 1; width: auto !important; margin-left: 0 !important; height: auto !important; overflow: visible !important; }
+}
+
+/* Admin topbar sticky (inside main content scroll) */
+.admin-app .admin-topbar{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bs-body-bg, rgba(255,255,255,0.92));
+  background: color-mix(in oklab, var(--bs-body-bg, #fff) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.admin-app .admin-page{
+  padding-top: var(--sg-2);
+  padding-bottom: var(--sg-4);
+}
+.admin-app .admin-page > .container-fluid{
+  padding-left: 0;
+  padding-right: 0;
+}

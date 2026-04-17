@@ -417,7 +417,7 @@
                                     <h3 class="siva-name"><?php echo htmlspecialchars($product['name']); ?></h3>
                                     <div class="siva-price">
                                         <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(isset($product['sale_price']) ? $product['sale_price'] : $product['price']); ?></strong>
+                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
                                         <?php } else { ?>
                                             <strong class="text-muted">Login to see price</strong>
                                         <?php } ?>
@@ -501,7 +501,7 @@
                                     <p class="product-desc small text-muted mb-1 d-none d-md-block"><?php echo isset($product['description']) ? truncateText($product['description'], 50) : ''; ?></p>
                                     <div class="siva-price">
                                         <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(isset($product['sale_price']) ? $product['sale_price'] : $product['price']); ?></strong>
+                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
                                         <?php } else { ?>
                                             <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
                                         <?php } ?>
@@ -588,7 +588,7 @@
                                     <h3 class="siva-name"><?php echo htmlspecialchars($product['name']); ?></h3>
                                     <div class="siva-price">
                                         <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(isset($product['sale_price']) ? $product['sale_price'] : $product['price']); ?></strong>
+                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
                                         <?php } else { ?>
                                             <strong class="text-muted">Login to see price</strong>
                                         <?php } ?>
@@ -670,7 +670,7 @@
                                     <p class="product-desc small text-muted mb-1 d-none d-md-block"><?php echo isset($product['description']) ? truncateText($product['description'], 50) : ''; ?></p>
                                     <div class="siva-price">
                                         <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(isset($product['sale_price']) ? $product['sale_price'] : $product['price']); ?></strong>
+                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
                                         <?php } else { ?>
                                             <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
                                         <?php } ?>

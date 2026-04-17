@@ -67,18 +67,8 @@
                                     <p class="card-text"><?php echo truncateText($product['description'], 100); ?></p>
                                     
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                                            <div>
-                                                <span class="text-decoration-line-through text-muted"><?php echo formatCurrency($product['price']); ?></span>
-                                                <span class="text-danger fw-bold"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                            </div>
-                                            <span class="badge bg-danger">
-                                                <?php echo calculateDiscountPercentage($product['price'], $product['sale_price']); ?>% OFF
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
-                                            <span></span>
-                                        <?php endif; ?>
+                                        <span class="fw-bold text-danger"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
+                                        <span></span>
                                     </div>
                                 </div>
                                 

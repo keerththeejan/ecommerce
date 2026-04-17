@@ -53,9 +53,6 @@
                     <?php foreach($products as $product): ?>
                         <div class="col">
                             <div class="card h-100 border-danger">
-                                <div class="badge bg-danger position-absolute" style="top: 10px; right: 10px;">
-                                    <?php echo calculateDiscountPercentage($product['price'], $product['sale_price']); ?>% OFF
-                                </div>
                                 
                                 <?php if(!empty($product['image'])): ?>
                                     <img src="<?php echo BASE_URL . $product['image']; ?>" class="card-img-top" alt="<?php echo $product['name']; ?>">
@@ -70,12 +67,9 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <?php if(isLoggedIn()): ?>
                                             <div>
-                                                <span class="text-decoration-line-through text-muted"><?php echo formatCurrency($product['price']); ?></span>
-                                                <span class="text-danger fw-bold"><?php echo formatCurrency($product['sale_price']); ?></span>
+                                                <span class="text-danger fw-bold"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
                                             </div>
-                                            <span class="badge bg-danger">
-                                                <?php echo calculateDiscountPercentage($product['price'], $product['sale_price']); ?>% OFF
-                                            </span>
+                                            <span></span>
                                         <?php else: ?>
                                             <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-primary">Login to view price</a>
                                             <span></span>

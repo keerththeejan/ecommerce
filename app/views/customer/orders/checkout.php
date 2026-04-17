@@ -154,12 +154,7 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <?php if(!empty($item['sale_price'])): ?>
-                                                    <span class="text-decoration-line-through text-muted small"><?php echo formatCurrency($item['price']); ?></span><br>
-                                                    <span class="text-danger small"><?php echo formatCurrency($item['sale_price']); ?></span>
-                                                <?php else: ?>
-                                                    <span class="small"><?php echo formatCurrency($item['price']); ?></span>
-                                                <?php endif; ?>
+                                                <span class="small text-danger"><?php echo formatCurrency(!empty($item['sale_price']) ? $item['sale_price'] : $item['price']); ?></span>
                                             </td>
                                             <td>
                                                 <span class="small"><?php echo $item['quantity']; ?></span>
@@ -197,12 +192,7 @@
                                             
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <?php if(!empty($item['sale_price'])): ?>
-                                                        <span class="text-decoration-line-through text-muted small"><?php echo formatCurrency($item['price']); ?></span>
-                                                        <span class="text-danger fw-bold small"><?php echo formatCurrency($item['sale_price']); ?></span>
-                                                    <?php else: ?>
-                                                        <span class="fw-bold small"><?php echo formatCurrency($item['price']); ?></span>
-                                                    <?php endif; ?>
+                                                    <span class="fw-bold text-danger small"><?php echo formatCurrency(!empty($item['sale_price']) ? $item['sale_price'] : $item['price']); ?></span>
                                                 </div>
                                                 <div class="d-flex align-items-center">
                                                     <span class="small me-2">Qty: <?php echo $item['quantity']; ?></span>

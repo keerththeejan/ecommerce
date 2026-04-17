@@ -219,16 +219,7 @@
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <?php if(isLoggedIn()): ?>
                                             <div class="price-container">
-                                                <?php if(!empty($product['sale_price']) && $product['sale_price'] < ($product['price'] ?? PHP_INT_MAX)): ?>
-                                                    <span class="fw-bold text-danger"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                                    <?php if(!empty($product['price'])): ?>
-                                                        <small class="text-muted text-decoration-line-through ms-2"><?php echo formatCurrency($product['price']); ?></small>
-                                                    <?php endif; ?>
-                                                <?php else: ?>
-                                                    <?php if(isset($product['price'])): ?>
-                                                        <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
-                                                    <?php endif; ?>
-                                                <?php endif; ?>
+                                                <span class="fw-bold text-danger"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
                                             </div>
                                         <?php else: ?>
                                             <div class="price-container">
@@ -309,12 +300,7 @@
                                             <div class="d-flex justify-content-between align-items-center mb-3">
                                                 <?php if(isLoggedIn()): ?>
                                                     <div class="price-container">
-                                                        <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                                                            <span class="fw-bold text-danger"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                                            <small class="text-muted text-decoration-line-through ms-2"><?php echo formatCurrency($product['price']); ?></small>
-                                                        <?php else: ?>
-                                                            <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
-                                                        <?php endif; ?>
+                                                        <span class="fw-bold text-danger"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
                                                     </div>
                                                 <?php else: ?>
                                                     <div class="price-container">

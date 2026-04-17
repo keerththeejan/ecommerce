@@ -452,9 +452,6 @@
                                 </a>
                             <?php endif; ?>
                             
-                            <?php if(!empty($product['sale_price'])) : ?>
-                                <span class="position-absolute top-0 start-0 m-2 badge bg-danger">SALE</span>
-                            <?php endif; ?>
                         </div>
                         
                         <!-- Product Content -->
@@ -485,12 +482,7 @@
                             <?php if(isLoggedIn()): ?>
                                 <div class="product-price-row">
                                     <div class="product-price">
-                                        <?php if(!empty($product['sale_price'])) : ?>
-                                            <span class="text-danger"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                            <span class="text-decoration-line-through text-muted small ms-1" style="font-size: 0.875rem;"><?php echo formatCurrency($product['price']); ?></span>
-                                        <?php else : ?>
-                                            <?php echo formatCurrency($product['price']); ?>
-                                        <?php endif; ?>
+                                        <span class="text-danger"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
                                     </div>
                                     <div class="product-meta">
                                         <?php if($product['stock_quantity'] > 0): ?>

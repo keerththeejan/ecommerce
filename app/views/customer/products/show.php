@@ -54,23 +54,11 @@
             <h2 class="product-title mb-2 h5"><?php echo $product['name']; ?></h2>
             
             <?php if(isLoggedIn()): ?>
-                <?php if(!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                    <div class="mb-2">
-                        <span class="text-decoration-line-through text-muted me-2 small-text">
-                            <?php echo formatCurrency($product['price']); ?>
-                        </span>
-                        <span class="fw-bold price-sale text-danger">
-                            <?php echo formatCurrency($product['sale_price']); ?>
-                        </span>
-                        <span class="badge bg-danger ms-2">Sale</span>
-                    </div>
-                <?php else: ?>
-                    <div class="mb-2">
-                        <span class="fw-bold price-main">
-                            <?php echo formatCurrency($product['price']); ?>
-                        </span>
-                    </div>
-                <?php endif; ?>
+                <div class="mb-2">
+                    <span class="fw-bold price-main text-danger">
+                        <?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?>
+                    </span>
+                </div>
             <?php else: ?>
                 <div class="mb-3">
                     <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-primary">Login to View Price</a>
@@ -213,11 +201,9 @@
                                     
                                     <div class="d-flex justify-content-between align-items-center">
                                         <?php if(isLoggedIn()): ?>
-                                            <?php if(!empty($relatedProduct['sale_price']) && $relatedProduct['sale_price'] < $relatedProduct['price']): ?>
-                                                <span class="fw-bold small">
-                                                    <?php echo formatCurrency($relatedProduct['sale_price']); ?>
-                                                </span>
-                                            <?php endif; ?>
+                                            <span class="fw-bold small text-danger">
+                                                <?php echo formatCurrency(!empty($relatedProduct['price2']) ? $relatedProduct['price2'] : (!empty($relatedProduct['sale_price']) ? $relatedProduct['sale_price'] : $relatedProduct['price'])); ?>
+                                            </span>
                                         <?php else: ?>
                                             <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-primary w-100">Login to View Price</a>
                                         <?php endif; ?>

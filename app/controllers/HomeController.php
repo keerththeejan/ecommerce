@@ -117,6 +117,7 @@ class HomeController extends Controller {
                     'description' => $product['description'] ?? '',
                     'price' => (float)$product['price'],
                     'sale_price' => !empty($product['sale_price']) ? (float)$product['sale_price'] : null,
+                    'price2' => !empty($product['price2']) ? (float)$product['price2'] : null,
                     'stock_quantity' => (int)$product['stock_quantity'],
                     'image' => !empty($product['image']) ? $product['image'] : 'assets/images/product-placeholder.jpg',
                     'category_name' => $product['category_name'] ?? 'Uncategorized',

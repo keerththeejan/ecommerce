@@ -49,6 +49,8 @@ if (!defined('BASE_URL')) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- System UI foundation (shared) -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/system.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : '1'; ?>">
     <!-- Custom CSS (cache-busted) -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : '1'; ?>">
     <style>
@@ -239,14 +241,7 @@ if (!defined('BASE_URL')) {
             width: var(--sidebar-width-collapsed);
         }
 
-        @media (min-width: 768px) {
-            main {
-                margin-left: var(--sidebar-width);
-            }
-            body.sidebar-collapsed main {
-                margin-left: var(--sidebar-width-collapsed);
-            }
-        }
+        /* Layout shell margin is handled by the grid app shell (see below). */
 
         .admin-sidebar {
             display: flex;
@@ -560,37 +555,37 @@ if (!defined('BASE_URL')) {
             }
         }
 
-        /* Desktop: >= 768px - sidebar always visible, fixed left */
+        /* Tablet+ (>= 768px): stable app shell using CSS Grid (no blank gutters, no overflow) */
         @media (min-width: 768px) {
-            html, body { height: 100%; }
-            body { overflow: hidden; }
-            #sidebar.collapse {
-                display: block !important;
-                visibility: visible;
+            #sidebar.collapse { display: block !important; visibility: visible; }
+
+            #adminShell { overflow-x: hidden; }
+            #adminShell > .row{
+                display: grid;
+                grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+                min-height: 100vh;
             }
-            #sidebar {
-                position: fixed;
+            body.sidebar-collapsed #adminShell > .row{
+                grid-template-columns: var(--sidebar-width-collapsed) minmax(0, 1fr);
+            }
+
+            #sidebar{
+                position: sticky;
                 top: 0;
-                left: 0;
                 height: 100vh;
-                width: var(--sidebar-width);
-                overflow: visible;
+                overflow: hidden;
                 transform: none;
                 overscroll-behavior: contain;
             }
-            #sidebar .position-sticky { height: 100vh; overflow: auto; overscroll-behavior: contain; }
-            main {
-                margin-left: var(--sidebar-width);
-                width: calc(100% - var(--sidebar-width));
-                height: 100vh;
-                overflow: auto;
-                overscroll-behavior: contain;
+            #sidebar .position-sticky{ height: 100vh; overflow: auto; overscroll-behavior: contain; }
+
+            main{
+                margin-left: 0;
+                width: auto;
+                height: auto;
+                overflow: visible;
                 padding-bottom: 32px;
                 box-sizing: border-box;
-            }
-            body.sidebar-collapsed main {
-                margin-left: var(--sidebar-width-collapsed);
-                width: calc(100% - var(--sidebar-width-collapsed));
             }
         }
     </style>
@@ -598,7 +593,7 @@ if (!defined('BASE_URL')) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
-<body>
+<body class="admin-app">
     <?php
         // Determine current route for active highlighting
         $currentController = strtolower((string)($_GET['controller'] ?? ''));
@@ -622,7 +617,7 @@ if (!defined('BASE_URL')) {
             return false;
         };
     ?>
-    <div class="container-fluid">
+    <div class="container-fluid" id="adminShell">
         <div class="row">
             <!-- Sidebar -->
             <nav id="sidebar" class="bg-dark sidebar collapse" role="navigation" aria-label="Admin Sidebar">
@@ -902,7 +897,7 @@ if (!defined('BASE_URL')) {
 
             <!-- Main Content -->
             <main class="px-2 px-md-4">
-                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center flex-wrap flex-md-nowrap pt-3 pb-2 mb-3 border-bottom">
+                <div class="admin-topbar d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center flex-wrap flex-md-nowrap pt-3 pb-2 mb-3 border-bottom">
                     <div class="d-flex align-items-center mb-2 mb-sm-0">
                         <button class="btn btn-outline-secondary mr-3 d-md-none" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" id="sidebarToggleBtn">
                             <i class="fas fa-bars"></i>
@@ -1055,9 +1050,16 @@ if (!defined('BASE_URL')) {
                                 applyCollapsedState(false);
                                 return;
                             }
-                            var saved = '0';
-                            try { saved = localStorage.getItem('adminSidebarCollapsed') || '0'; } catch (e) { saved = '0'; }
-                            applyCollapsedState(saved === '1');
+                            var w = window.innerWidth || document.documentElement.clientWidth || 1024;
+                            var isTablet = w >= 768 && w < 1024;
+                            var savedRaw = null;
+                            try { savedRaw = localStorage.getItem('adminSidebarCollapsed'); } catch (e) { savedRaw = null; }
+                            if (savedRaw === null) {
+                                // Tablet default: collapsed rail; Desktop/Laptop default: expanded
+                                applyCollapsedState(isTablet);
+                            } else {
+                                applyCollapsedState(savedRaw === '1');
+                            }
                         })();
 
                         collapseBtns.forEach(function(btn) {
@@ -1085,6 +1087,7 @@ if (!defined('BASE_URL')) {
                 </script>
 
                 <!-- Flash Messages -->
+                <div class="admin-page sg-container">
                 <?php flash('product_success'); ?>
                 <?php flash('product_error'); ?>
                 <?php flash('category_success'); ?>

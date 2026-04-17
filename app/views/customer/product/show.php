@@ -28,12 +28,7 @@
                             
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="product-price">
-                                    <?php if(!empty($product['sale_price'])) : ?>
-                                        <span class="text-danger fw-bold"><?php echo formatCurrency($product['sale_price']); ?></span>
-                                        <span class="text-decoration-line-through text-muted small ms-1"><?php echo formatCurrency($product['price']); ?></span>
-                                    <?php else : ?>
-                                        <span class="fw-bold"><?php echo formatCurrency($product['price']); ?></span>
-                                    <?php endif; ?>
+                                    <span class="fw-bold text-danger"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
                                 </div>
                                 <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'danger'; ?>">
                                     <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>

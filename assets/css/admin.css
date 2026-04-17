@@ -3,7 +3,6 @@
 /* Compact badges and buttons on small screens */
 @media (max-width: 768px) {
   .badge { font-size: 0.75rem; }
-  .btn { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
   .img-thumbnail { max-width: 64px; height: auto; }
 }
 
@@ -47,6 +46,12 @@
   /* Make action buttons row look tidy */
   .responsive-table td[data-label="Actions"] .btn-group { width: 100%; }
   .responsive-table td[data-label="Actions"] .btn-group .btn { width: auto; }
+}
+
+/* Extra-small phones: reclaim horizontal space in stacked tables */
+@media (max-width: 479px) {
+  .responsive-table td { padding-left: 7.25rem; }
+  .responsive-table td::before { left: 0.75rem; }
 }
 
 /* Avoid horizontal scroll for long values */

@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- System UI foundation (shared) -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/system.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
 
