@@ -448,9 +448,9 @@
     <!-- Mobile Top Bar -->
     <div class="d-md-none border-bottom mobile-top-bar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
         <!-- Top Bar -->
-        <div class="<?php echo $headerContainerClass; ?> py-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <a href="<?php echo BASE_URL; ?>" class="text-decoration-none">
+        <div class="<?php echo $headerContainerClass; ?> py-3 storefront-topbar-inner">
+            <div class="storefront-topbar-row">
+                <a href="<?php echo BASE_URL; ?>" class="text-decoration-none storefront-topbar-brand">
                     <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
                         <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" 
                              alt="<?php echo htmlspecialchars($siteName); ?>" 
@@ -459,7 +459,7 @@
                         <span class="h5 mb-0 fw-bold text-dark"><?php echo htmlspecialchars($siteName); ?></span>
                     <?php endif; ?>
                 </a>
-                <div class="d-flex align-items-center">
+                <div class="storefront-topbar-actions">
                     <div class="d-flex align-items-center">
                         <a href="<?php echo BASE_URL; ?>?controller=cart" class="text-dark me-3 position-relative">
                             <i class="fas fa-shopping-cart fs-5"></i>
@@ -505,7 +505,7 @@
             </div>
             
             <!-- Search Bar -->
-            <form action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" class="mt-2">
+            <form action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" class="storefront-mobile-search">
                 <div class="input-group">
                     <input type="text" 
                            class="form-control bg-light border-0 ps-3" 
@@ -520,7 +520,7 @@
         </div>
         
         <!-- Mobile Navigation -->
-        <div class="collapse" id="mobileNavbar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
+        <div class="collapse storefront-mobile-menu" id="mobileNavbar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
             <div class="<?php echo $headerContainerClass; ?> py-2">
                 <ul class="navbar-nav">
                     <li class="nav-item border-bottom">
@@ -728,9 +728,15 @@
     <!-- Desktop Navigation -->
     <style>
         /* Add padding to body to account for fixed navbar */
-        body {
-            padding-top: 90px !important;
+        body.mobile-nav-fixed {
+            padding-top: var(--storefront-header-offset-mobile) !important;
             overflow-x: hidden;
+        }
+
+        @media (min-width: 768px) {
+            body.mobile-nav-fixed {
+                padding-top: var(--storefront-header-offset-desktop) !important;
+            }
         }
         
         /* Make navbar fixed at the top */
@@ -756,7 +762,7 @@
         }
         
         /* Adjust main content margin to prevent content from being hidden behind navbar */
-        main {
+        main.storefront-main {
             margin-top: 24px;
         }
         
@@ -823,7 +829,7 @@
             }
         }
     </style>
-    <nav class="navbar navbar-expand-lg navbar-light border-bottom d-none d-md-block" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom d-none d-md-block storefront-desktop-nav" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
         <div class="<?php echo $headerContainerClass; ?>">
             <a class="navbar-brand fw-bold" href="<?php echo BASE_URL; ?>">
                 <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
@@ -968,7 +974,7 @@
                 </ul>
                 <div class="d-lg-flex flex-column flex-lg-row align-items-start align-items-lg-center mt-3 mt-lg-0">
                     <!-- Desktop Search -->
-                    <form class="d-none d-md-flex flex-grow-1 flex-lg-grow-0 mb-3 mb-lg-0 me-lg-2 desktop-nav-search" action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" style="min-width: 0; max-width: 280px;">
+                    <form class="d-none d-md-flex flex-grow-1 flex-lg-grow-0 mb-3 mb-lg-0 me-lg-2 desktop-nav-search storefront-header-search" action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" style="min-width: 0; max-width: 280px;">
                         <input type="hidden" name="controller" value="product">
                         <input type="hidden" name="action" value="search">
                         <input class="form-control me-2" type="search" name="keyword" placeholder="Search" aria-label="Search" style="min-width: 0;">
@@ -1296,4 +1302,4 @@
     </script>
 
     <!-- Main Content -->
-    <main class="container py-4">
+    <main class="container py-4 storefront-main">

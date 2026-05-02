@@ -356,9 +356,12 @@
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=export" class="btn btn-light btn-sm">
                             <i class="fas fa-download mr-1"></i> Export CSV
                         </a>
-                        <button type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#importModal">
+                        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#csvImportModal">
                             <i class="fas fa-upload mr-1"></i> Import CSV
                         </button>
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=importHistory" class="btn btn-light btn-sm">
+                            <i class="fas fa-history mr-1"></i> Import History
+                        </a>
                         <a href="<?php echo BASE_URL; ?>?controller=product&action=create" class="btn btn-light btn-sm">
                             <i class="fas fa-plus mr-1"></i> Add New Product
                         </a>
@@ -790,30 +793,7 @@
     </div>
 </div>
 
-<!-- Import CSV Modal -->
-<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="<?php echo BASE_URL; ?>?controller=product&action=import" method="POST" enctype="multipart/form-data">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="importModalLabel"><i class="fas fa-upload mr-2"></i>Import Products from CSV</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="import_file" class="form-label">CSV File</label>
-                        <input type="file" class="form-control" id="import_file" name="import_file" accept=".csv" required>
-                        <div class="form-text">Upload a CSV with columns: name, description, sku, price, sale_price, price2, price3, stock_quantity, category_id, brand_id, country_id, supplier, batch_number, status, add_date, expiry_date, tax_id. Use Export to download a sample.</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload mr-1"></i>Import</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<?php require_once APP_PATH . 'views/admin/products/csv_import_modal.php'; ?>
 
 <script>
 $(document).ready(function() {

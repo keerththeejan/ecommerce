@@ -74,4 +74,11 @@ class UnitController extends Controller {
             'short_name' => $payload['short_name']
         ]);
     }
+
+    /**
+     * Alias for create() method - used by modern product form
+     */
+    public function ajaxCreate() {
+        return $this->create();
+    }
 }

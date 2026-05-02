@@ -1,11 +1,11 @@
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
-<div class="container py-5">
-    <div class="row">
+<div class="storefront-shell py-4 py-lg-5">
+    <div class="storefront-grid storefront-grid--sidebar">
         <!-- Sidebar with categories - Hidden on mobile -->
-        <div class="col-md-3 d-none d-md-block">
-            <div class="sticky-top" style="top: 20px;">
-                <div class="card mb-4">
+        <div class="d-none d-lg-block">
+            <div class="sticky-top" style="top: 120px;">
+                <div class="card mb-4 storefront-sidebar-card">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">Categories</h5>
                     </div>
@@ -21,7 +21,7 @@
                     </div>
                 </div>
                 
-                <div class="card">
+                <div class="card storefront-sidebar-card">
                     <div class="card-header bg-danger text-white">
                         <h5 class="mb-0">Special Offers</h5>
                     </div>
@@ -35,7 +35,7 @@
         </div>
         
         <!-- Main content - Full width on mobile -->
-        <div class="col-12 col-md-9">
+        <div class="storefront-section">
             <!-- Mobile filter toggle button -->
             <div class="d-md-none mb-3">
                 <button class="btn btn-outline-secondary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileFilters" aria-controls="mobileFilters">
@@ -43,7 +43,7 @@
                 </button>
             </div>
             
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="storefront-toolbar">
                 <h2 class="mb-0">All Products</h2>
                 
                 <!-- Search form -->
@@ -61,24 +61,14 @@
                 <style>
                     .products-grid {
                         display: grid;
-                        grid-template-columns: repeat(4, 1fr);
-                        gap: 1.5rem;
-                        padding: 0 15px;
-                    }
-                    @media (max-width: 1200px) {
-                        .products-grid {
-                            grid-template-columns: repeat(3, 1fr);
-                        }
-                    }
-                    @media (max-width: 992px) {
-                        .products-grid {
-                            grid-template-columns: repeat(2, 1fr);
-                        }
+                        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                        gap: clamp(12px, 2vw, 24px);
+                        padding: 0;
                     }
                     @media (max-width: 768px) {
                         .products-grid {
-                            grid-template-columns: repeat(2, 1fr);
-                            gap: 0.75rem;
+                            grid-template-columns: repeat(2, minmax(0, 1fr));
+                            gap: 12px;
                         }
                         .product-card {
                             margin-bottom: 0;
@@ -105,12 +95,8 @@
                     
                     @media (max-width: 480px) {
                         .products-grid {
-                            grid-template-columns: 1fr;
-                            gap: 1rem;
-                        }
-                        .product-card {
-                            max-width: 280px;
-                            margin: 0 auto;
+                            grid-template-columns: repeat(2, minmax(0, 1fr));
+                            gap: 10px;
                         }
                     }
                     .product-card {
@@ -171,8 +157,8 @@
                     @media (max-width: 767.98px) {
                         .products-grid {
                             grid-template-columns: repeat(2, 1fr);
-                            gap: 1rem;
-                            padding: 0 10px;
+                            gap: 12px;
+                            padding: 0;
                         }
                         .product-image-container {
                             height: 160px;
@@ -181,8 +167,8 @@
                     @media (max-width: 480px) {
                         .products-grid {
                             grid-template-columns: repeat(2, 1fr);
-                            gap: 0.75rem;
-                            padding: 0 8px;
+                            gap: 10px;
+                            padding: 0;
                         }
                         .product-image-container {
                             height: 140px;

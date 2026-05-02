@@ -3,22 +3,39 @@
 <style>
 /* Compact product detail layout */
 .compact-product {
-    --cp-image-w: 180px;
-    --cp-image-h: 190px;
+    --cp-image-w: min(100%, 360px);
+    --cp-image-h: clamp(220px, 36vw, 380px);
 }
 .compact-product .breadcrumb { margin-bottom: .5rem; }
 .compact-product h1, .compact-product h2, .compact-product h3 {
     margin-bottom: .5rem !important;
 }
-.compact-product .product-title { font-size: 1rem; line-height: 1.2; }
-.compact-product .price-main { font-size: 1.15rem; }
+.compact-product .product-title { font-size: clamp(1.1rem, 1rem + .7vw, 1.6rem); line-height: 1.25; }
+.compact-product .price-main { font-size: clamp(1.2rem, 1.1rem + .8vw, 1.75rem); }
 .compact-product .price-sale { font-size: 1.2rem; }
-.compact-product .description { font-size: .9rem; line-height: 1.45; margin-bottom: .75rem; }
+.compact-product .description { font-size: .95rem; line-height: 1.55; margin-bottom: .75rem; }
 .compact-product .card { box-shadow: none !important; border: 1px solid #eee; }
 .compact-product .quantity-input .btn,
-.compact-product .quantity-input .form-control { height: 28px; padding: 0 .5rem; font-size: .9rem; }
-.compact-product .btn { padding: .3rem .6rem; font-size: .9rem; }
+.compact-product .quantity-input .form-control { height: 40px; padding: 0 .75rem; font-size: .95rem; }
+.compact-product .btn { padding: .55rem .9rem; font-size: .95rem; }
 .compact-product .small-text { font-size: .85rem; }
+
+@media (max-width: 767.98px) {
+    .compact-product .product-detail-actions {
+        display: grid !important;
+        gap: 10px;
+    }
+
+    .compact-product .product-detail-actions .btn,
+    .compact-product .quantity-row > * {
+        width: 100%;
+    }
+
+    .compact-product .quantity-row {
+        display: grid !important;
+        gap: 10px;
+    }
+}
 </style>
 
 <div class="container py-3 compact-product">
@@ -38,7 +55,7 @@
         </div>
         
         <!-- Product details -->
-        <div class="col-md-5 mb-3">
+        <div class="col-12 col-lg-5 mb-3">
             <div class="card border-0">
                 <div class="product-image-container" style="width: var(--cp-image-w); height: var(--cp-image-h); margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                     <?php if(!empty($product['image'])): ?>
@@ -50,7 +67,7 @@
             </div>
         </div>
         
-        <div class="col-md-7 mb-3">
+        <div class="col-12 col-lg-7 mb-3">
             <h2 class="product-title mb-2 h5"><?php echo $product['name']; ?></h2>
             
             <?php if(isLoggedIn()): ?>
@@ -109,11 +126,11 @@
                 <?php else: ?>
                 <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mb-2 add-to-cart-form">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                    <div class="row g-2 align-items-center mb-2">
-                        <div class="col-auto">
+                    <div class="row g-2 align-items-center mb-2 quantity-row">
+                        <div class="col-12 col-sm-auto">
                             <label for="quantity" class="col-form-label">Quantity:</label>
                         </div>
-                        <div class="col-auto">
+                        <div class="col-12 col-sm-auto">
                             <div class="input-group input-group-sm quantity-input">
                                 <button type="button" class="btn btn-outline-secondary quantity-decrease">
                                     <i class="fas fa-minus"></i>
@@ -124,14 +141,14 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="col-auto">
+                        <div class="col-12 col-sm-auto">
                             <span class="form-text text-muted small">
                                 (Max: <?php echo $product['stock_quantity']; ?>)
                             </span>
                         </div>
                     </div>
                     
-                    <div class="d-grid gap-2 d-md-inline-flex">
+                    <div class="d-grid gap-2 d-md-inline-flex product-detail-actions">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                         </button>

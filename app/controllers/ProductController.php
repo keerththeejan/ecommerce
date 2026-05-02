@@ -783,6 +783,39 @@ class ProductController extends Controller {
     }
     
     /**
+     * Admin: AJAX CSV Import (Enhanced)
+     * Delegates to ProductImportController for chunked processing
+     */
+    public function importCsvAjax() {
+        $importController = new ProductImportController();
+        $importController->importCsvAjax();
+    }
+    
+    /**
+     * Admin: Download sample CSV template
+     */
+    public function downloadSampleCsv() {
+        $importController = new ProductImportController();
+        $importController->downloadSampleCsv();
+    }
+    
+    /**
+     * Admin: Undo import
+     */
+    public function undoImport() {
+        $importController = new ProductImportController();
+        $importController->undoImport();
+    }
+    
+    /**
+     * Admin: View import history
+     */
+    public function importHistory() {
+        $importController = new ProductImportController();
+        $importController->importHistory();
+    }
+    
+    /**
      * Admin: Create product form
      */
     public function create() {
@@ -806,14 +839,19 @@ class ProductController extends Controller {
             // Process form
             
             // Sanitize POST data
+            // Support both old form field names and new modern form field names
+            $buyingPrice = $this->post('buying_price') ?: $this->post('price');
+            $sellingPrice = $this->post('selling_price') ?: $this->post('price2');
+            $wholesalePrice = $this->post('wholesale_price') ?: $this->post('price3');
+            
             $data = [
                 'name' => sanitize($this->post('name')),
                 'description' => sanitize($this->post('description')),
                 'hsn_code' => sanitize($this->post('hsn_code')),
-                'price' => ($p = $this->post('price')) === '' || $p === null ? null : $p,
+                'price' => ($buyingPrice === '' || $buyingPrice === null) ? null : $buyingPrice,
                 'sale_price' => $this->post('sale_price') ?: null,
-                'price2' => $this->post('price2') ?: $this->post('price'),
-                'price3' => $this->post('price3') ?: $this->post('price'),
+                'price2' => ($sellingPrice === '' || $sellingPrice === null) ? ($buyingPrice ?: null) : $sellingPrice,
+                'price3' => ($wholesalePrice === '' || $wholesalePrice === null) ? ($buyingPrice ?: null) : $wholesalePrice,
                 'customs_charge' => ($cc = $this->post('customs_charge')) === '' || $cc === null ? null : $cc,
                 'transport_charge' => ($tc = $this->post('transport_charge')) === '' || $tc === null ? null : $tc,
                 'stock_quantity' => ($sq = $this->post('stock_quantity')) === '' || $sq === null ? 0 : $sq,
@@ -890,8 +928,8 @@ class ProductController extends Controller {
                 'supplier' => 'nullable|max:255',
                 'batch_number' => 'nullable|max:100',
                 'expiry_date' => 'nullable',
-                'tax_id' => 'nullable|numeric'
-                ,'unit_id' => 'nullable|numeric'
+                'tax_id' => 'nullable|numeric',
+                'unit_id' => 'nullable|numeric'
             ];
             
             $validationErrors = $this->validate($data, $validationRules);
@@ -989,6 +1027,63 @@ class ProductController extends Controller {
                 'errors' => []
             ]);
         }
+    }
+
+    /**
+     * Admin: Modern product creation form
+     * New enterprise-grade UI with AJAX support
+     */
+    public function createModern() {
+        if(!isAdmin()) {
+            redirect('user/login');
+        }
+        
+        // Get data for dropdowns
+        $categories = method_exists($this->categoryModel, 'getActiveCategoriesWithTaxRate')
+            ? $this->categoryModel->getActiveCategoriesWithTaxRate()
+            : $this->categoryModel->getActiveCategories();
+        
+        $units = method_exists($this->unitModel, 'getActiveUnits')
+            ? $this->unitModel->getActiveUnits()
+            : [];
+        
+        $suppliers = method_exists($this->supplierModel, 'getAllSuppliers') 
+            ? $this->supplierModel->getAllSuppliers() 
+            : [];
+        
+        // Initialize empty data
+        $data = [
+            'name' => '',
+            'description' => '',
+            'price' => '',
+            'buying_price' => '',
+            'selling_price' => '',
+            'wholesale_price' => '',
+            'sale_price' => '',
+            'stock_quantity' => '0',
+            'sku' => '',
+            'category_id' => '',
+            'country_id' => '',
+            'brand_id' => '',
+            'status' => 'active',
+            'expiry_date' => '',
+            'hsn_code' => '',
+            'customs_charge' => '',
+            'transport_charge' => '',
+            'supplier' => '',
+            'batch_number' => '',
+            'tax_id' => '',
+            'tax_percent' => '',
+            'unit_id' => ''
+        ];
+        
+        $this->view('admin/products/create_modern', [
+            'data' => $data,
+            'categories' => $categories,
+            'suppliers' => $suppliers,
+            'units' => $units,
+            'errors' => []
+        ]);
     }
 
     private function processProductImage($inputPath, $outputJpgPath, $size = 800) {

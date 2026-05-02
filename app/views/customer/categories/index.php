@@ -1,6 +1,6 @@
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
-<div class="container py-5">
+<div class="storefront-shell py-4 py-lg-5">
     <style>
         .category-grid .card-img-top {
             height: 120px;
@@ -33,7 +33,9 @@
         </ol>
     </nav>
 
-    <h1 class="mb-4">Category</h1>
+    <div class="storefront-toolbar">
+        <h1 class="mb-0">Category</h1>
+    </div>
 
     <?php if(!empty($categories)) : ?>
         <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 g-md-4 category-grid">
@@ -47,7 +49,7 @@
                     $children = isset($category['children']) && is_array($category['children']) ? $category['children'] : [];
                     ?>
                     <div class="col">
-                        <div class="card h-100 border-0 shadow-sm">
+                        <div class="card h-100 border-0 shadow-sm storefront-panel">
                             <?php if(!empty($catImage)) : ?>
                                 <img src="<?php echo htmlspecialchars(BASE_URL . $catImage); ?>" class="card-img-top" alt="<?php echo $catName; ?>">
                             <?php else : ?>

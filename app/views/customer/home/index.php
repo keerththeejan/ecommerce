@@ -79,11 +79,11 @@
     .siva-snap-item {
         scroll-snap-align: start;
         flex: 0 0 auto;
-        width: calc((100vw - 56px) / 2);
+        width: clamp(220px, 72vw, 320px);
     }
 
     @media (min-width: 576px) {
-        .siva-snap-item { width: calc((100vw - 72px) / 2); }
+        .siva-snap-item { width: clamp(240px, 44vw, 340px); }
     }
 
     @media (min-width: 768px) {
@@ -752,7 +752,7 @@
             <div class="d-md-none">
                 <div class="siva-snap" aria-label="Brands carousel">
                     <?php foreach($activeBrands as $brand) : ?>
-                        <div class="siva-snap-item" style="width: min(44vw, 220px);">
+                    <div class="siva-snap-item" style="width: clamp(180px, 44vw, 220px);">
                             <a href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo htmlspecialchars($brand['slug']); ?>" class="text-decoration-none" aria-label="View brand <?php echo htmlspecialchars($brand['name']); ?>">
                                 <div class="siva-brand">
                                     <?php if(!empty($brand['logo'])) : ?>
