@@ -574,9 +574,13 @@
 })();
 
 (function() {
+    'use strict';
+    
     document.addEventListener('DOMContentLoaded', function() {
         var table = document.getElementById('dashboardLowStock');
         if (!table) return;
+        
+        // Cache DOM elements for better performance
         var tbody = table.querySelector('tbody');
         var search = document.getElementById('lowStockSearch');
         var category = document.getElementById('lowStockCategory');
@@ -588,6 +592,8 @@
         var pageLabel = document.getElementById('lowStockPage');
         var countLabel = document.getElementById('lowStockCount');
         var empty = document.getElementById('lowStockEmpty');
+        
+        // Configuration
         var endpoint = '<?php echo BASE_URL; ?>?controller=admin&action=lowStockAlerts';
         var perPage = <?php echo (int)$lowStockPerPage; ?>;
         var currentPage = 1;
@@ -595,54 +601,112 @@
         var totalPages = Math.max(1, Math.ceil(totalRows / perPage));
         var activeRequest = null;
         var debounceTimer = null;
-
+        var pendingPage = null;
+        var isLoading = false;
+        
+        // Pre-compile escape map for better performance
+        var escapeMap = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+        
         function escapeHtml(value) {
             return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
-                return ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'})[ch];
+                return escapeMap[ch];
             });
         }
-
-        function rowHtml(row, index) {
+        
+        // Use array for efficient string building
+        function buildRowHtml(row, index) {
             var isCritical = row.status === 'critical';
             var productUrl = '<?php echo BASE_URL; ?>?controller=product&action=edit&id=' + encodeURIComponent(row.id);
             var restockUrl = '<?php echo BASE_URL; ?>?controller=stock&action=adjust&id=' + encodeURIComponent(row.id);
             var searchValue = (row.name + ' ' + row.sku).toLowerCase();
             var categoryValue = String(row.category_name || 'Uncategorized').toLowerCase();
             var statusTitle = isCritical ? 'Critical stock: restock immediately' : 'Low stock: plan replenishment';
-            return '<tr data-low-stock-row data-search="' + escapeHtml(searchValue) + '" data-category="' + escapeHtml(categoryValue) + '" data-status="' + escapeHtml(row.status) + '" style="animation-delay: ' + (index * 25) + 'ms;">'
-                + '<td data-label="Product Name"><div class="stock-product-name text-truncate" title="' + escapeHtml(row.name) + '"><strong>' + escapeHtml(row.name) + '</strong></div></td>'
-                + '<td data-label="SKU / Code"><span class="text-muted">' + (row.sku ? escapeHtml(row.sku) : '-') + '</span></td>'
-                + '<td data-label="Category">' + escapeHtml(row.category_name || 'Uncategorized') + '</td>'
-                + '<td data-label="Current Stock"><div class="d-flex align-items-center gap-2"><span class="fw-bold">' + escapeHtml(row.stock_quantity) + '</span><div class="stock-progress" title="' + escapeHtml(row.percentage) + '% of minimum stock" data-bs-toggle="tooltip"><span class="' + (isCritical ? 'stock-progress-critical' : 'stock-progress-low') + '" style="width: ' + escapeHtml(row.percentage) + '%;"></span></div></div></td>'
-                + '<td data-label="Minimum Stock">' + escapeHtml(row.minimum_stock) + '</td>'
-                + '<td data-label="Status"><span class="stock-status ' + (isCritical ? 'stock-status-critical' : 'stock-status-low') + '" title="' + statusTitle + '" data-bs-toggle="tooltip"><i class="fas ' + (isCritical ? 'fa-circle-exclamation' : 'fa-triangle-exclamation') + '"></i>' + escapeHtml(row.status_label) + '</span></td>'
-                + '<td data-label="Action"><div class="low-stock-actions"><a href="' + productUrl + '" class="btn btn-sm btn-light border" title="View product" data-bs-toggle="tooltip" aria-label="View product"><i class="fas fa-eye"></i></a><a href="' + restockUrl + '" class="btn btn-sm btn-primary" title="Restock product" data-bs-toggle="tooltip" aria-label="Restock product"><i class="fas fa-boxes-stacked mr-1"></i>Restock</a></div></td>'
-                + '</tr>';
+            
+            var html = [];
+            html.push('<tr data-low-stock-row data-search="', escapeHtml(searchValue), '" data-category="', escapeHtml(categoryValue), '" data-status="', escapeHtml(row.status), '" style="animation-delay: ', (index * 25), 'ms;">');
+            html.push('<td data-label="Product Name"><div class="stock-product-name text-truncate" title="', escapeHtml(row.name), '"><strong>', escapeHtml(row.name), '</strong></div></td>');
+            html.push('<td data-label="SKU / Code"><span class="text-muted">', (row.sku ? escapeHtml(row.sku) : '-'), '</span></td>');
+            html.push('<td data-label="Category">', escapeHtml(row.category_name || 'Uncategorized'), '</td>');
+            html.push('<td data-label="Current Stock"><div class="d-flex align-items-center gap-2"><span class="fw-bold">', escapeHtml(row.stock_quantity), '</span><div class="stock-progress" title="', escapeHtml(row.percentage), '% of minimum stock" data-bs-toggle="tooltip"><span class="', (isCritical ? 'stock-progress-critical' : 'stock-progress-low'), '" style="width: ', escapeHtml(row.percentage), '%;"></span></div></div></td>');
+            html.push('<td data-label="Minimum Stock">', escapeHtml(row.minimum_stock), '</td>');
+            html.push('<td data-label="Status"><span class="stock-status ', (isCritical ? 'stock-status-critical' : 'stock-status-low'), '" title="', statusTitle, '" data-bs-toggle="tooltip"><i class="fas ', (isCritical ? 'fa-circle-exclamation' : 'fa-triangle-exclamation'), '"></i>', escapeHtml(row.status_label), '</span></td>');
+            html.push('<td data-label="Action"><div class="low-stock-actions"><a href="', productUrl, '" class="btn btn-sm btn-light border" title="View product" data-bs-toggle="tooltip" aria-label="View product"><i class="fas fa-eye"></i></a><a href="', restockUrl, '" class="btn btn-sm btn-primary" title="Restock product" data-bs-toggle="tooltip" aria-label="Restock product"><i class="fas fa-boxes-stacked mr-1"></i>Restock</a></div></td>');
+            html.push('</tr>');
+            return html.join('');
+        }
+        
+        // Batch DOM updates using DocumentFragment
+        function updateTable(rows) {
+            if (!tbody) return;
+            
+            // Create fragment for batch update
+            var fragment = document.createDocumentFragment();
+            var tempDiv = document.createElement('div');
+            
+            // Build all HTML at once
+            var html = [];
+            for (var i = 0; i < rows.length; i++) {
+                html.push(buildRowHtml(rows[i], i));
+            }
+            
+            tempDiv.innerHTML = '<table><tbody>' + html.join('') + '</tbody></table>';
+            
+            // Move rows to fragment
+            var newRows = tempDiv.querySelectorAll('tr');
+            for (var j = 0; j < newRows.length; j++) {
+                fragment.appendChild(newRows[j]);
+            }
+            
+            // Single DOM write
+            tbody.innerHTML = '';
+            tbody.appendChild(fragment);
         }
 
         function updatePagination() {
             var start = (currentPage - 1) * perPage;
             var end = Math.min(start + perPage, totalRows);
+            
             if (pageLabel) pageLabel.textContent = currentPage + ' / ' + totalPages;
             if (countLabel) {
                 countLabel.textContent = totalRows
                     ? 'Showing ' + (start + 1) + '-' + end + ' of ' + totalRows + ' low stock products'
                     : 'No low stock products found';
             }
-            if (prev) prev.disabled = currentPage <= 1;
-            if (next) next.disabled = currentPage >= totalPages;
+            if (prev) prev.disabled = currentPage <= 1 || isLoading;
+            if (next) next.disabled = currentPage >= totalPages || isLoading;
             if (empty) empty.classList.toggle('d-none', totalRows !== 0);
         }
 
         function refreshTooltips() {
             if (!window.bootstrap || !bootstrap.Tooltip) return;
-            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
-                bootstrap.Tooltip.getOrCreateInstance(el);
-            });
+            // Use requestIdleCallback for non-critical tooltip initialization
+            var initTooltips = function() {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+                    bootstrap.Tooltip.getOrCreateInstance(el);
+                });
+            };
+            
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(initTooltips, { timeout: 100 });
+            } else {
+                setTimeout(initTooltips, 50);
+            }
         }
 
         function loadPage(page) {
+            if (isLoading) {
+                // Queue the page change
+                pendingPage = page;
+                return;
+            }
+            
             currentPage = Math.max(1, page || 1);
+            isLoading = true;
+            
+            // Update UI to show loading state
+            if (prev) prev.disabled = true;
+            if (next) next.disabled = true;
+            
             var params = new URLSearchParams();
             params.set('page', currentPage);
             params.set('per_page', perPage);
@@ -650,45 +714,70 @@
             params.set('category', category && category.value ? category.value : '');
             params.set('status', status && status.value ? status.value : '');
 
+            // Cancel previous request
             if (activeRequest && activeRequest.abort) {
                 activeRequest.abort();
             }
             activeRequest = window.AbortController ? new AbortController() : null;
 
             fetch(endpoint + '&' + params.toString(), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
                 signal: activeRequest ? activeRequest.signal : undefined
             })
-            .then(function(response) { return response.json(); })
+            .then(function(response) { 
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json(); 
+            })
             .then(function(payload) {
+                isLoading = false;
                 if (!payload || !payload.success) return;
+                
                 var rows = Array.isArray(payload.rows) ? payload.rows : [];
                 var pagination = payload.pagination || {};
                 totalRows = parseInt(pagination.total || 0, 10);
                 totalPages = Math.max(1, parseInt(pagination.total_pages || 1, 10));
                 currentPage = Math.min(Math.max(1, parseInt(pagination.page || currentPage, 10)), totalPages);
-                tbody.innerHTML = rows.map(rowHtml).join('');
+                
+                // Use optimized batch update
+                updateTable(rows);
                 updatePagination();
                 refreshTooltips();
+                
+                // Handle any pending page change
+                if (pendingPage !== null) {
+                    var nextPage = pendingPage;
+                    pendingPage = null;
+                    loadPage(nextPage);
+                }
             })
             .catch(function(error) {
+                isLoading = false;
+                updatePagination(); // Re-enable buttons
                 if (error && error.name === 'AbortError') return;
+                console.error('Low stock load error:', error);
             });
         }
 
         function debouncedReload() {
             window.clearTimeout(debounceTimer);
-            debounceTimer = window.setTimeout(function() { loadPage(1); }, 220);
+            debounceTimer = window.setTimeout(function() { loadPage(1); }, 180); // Reduced from 220ms
         }
 
+        // Use event delegation for better performance with large tables
         if (toolbar) {
+            // Passive listener for input (scrolling performance)
             toolbar.addEventListener('input', function(event) {
                 if (event.target === search) debouncedReload();
-            });
+            }, { passive: true });
+            
             toolbar.addEventListener('change', function(event) {
                 if (event.target === category || event.target === status) loadPage(1);
             });
         }
+        
         if (reset) {
             reset.addEventListener('click', function() {
                 if (search) search.value = '';
@@ -697,17 +786,28 @@
                 loadPage(1);
             });
         }
+        
+        // Pagination with click debouncing
+        var clickDebounceTimer = null;
+        
         if (prev) {
             prev.addEventListener('click', function() {
-                if (currentPage > 1) {
-                    loadPage(currentPage - 1);
+                if (currentPage > 1 && !isLoading) {
+                    window.clearTimeout(clickDebounceTimer);
+                    clickDebounceTimer = window.setTimeout(function() {
+                        loadPage(currentPage - 1);
+                    }, 50);
                 }
             });
         }
+        
         if (next) {
             next.addEventListener('click', function() {
-                if (currentPage < totalPages) {
-                    loadPage(currentPage + 1);
+                if (currentPage < totalPages && !isLoading) {
+                    window.clearTimeout(clickDebounceTimer);
+                    clickDebounceTimer = window.setTimeout(function() {
+                        loadPage(currentPage + 1);
+                    }, 50);
                 }
             });
         }

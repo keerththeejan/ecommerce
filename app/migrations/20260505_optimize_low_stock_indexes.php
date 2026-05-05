@@ -5,20 +5,27 @@ class OptimizeLowStockIndexesMigration {
         $db = new Database();
         $connection = $db->getConnection();
 
+        // Add indexes for low stock queries
         $this->addIndex($connection, 'products', 'idx_products_stock_quantity', 'stock_quantity');
         $this->addIndex($connection, 'products', 'idx_products_stock_category', 'stock_quantity, category_id');
+        
+        // Add indexes for related tables
         $this->addIndex($connection, 'stock_movements', 'idx_stock_movements_product_id', 'product_id');
         $this->addIndex($connection, 'order_items', 'idx_order_items_product_id', 'product_id');
+        
+        // Add index on categories name for faster joins
+        $this->addIndex($connection, 'categories', 'idx_categories_name', 'name');
     }
 
     public function down() {
         $db = new Database();
         $connection = $db->getConnection();
 
+        $this->dropIndex($connection, 'categories', 'idx_categories_name');
+        $this->dropIndex($connection, 'order_items', 'idx_order_items_product_id');
+        $this->dropIndex($connection, 'stock_movements', 'idx_stock_movements_product_id');
         $this->dropIndex($connection, 'products', 'idx_products_stock_category');
         $this->dropIndex($connection, 'products', 'idx_products_stock_quantity');
-        $this->dropIndex($connection, 'stock_movements', 'idx_stock_movements_product_id');
-        $this->dropIndex($connection, 'order_items', 'idx_order_items_product_id');
     }
 
     private function addIndex(PDO $connection, $table, $index, $columns) {

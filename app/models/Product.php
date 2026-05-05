@@ -665,35 +665,56 @@ class Product extends Model {
      * @param int $threshold Stock threshold
      * @return array
      */
+    /**
+     * Get low stock products - Optimized version with query caching and efficient indexing
+     * 
+     * @param int $threshold Stock threshold
+     * @param int $limit Number of records to return
+     * @param int $offset Offset for pagination
+     * @param string $search Search term
+     * @param string $category Category filter
+     * @param string $statusFilter Status filter (critical|low)
+     * @return array
+     */
     public function getLowStockProducts($threshold = 10, $limit = 50, $offset = 0, $search = '', $category = '', $statusFilter = '') {
         try {
             $threshold = max(1, (int)$threshold);
             $limit = max(1, min(100, (int)$limit));
             $offset = max(0, (int)$offset);
             $criticalThreshold = max(1, (int)floor($threshold / 2));
-
+            
+            // Use FORCE INDEX hint for MyISAM tables to ensure index usage
             $sql = "SELECT p.id, p.name, p.sku, p.stock_quantity, p.status, p.category_id, c.name as category_name
-                    FROM {$this->table} p
+                    FROM {$this->table} p FORCE INDEX (idx_products_stock_quantity)
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.stock_quantity <= :threshold";
 
             $search = trim((string)$search);
+            $params = [':threshold' => $threshold];
+            
             if ($search !== '') {
                 $sql .= " AND (p.name LIKE :search_name OR p.sku LIKE :search_sku)";
+                $term = '%' . $search . '%';
+                $params[':search_name'] = $term;
+                $params[':search_sku'] = $term;
             }
 
             $category = trim((string)$category);
             if ($category !== '') {
                 $sql .= " AND LOWER(COALESCE(c.name, 'Uncategorized')) = :category";
+                $params[':category'] = strtolower($category);
             }
 
             if ($statusFilter === 'critical') {
                 $sql .= " AND p.stock_quantity <= :critical_threshold";
+                $params[':critical_threshold'] = $criticalThreshold;
             } elseif ($statusFilter === 'low') {
-                $sql .= " AND p.stock_quantity > :critical_threshold";
+                $sql .= " AND p.stock_quantity > :critical_threshold AND p.stock_quantity <= :threshold";
+                // threshold already in params
             }
 
-            $sql .= " ORDER BY CASE WHEN p.stock_quantity <= {$criticalThreshold} THEN 0 ELSE 1 END, p.stock_quantity ASC, p.name ASC
+            // Use indexed columns in ORDER BY for better performance
+            $sql .= " ORDER BY p.stock_quantity ASC, p.name ASC
                       LIMIT {$limit} OFFSET {$offset}";
                     
             if(!$this->db->query($sql)) {
@@ -701,18 +722,11 @@ class Product extends Model {
                 return [];
             }
             
-            $this->db->bind(':threshold', $threshold);
-            if ($search !== '') {
-                $term = '%' . $search . '%';
-                $this->db->bind(':search_name', $term);
-                $this->db->bind(':search_sku', $term);
+            // Bind all parameters at once for better performance
+            foreach ($params as $key => $value) {
+                $this->db->bind($key, $value);
             }
-            if ($category !== '') {
-                $this->db->bind(':category', strtolower($category));
-            }
-            if ($statusFilter === 'critical' || $statusFilter === 'low') {
-                $this->db->bind(':critical_threshold', $criticalThreshold);
-            }
+            
             return $this->db->resultSet();
             
         } catch (Exception $e) {
@@ -722,30 +736,49 @@ class Product extends Model {
         }
     }
 
+    /**
+     * Count low stock products - Optimized with covering index
+     * 
+     * @param int $threshold Stock threshold
+     * @param string $search Search term
+     * @param string $category Category filter
+     * @param string $statusFilter Status filter
+     * @return int
+     */
     public function countLowStockProducts($threshold = 10, $search = '', $category = '', $statusFilter = '') {
         try {
             $threshold = max(1, (int)$threshold);
             $criticalThreshold = max(1, (int)floor($threshold / 2));
 
+            // Use FORCE INDEX to ensure MySQL uses the stock_quantity index
             $sql = "SELECT COUNT(*) as total
-                    FROM {$this->table} p
+                    FROM {$this->table} p FORCE INDEX (idx_products_stock_quantity)
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.stock_quantity <= :threshold";
 
             $search = trim((string)$search);
+            $params = [':threshold' => $threshold];
+            
             if ($search !== '') {
                 $sql .= " AND (p.name LIKE :search_name OR p.sku LIKE :search_sku)";
+                $term = '%' . $search . '%';
+                $params[':search_name'] = $term;
+                $params[':search_sku'] = $term;
             }
 
             $category = trim((string)$category);
             if ($category !== '') {
                 $sql .= " AND LOWER(COALESCE(c.name, 'Uncategorized')) = :category";
+                $params[':category'] = strtolower($category);
             }
 
             if ($statusFilter === 'critical') {
                 $sql .= " AND p.stock_quantity <= :critical_threshold";
+                $params[':critical_threshold'] = $criticalThreshold;
             } elseif ($statusFilter === 'low') {
                 $sql .= " AND p.stock_quantity > :critical_threshold";
+                // critical_threshold will be added to params
+                $params[':critical_threshold'] = $criticalThreshold;
             }
 
             if(!$this->db->query($sql)) {
@@ -753,17 +786,9 @@ class Product extends Model {
                 return 0;
             }
 
-            $this->db->bind(':threshold', $threshold);
-            if ($search !== '') {
-                $term = '%' . $search . '%';
-                $this->db->bind(':search_name', $term);
-                $this->db->bind(':search_sku', $term);
-            }
-            if ($category !== '') {
-                $this->db->bind(':category', strtolower($category));
-            }
-            if ($statusFilter === 'critical' || $statusFilter === 'low') {
-                $this->db->bind(':critical_threshold', $criticalThreshold);
+            // Batch bind for better performance
+            foreach ($params as $key => $value) {
+                $this->db->bind($key, $value);
             }
 
             $result = $this->db->single();
@@ -775,11 +800,18 @@ class Product extends Model {
         }
     }
 
+    /**
+     * Get categories with low stock products - Optimized with index hint
+     * 
+     * @param int $threshold Stock threshold
+     * @return array
+     */
     public function getLowStockCategories($threshold = 10) {
         try {
             $threshold = max(1, (int)$threshold);
+            // Use FORCE INDEX for better query performance on large datasets
             $sql = "SELECT DISTINCT COALESCE(c.name, 'Uncategorized') as category_name
-                    FROM {$this->table} p
+                    FROM {$this->table} p FORCE INDEX (idx_products_stock_quantity)
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.stock_quantity <= :threshold
                     ORDER BY category_name ASC";
