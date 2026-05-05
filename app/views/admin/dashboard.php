@@ -71,6 +71,130 @@
 .admin-dash .table tbody tr:hover { background: rgba(79, 70, 229, 0.04) !important; }
 .dashboard-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+.low-stock-card {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+.low-stock-card .card-header {
+  background: #fff;
+  padding: 1rem 1.25rem;
+}
+.low-stock-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, 190px) minmax(140px, 170px) auto;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+.low-stock-control {
+  position: relative;
+}
+.low-stock-control i {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+.low-stock-control .form-control,
+.low-stock-toolbar .form-select {
+  border-color: #dbe3ef;
+  border-radius: 10px;
+  min-height: 42px;
+  font-size: 0.9rem;
+}
+.low-stock-control .form-control {
+  padding-left: 2.25rem;
+}
+.low-stock-scroll {
+  max-height: 400px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.low-stock-scroll table {
+  min-width: 920px;
+  margin-bottom: 0;
+}
+.low-stock-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc !important;
+  box-shadow: inset 0 -1px 0 #e5e7eb;
+}
+.low-stock-scroll tbody tr {
+  animation: dashFadeIn .28s ease both;
+}
+.stock-product-name {
+  max-width: 260px;
+}
+.stock-progress {
+  width: 120px;
+  height: 8px;
+  border-radius: 999px;
+  background: #edf2f7;
+  overflow: hidden;
+}
+.stock-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.stock-progress-critical { background: linear-gradient(90deg, #dc2626, #ef4444); }
+.stock-progress-low { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stock-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.38rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.stock-status-critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.stock-status-low {
+  background: #fef3c7;
+  color: #92400e;
+}
+.low-stock-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+.low-stock-empty {
+  padding: 2.25rem 1rem;
+}
+.low-stock-pagination {
+  padding: 0.9rem 1.25rem;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+@media (max-width: 991.98px) {
+  .low-stock-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 575.98px) {
+  .low-stock-toolbar {
+    grid-template-columns: 1fr;
+    padding: 0.9rem;
+  }
+  .low-stock-card .card-header {
+    align-items: flex-start !important;
+    gap: 0.75rem;
+  }
+}
+
 /* Staggered fade-in animation */
 @keyframes dashFadeIn {
   from { opacity: 0; transform: translateY(12px); }
@@ -223,37 +347,141 @@
         </div>
     </div>
     <div class="row mb-4">
-        <div class="col-12 col-lg-6 mb-4 mb-lg-0">
-            <div class="card shadow-sm h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Low Stock Alert</h5>
-                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-primary btn-sm">Manage</a>
+        <div class="col-12 col-lg-8 mb-4 mb-lg-0">
+            <div class="card low-stock-card h-100">
+                <div class="card-header d-flex flex-column flex-xl-row justify-content-between align-items-xl-center">
+                    <div>
+                        <h5 class="card-title mb-1"><i class="fas fa-triangle-exclamation text-danger mr-2"></i>Low Stock Alert</h5>
+                        <small class="text-muted">Critical items are sorted first for faster restocking.</small>
+                    </div>
+                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-primary btn-sm mt-2 mt-xl-0">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
                 </div>
-                <div class="card-body">
-                    <?php 
-                    $lowStockProducts = [];
-                    try {
-                        $productModel = new Product();
-                        $lowStockProducts = $productModel->getLowStockProducts(5);
-                    } catch (Exception $e) {
-                        error_log('Low stock: ' . $e->getMessage());
-                    }
-                    if (!empty($lowStockProducts)): ?>
-                        <div class="list-group list-group-flush">
-                            <?php foreach($lowStockProducts as $product): ?>
-                                <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo (int)$product['id']; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                    <span class="text-truncate"><?php echo htmlspecialchars($product['name']); ?></span>
-                                    <span class="badge badge-<?php echo $product['stock_quantity'] <= 0 ? 'danger' : 'warning'; ?> rounded-pill ml-2"><?php echo (int)$product['stock_quantity']; ?></span>
-                                </a>
-                            <?php endforeach; ?>
+                <?php
+                $lowStockProducts = isset($lowStockProducts) && is_array($lowStockProducts) ? $lowStockProducts : [];
+                $lowStockCategories = isset($lowStockCategories) && is_array($lowStockCategories) ? $lowStockCategories : [];
+                $lowStockThreshold = isset($lowStockThreshold) && is_numeric($lowStockThreshold) ? (int)$lowStockThreshold : 5;
+                $lowStockPerPage = isset($lowStockPerPage) && is_numeric($lowStockPerPage) ? (int)$lowStockPerPage : 8;
+                $lowStockTotal = isset($lowStockTotal) && is_numeric($lowStockTotal) ? (int)$lowStockTotal : count($lowStockProducts);
+                $categoryOptions = [];
+                foreach ($lowStockCategories as $categoryRow) {
+                    $categoryName = trim((string)($categoryRow['category_name'] ?? 'Uncategorized'));
+                    $categoryOptions[$categoryName !== '' ? $categoryName : 'Uncategorized'] = true;
+                }
+                ksort($categoryOptions);
+                ?>
+                <div class="low-stock-toolbar" data-low-stock-toolbar>
+                    <div class="low-stock-control">
+                        <i class="fas fa-search"></i>
+                        <input type="search" id="lowStockSearch" class="form-control" placeholder="Search product or SKU" aria-label="Search low stock products">
+                    </div>
+                    <select id="lowStockCategory" class="form-select" aria-label="Filter by category">
+                        <option value="">All categories</option>
+                        <?php foreach (array_keys($categoryOptions) as $categoryName): ?>
+                            <option value="<?php echo htmlspecialchars(strtolower($categoryName)); ?>"><?php echo htmlspecialchars($categoryName); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select id="lowStockStatus" class="form-select" aria-label="Filter by status">
+                        <option value="">All statuses</option>
+                        <option value="critical">Critical</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <button type="button" class="btn btn-light border" id="lowStockReset" title="Clear filters" data-bs-toggle="tooltip">
+                        <i class="fas fa-rotate-left"></i>
+                    </button>
+                </div>
+                <?php if (!empty($lowStockProducts)): ?>
+                    <div class="low-stock-scroll">
+                        <table id="dashboardLowStock" class="table align-middle no-stack">
+                            <thead>
+                                <tr>
+                                    <th data-label="Product Name">Product Name</th>
+                                    <th data-label="SKU / Code">SKU / Code</th>
+                                    <th data-label="Category">Category</th>
+                                    <th data-label="Current Stock">Current Stock</th>
+                                    <th data-label="Minimum Stock">Minimum Stock</th>
+                                    <th data-label="Status">Status</th>
+                                    <th data-label="Action">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($lowStockProducts as $product): ?>
+                                    <?php
+                                    $productId = (int)($product['id'] ?? 0);
+                                    $stock = (int)($product['stock_quantity'] ?? 0);
+                                    $minStock = $lowStockThreshold;
+                                    $percentage = $minStock > 0 ? max(0, min(100, (int)round(($stock / $minStock) * 100))) : 0;
+                                    $isCritical = $stock <= max(1, (int)floor($minStock / 2));
+                                    $status = $isCritical ? 'critical' : 'low';
+                                    $categoryName = trim((string)($product['category_name'] ?? 'Uncategorized'));
+                                    $categoryName = $categoryName !== '' ? $categoryName : 'Uncategorized';
+                                    $sku = trim((string)($product['sku'] ?? ''));
+                                    ?>
+                                    <tr data-low-stock-row
+                                        data-search="<?php echo htmlspecialchars(strtolower(($product['name'] ?? '') . ' ' . $sku)); ?>"
+                                        data-category="<?php echo htmlspecialchars(strtolower($categoryName)); ?>"
+                                        data-status="<?php echo $status; ?>">
+                                        <td data-label="Product Name">
+                                            <div class="stock-product-name text-truncate" title="<?php echo htmlspecialchars($product['name'] ?? 'Product'); ?>">
+                                                <strong><?php echo htmlspecialchars($product['name'] ?? 'Product'); ?></strong>
+                                            </div>
+                                        </td>
+                                        <td data-label="SKU / Code">
+                                            <span class="text-muted"><?php echo $sku !== '' ? htmlspecialchars($sku) : '-'; ?></span>
+                                        </td>
+                                        <td data-label="Category"><?php echo htmlspecialchars($categoryName); ?></td>
+                                        <td data-label="Current Stock">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fw-bold"><?php echo $stock; ?></span>
+                                                <div class="stock-progress" title="<?php echo $percentage; ?>% of minimum stock" data-bs-toggle="tooltip">
+                                                    <span class="<?php echo $isCritical ? 'stock-progress-critical' : 'stock-progress-low'; ?>" style="width: <?php echo $percentage; ?>%;"></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td data-label="Minimum Stock"><?php echo $minStock; ?></td>
+                                        <td data-label="Status">
+                                            <span class="stock-status <?php echo $isCritical ? 'stock-status-critical' : 'stock-status-low'; ?>" title="<?php echo $isCritical ? 'Critical stock: restock immediately' : 'Low stock: plan replenishment'; ?>" data-bs-toggle="tooltip">
+                                                <i class="fas <?php echo $isCritical ? 'fa-circle-exclamation' : 'fa-triangle-exclamation'; ?>"></i>
+                                                <?php echo $isCritical ? 'Critical' : 'Low'; ?>
+                                            </span>
+                                        </td>
+                                        <td data-label="Action">
+                                            <div class="low-stock-actions">
+                                                <a href="<?php echo BASE_URL; ?>?controller=product&action=edit&id=<?php echo $productId; ?>" class="btn btn-sm btn-light border" title="View product" data-bs-toggle="tooltip" aria-label="View product">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="<?php echo BASE_URL; ?>?controller=stock&action=adjust&id=<?php echo $productId; ?>" class="btn btn-sm btn-primary" title="Restock product" data-bs-toggle="tooltip" aria-label="Restock product">
+                                                    <i class="fas fa-boxes-stacked mr-1"></i>Restock
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="low-stock-pagination d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                        <small class="text-muted" id="lowStockCount"></small>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Low stock pagination">
+                            <button type="button" class="btn btn-outline-secondary" id="lowStockPrev"><i class="fas fa-chevron-left"></i></button>
+                            <button type="button" class="btn btn-outline-secondary disabled" id="lowStockPage">1</button>
+                            <button type="button" class="btn btn-outline-secondary" id="lowStockNext"><i class="fas fa-chevron-right"></i></button>
                         </div>
-                    <?php else: ?>
+                    </div>
+                    <div class="low-stock-empty text-center d-none" id="lowStockEmpty">
+                        <i class="fas fa-filter-circle-xmark fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No products match the selected filters.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="low-stock-empty text-center">
+                        <i class="fas fa-circle-check fa-2x text-success mb-2"></i>
                         <p class="text-muted mb-0">No low stock products.</p>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Recent Orders</h5>
@@ -342,6 +570,150 @@
                 setTimeout(function() { animateValue(el, 0, num, 800); }, 150 + skipCount * 50);
             }
         });
+    });
+})();
+
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        var table = document.getElementById('dashboardLowStock');
+        if (!table) return;
+        var tbody = table.querySelector('tbody');
+        var search = document.getElementById('lowStockSearch');
+        var category = document.getElementById('lowStockCategory');
+        var status = document.getElementById('lowStockStatus');
+        var reset = document.getElementById('lowStockReset');
+        var toolbar = document.querySelector('[data-low-stock-toolbar]');
+        var prev = document.getElementById('lowStockPrev');
+        var next = document.getElementById('lowStockNext');
+        var pageLabel = document.getElementById('lowStockPage');
+        var countLabel = document.getElementById('lowStockCount');
+        var empty = document.getElementById('lowStockEmpty');
+        var endpoint = '<?php echo BASE_URL; ?>?controller=admin&action=lowStockAlerts';
+        var perPage = <?php echo (int)$lowStockPerPage; ?>;
+        var currentPage = 1;
+        var totalRows = <?php echo (int)$lowStockTotal; ?>;
+        var totalPages = Math.max(1, Math.ceil(totalRows / perPage));
+        var activeRequest = null;
+        var debounceTimer = null;
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+                return ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'})[ch];
+            });
+        }
+
+        function rowHtml(row, index) {
+            var isCritical = row.status === 'critical';
+            var productUrl = '<?php echo BASE_URL; ?>?controller=product&action=edit&id=' + encodeURIComponent(row.id);
+            var restockUrl = '<?php echo BASE_URL; ?>?controller=stock&action=adjust&id=' + encodeURIComponent(row.id);
+            var searchValue = (row.name + ' ' + row.sku).toLowerCase();
+            var categoryValue = String(row.category_name || 'Uncategorized').toLowerCase();
+            var statusTitle = isCritical ? 'Critical stock: restock immediately' : 'Low stock: plan replenishment';
+            return '<tr data-low-stock-row data-search="' + escapeHtml(searchValue) + '" data-category="' + escapeHtml(categoryValue) + '" data-status="' + escapeHtml(row.status) + '" style="animation-delay: ' + (index * 25) + 'ms;">'
+                + '<td data-label="Product Name"><div class="stock-product-name text-truncate" title="' + escapeHtml(row.name) + '"><strong>' + escapeHtml(row.name) + '</strong></div></td>'
+                + '<td data-label="SKU / Code"><span class="text-muted">' + (row.sku ? escapeHtml(row.sku) : '-') + '</span></td>'
+                + '<td data-label="Category">' + escapeHtml(row.category_name || 'Uncategorized') + '</td>'
+                + '<td data-label="Current Stock"><div class="d-flex align-items-center gap-2"><span class="fw-bold">' + escapeHtml(row.stock_quantity) + '</span><div class="stock-progress" title="' + escapeHtml(row.percentage) + '% of minimum stock" data-bs-toggle="tooltip"><span class="' + (isCritical ? 'stock-progress-critical' : 'stock-progress-low') + '" style="width: ' + escapeHtml(row.percentage) + '%;"></span></div></div></td>'
+                + '<td data-label="Minimum Stock">' + escapeHtml(row.minimum_stock) + '</td>'
+                + '<td data-label="Status"><span class="stock-status ' + (isCritical ? 'stock-status-critical' : 'stock-status-low') + '" title="' + statusTitle + '" data-bs-toggle="tooltip"><i class="fas ' + (isCritical ? 'fa-circle-exclamation' : 'fa-triangle-exclamation') + '"></i>' + escapeHtml(row.status_label) + '</span></td>'
+                + '<td data-label="Action"><div class="low-stock-actions"><a href="' + productUrl + '" class="btn btn-sm btn-light border" title="View product" data-bs-toggle="tooltip" aria-label="View product"><i class="fas fa-eye"></i></a><a href="' + restockUrl + '" class="btn btn-sm btn-primary" title="Restock product" data-bs-toggle="tooltip" aria-label="Restock product"><i class="fas fa-boxes-stacked mr-1"></i>Restock</a></div></td>'
+                + '</tr>';
+        }
+
+        function updatePagination() {
+            var start = (currentPage - 1) * perPage;
+            var end = Math.min(start + perPage, totalRows);
+            if (pageLabel) pageLabel.textContent = currentPage + ' / ' + totalPages;
+            if (countLabel) {
+                countLabel.textContent = totalRows
+                    ? 'Showing ' + (start + 1) + '-' + end + ' of ' + totalRows + ' low stock products'
+                    : 'No low stock products found';
+            }
+            if (prev) prev.disabled = currentPage <= 1;
+            if (next) next.disabled = currentPage >= totalPages;
+            if (empty) empty.classList.toggle('d-none', totalRows !== 0);
+        }
+
+        function refreshTooltips() {
+            if (!window.bootstrap || !bootstrap.Tooltip) return;
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+                bootstrap.Tooltip.getOrCreateInstance(el);
+            });
+        }
+
+        function loadPage(page) {
+            currentPage = Math.max(1, page || 1);
+            var params = new URLSearchParams();
+            params.set('page', currentPage);
+            params.set('per_page', perPage);
+            params.set('search', search && search.value ? search.value.trim() : '');
+            params.set('category', category && category.value ? category.value : '');
+            params.set('status', status && status.value ? status.value : '');
+
+            if (activeRequest && activeRequest.abort) {
+                activeRequest.abort();
+            }
+            activeRequest = window.AbortController ? new AbortController() : null;
+
+            fetch(endpoint + '&' + params.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: activeRequest ? activeRequest.signal : undefined
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(payload) {
+                if (!payload || !payload.success) return;
+                var rows = Array.isArray(payload.rows) ? payload.rows : [];
+                var pagination = payload.pagination || {};
+                totalRows = parseInt(pagination.total || 0, 10);
+                totalPages = Math.max(1, parseInt(pagination.total_pages || 1, 10));
+                currentPage = Math.min(Math.max(1, parseInt(pagination.page || currentPage, 10)), totalPages);
+                tbody.innerHTML = rows.map(rowHtml).join('');
+                updatePagination();
+                refreshTooltips();
+            })
+            .catch(function(error) {
+                if (error && error.name === 'AbortError') return;
+            });
+        }
+
+        function debouncedReload() {
+            window.clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(function() { loadPage(1); }, 220);
+        }
+
+        if (toolbar) {
+            toolbar.addEventListener('input', function(event) {
+                if (event.target === search) debouncedReload();
+            });
+            toolbar.addEventListener('change', function(event) {
+                if (event.target === category || event.target === status) loadPage(1);
+            });
+        }
+        if (reset) {
+            reset.addEventListener('click', function() {
+                if (search) search.value = '';
+                if (category) category.value = '';
+                if (status) status.value = '';
+                loadPage(1);
+            });
+        }
+        if (prev) {
+            prev.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    loadPage(currentPage - 1);
+                }
+            });
+        }
+        if (next) {
+            next.addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    loadPage(currentPage + 1);
+                }
+            });
+        }
+
+        updatePagination();
+        refreshTooltips();
     });
 })();
 </script>

@@ -665,13 +665,36 @@ class Product extends Model {
      * @param int $threshold Stock threshold
      * @return array
      */
-    public function getLowStockProducts($threshold = 10) {
+    public function getLowStockProducts($threshold = 10, $limit = 50, $offset = 0, $search = '', $category = '', $statusFilter = '') {
         try {
-            $sql = "SELECT p.id, p.name, p.stock_quantity, p.status, p.category_id, c.name as category_name 
+            $threshold = max(1, (int)$threshold);
+            $limit = max(1, min(100, (int)$limit));
+            $offset = max(0, (int)$offset);
+            $criticalThreshold = max(1, (int)floor($threshold / 2));
+
+            $sql = "SELECT p.id, p.name, p.sku, p.stock_quantity, p.status, p.category_id, c.name as category_name
                     FROM {$this->table} p
                     LEFT JOIN categories c ON p.category_id = c.id
-                    WHERE p.stock_quantity <= :threshold
-                    ORDER BY p.stock_quantity ASC";
+                    WHERE p.stock_quantity <= :threshold";
+
+            $search = trim((string)$search);
+            if ($search !== '') {
+                $sql .= " AND (p.name LIKE :search_name OR p.sku LIKE :search_sku)";
+            }
+
+            $category = trim((string)$category);
+            if ($category !== '') {
+                $sql .= " AND LOWER(COALESCE(c.name, 'Uncategorized')) = :category";
+            }
+
+            if ($statusFilter === 'critical') {
+                $sql .= " AND p.stock_quantity <= :critical_threshold";
+            } elseif ($statusFilter === 'low') {
+                $sql .= " AND p.stock_quantity > :critical_threshold";
+            }
+
+            $sql .= " ORDER BY CASE WHEN p.stock_quantity <= {$criticalThreshold} THEN 0 ELSE 1 END, p.stock_quantity ASC, p.name ASC
+                      LIMIT {$limit} OFFSET {$offset}";
                     
             if(!$this->db->query($sql)) {
                 $this->lastError = $this->db->getError();
@@ -679,11 +702,98 @@ class Product extends Model {
             }
             
             $this->db->bind(':threshold', $threshold);
+            if ($search !== '') {
+                $term = '%' . $search . '%';
+                $this->db->bind(':search_name', $term);
+                $this->db->bind(':search_sku', $term);
+            }
+            if ($category !== '') {
+                $this->db->bind(':category', strtolower($category));
+            }
+            if ($statusFilter === 'critical' || $statusFilter === 'low') {
+                $this->db->bind(':critical_threshold', $criticalThreshold);
+            }
             return $this->db->resultSet();
             
         } catch (Exception $e) {
             $this->lastError = $e->getMessage();
             error_log('Error in Product::getLowStockProducts - ' . $this->lastError);
+            return [];
+        }
+    }
+
+    public function countLowStockProducts($threshold = 10, $search = '', $category = '', $statusFilter = '') {
+        try {
+            $threshold = max(1, (int)$threshold);
+            $criticalThreshold = max(1, (int)floor($threshold / 2));
+
+            $sql = "SELECT COUNT(*) as total
+                    FROM {$this->table} p
+                    LEFT JOIN categories c ON p.category_id = c.id
+                    WHERE p.stock_quantity <= :threshold";
+
+            $search = trim((string)$search);
+            if ($search !== '') {
+                $sql .= " AND (p.name LIKE :search_name OR p.sku LIKE :search_sku)";
+            }
+
+            $category = trim((string)$category);
+            if ($category !== '') {
+                $sql .= " AND LOWER(COALESCE(c.name, 'Uncategorized')) = :category";
+            }
+
+            if ($statusFilter === 'critical') {
+                $sql .= " AND p.stock_quantity <= :critical_threshold";
+            } elseif ($statusFilter === 'low') {
+                $sql .= " AND p.stock_quantity > :critical_threshold";
+            }
+
+            if(!$this->db->query($sql)) {
+                $this->lastError = $this->db->getError();
+                return 0;
+            }
+
+            $this->db->bind(':threshold', $threshold);
+            if ($search !== '') {
+                $term = '%' . $search . '%';
+                $this->db->bind(':search_name', $term);
+                $this->db->bind(':search_sku', $term);
+            }
+            if ($category !== '') {
+                $this->db->bind(':category', strtolower($category));
+            }
+            if ($statusFilter === 'critical' || $statusFilter === 'low') {
+                $this->db->bind(':critical_threshold', $criticalThreshold);
+            }
+
+            $result = $this->db->single();
+            return (int)($result['total'] ?? 0);
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log('Error in Product::countLowStockProducts - ' . $this->lastError);
+            return 0;
+        }
+    }
+
+    public function getLowStockCategories($threshold = 10) {
+        try {
+            $threshold = max(1, (int)$threshold);
+            $sql = "SELECT DISTINCT COALESCE(c.name, 'Uncategorized') as category_name
+                    FROM {$this->table} p
+                    LEFT JOIN categories c ON p.category_id = c.id
+                    WHERE p.stock_quantity <= :threshold
+                    ORDER BY category_name ASC";
+
+            if(!$this->db->query($sql)) {
+                $this->lastError = $this->db->getError();
+                return [];
+            }
+
+            $this->db->bind(':threshold', $threshold);
+            return $this->db->resultSet();
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log('Error in Product::getLowStockCategories - ' . $this->lastError);
             return [];
         }
     }
