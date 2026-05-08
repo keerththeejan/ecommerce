@@ -25,6 +25,9 @@ class AdminController extends Controller {
             redirect('user/login');
         }
 
+        // Set page title
+        $this->setPageTitle('Dashboard');
+
         // Enable output caching for 5 minutes (300 seconds)
         // This caches the entire rendered HTML output
         $this->enableOutputCache(300);
@@ -84,14 +87,33 @@ class AdminController extends Controller {
             error_log('Admin dashboard low stock: ' . $e->getMessage());
         }
 
-        $this->view('admin/dashboard', [
-            'recentOrders' => is_array($recentOrders) ? $recentOrders : [],
-            'lowStockProducts' => is_array($lowStockProducts) ? $lowStockProducts : [],
-            'lowStockCategories' => is_array($lowStockCategories) ? $lowStockCategories : [],
-            'lowStockThreshold' => $lowStockThreshold,
-            'lowStockPerPage' => $lowStockPerPage,
-            'lowStockTotal' => $lowStockTotal
-        ]);
+        // Check if user prefers modern layout (default to modern)
+        $useModernLayout = $this->get('modern', '1') === '1';
+        
+        if ($useModernLayout) {
+            // Use modern layout
+            $content = APP_PATH . 'views/admin/dashboard-modern-content.php';
+            $this->view('admin/layouts/dashboard-modern', [
+                'content' => $content,
+                'pageTitle' => 'Dashboard',
+                'recentOrders' => is_array($recentOrders) ? $recentOrders : [],
+                'lowStockProducts' => is_array($lowStockProducts) ? $lowStockProducts : [],
+                'lowStockCategories' => is_array($lowStockCategories) ? $lowStockCategories : [],
+                'lowStockThreshold' => $lowStockThreshold,
+                'lowStockPerPage' => $lowStockPerPage,
+                'lowStockTotal' => $lowStockTotal
+            ]);
+        } else {
+            // Use legacy layout
+            $this->view('admin/dashboard', [
+                'recentOrders' => is_array($recentOrders) ? $recentOrders : [],
+                'lowStockProducts' => is_array($lowStockProducts) ? $lowStockProducts : [],
+                'lowStockCategories' => is_array($lowStockCategories) ? $lowStockCategories : [],
+                'lowStockThreshold' => $lowStockThreshold,
+                'lowStockPerPage' => $lowStockPerPage,
+                'lowStockTotal' => $lowStockTotal
+            ]);
+        }
     }
 
     public function lowStockAlerts() {

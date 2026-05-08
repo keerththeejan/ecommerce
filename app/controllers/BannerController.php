@@ -10,6 +10,7 @@ class BannerController {
 
     // Default action to display all banners
     public function index() {
+        echo "SIDEBAR 2026 LOADED - Banner Management Index";
         $banners = $this->bannerModel->getAll();
         // Load the admin view so the Admin Dashboard layout (sidebar) is shown
         require_once __DIR__ . '/../views/admin/banners/index.php';
@@ -17,6 +18,7 @@ class BannerController {
 
     // Handle banner creation
     public function create() {
+        echo "SIDEBAR 2026 LOADED - Create Banner";
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Handle file upload
@@ -222,5 +224,23 @@ class BannerController {
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Error fetching banners: ' . $e->getMessage()];
         }
+    }
+
+    // Slider settings
+    public function slider() {
+        echo "SIDEBAR 2026 LOADED - Banner Slider Settings";
+        require_once __DIR__ . '/../views/admin/banners/slider.php';
+    }
+
+    // Promotional banners
+    public function promotional() {
+        echo "SIDEBAR 2026 LOADED - Promotional Banners";
+        require_once __DIR__ . '/../views/admin/banners/promotional.php';
+    }
+
+    // Mobile banners
+    public function mobile() {
+        echo "SIDEBAR 2026 LOADED - Mobile Banners";
+        require_once __DIR__ . '/../views/admin/banners/mobile.php';
     }
 }

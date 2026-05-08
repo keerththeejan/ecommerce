@@ -226,6 +226,62 @@ if (!defined('BASE_URL')) {
             background-color: var(--sidebar-bg);
         }
 
+        /* Banner Management Neon Blue Highlight */
+        .admin-nav-trigger[data-lucide="image"] {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1)) !important;
+            border: 1px solid rgba(59, 130, 246, 0.3) !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2) !important;
+        }
+
+        .admin-nav-trigger[data-lucide="image"]:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2)) !important;
+            border: 1px solid rgba(59, 130, 246, 0.5) !important;
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.3) !important;
+            transform: translateX(2px);
+        }
+
+        .admin-nav-trigger[data-lucide="image"] .admin-nav-text {
+            color: #60a5fa !important;
+            font-weight: 600 !important;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .admin-nav-trigger[data-lucide="image"] .admin-nav-icon {
+            color: #3b82f6 !important;
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+        }
+
+        .admin-nav-trigger[data-lucide="image"].active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.3)) !important;
+            border: 1px solid rgba(59, 130, 246, 0.6) !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4) !important;
+        }
+
+        /* Banner Management submenu items */
+        .admin-nav-trigger[data-lucide="image"] + .admin-submenu .admin-nav-link {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .admin-nav-trigger[data-lucide="image"] + .admin-submenu .admin-nav-link:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .admin-nav-trigger[data-lucide="image"] + .admin-submenu .admin-nav-link.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-left: 3px solid #3b82f6;
+        }
+
+        /* Debug indicator */
+        .admin-nav-trigger[data-lucide="image"]::after {
+            content: "📢";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            z-index: 10;
+        }
+
         /* Modern sidebar UI (8px grid) */
         :root {
             --sidebar-width: 280px;
@@ -693,6 +749,18 @@ if (!defined('BASE_URL')) {
                                     'icon' => 'shopping-cart',
                                     'items' => [
                                         ['label' => 'All Orders', 'icon' => 'list', 'href' => BASE_URL . '?controller=order&action=adminIndex', 'controller' => 'order', 'action' => 'adminindex'],
+                                    ],
+                                ],
+                                [
+                                    'label' => 'Banner Management',
+                                    'icon' => 'image',
+                                    'highlight' => true,
+                                    'items' => [
+                                        ['label' => 'View All Banners', 'icon' => 'list', 'href' => BASE_URL . '?controller=banner&action=index', 'controller' => 'banner', 'action' => 'index'],
+                                        ['label' => 'Add New Banner', 'icon' => 'plus', 'href' => BASE_URL . '?controller=banner&action=create', 'controller' => 'banner', 'action' => 'create'],
+                                        ['label' => 'Hero Slider', 'icon' => 'sliders', 'href' => BASE_URL . '?controller=banner&action=slider', 'controller' => 'banner', 'action' => 'slider'],
+                                        ['label' => 'Promotional Banners', 'icon' => 'megaphone', 'href' => BASE_URL . '?controller=banner&action=promotional', 'controller' => 'banner', 'action' => 'promotional'],
+                                        ['label' => 'Mobile Banners', 'icon' => 'smartphone', 'href' => BASE_URL . '?controller=banner&action=mobile', 'controller' => 'banner', 'action' => 'mobile'],
                                     ],
                                 ],
                                 [
