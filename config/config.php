@@ -5,20 +5,23 @@ error_reporting(0);
 /**
  * Configuration file for the e-commerce application
  */
+     define('DB_HOST', 'localhost');
+    define('DB_USER', 'root');
+    define('DB_PASS', '1234');
+    define('DB_NAME', 'sn');
 
 // Production config: if hosting on sivakamy.ch, load config.production.php (create from config.production.php.example)
 $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
 $productionFile = __DIR__ . '/config.production.php';
-$isProduction = file_exists($productionFile) && strpos($host, 'sivakamy.ch') !== false;
-if ($isProduction) {
+if (file_exists($productionFile) && strpos($host, 'sivakamy.ch') !== false) {
     require_once $productionFile;
 }
 
 // Local/development defaults (only if not already defined by config.production.php)
 if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
-if (!defined('DB_USER')) define('DB_USER', 'root');
-if (!defined('DB_PASS')) define('DB_PASS', '1234');
-if (!defined('DB_NAME')) define('DB_NAME', 'sn');
+if (!defined('DB_USER')) define('DB_USER', 'sivamgnb_sn');
+if (!defined('DB_PASS')) define('DB_PASS', 'TE;pE(YQXnLU');
+if (!defined('DB_NAME')) define('DB_NAME', 'sivamgnb_sn');
 if (!defined('BASE_URL')) define('BASE_URL', 'http://localhost/ecommerce/');
 if (!defined('ROOT_PATH')) define('ROOT_PATH', dirname(__DIR__) . '/');
 if (!defined('APPROOT')) define('APPROOT', dirname(dirname(__FILE__))); // Root directory of the application
@@ -26,8 +29,6 @@ if (!defined('APP_PATH')) define('APP_PATH', ROOT_PATH . 'app/');
 if (!defined('PUBLIC_PATH')) define('PUBLIC_PATH', ROOT_PATH . 'public/');
 if (!defined('ASSETS_PATH')) define('ASSETS_PATH', ROOT_PATH . 'assets/');
 if (!defined('CONFIG_PATH')) define('CONFIG_PATH', ROOT_PATH . 'config/');
-if (!defined('ASSET_VERSION')) define('ASSET_VERSION', '20260331');
-if (!defined('ENABLE_QUERY_CACHE')) define('ENABLE_QUERY_CACHE', true);
 
 // URL Root (for links in views)
 if (!defined('URLROOT')) define('URLROOT', defined('BASE_URL') ? BASE_URL : 'http://localhost/ecommerce/');
@@ -37,12 +38,19 @@ if (!defined('UPLOAD_PATH')) define('UPLOAD_PATH', ROOT_PATH . 'public/uploads/'
 
 // Session configuration
 session_start();
+// Set session cookie parameters for localhost
+session_set_cookie_params([
+    'lifetime' => 86400, // 1 day
+    'path' => '/',
+    'domain' => 'localhost',
+    'secure' => false,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 
-// Error reporting (hide on production to avoid 500 from PHP notices)
-if (!$isProduction) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-}
+// Error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Time zone
 date_default_timezone_set('Asia/Kolkata');
