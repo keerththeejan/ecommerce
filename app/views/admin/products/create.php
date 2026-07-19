@@ -1,616 +1,50 @@
 <?php require_once APP_PATH . 'views/admin/layouts/header.php'; ?>
-
-<style>
-/* Create product form – responsive */
-.admin-page-shell {
-    background: var(--bg-color);
-    min-height: calc(100vh - 56px);
-}
-
-.admin-page-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: color-mix(in srgb, var(--bg-color) 86%, transparent);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
-}
-
-html[data-theme="light"] .admin-page-shell {
-    background: #f7f8fb;
-}
-
-html[data-theme="light"] .admin-page-header {
-    background: rgba(247, 248, 251, 0.82);
-    border-bottom-color: rgba(17, 24, 39, 0.08);
-}
-
-.admin-page-header__inner {
-    padding: 16px 0;
-}
-
-.admin-page-title {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    margin: 0;
-    color: var(--text-color);
-}
-
-.admin-page-subtitle {
-    margin: 2px 0 0;
-    color: var(--muted-color);
-    font-size: 13px;
-}
-
-.admin-card {
-    background: var(--surface-color);
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    box-shadow: 0 10px 28px rgba(17,24,39,0.06), 0 1px 2px rgba(17,24,39,0.05);
-}
-
-html[data-theme="light"] .admin-card {
-    background: #ffffff;
-    border-color: rgba(17, 24, 39, 0.08);
-}
-
-.admin-card__header {
-    padding: 14px 14px 0;
-}
-
-.admin-card__title {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--text-color);
-}
-
-.admin-card__hint {
-    margin: 6px 0 0;
-    font-size: 12px;
-    color: var(--muted-color);
-}
-
-.admin-card__body {
-    padding: 14px;
-}
-
-@media (min-width: 992px) {
-    .admin-card__body { padding: 16px; }
-}
-
-.create-product-form .form-label {
-    font-weight: 600;
-    color: var(--text-color);
-    margin-bottom: 4px;
-    font-size: 12px;
-}
-
-.create-product-form .form-group {
-    margin-bottom: 12px;
-}
-
-@media (min-width: 992px) {
-    .create-product-form .form-group { margin-bottom: 14px; }
-}
-
-.create-product-form .form-control,
-.create-product-form .form-select {
-    min-height: 40px;
-    border-radius: 10px;
-    border-color: var(--border-color);
-}
-
-@media (max-width: 767.98px) {
-    .create-product-form .form-control,
-    .create-product-form .form-select {
-        min-height: 44px;
-    }
-}
-
-.create-product-form textarea.form-control {
-    min-height: 84px;
-    padding-top: 12px;
-    padding-bottom: 12px;
-}
-
-.create-product-form .input-group-text {
-    border-radius: 10px;
-    border-color: var(--border-color);
-    background: var(--surface-muted);
-    color: var(--muted-color);
-    font-weight: 600;
-}
-
-.create-product-form .form-control:focus,
-.create-product-form .form-select:focus {
-    border-color: rgba(37,99,235,0.55);
-    box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.15);
-}
-
-/* Theme-aware form controls - Light mode only to avoid breaking dark mode */
-html[data-theme="light"] .create-product-form .form-control,
-html[data-theme="light"] .create-product-form .form-select {
-    background-color: var(--surface-color) !important;
-    color: var(--text-color) !important;
-    border-color: var(--border-color);
-}
-
-/* Dark mode form controls - ensure light text on dark background */
-html[data-theme="dark"] .create-product-form .form-control,
-html[data-theme="dark"] .create-product-form .form-select {
-    background-color: #2c3034 !important;
-    color: #f8f9fa !important;
-    border-color: #495057;
-}
-
-html[data-theme="light"] .create-product-form .form-control::placeholder {
-    color: var(--muted-color) !important;
-}
-
-html[data-theme="dark"] .create-product-form .form-control::placeholder {
-    color: #adb5bd !important;
-}
-
-/* Input group text theming */
-html[data-theme="light"] .create-product-form .input-group-text {
-    background-color: var(--surface-muted) !important;
-    color: var(--muted-color) !important;
-    border-color: var(--border-color);
-}
-
-html[data-theme="dark"] .create-product-form .input-group-text {
-    background-color: #343a40 !important;
-    color: #adb5bd !important;
-    border-color: #495057;
-}
-
-/* Ensure labels are visible in both modes */
-.create-product-form .form-label {
-    color: var(--text-color) !important;
-}
-
-/* Form text/help text */
-.create-product-form .form-text {
-    color: var(--muted-color) !important;
-}
-
-/* Invalid feedback */
-.create-product-form .invalid-feedback {
-    color: #dc2626 !important;
-}
-
-
-.create-product-form .form-text,
-.create-product-form .invalid-feedback {
-    margin-top: 6px;
-}
-
-.create-product-form .required-asterisk {
-    color: #dc2626;
-    margin-left: 2px;
-}
-
-.create-product-form select[style*="width"] { min-width: 0 !important; max-width: 100%; }
-
-.admin-btn-primary {
-    background: #2563eb;
-    border-color: #2563eb;
-}
-
-.admin-btn-primary:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
-}
-
-.admin-page-header .btn {
-    box-shadow: 0 1px 0 rgba(17,24,39,0.02);
-}
-
-html[data-theme="light"] .admin-page-header .btn.btn-outline-secondary {
-    background: rgba(255,255,255,0.75);
-    border-color: rgba(17, 24, 39, 0.10);
-}
-
-html[data-theme="light"] .admin-page-header .btn.btn-outline-secondary:hover {
-    background: rgba(255,255,255,0.95);
-    border-color: rgba(17, 24, 39, 0.14);
-}
-
-html[data-theme="light"] .admin-page-header .btn.btn-outline-primary {
-    background: rgba(37,99,235,0.06);
-    border-color: rgba(37,99,235,0.22);
-}
-
-html[data-theme="light"] .admin-page-header .btn.btn-outline-primary:hover {
-    background: rgba(37,99,235,0.10);
-    border-color: rgba(37,99,235,0.28);
-}
-
-.admin-btn-soft {
-    background: rgba(37,99,235,0.10);
-    border-color: rgba(37,99,235,0.18);
-    color: #1d4ed8;
-}
-
-.admin-btn-soft:hover {
-    background: rgba(37,99,235,0.14);
-    border-color: rgba(37,99,235,0.22);
-    color: #1d4ed8;
-}
-
-.pm-select-add {
-    display: flex;
-    gap: 0.5rem;
-    align-items: stretch;
-    flex-wrap: nowrap;
-}
-
-.pm-select-add .select2-container {
-    flex: 1 1 auto;
-    min-width: 0;
-    width: auto !important;
-}
-
-.pm-select-add > .btn {
-    flex: 0 0 auto;
-    min-height: 40px;
-    border-radius: 10px;
-    padding: 0 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-}
-
-@media (max-width: 575.98px) {
-    .pm-select-add {
-        flex-wrap: wrap;
-    }
-    .pm-select-add .select2-container {
-        flex: 1 1 100%;
-    }
-    .pm-select-add > .btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-.pm-actionbar {
-    position: sticky;
-    bottom: 0;
-    z-index: 40;
-    background: color-mix(in srgb, var(--surface-color) 92%, transparent);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border-color);
-    padding: 10px 0;
-    margin-top: 12px;
-}
-
-@media (max-width: 767.98px) {
-    .pm-actionbar {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin-top: 0;
-        padding-bottom: calc(12px + env(safe-area-inset-bottom));
-    }
-    .admin-page-shell {
-        padding-bottom: 88px;
-    }
-}
-
-.pm-actionbar .btn {
-    min-height: 40px;
-    border-radius: 10px;
-    font-weight: 700;
-}
-
-.pm-actionbar .btn-link {
-    font-weight: 700;
-    color: var(--muted-color);
-    text-decoration: none;
-}
-
-.pm-actionbar .btn-link:hover {
-    color: var(--text-color);
-    text-decoration: none;
-}
-
-.pm-actionbar .btn.btn-secondary {
-    background: transparent;
-    color: var(--text-color);
-    border-color: var(--border-color);
-}
-
-.pm-actionbar .btn.btn-secondary:hover {
-    background: var(--surface-muted);
-}
-
-.pm-media-drop {
-    border: 1px dashed rgba(148,163,184,0.85);
-    border-radius: 12px;
-    background: var(--surface-muted);
-    padding: 14px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    cursor: pointer;
-}
-
-.pm-media-drop:focus-within,
-.pm-media-drop.is-dragover {
-    border-color: rgba(37,99,235,0.70);
-    box-shadow: 0 0 0 0.2rem rgba(37,99,235,0.12);
-}
-
-.pm-media-preview {
-    width: 120px;
-    height: 120px;
-    border-radius: 12px;
-    background: rgba(148,163,184,0.25);
-    border: 1px solid rgba(148,163,184,0.35);
-    overflow: hidden;
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.pm-media-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.pm-media-meta {
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.pm-media-title {
-    margin: 0;
-    font-weight: 800;
-    font-size: 13px;
-    color: var(--text-color);
-}
-
-.pm-media-text {
-    margin: 4px 0 0;
-    color: var(--muted-color);
-    font-size: 12px;
-}
-
-.pm-media-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.pm-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 999px;
-    background: rgba(16,185,129,0.10);
-    border: 1px solid rgba(16,185,129,0.18);
-    color: #065f46;
-    font-weight: 700;
-    font-size: 12px;
-}
-
-@media (max-width: 767.98px) {
-    .pm-media-preview { width: 110px; height: 110px; border-radius: 10px; }
-}
-
-/* Select2 (match 48px input height) */
-.create-product-form .select2-container--default .select2-selection--single {
-    height: 40px;
-    border-radius: 10px;
-    border-color: var(--border-color);
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    background-color: var(--surface-color);
-}
-
-.create-product-form .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 1.2;
-    padding-left: 0;
-    color: var(--text-color);
-}
-
-.create-product-form .select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: var(--muted-color);
-}
-
-.create-product-form .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 38px;
-}
-
-/* Select2 dropdown theming */
-.select2-dropdown {
-    background-color: var(--surface-color);
-    border-color: var(--border-color);
-}
-
-.select2-container--default .select2-results__option {
-    color: var(--text-color);
-}
-
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: rgba(37,99,235,0.15);
-    color: var(--text-color);
-}
-
-.select2-container--default .select2-search--dropdown .select2-search__field {
-    background-color: var(--surface-color);
-    color: var(--text-color);
-    border-color: var(--border-color);
-}
-
-/* Dark mode Select2 specific overrides */
-html[data-theme="dark"] .select2-dropdown {
-    background-color: #2c3034 !important;
-    border-color: #495057 !important;
-}
-
-html[data-theme="dark"] .select2-container--default .select2-results__option {
-    color: #f8f9fa !important;
-}
-
-html[data-theme="dark"] .select2-container--default .select2-selection--single {
-    background-color: #2c3034 !important;
-    border-color: #495057 !important;
-}
-
-html[data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
-    color: #f8f9fa !important;
-}
-
-html[data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #adb5bd !important;
-}
-
-html[data-theme="dark"] .select2-container--default .select2-search--dropdown .select2-search__field {
-    background-color: #343a40 !important;
-    color: #f8f9fa !important;
-    border-color: #495057 !important;
-}
-
-/* Light mode Select2 specific overrides */
-html[data-theme="light"] .select2-dropdown {
-    background-color: #ffffff !important;
-    border-color: rgba(17, 24, 39, 0.10) !important;
-}
-
-html[data-theme="light"] .select2-container--default .select2-results__option {
-    color: #111827 !important;
-}
-
-html[data-theme="light"] .create-product-form .select2-container--default .select2-selection--single {
-    background-color: #ffffff !important;
-    border-color: rgba(17, 24, 39, 0.10) !important;
-}
-
-html[data-theme="light"] .create-product-form .select2-container--default .select2-selection--single .select2-selection__rendered {
-    color: #111827 !important;
-}
-
-html[data-theme="light"] .create-product-form .select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #6b7280 !important;
-}
-
-html[data-theme="light"] .select2-container--default .select2-search--dropdown .select2-search__field {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-    border-color: rgba(17, 24, 39, 0.10) !important;
-}
-
-@media (max-width: 767.98px) {
-    .create-product-form .select2-container--default .select2-selection--single { height: 44px; }
-    .create-product-form .select2-container--default .select2-selection--single .select2-selection__arrow { height: 42px; }
-}
-
-.pm-section-title {
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    color: var(--text-color);
-    margin: 0;
-}
-
-.pm-section-subtitle {
-    font-size: 12px;
-    color: var(--muted-color);
-    margin: 4px 0 0;
-}
-
-.pm-divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 10px 0;
-}
-
-/* Add Unit modal */
-.add-unit-modal .modal-content {
-    border: 0;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
-}
-
-.add-unit-modal .modal-body { padding: 1rem; }
-@media (min-width: 768px) { .add-unit-modal .modal-body { padding: 1.25rem; } }
-
-.add-unit-card {
-    border-radius: 14px;
-    border: 1px solid var(--border-color);
-    background: var(--surface-color);
-    padding: 0.85rem;
-}
-@media (min-width: 768px) { .add-unit-card { padding: 1rem; } }
-
-.add-unit-modal .required-asterisk { color: #dc2626; }
-
-.add-unit-modal .form-control,
-.add-unit-modal .form-select {
-    border-radius: 10px;
-    min-height: 42px;
-    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
-}
-
-.add-unit-modal .form-control:hover,
-.add-unit-modal .form-select:hover { border-color: rgba(37, 99, 235, 0.45); }
-
-.add-unit-modal .form-control:focus,
-.add-unit-modal .form-select:focus {
-    border-color: rgba(37, 99, 235, 0.65);
-    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
-}
-
-.add-unit-modal .btn {
-    min-height: 40px;
-    border-radius: 10px;
-    transition: transform .15s ease, box-shadow .15s ease;
-}
-
-.add-unit-modal .btn:hover { transform: translateY(-1px); }
-.add-unit-modal .btn-primary:hover { box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28); }
-</style>
-
-<div class="admin-page-shell">
-    <div class="admin-page-header">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/product-create.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
+
+<div class="admin-page-shell product-create-page pc-compact" id="productCreatePage">
+    <div class="pc-toast-host" id="pcToastHost" aria-live="polite" aria-atomic="true"></div>
+    <div class="admin-page-header pc-header-bar">
         <div class="container-fluid px-3 px-lg-4">
-            <div class="admin-page-header__inner d-flex align-items-center justify-content-between flex-wrap" style="gap: 12px;">
+            <div class="admin-page-header__inner d-flex align-items-start justify-content-between flex-wrap" style="gap: 12px;">
                 <div>
-                    <h1 class="admin-page-title">Add Product</h1>
-                    <p class="admin-page-subtitle">Create a new product with pricing, inventory and media.</p>
+                    <nav class="pc-breadcrumb" aria-label="Breadcrumb">
+                        <a href="<?php echo BASE_URL; ?>?controller=home&action=admin">Dashboard</a>
+                        <span class="sep">›</span>
+                        <span>Catalog</span>
+                        <span class="sep">›</span>
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex">Products</a>
+                        <span class="sep">›</span>
+                        <span aria-current="page">Create Product</span>
+                    </nav>
+                    <h1 class="admin-page-title pc-title">Product Management</h1>
+                    <p class="admin-page-subtitle">Create Product — pricing, inventory, media, and catalog details.</p>
                 </div>
-                <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
-                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-secondary" style="min-height: 40px; border-radius: 10px;">
-                        <i class="fas fa-arrow-left mr-2"></i>Back
+                <div class="d-flex align-items-center flex-wrap pc-actions" style="gap: 8px;">
+                    <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-secondary pc-btn" style="min-height: 40px;">
+                        <i class="bi bi-arrow-left"></i><span>Back</span>
                     </a>
-                    <button type="button" class="btn btn-outline-secondary" id="previewBtn" style="min-height: 40px; border-radius: 10px;" aria-label="Preview product">
-                        <i class="fas fa-eye mr-2"></i>Preview
+                    <button type="button" class="btn btn-outline-secondary pc-btn" id="pcSaveDraftBtn" style="min-height: 40px;" title="Save Draft (UI)">
+                        <i class="bi bi-file-earmark"></i><span class="d-none d-lg-inline">Save Draft</span>
                     </button>
-                    <button type="button" class="btn btn-outline-primary" id="saveAddAnotherBtn" style="min-height: 40px; border-radius: 10px;" aria-label="Save and add another product">
-                        <i class="fas fa-plus mr-2"></i>Save & Add Another
+                    <button type="button" class="btn btn-outline-secondary" id="previewBtn" style="min-height: 40px; border-radius: 12px;" aria-label="Preview product">
+                        <i class="fas fa-eye mr-2"></i><span class="d-none d-md-inline">Live Preview</span>
                     </button>
-                    <button type="button" class="btn admin-btn-primary text-white" id="saveHeaderBtn" style="min-height: 40px; border-radius: 10px; padding: 0 14px;" aria-label="Save product">
-                        <i class="fas fa-save mr-2"></i>Save
+                    <button type="button" class="btn btn-outline-primary" id="saveAddAnotherBtn" style="min-height: 40px; border-radius: 12px;" aria-label="Save and add another product">
+                        <i class="fas fa-plus mr-2"></i><span class="d-none d-lg-inline">Save &amp; New</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary pc-btn" id="pcDuplicateBtn" style="min-height: 40px;" title="Duplicate (UI)">
+                        <i class="bi bi-files"></i><span class="d-none d-xl-inline">Duplicate</span>
+                    </button>
+                    <button type="button" class="btn admin-btn-primary text-white" id="saveHeaderBtn" style="min-height: 40px; border-radius: 12px; padding: 0 14px;" aria-label="Save product">
+                        <i class="fas fa-save mr-2"></i>Save Product
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container-fluid px-3 px-lg-4 py-3 py-lg-4">
+<div class="container-fluid px-3 px-lg-4 py-3 py-lg-4">
         <div id="alert-messages">
                         <?php if(isset($success)): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -626,9 +60,39 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                         <?php endif; ?>
                     </div>
 
-                    <form id="productForm" class="create-product-form" action="<?php echo BASE_URL; ?>?controller=product&action=create" method="POST" enctype="multipart/form-data" novalidate aria-label="Add product form">
-                        <div class="row" style="row-gap: 12px;">
-                            <div class="col-12 col-md-6 col-lg-4">
+                    
+        <div class="row g-3 mb-3 pc-kpi-row">
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s1"><div class="icon"><i class="bi bi-box-seam"></i></div><div><div class="label">Product Status</div><div class="value" id="pcKpiStatus">Active</div></div></div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s2"><div class="icon"><i class="bi bi-upc"></i></div><div><div class="label">SKU</div><div class="value" id="pcKpiSku">—</div></div></div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s3"><div class="icon"><i class="bi bi-stack"></i></div><div><div class="label">Inventory</div><div class="value" id="pcKpiStock">0</div></div></div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s4"><div class="icon"><i class="bi bi-currency-exchange"></i></div><div><div class="label">Selling Price</div><div class="value" id="pcKpiPrice">CHF 0.00</div></div></div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s5"><div class="icon"><i class="bi bi-graph-up-arrow"></i></div><div><div class="label">Profit Margin</div><div class="value" id="pcKpiMargin">0%</div></div></div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s6"><div class="icon"><i class="bi bi-image"></i></div><div><div class="label">Images</div><div class="value" id="pcKpiImages">0</div></div></div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s7"><div class="icon"><i class="bi bi-tags"></i></div><div><div class="label">Category</div><div class="value" id="pcKpiCategory">—</div></div></div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+                <div class="pc-stat s8"><div class="icon"><i class="bi bi-search"></i></div><div><div class="label">SEO Score</div><div class="value" id="pcKpiSeo">0</div></div></div>
+            </div>
+        </div>
+<form id="productForm" class="create-product-form" action="<?php echo BASE_URL; ?>?controller=product&action=create" method="POST" enctype="multipart/form-data" novalidate aria-label="Add product form">
+                        <div class="row g-2 align-items-start" style="row-gap: 8px;">
+                            <div class="col-12 col-xl-9 pc-main-wrap">
+                            <div class="row g-2 pc-form-sections align-items-start">
+
+                            <div class="col-12 col-md-6 col-lg-4 pc-col-left">
                                 <div class="admin-card">
                                     <div class="admin-card__body">
                                         <h2 class="pm-section-title">Basic Info</h2>
@@ -643,7 +107,14 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                             <?php endif; ?>
                                         </div>
 
-                                        <div class="form-group">
+                                        <div class="accordion pc-accordion mb-2" id="pcAdvAcc">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="pcDescHead">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pcDescBody" aria-expanded="false" aria-controls="pcDescBody">Description / SEO</button>
+    </h2>
+    <div id="pcDescBody" class="accordion-collapse collapse" aria-labelledby="pcDescHead" data-bs-parent="#pcAdvAcc">
+      <div class="accordion-body">
+<div class="form-group">
                                             <label for="description" class="form-label">Description</label>
                                             <textarea class="form-control <?php echo isset($errors['description']) ? 'is-invalid' : ''; ?>" id="description" name="description" rows="3" aria-label="Product description"><?php echo $data['description'] ?? ''; ?></textarea>
                                             <?php if(isset($errors['description'])): ?>
@@ -651,7 +122,11 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                             <?php endif; ?>
                                         </div>
 
-                                        <div class="form-group">
+                                              </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
                                             <label for="category_id" class="form-label">Category<span class="required-asterisk">*</span></label>
                                             <div class="pm-select-add">
                                                 <select class="form-select select2 flex-grow-1 <?php echo isset($errors['category_id']) ? 'is-invalid' : ''; ?>" id="category_id" name="category_id" required style="min-width: 0;" aria-required="true" aria-label="Category">
@@ -713,15 +188,15 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-6 col-lg-4">
+                            <div class="col-12 col-md-6 col-lg-4 pc-col-center">
                                 <div class="admin-card">
                                     <div class="admin-card__body">
-                                        <h2 class="pm-section-title">Pricing & Tax</h2>
+                                        <h2 class="pm-section-title">Pricing & Inventory</h2>
                                         <p class="pm-section-subtitle">Set your selling price.</p>
                                         <div class="pm-divider"></div>
 
-                                        <div class="row" style="row-gap: 12px;">
-                                            <div class="col-12 col-md-4">
+                                        <div class="row g-2">
+                                            <div class="col-6">
                                                 <div class="form-group">
                                                     <label for="price" class="form-label">Buying Price</label>
                                                     <div class="input-group">
@@ -734,7 +209,7 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                                 </div>
                                             </div>
 
-                                            <div class="col-12 col-md-4">
+                                            <div class="col-6">
                                                 <div class="form-group">
                                                     <div class="d-flex align-items-center justify-content-between" style="gap: 12px; margin-bottom: 4px;">
                                                         <label for="sale_price" class="form-label" style="margin-bottom: 0;">Including Tax Price</label>
@@ -753,7 +228,7 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                                 </div>
                                             </div>
 
-                                            <div class="col-12 col-md-4">
+                                            <div class="col-6">
                                                 <div class="form-group">
                                                     <label for="price2" class="form-label">Sales Price<span class="required-asterisk">*</span></label>
                                                     <div class="input-group">
@@ -767,7 +242,7 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                                 </div>
                                             </div>
 
-                                            <div class="col-12 col-md-4">
+                                            <div class="col-6">
                                                 <div class="form-group">
                                                     <label for="price3" class="form-label">Wholesale Price</label>
                                                     <div class="input-group">
@@ -780,7 +255,7 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                                 </div>
                                             </div>
 
-                                            <div class="col-12 col-md-4">
+                                            <div class="col-6">
                                                 <div class="form-group">
                                                     <label for="customs_charge" class="form-label">Customs Charge</label>
                                                     <div class="input-group">
@@ -793,7 +268,7 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                                 </div>
                                             </div>
 
-                                            <div class="col-12 col-md-4">
+                                            <div class="col-6">
                                                 <div class="form-group">
                                                     <label for="transport_charge" class="form-label">Transport Charge</label>
                                                     <div class="input-group">
@@ -845,7 +320,7 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                         </div>
 
                                         <div class="pm-divider"></div>
-                                        <div class="row" style="row-gap: 12px;">
+                                        <div class="row" class="g-2">
                                             <div class="col-6">
                                                 <div class="form-text" style="margin: 0; font-weight: 700; color: var(--text-color);">Profit</div>
                                                 <div id="kpiProfit" style="font-weight: 800; font-variant-numeric: tabular-nums;">CHF 0.00</div>
@@ -859,13 +334,14 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                 </div>
                             </div>
 
-                            <div class="col-12 col-lg-4">
-                                <div class="admin-card">
+                            <div class="col-12 col-lg-4 pc-col-right">
+                                <div class="pc-sticky-panel">
+                                <div class="admin-card mb-2">
                                     <div class="admin-card__body">
-                                        <div class="d-flex align-items-center justify-content-between" style="gap: 10px;">
+                                        <div class="d-flex align-items-center justify-content-between" style="gap: 8px;">
                                             <div>
-                                                <h2 class="pm-section-title" style="margin-bottom: 0;">Inventory & Media</h2>
-                                                <p class="pm-section-subtitle" style="margin-bottom: 0;">Stock, status, image.</p>
+                                                <h2 class="pm-section-title" style="margin-bottom: 0;">Image & Status</h2>
+                                                <p class="pm-section-subtitle" style="margin-bottom: 0;">Upload and publish.</p>
                                             </div>
                                             <span id="statusPill" class="pm-pill" aria-live="polite" style="padding: 6px 10px;">
                                                 <span class="status-dot" style="width: 8px; height: 8px; border-radius: 999px; background: #10b981;"></span>
@@ -951,126 +427,196 @@ html[data-theme="light"] .select2-container--default .select2-search--dropdown .
                                             </div>
                                         </div>
 
-                                        <div class="pm-divider"></div>
-                                        <div style="margin-top: 10px;">
-                                            <div class="row" style="row-gap: 12px;">
-                                                <div class="col-12 col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="batch_number" class="form-label">Batch</label>
-                                                        <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo $data['batch_number'] ?? ''; ?>" maxlength="100" aria-label="Batch number">
-                                                        <?php if(isset($errors['batch_number'])): ?>
-                                                            <div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div>
-                                                        <?php endif; ?>
-                                                    </div>
+                                        <div class="form-group" style="margin-bottom: 8px;">
+                                            <label class="form-label">Image</label>
+                                            <input type="file" class="d-none <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" id="image" name="image" accept="image/*" aria-label="Product image">
+                                            <div id="mediaDrop" class="pm-media-drop d-flex" tabindex="0" role="button" aria-label="Upload product image" style="gap: 12px; align-items: flex-start;">
+                                                <div class="pm-media-preview" aria-hidden="true">
+                                                    <img id="imagePreview" src="" alt="" style="display:none;">
+                                                    <i id="imagePreviewIcon" class="fas fa-image" style="color: rgba(100,116,139,0.9); font-size: 22px;"></i>
                                                 </div>
-                                                <div class="col-12 col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="supplier" class="form-label">Supplier</label>
-                                                        <div class="pm-select-add">
-                                                            <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;" aria-label="Supplier">
-                                                                <option value="">Select Supplier</option>
-                                                                <?php if(!empty($suppliers)): ?>
-                                                                    <?php foreach($suppliers as $supplier): ?>
-                                                                        <?php 
-                                                                            $value = htmlspecialchars($supplier['name']);
-                                                                            $selected = (isset($data['supplier']) && $data['supplier'] === $supplier['name']) ? 'selected' : '';
-                                                                        ?>
-                                                                        <option value="<?php echo $value; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($supplier['name']); ?></option>
-                                                                    <?php endforeach; ?>
-                                                                <?php endif; ?>
-                                                            </select>
-                                                            <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="btn btn-outline-primary" type="button" aria-label="Add new supplier">
-                                                                <i class="fas fa-plus"></i>
-                                                            </a>
-                                                            <?php if(isset($errors['supplier'])): ?>
-                                                                <div class="invalid-feedback d-block w-100"><?php echo $errors['supplier']; ?></div>
-                                                            <?php endif; ?>
-                                                        </div>
+                                                <div style="flex: 1 1 auto; min-width: 0;">
+                                                    <div class="pm-media-actions" style="margin-top: 0;">
+                                                        <button class="btn admin-btn-soft" type="button" id="chooseImageBtn" style="min-height: 40px;">
+                                                            <i class="fas fa-upload mr-1"></i>Upload
+                                                        </button>
+                                                        <button class="btn btn-outline-secondary" type="button" id="removeImageBtn" style="border-radius: 10px; min-height: 40px;" disabled>
+                                                            <i class="fas fa-times mr-1"></i>Remove
+                                                        </button>
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="country_id" class="form-label">Country</label>
-                                                <div class="pm-select-add">
-                                                    <select class="form-select select2 flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" style="min-width: 0;" aria-label="Country of origin">
-                                                        <option value="">Select Country</option>
-                                                        <?php 
-                                                        $countryModel = new Country();
-                                                        $countries = $countryModel->getActiveCountries();
-                                                        if(!empty($countries)) :
-                                                            foreach($countries as $country) :
-                                                                $selected = (isset($data['country_id']) && $data['country_id'] == $country['id']) ? 'selected' : '';
-                                                                $countryCode = strtolower(substr($country['name'], 0, 2));
-                                                                $flagImage = !empty($country['flag_image']) ? 
-                                                                    BASE_URL . 'uploads/flags/' . $country['flag_image'] : 
-                                                                    'https://flagcdn.com/24x18/' . $countryCode . '.png';
-                                                        ?>
-                                                            <option value="<?php echo $country['id']; ?>" data-flag-image="<?php echo $flagImage; ?>" <?php echo $selected; ?>><?php echo $country['name']; ?></option>
-                                                        <?php
-                                                            endforeach;
-                                                        endif;
-                                                        ?>
-                                                    </select>
-                                                    <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button" aria-label="Add new country">
-                                                        <i class="fas fa-plus"></i>
-                                                    </a>
-                                                    <?php if(isset($errors['country_id'])): ?>
-                                                        <div class="invalid-feedback d-block w-100"><?php echo $errors['country_id']; ?></div>
+                                                    <div class="form-text" style="font-size: 12px;">Square image works best.</div>
+                                                    <?php if(isset($errors['image'])): ?>
+                                                        <div class="invalid-feedback d-block"><?php echo $errors['image']; ?></div>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
-
-                                            <div class="row" style="row-gap: 12px;">
-                                                <div class="col-12 col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="hsn_code" class="form-label">HSS Code</label>
-                                                        <input type="text" class="form-control <?php echo isset($errors['hsn_code']) ? 'is-invalid' : ''; ?>" id="hsn_code" name="hsn_code" value="<?php echo $data['hsn_code'] ?? ''; ?>" maxlength="50" aria-label="HSN code">
-                                                        <?php if(isset($errors['hsn_code'])): ?>
-                                                            <div class="invalid-feedback"><?php echo $errors['hsn_code']; ?></div>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group" style="margin-bottom: 0;">
-                                                <label class="form-label">Image</label>
-                                                <input type="file" class="d-none <?php echo isset($errors['image']) ? 'is-invalid' : ''; ?>" id="image" name="image" accept="image/*" aria-label="Product image">
-                                                <div class="d-flex" style="gap: 12px; align-items: flex-start;">
-                                                    <div class="pm-media-preview" aria-hidden="true">
-                                                        <img id="imagePreview" src="" alt="" style="display:none;">
-                                                        <i id="imagePreviewIcon" class="fas fa-image" style="color: rgba(100,116,139,0.9); font-size: 22px;"></i>
-                                                    </div>
-                                                    <div style="flex: 1 1 auto; min-width: 0;">
-                                                        <div class="pm-media-actions" style="margin-top: 0;">
-                                                            <button class="btn admin-btn-soft" type="button" id="chooseImageBtn" style="min-height: 40px;">
-                                                                <i class="fas fa-upload mr-1"></i>Upload
-                                                            </button>
-                                                            <button class="btn btn-outline-secondary" type="button" id="removeImageBtn" style="border-radius: 10px; min-height: 40px;" disabled>
-                                                                <i class="fas fa-times mr-1"></i>Remove
-                                                            </button>
-                                                        </div>
-                                                        <div class="form-text" style="font-size: 12px;">Square image works best.</div>
-                                                        <?php if(isset($errors['image'])): ?>
-                                                            <div class="invalid-feedback d-block"><?php echo $errors['image']; ?></div>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-
                                         </div>
+
+                                        <div class="pc-side-mini">
+                                          <div class="pc-sum-row"><span>Completion</span><span id="pcCompletePct">0%</span></div>
+                                          <div class="pc-sum-row"><span>SEO Score</span><span id="pcKpiSeoMini">0</span></div>
+                                          <div class="pc-seo-meter mt-1"><div class="pc-seo-bar" id="pcSeoBar" style="width:0%"></div></div>
+                                          <div class="pc-side-actions">
+                                            <button type="button" class="btn admin-btn-primary text-white" onclick="document.getElementById('saveHeaderBtn')?.click()">Save Product</button>
+                                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('saveAddAnotherBtn')?.click()">Save &amp; New</button>
+                                            <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-outline-secondary">Cancel</a>
+                                          </div>
+                                        </div>
+
+                                        <div class="accordion pc-accordion mt-2" id="pcMoreAcc">
+                                          <div class="accordion-item">
+                                            <h2 class="accordion-header" id="pcMoreHead">
+                                              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pcMoreBody" aria-expanded="false">Advanced / Specs</button>
+                                            </h2>
+                                            <div id="pcMoreBody" class="accordion-collapse collapse" data-bs-parent="#pcMoreAcc">
+                                              <div class="accordion-body">
+                                                <div class="row g-2">
+                                                  <div class="col-6">
+                                                    <div class="form-group">
+                                                      <label for="batch_number" class="form-label">Batch</label>
+                                                      <input type="text" class="form-control <?php echo isset($errors['batch_number']) ? 'is-invalid' : ''; ?>" id="batch_number" name="batch_number" value="<?php echo $data['batch_number'] ?? ''; ?>" maxlength="100" aria-label="Batch number">
+                                                      <?php if(isset($errors['batch_number'])): ?><div class="invalid-feedback"><?php echo $errors['batch_number']; ?></div><?php endif; ?>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-6">
+                                                    <div class="form-group">
+                                                      <label for="supplier" class="form-label">Supplier</label>
+                                                      <div class="pm-select-add">
+                                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['supplier']) ? 'is-invalid' : ''; ?>" id="supplier" name="supplier" style="min-width: 0;" aria-label="Supplier">
+                                                          <option value="">Select Supplier</option>
+                                                          <?php if(!empty($suppliers)): foreach($suppliers as $supplier):
+                                                            $value = htmlspecialchars($supplier['name']);
+                                                            $selected = (isset($data['supplier']) && $data['supplier'] === $supplier['name']) ? 'selected' : '';
+                                                          ?>
+                                                            <option value="<?php echo $value; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars($supplier['name']); ?></option>
+                                                          <?php endforeach; endif; ?>
+                                                        </select>
+                                                        <a href="<?php echo BASE_URL; ?>?controller=supplier&action=index" class="btn btn-outline-primary" type="button" aria-label="Add new supplier"><i class="fas fa-plus"></i></a>
+                                                        <?php if(isset($errors['supplier'])): ?><div class="invalid-feedback d-block w-100"><?php echo $errors['supplier']; ?></div><?php endif; ?>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-12">
+                                                    <div class="form-group">
+                                                      <label for="country_id" class="form-label">Country</label>
+                                                      <div class="pm-select-add">
+                                                        <select class="form-select select2 flex-grow-1 <?php echo isset($errors['country_id']) ? 'is-invalid' : ''; ?>" id="country_id" name="country_id" style="min-width: 0;" aria-label="Country of origin">
+                                                          <option value="">Select Country</option>
+                                                          <?php
+                                                          $countryModel = new Country();
+                                                          $countries = $countryModel->getActiveCountries();
+                                                          if(!empty($countries)):
+                                                            foreach($countries as $country):
+                                                              $selected = (isset($data['country_id']) && $data['country_id'] == $country['id']) ? 'selected' : '';
+                                                              $countryCode = strtolower(substr($country['name'], 0, 2));
+                                                              $flagImage = !empty($country['flag_image']) ? BASE_URL . 'uploads/flags/' . $country['flag_image'] : 'https://flagcdn.com/24x18/' . $countryCode . '.png';
+                                                          ?>
+                                                            <option value="<?php echo $country['id']; ?>" data-flag-image="<?php echo $flagImage; ?>" <?php echo $selected; ?>><?php echo $country['name']; ?></option>
+                                                          <?php endforeach; endif; ?>
+                                                        </select>
+                                                        <a href="<?php echo BASE_URL; ?>?controller=country&action=adminIndex" class="btn btn-outline-primary" type="button" aria-label="Add new country"><i class="fas fa-plus"></i></a>
+                                                        <?php if(isset($errors['country_id'])): ?><div class="invalid-feedback d-block w-100"><?php echo $errors['country_id']; ?></div><?php endif; ?>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-6">
+                                                    <div class="form-group mb-0">
+                                                      <label for="hsn_code" class="form-label">HSS Code</label>
+                                                      <input type="text" class="form-control <?php echo isset($errors['hsn_code']) ? 'is-invalid' : ''; ?>" id="hsn_code" name="hsn_code" value="<?php echo $data['hsn_code'] ?? ''; ?>" maxlength="50" aria-label="HSN code">
+                                                      <?php if(isset($errors['hsn_code'])): ?><div class="invalid-feedback"><?php echo $errors['hsn_code']; ?></div><?php endif; ?>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="accordion-item">
+                                            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pcVarBody" aria-expanded="false">Variants</button></h2>
+                                            <div id="pcVarBody" class="accordion-collapse collapse" data-bs-parent="#pcMoreAcc"><div class="accordion-body"><p class="form-text mb-0">Use product edit after save for variant stock (existing backend).</p></div></div>
+                                          </div>
+                                        </div>
+
                                     </div>
                                 </div>
+                                </div><!-- /.pc-sticky-panel -->
                             </div>
                         
+                        
+                            </div><!-- /.pc-form-sections -->
+                            </div><!-- /.col-xl-9 -->
+
+                            <div class="col-12 col-xl-3">
+                              <div class="accordion d-xl-none mb-3" id="pcSideAccordion">
+                                <div class="accordion-item">
+                                  <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pcAccPreview">Product Preview</button></h2>
+                                  <div id="pcAccPreview" class="accordion-collapse collapse show" data-bs-parent="#pcSideAccordion"><div class="accordion-body" id="pcSidebarMobile"></div></div>
+                                </div>
+                              </div>
+                              <aside class="pc-sidebar pc-legacy-sidebar d-none" id="pcSidebar" aria-label="Product preview sidebar">
+                                <div class="admin-card pc-side-card mb-3">
+                                  <div class="admin-card__body">
+                                    <h3 class="pm-section-title">Live Preview</h3>
+                                    <div class="pc-preview-box">
+                                      <div class="pc-preview-img" id="pcSideImgWrap"><i class="bi bi-image" id="pcSideImgIcon"></i><img id="pcSideImg" alt="" style="display:none;"></div>
+                                      <div class="pc-preview-name" id="pcSideName">Untitled product</div>
+                                      <div class="pc-preview-meta text-muted small" id="pcSideMeta">SKU · Category</div>
+                                      <div class="pc-preview-price" id="pcSidePrice">CHF 0.00</div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="admin-card pc-side-card mb-3">
+                                  <div class="admin-card__body">
+                                    <h3 class="pm-section-title">Inventory Summary</h3>
+                                    <div class="pc-sum-row"><span>Stock</span><span id="pcSideStock">0</span></div>
+                                    <div class="pc-sum-row"><span>Status</span><span id="pcSideStatus">Active</span></div>
+                                    <div class="pc-sum-row"><span>Unit</span><span id="pcSideUnit">—</span></div>
+                                  </div>
+                                </div>
+                                <div class="admin-card pc-side-card mb-3">
+                                  <div class="admin-card__body">
+                                    <h3 class="pm-section-title">Price Summary</h3>
+                                    <div class="pc-sum-row"><span>Buying</span><span id="pcSideBuy">CHF 0.00</span></div>
+                                    <div class="pc-sum-row"><span>Selling</span><span id="pcSideSell">CHF 0.00</span></div>
+                                    <div class="pc-sum-row"><span>Profit</span><span id="pcSideProfit">CHF 0.00</span></div>
+                                    <div class="pc-sum-row"><span>Margin</span><span id="pcSideMargin">0%</span></div>
+                                  </div>
+                                </div>
+                                <div class="admin-card pc-side-card mb-3">
+                                  <div class="admin-card__body">
+                                    <h3 class="pm-section-title">SEO Score</h3>
+                                    <div class="pc-seo-meter"><div class="pc-seo-bar" id="pcSeoBarLegacy" style="width:0%"></div></div>
+                                    <div class="small text-muted mt-2"><span id="pcSeoLabel">Add name &amp; description to improve score</span></div>
+                                  </div>
+                                </div>
+                                <div class="admin-card pc-side-card mb-3">
+                                  <div class="admin-card__body">
+                                    <h3 class="pm-section-title">Publishing</h3>
+                                    <div class="pc-sum-row"><span>Store</span><span class="badge bg-success">Ready</span></div>
+                                    <div class="pc-sum-row"><span>POS</span><span class="badge bg-secondary">Enabled</span></div>
+                                    <div class="pc-sum-row"><span>Completion</span><span id="pcCompletePctLegacy">0%</span></div>
+                                    <ul class="pc-checklist small mt-2 mb-0" id="pcChecklistLegacy">
+                                      <li data-check="name">Product name</li>
+                                      <li data-check="category">Category</li>
+                                      <li data-check="price">Sales price</li>
+                                      <li data-check="image">Image</li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </aside>
+                            </div>
+                        </div><!-- /.row outer -->
+
                         <div class="pm-actionbar">
                             <div class="container-fluid px-3 px-lg-4">
                                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center" style="gap: 12px;">
                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="btn btn-link order-sm-1" aria-label="Cancel and go back">
                                         Cancel
                                     </a>
-                                    <div class="d-flex flex-column flex-sm-row order-sm-2" style="gap: 10px;">
-                                        <button type="submit" class="btn admin-btn-primary text-white" id="submitBtn" aria-label="Create product" style="padding: 0 14px;">
+                                    <div class="d-flex flex-column flex-sm-row order-sm-2 flex-wrap" style="gap: 10px;">
+                                        <button type="button" class="btn btn-outline-secondary" id="pcDraftBar" style="border-radius:12px;">Save Draft</button>
+                                        <button type="button" class="btn btn-outline-secondary" id="previewBtnBar" style="border-radius:12px;" onclick="document.getElementById('previewBtn')?.click()">Preview</button>
+                                        <button type="reset" class="btn btn-outline-secondary" style="border-radius:12px;">Reset</button>
+                                        <button type="submit" class="btn admin-btn-primary text-white" id="submitBtn" aria-label="Create product" style="padding: 0 14px; border-radius:12px;">
                                             <i class="fas fa-save mr-2"></i>Save Product
                                         </button>
                                     </div>
@@ -2195,6 +1741,122 @@ function showAlert(type, message) {
         $('.alert').alert('close');
     }, 5000);
 }
+</script>
+
+
+<script>
+(function(){
+  function toast(msg, type){
+    var host = document.getElementById('pcToastHost');
+    if (!host) return;
+    var el = document.createElement('div');
+    el.className = 'toast align-items-center text-bg-' + (type==='error'?'danger':type) + ' border-0 show';
+    el.setAttribute('role','alert');
+    el.innerHTML = '<div class="d-flex"><div class="toast-body">'+msg+'</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+    host.appendChild(el);
+    setTimeout(function(){ el.remove(); }, 3000);
+  }
+  function txt(sel){ var el=document.getElementById(sel); return el ? (el.value||'').trim() : ''; }
+  function set(id, v){ var el=document.getElementById(id); if(el) el.textContent = v; }
+  function sync(){
+    var name = txt('name') || 'Untitled product';
+    var sku = txt('sku') || '—';
+    var stock = txt('stock_quantity') || '0';
+    var price2 = txt('price2') || '0';
+    var price = txt('price') || '0';
+    var cat = document.getElementById('category_id');
+    var catText = (cat && cat.selectedIndex>0) ? cat.options[cat.selectedIndex].text : '—';
+    var unit = document.getElementById('unit_id');
+    var unitText = (unit && unit.selectedIndex>0) ? unit.options[unit.selectedIndex].text : '—';
+    var status = document.getElementById('status');
+    var statusText = (status && status.value==='inactive') ? 'Inactive' : 'Active';
+    var margin = document.getElementById('kpiMargin');
+    var profit = document.getElementById('kpiProfit');
+    set('pcKpiStatus', statusText);
+    set('pcKpiSku', sku);
+    set('pcKpiStock', stock);
+    set('pcKpiPrice', 'CHF ' + (parseFloat(price2)||0).toFixed(2));
+    if (margin) set('pcKpiMargin', margin.textContent);
+    if (profit) set('pcSideProfit', profit.textContent);
+    set('pcKpiCategory', catText);
+    set('pcSideName', name);
+    set('pcSideMeta', sku + ' · ' + catText);
+    set('pcSidePrice', 'CHF ' + (parseFloat(price2)||0).toFixed(2));
+    set('pcSideStock', stock);
+    set('pcSideStatus', statusText);
+    set('pcSideUnit', unitText);
+    set('pcSideBuy', 'CHF ' + (parseFloat(price)||0).toFixed(2));
+    set('pcSideSell', 'CHF ' + (parseFloat(price2)||0).toFixed(2));
+    if (margin) set('pcSideMargin', margin.textContent);
+    var desc = txt('description');
+    var score = 0;
+    if (name && name!=='Untitled product') score += 30;
+    if (desc.length > 20) score += 25;
+    if (sku && sku!=='—') score += 15;
+    if (catText!=='—') score += 15;
+    var img = document.getElementById('image');
+    var hasImg = img && img.files && img.files.length;
+    var prev = document.getElementById('imagePreview');
+    if (hasImg || (prev && prev.style.display!=='none' && prev.src)) score += 15;
+    set('pcKpiSeo', String(score));
+    set('pcKpiSeoMini', String(score));
+    set('pcKpiImages', (hasImg || (prev && prev.style.display!=='none' && prev.src)) ? '1' : '0');
+    var bar = document.getElementById('pcSeoBar');
+    if (bar) bar.style.width = score + '%';
+    set('pcSeoLabel', score>=80 ? 'Strong SEO readiness' : (score>=50 ? 'Good — add more detail' : 'Add name & description to improve score'));
+    var checks = { name: !!(txt('name')), category: catText!=='—', price: !!(txt('price2')), image: !!(hasImg || (prev && prev.style.display!=='none' && prev.src)) };
+    var done = 0; Object.keys(checks).forEach(function(k){ if(checks[k]) done++; });
+    set('pcCompletePct', Math.round((done/4)*100) + '%');
+    document.querySelectorAll('#pcChecklistLegacy [data-check], #pcChecklist [data-check]').forEach(function(li){
+      var ok = checks[li.getAttribute('data-check')];
+      li.classList.toggle('is-done', !!ok);
+    });
+    var side = document.getElementById('pcSidebar');
+    var mob = document.getElementById('pcSidebarMobile');
+    if (side && mob) mob.innerHTML = side.innerHTML;
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    ['name','sku','stock_quantity','price','price2','sale_price','description','category_id','unit_id','status','statusToggle'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', sync);
+      el.addEventListener('change', sync);
+    });
+    var img = document.getElementById('image');
+    if (img) img.addEventListener('change', function(){
+      var sideImg = document.getElementById('pcSideImg');
+      var sideIcon = document.getElementById('pcSideImgIcon');
+      if (img.files && img.files[0] && sideImg) {
+        sideImg.src = URL.createObjectURL(img.files[0]);
+        sideImg.style.display = '';
+        if (sideIcon) sideIcon.style.display = 'none';
+      }
+      sync();
+    });
+    var rem = document.getElementById('removeImageBtn');
+    if (rem) rem.addEventListener('click', function(){
+      var sideImg = document.getElementById('pcSideImg');
+      var sideIcon = document.getElementById('pcSideImgIcon');
+      if (sideImg) { sideImg.src=''; sideImg.style.display='none'; }
+      if (sideIcon) sideIcon.style.display='';
+      setTimeout(sync, 50);
+    });
+    if (typeof updatePricingKpis === 'function') {
+      var _u = updatePricingKpis;
+      updatePricingKpis = function(){ _u(); sync(); };
+    }
+    document.getElementById('pcSaveDraftBtn')?.addEventListener('click', function(){ toast('Draft saved locally (UI only). Use Save Product to publish.','warning'); });
+    document.getElementById('pcDraftBar')?.addEventListener('click', function(){ toast('Draft saved locally (UI only). Use Save Product to publish.','warning'); });
+    document.getElementById('pcDuplicateBtn')?.addEventListener('click', function(){ toast('Duplicate is UI-only on create. Save first, then duplicate from the product list.','info'); });
+    // Observe margin/profit text changes
+    var mo = new MutationObserver(sync);
+    ['kpiMargin','kpiProfit','statusPill'].forEach(function(id){
+      var n = document.getElementById(id);
+      if (n) mo.observe(n, { childList:true, subtree:true, characterData:true });
+    });
+    sync();
+  });
+})();
 </script>
 
 <?php require_once APP_PATH . 'views/admin/layouts/footer.php'; ?>
