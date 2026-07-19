@@ -49,7 +49,9 @@ try {
     }
     [data-theme="dark"] footer.premium-footer,
     body.dark-mode footer.premium-footer,
-    html[data-theme="dark"] footer.premium-footer {
+    html[data-theme="dark"] footer.premium-footer,
+    [data-bs-theme="dark"] footer.premium-footer,
+    html[data-bs-theme="dark"] footer.premium-footer {
         --ft-heading: <?php echo htmlspecialchars($__footerHeadingColor); ?>;
         --ft-text: <?php echo htmlspecialchars($__footerTextColor); ?>;
     }
@@ -60,16 +62,16 @@ try {
     footer.premium-footer .footer-bottom .copyright-text {
         color: inherit;
     }
-    [data-theme="dark"] footer.premium-footer .copyright-text,
-    body.dark-mode footer.premium-footer .copyright-text {
-        color: <?php echo htmlspecialchars($__footerBottomTextColor); ?> !important;
-    }
     [data-theme="dark"] footer.premium-footer .footer-bottom-links a,
-    body.dark-mode footer.premium-footer .footer-bottom-links a {
+    body.dark-mode footer.premium-footer .footer-bottom-links a,
+    [data-bs-theme="dark"] footer.premium-footer .footer-bottom-links a,
+    html[data-bs-theme="dark"] footer.premium-footer .footer-bottom-links a {
         color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;
     }
     [data-theme="dark"] footer.premium-footer .footer-bottom-links a:hover,
-    body.dark-mode footer.premium-footer .footer-bottom-links a:hover {
+    body.dark-mode footer.premium-footer .footer-bottom-links a:hover,
+    [data-bs-theme="dark"] footer.premium-footer .footer-bottom-links a:hover,
+    html[data-bs-theme="dark"] footer.premium-footer .footer-bottom-links a:hover {
         color: <?php echo htmlspecialchars($__footerBottomLinkHoverColor); ?> !important;
     }
 </style>
@@ -127,22 +129,28 @@ try {
 
 <footer class="full-width-section premium-footer" role="contentinfo">
     <div class="footer-main">
-        <div class="container-fluid px-3 px-lg-4 max-width-1400">
+        <div class="container-fluid px-3 px-lg-4">
+            <div class="container-xl footer-container px-0">
 
-            <!-- 5 equal columns -->
-            <div class="row g-4 footer-row">
-                <!-- About -->
-                <div class="col-12 col-md-6 col-xl">
-                    <div class="footer-widget">
-                        <h4><?php echo htmlspecialchars($__footerHeadingAbout); ?></h4>
+            <div class="row gx-4 gx-xl-5 gy-4 footer-row align-items-start">
+                <!-- About Store + Newsletter -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="footer-widget footer-card footer-card--about">
                         <a class="footer-brand-logo" href="<?php echo BASE_URL; ?>" aria-label="<?php echo htmlspecialchars($__siteName); ?>">
                             <?php if (!empty($__siteLogo)): ?>
-                                <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($__siteLogo); ?>" alt="<?php echo htmlspecialchars($__siteName); ?>" loading="lazy" width="140" height="44">
+                                <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($__siteLogo); ?>" alt="<?php echo htmlspecialchars($__siteName); ?>" loading="lazy" width="140" height="40">
                             <?php else: ?>
                                 <span class="brand-text"><?php echo htmlspecialchars($__siteName); ?></span>
                             <?php endif; ?>
                         </a>
+                        <h4><?php echo htmlspecialchars($__footerHeadingAbout); ?></h4>
                         <p class="about-content"><?php echo htmlspecialchars($shortAbout); ?></p>
+                        <div class="footer-trust-mini" aria-label="Trust badges">
+                            <span><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> SSL</span>
+                            <span><i class="bi bi-truck" aria-hidden="true"></i> Fast</span>
+                            <span><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Returns</span>
+                            <span><i class="bi bi-headset" aria-hidden="true"></i> Support</span>
+                        </div>
                         <div class="social-links" aria-label="Social media">
                             <a href="#" aria-label="Facebook"><i class="bi bi-facebook" aria-hidden="true"></i></a>
                             <a href="#" aria-label="Instagram"><i class="bi bi-instagram" aria-hidden="true"></i></a>
@@ -152,11 +160,31 @@ try {
                             <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x" aria-hidden="true"></i></a>
                             <a href="#" aria-label="TikTok"><i class="bi bi-tiktok" aria-hidden="true"></i></a>
                         </div>
+
+                        <!-- Newsletter directly under About -->
+                        <div class="footer-newsletter-bar">
+                            <div class="footer-newsletter-inner">
+                                <div class="footer-newsletter-copy">
+                                    <h4><?php echo htmlspecialchars($__footerHeadingNewsletter); ?></h4>
+                                    <p><?php echo htmlspecialchars($newsletterDesc); ?></p>
+                                </div>
+                                <form class="newsletter-form" id="newsletter-form" method="post" action="<?php echo BASE_URL; ?>?controller=newsletter&action=subscribe">
+                                    <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+                                    <input type="email" name="email" id="newsletter-email" placeholder="Your email" required autocomplete="email" aria-label="Email address for newsletter">
+                                    <button type="submit" aria-label="Subscribe to newsletter">
+                                        <i class="bi bi-send-fill btn-icon" aria-hidden="true"></i>
+                                        <span class="btn-spinner spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span class="btn-label">Join</span>
+                                    </button>
+                                </form>
+                                <div id="newsletter-result" aria-live="polite"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Customer Service -->
-                <div class="col-12 col-md-6 col-xl">
+                <div class="col-12 col-md-6 col-xl-2">
                     <div class="footer-widget">
                         <h4>Customer Service</h4>
                         <ul class="footer-links">
@@ -170,7 +198,7 @@ try {
                 </div>
 
                 <!-- Company -->
-                <div class="col-12 col-md-6 col-xl">
+                <div class="col-12 col-md-6 col-xl-2">
                     <div class="footer-widget">
                         <h4>Company</h4>
                         <ul class="footer-links">
@@ -184,7 +212,7 @@ try {
                 </div>
 
                 <!-- Shop -->
-                <div class="col-12 col-md-6 col-xl">
+                <div class="col-12 col-md-6 col-xl-2">
                     <div class="footer-widget">
                         <h4>Shop</h4>
                         <ul class="footer-links">
@@ -198,91 +226,96 @@ try {
                 </div>
 
                 <!-- Contact -->
-                <div class="col-12 col-md-6 col-xl">
-                    <div class="footer-widget">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="footer-widget footer-card footer-card--contact">
                         <h4><?php echo htmlspecialchars($__footerHeadingContactInfo); ?></h4>
                         <ul class="contact-info">
-                            <li>
+                            <li class="contact-card">
                                 <i class="bi bi-telephone-fill" aria-hidden="true"></i>
-                                <?php if ($ci && !empty($ci['phone'])): ?>
-                                    <a href="tel:<?php echo htmlspecialchars($ci['phone']); ?>"><?php echo htmlspecialchars($ci['phone']); ?></a>
-                                <?php else: ?>
-                                    <span>—</span>
-                                <?php endif; ?>
+                                <div>
+                                    <span class="contact-label">Phone</span>
+                                    <?php if ($ci && !empty($ci['phone'])): ?>
+                                        <a href="tel:<?php echo htmlspecialchars($ci['phone']); ?>"><?php echo htmlspecialchars($ci['phone']); ?></a>
+                                    <?php else: ?>
+                                        <span>—</span>
+                                    <?php endif; ?>
+                                </div>
                             </li>
-                            <li>
+                            <li class="contact-card">
                                 <i class="bi bi-envelope-fill" aria-hidden="true"></i>
-                                <?php if ($ci && !empty($ci['email'])): ?>
-                                    <a href="mailto:<?php echo htmlspecialchars($ci['email']); ?>"><?php echo htmlspecialchars($ci['email']); ?></a>
-                                <?php else: ?>
-                                    <span>—</span>
-                                <?php endif; ?>
+                                <div>
+                                    <span class="contact-label">Email</span>
+                                    <?php if ($ci && !empty($ci['email'])): ?>
+                                        <a href="mailto:<?php echo htmlspecialchars($ci['email']); ?>"><?php echo htmlspecialchars($ci['email']); ?></a>
+                                    <?php else: ?>
+                                        <span>—</span>
+                                    <?php endif; ?>
+                                </div>
                             </li>
-                            <li>
+                            <li class="contact-card">
                                 <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
-                                <span><?php echo $ci && !empty($ci['address']) ? nl2br(htmlspecialchars($ci['address'])) : '—'; ?></span>
+                                <div>
+                                    <span class="contact-label">Location</span>
+                                    <span><?php echo $ci && !empty($ci['address']) ? nl2br(htmlspecialchars($ci['address'])) : '—'; ?></span>
+                                </div>
                             </li>
-                            <li>
+                            <li class="contact-card">
                                 <i class="bi bi-clock-fill" aria-hidden="true"></i>
-                                <span><?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon – Fri: 9:00 – 18:00'; ?></span>
+                                <div>
+                                    <span class="contact-label">Business Hours</span>
+                                    <span><?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon – Fri: 9:00 – 18:00'; ?></span>
+                                </div>
                             </li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Newsletter -->
-            <div class="footer-newsletter-bar">
-                <div class="footer-newsletter-inner">
-                    <div class="footer-newsletter-copy">
-                        <h4><?php echo htmlspecialchars($__footerHeadingNewsletter); ?></h4>
-                        <p><?php echo htmlspecialchars($newsletterDesc); ?></p>
-                    </div>
-                    <form class="newsletter-form" id="newsletter-form" method="post" action="<?php echo BASE_URL; ?>?controller=newsletter&action=subscribe">
-                        <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
-                        <input type="email" name="email" id="newsletter-email" placeholder="Your email address" required autocomplete="email" aria-label="Email address for newsletter">
-                        <button type="submit" aria-label="Subscribe to newsletter">
-                            <i class="bi bi-send-fill btn-icon" aria-hidden="true"></i>
-                            <span class="btn-spinner spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span class="btn-label">Subscribe</span>
-                        </button>
-                    </form>
-                    <div id="newsletter-result" aria-live="polite"></div>
-                </div>
-            </div>
-
             <!-- Payment methods -->
             <div class="footer-pay-strip" aria-label="Payment methods">
-                <span class="footer-pay-badge" title="Visa"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#1A1F71"/><text x="24" y="11.5" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Arial,sans-serif">VISA</text></svg></span>
-                <span class="footer-pay-badge" title="Mastercard"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#111"/><circle cx="19" cy="8" r="5.5" fill="#EB001B"/><circle cx="29" cy="8" r="5.5" fill="#F79E1B"/><path d="M24 3.8a5.5 5.5 0 0 1 0 8.4 5.5 5.5 0 0 1 0-8.4z" fill="#FF5F00"/></svg></span>
-                <span class="footer-pay-badge" title="PayPal"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#003087"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6" font-weight="700" font-family="Arial,sans-serif">PayPal</text></svg></span>
-                <span class="footer-pay-badge" title="Stripe"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#635BFF"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="700" font-family="Arial,sans-serif">Stripe</text></svg></span>
-                <span class="footer-pay-badge" title="Apple Pay"><svg viewBox="0 0 52 16" width="48" height="15" aria-hidden="true"><rect width="52" height="16" rx="3" fill="#111"/><text x="26" y="11" text-anchor="middle" fill="#fff" font-size="5.5" font-weight="600" font-family="Arial,sans-serif">Apple Pay</text></svg></span>
-                <span class="footer-pay-badge" title="Google Pay"><svg viewBox="0 0 52 16" width="48" height="15" aria-hidden="true"><rect width="52" height="16" rx="3" fill="#fff" stroke="#e5e7eb"/><text x="26" y="11" text-anchor="middle" fill="#3c4043" font-size="5.5" font-weight="700" font-family="Arial,sans-serif">G Pay</text></svg></span>
-                <span class="footer-pay-badge" title="American Express"><svg viewBox="0 0 56 16" width="52" height="15" aria-hidden="true"><rect width="56" height="16" rx="3" fill="#2E77BC"/><text x="28" y="11" text-anchor="middle" fill="#fff" font-size="5" font-weight="700" font-family="Arial,sans-serif">AMEX</text></svg></span>
+                <span class="footer-pay-badge" title="Visa"><svg viewBox="0 0 48 16" width="52" height="20" aria-hidden="true"><rect width="48" height="16" rx="2" fill="#1A1F71"/><text x="24" y="11.5" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Arial,sans-serif">VISA</text></svg></span>
+                <span class="footer-pay-badge" title="Mastercard"><svg viewBox="0 0 48 16" width="52" height="20" aria-hidden="true"><rect width="48" height="16" rx="2" fill="#111"/><circle cx="19" cy="8" r="5.5" fill="#EB001B"/><circle cx="29" cy="8" r="5.5" fill="#F79E1B"/><path d="M24 3.8a5.5 5.5 0 0 1 0 8.4 5.5 5.5 0 0 1 0-8.4z" fill="#FF5F00"/></svg></span>
+                <span class="footer-pay-badge" title="PayPal"><svg viewBox="0 0 48 16" width="52" height="20" aria-hidden="true"><rect width="48" height="16" rx="2" fill="#003087"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6" font-weight="700" font-family="Arial,sans-serif">PayPal</text></svg></span>
+                <span class="footer-pay-badge" title="Stripe"><svg viewBox="0 0 48 16" width="52" height="20" aria-hidden="true"><rect width="48" height="16" rx="2" fill="#635BFF"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="700" font-family="Arial,sans-serif">Stripe</text></svg></span>
+                <span class="footer-pay-badge" title="Apple Pay"><svg viewBox="0 0 52 16" width="52" height="20" aria-hidden="true"><rect width="52" height="16" rx="2" fill="#111"/><text x="26" y="11" text-anchor="middle" fill="#fff" font-size="5.5" font-weight="600" font-family="Arial,sans-serif">Apple Pay</text></svg></span>
+                <span class="footer-pay-badge" title="Google Pay"><svg viewBox="0 0 52 16" width="52" height="20" aria-hidden="true"><rect width="52" height="16" rx="2" fill="#fff" stroke="#e5e7eb"/><text x="26" y="11" text-anchor="middle" fill="#3c4043" font-size="5.5" font-weight="700" font-family="Arial,sans-serif">G Pay</text></svg></span>
+                <span class="footer-pay-badge" title="American Express"><svg viewBox="0 0 56 16" width="52" height="20" aria-hidden="true"><rect width="56" height="16" rx="2" fill="#2E77BC"/><text x="28" y="11" text-anchor="middle" fill="#fff" font-size="5" font-weight="700" font-family="Arial,sans-serif">AMEX</text></svg></span>
+            </div>
+
             </div>
         </div>
     </div>
 
     <!-- Copyright bar -->
     <div class="footer-bottom">
-        <div class="container-fluid px-3 px-lg-4 max-width-1400">
-            <div class="footer-bottom-content">
-                <p class="copyright-text">&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($__siteName); ?></p>
-                <div class="footer-bottom-links">
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a>
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a>
-                    <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy">Cookies</a>
-                    <a href="<?php echo BASE_URL; ?>">Sitemap</a>
-                </div>
-                <div class="footer-bottom-meta">
-                    <span>v<?php echo defined('ASSET_VERSION') ? htmlspecialchars((string)ASSET_VERSION) : date('Y'); ?></span>
-                    <span class="powered">Powered by VK NETWORK</span>
+        <div class="container-fluid px-3 px-lg-4">
+            <div class="container-xl footer-container px-0">
+                <div class="footer-credit-bar">
+                    <p class="copyright-text">&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($__siteName); ?>. All Rights Reserved.</p>
+                    <nav class="footer-bottom-links" aria-label="Legal links">
+                        <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a>
+                        <span class="footer-link-sep" aria-hidden="true">&bull;</span>
+                        <a href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a>
+                        <span class="footer-link-sep" aria-hidden="true">&bull;</span>
+                        <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy">Cookies</a>
+                        <span class="footer-link-sep" aria-hidden="true">&bull;</span>
+                        <a href="<?php echo BASE_URL; ?>?controller=page&action=terms">Refund</a>
+                        <span class="footer-link-sep" aria-hidden="true">&bull;</span>
+                        <a href="<?php echo BASE_URL; ?>">Sitemap</a>
+                    </nav>
+                    <p class="footer-dev-credit">
+                        Designed &amp; Developed by
+                        <a href="https://vkitnet.info/" target="_blank" rel="noopener noreferrer">VK Network</a>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </footer>
+
+<button type="button" id="footerBackToTop" aria-label="Back to top" title="Back to top">
+    <i class="bi bi-arrow-up" aria-hidden="true"></i>
+</button>
 
 <style>
     footer.full-width-section { margin-bottom: -2px; }
@@ -363,7 +396,7 @@ try {
     <!-- Quantity Adjuster Script -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Newsletter loading spinner (UI only â€” does not alter subscribe AJAX in main.js)
+        // Newsletter loading spinner (UI only — does not alter subscribe AJAX in main.js)
         if (window.jQuery) {
             jQuery(document).on('submit', '#newsletter-form', function () {
                 jQuery(this).addClass('is-loading');
@@ -372,6 +405,23 @@ try {
                 if (settings && settings.url && String(settings.url).indexOf('newsletter') !== -1) {
                     jQuery('#newsletter-form').removeClass('is-loading');
                 }
+            });
+        }
+
+        // Sticky back-to-top (UI only)
+        var backTop = document.getElementById('footerBackToTop');
+        if (backTop) {
+            var toggleBackTop = function () {
+                if (window.scrollY > 420) {
+                    backTop.classList.add('is-visible');
+                } else {
+                    backTop.classList.remove('is-visible');
+                }
+            };
+            window.addEventListener('scroll', toggleBackTop, { passive: true });
+            toggleBackTop();
+            backTop.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         }
 
