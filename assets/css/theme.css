@@ -621,46 +621,46 @@ html[data-theme="dark"] .product-card {
   box-shadow: var(--premium-shadow-xl) !important;
 }
 
-/* Footer premium */
-footer {
+/* Footer premium — do not force dark on redesigned .premium-footer */
+footer:not(.premium-footer) {
   background: linear-gradient(160deg, #0F172A 0%, #1E293B 55%, #0F172A 100%) !important;
   color: #E2E8F0 !important;
 }
 
-footer .footer-top {
+footer:not(.premium-footer) .footer-top {
   background: transparent !important;
   padding: 72px 0 48px !important;
 }
 
-footer .footer-widget h4 {
+footer:not(.premium-footer) .footer-widget h4 {
   font-family: 'Poppins', sans-serif !important;
   font-weight: 700 !important;
   letter-spacing: -0.02em;
 }
 
-footer .footer-widget h4::after {
+footer:not(.premium-footer) .footer-widget h4::after {
   background: var(--premium-primary) !important;
   width: 40px !important;
   height: 3px !important;
   border-radius: 999px;
 }
 
-footer a {
+footer:not(.premium-footer) a {
   transition: color var(--premium-transition), transform var(--premium-transition);
 }
 
-footer a:hover {
+footer:not(.premium-footer) a:hover {
   color: #93C5FD !important;
 }
 
-footer .btn,
-footer .newsletter-form .btn {
+footer:not(.premium-footer) .btn,
+footer:not(.premium-footer) .newsletter-form .btn {
   background: var(--premium-gradient) !important;
   border: none !important;
   border-radius: var(--premium-radius-pill) !important;
 }
 
-footer .form-control {
+footer:not(.premium-footer) .form-control {
   border-radius: var(--premium-radius-pill) !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   background: rgba(255, 255, 255, 0.06) !important;

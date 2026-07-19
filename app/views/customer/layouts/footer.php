@@ -43,9 +43,13 @@ try {
 
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/footer.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
 <style>
-    /* Admin-configurable footer tokens (preserve settings system) */
+    /* Admin-configurable accent (light uses design tokens; dark can use heading/text from settings) */
     footer.premium-footer {
         --ft-accent: <?php echo htmlspecialchars($__footerAccentColor); ?>;
+    }
+    [data-theme="dark"] footer.premium-footer,
+    body.dark-mode footer.premium-footer,
+    html[data-theme="dark"] footer.premium-footer {
         --ft-heading: <?php echo htmlspecialchars($__footerHeadingColor); ?>;
         --ft-text: <?php echo htmlspecialchars($__footerTextColor); ?>;
     }
@@ -53,19 +57,19 @@ try {
     footer.premium-footer * {
         font-family: <?php echo ($__footerFontFamily === 'inherit' || $__footerFontFamily === '') ? "'Poppins', system-ui, sans-serif" : htmlspecialchars($__footerFontFamily); ?> !important;
     }
-    footer.premium-footer .footer-widget p,
-    footer.premium-footer .about-content,
-    footer.premium-footer .footer-links a,
-    footer.premium-footer .contact-info li {
-        font-size: <?php echo htmlspecialchars($__footerFontSize); ?> !important;
+    footer.premium-footer .footer-bottom .copyright-text {
+        color: inherit;
     }
-    footer.premium-footer .copyright-text {
+    [data-theme="dark"] footer.premium-footer .copyright-text,
+    body.dark-mode footer.premium-footer .copyright-text {
         color: <?php echo htmlspecialchars($__footerBottomTextColor); ?> !important;
     }
-    footer.premium-footer .footer-bottom-links a {
+    [data-theme="dark"] footer.premium-footer .footer-bottom-links a,
+    body.dark-mode footer.premium-footer .footer-bottom-links a {
         color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;
     }
-    footer.premium-footer .footer-bottom-links a:hover {
+    [data-theme="dark"] footer.premium-footer .footer-bottom-links a:hover,
+    body.dark-mode footer.premium-footer .footer-bottom-links a:hover {
         color: <?php echo htmlspecialchars($__footerBottomLinkHoverColor); ?> !important;
     }
 </style>
@@ -84,76 +88,89 @@ try {
 } catch (Exception $e) {
     // keep defaults
 }
+
+$aboutContent = 'Your one-stop shop for quality products with fast delivery and trusted service.';
+if (isset($GLOBALS['db'])) {
+    try {
+        require_once APP_PATH . 'models/AboutStore.php';
+        $aboutStore = new AboutStore($GLOBALS['db']);
+        $aboutEntries = $aboutStore->getAll();
+        if (!empty($aboutEntries[0]['content'])) {
+            $aboutContent = $aboutEntries[0]['content'];
+        }
+    } catch (Exception $e) {
+        error_log('Error loading about store content: ' . $e->getMessage());
+    }
+}
+$shortAbout = strip_tags($aboutContent);
+$shortAbout = strlen($shortAbout) > 140 ? substr($shortAbout, 0, 140) . '…' : $shortAbout;
+
+$ci = null;
+try {
+    require_once APP_PATH . 'models/ContactInfo.php';
+    $ciModel = new ContactInfo();
+    $ci = $ciModel->getLatest();
+} catch (Exception $e) {
+    error_log('Footer contact info load failed: ' . $e->getMessage());
+}
+
+$newsletterDesc = 'Subscribe for exclusive offers and new arrivals.';
+try {
+    require_once APP_PATH . 'models/Setting.php';
+    $settingModel = isset($__settingModel) ? $__settingModel : new Setting();
+    $descVal = $settingModel->getSetting('newsletter_description', $newsletterDesc);
+    if (!empty($descVal)) { $newsletterDesc = $descVal; }
+} catch (Exception $e) {
+    error_log('Footer newsletter settings load failed: ' . $e->getMessage());
+}
 ?>
 
 <footer class="full-width-section premium-footer" role="contentinfo">
     <div class="footer-main">
         <div class="container-fluid px-3 px-lg-4 max-width-1400">
 
-            <!-- Row 1: Brand + link columns -->
+            <!-- 5 equal columns -->
             <div class="row g-4 footer-row">
-                <!-- Brand -->
+                <!-- About -->
                 <div class="col-12 col-md-6 col-xl">
                     <div class="footer-widget">
-                        <?php
-                        $aboutContent = 'Your one-stop shop for quality products with fast delivery and trusted service.';
-                        if (isset($GLOBALS['db'])) {
-                            try {
-                                require_once APP_PATH . 'models/AboutStore.php';
-                                $aboutStore = new AboutStore($GLOBALS['db']);
-                                $aboutEntries = $aboutStore->getAll();
-                                if (!empty($aboutEntries[0]['content'])) {
-                                    $aboutContent = $aboutEntries[0]['content'];
-                                }
-                            } catch (Exception $e) {
-                                error_log('Error loading about store content: ' . $e->getMessage());
-                            }
-                        }
-                        ?>
+                        <h4><?php echo htmlspecialchars($__footerHeadingAbout); ?></h4>
                         <a class="footer-brand-logo" href="<?php echo BASE_URL; ?>" aria-label="<?php echo htmlspecialchars($__siteName); ?>">
                             <?php if (!empty($__siteLogo)): ?>
-                                <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($__siteLogo); ?>" alt="<?php echo htmlspecialchars($__siteName); ?>" loading="lazy" width="140" height="40">
+                                <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($__siteLogo); ?>" alt="<?php echo htmlspecialchars($__siteName); ?>" loading="lazy" width="140" height="44">
                             <?php else: ?>
                                 <span class="brand-text"><?php echo htmlspecialchars($__siteName); ?></span>
                             <?php endif; ?>
                         </a>
-                        <p class="about-content">
-                            <?php
-                            $short = strip_tags($aboutContent);
-                            echo htmlspecialchars(strlen($short) > 110 ? substr($short, 0, 110) . '…' : $short);
-                            ?>
-                        </p>
-                        <div class="footer-trust" aria-label="Trust badges">
-                            <span title="SSL Secure"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
-                            <span title="100% Genuine"><i class="bi bi-award" aria-hidden="true"></i></span>
-                            <span title="Fast Delivery"><i class="bi bi-truck" aria-hidden="true"></i></span>
-                            <span title="Easy Returns"><i class="bi bi-arrow-repeat" aria-hidden="true"></i></span>
-                        </div>
+                        <p class="about-content"><?php echo htmlspecialchars($shortAbout); ?></p>
                         <div class="social-links" aria-label="Social media">
                             <a href="#" aria-label="Facebook"><i class="bi bi-facebook" aria-hidden="true"></i></a>
                             <a href="#" aria-label="Instagram"><i class="bi bi-instagram" aria-hidden="true"></i></a>
                             <a href="#" aria-label="YouTube"><i class="bi bi-youtube" aria-hidden="true"></i></a>
                             <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin" aria-hidden="true"></i></a>
                             <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp" aria-hidden="true"></i></a>
+                            <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x" aria-hidden="true"></i></a>
+                            <a href="#" aria-label="TikTok"><i class="bi bi-tiktok" aria-hidden="true"></i></a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Customer Service -->
-                <div class="col-6 col-md-3 col-xl">
+                <div class="col-12 col-md-6 col-xl">
                     <div class="footer-widget">
                         <h4>Customer Service</h4>
                         <ul class="footer-links">
                             <li><a href="<?php echo BASE_URL; ?>?controller=page&action=faq">Help Center</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=order&action=history">Track Order</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=page&action=faq">Returns</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=faq">Shipping</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=order&action=history">Track Order</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=page&action=faq"><?php echo htmlspecialchars($__footerBottomLinkFaq); ?></a></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- Company -->
-                <div class="col-6 col-md-3 col-xl">
+                <div class="col-12 col-md-6 col-xl">
                     <div class="footer-widget">
                         <h4>Company</h4>
                         <ul class="footer-links">
@@ -161,38 +178,29 @@ try {
                             <li><a href="<?php echo BASE_URL; ?>?controller=contact">Careers</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">Blog</a></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- Shop -->
-                <div class="col-6 col-md-6 col-xl">
+                <div class="col-12 col-md-6 col-xl">
                     <div class="footer-widget">
                         <h4>Shop</h4>
                         <ul class="footer-links">
                             <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
                             <li><a href="<?php echo BASE_URL; ?>#brands">Brands</a></li>
                             <li><a href="<?php echo BASE_URL; ?>?controller=product&action=index">Offers</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>#featured-products">Best Sellers</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=index">Flash Deals</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=index">Flash Sale</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#featured-products">Gift Cards</a></li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- Contact -->
-                <div class="col-6 col-md-6 col-xl">
+                <div class="col-12 col-md-6 col-xl">
                     <div class="footer-widget">
                         <h4><?php echo htmlspecialchars($__footerHeadingContactInfo); ?></h4>
-                        <?php
-                        $ci = null;
-                        try {
-                            require_once APP_PATH . 'models/ContactInfo.php';
-                            $ciModel = new ContactInfo();
-                            $ci = $ciModel->getLatest();
-                        } catch (Exception $e) {
-                            error_log('Footer contact info load failed: ' . $e->getMessage());
-                        }
-                        ?>
                         <ul class="contact-info">
                             <li>
                                 <i class="bi bi-telephone-fill" aria-hidden="true"></i>
@@ -216,28 +224,15 @@ try {
                             </li>
                             <li>
                                 <i class="bi bi-clock-fill" aria-hidden="true"></i>
-                                <span>
-                                    <?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon – Fri: 9:00 – 18:00'; ?>
-                                </span>
+                                <span><?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon – Fri: 9:00 – 18:00'; ?></span>
                             </li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Newsletter full width -->
+            <!-- Newsletter -->
             <div class="footer-newsletter-bar">
-                <?php
-                $newsletterDesc = 'Subscribe for exclusive offers and new arrivals.';
-                try {
-                    require_once APP_PATH . 'models/Setting.php';
-                    $settingModel = new Setting();
-                    $descVal = $settingModel->getSetting('newsletter_description', $newsletterDesc);
-                    if (!empty($descVal)) { $newsletterDesc = $descVal; }
-                } catch (Exception $e) {
-                    error_log('Footer newsletter settings load failed: ' . $e->getMessage());
-                }
-                ?>
                 <div class="footer-newsletter-inner">
                     <div class="footer-newsletter-copy">
                         <h4><?php echo htmlspecialchars($__footerHeadingNewsletter); ?></h4>
@@ -256,28 +251,33 @@ try {
                 </div>
             </div>
 
-            <!-- Payment logos -->
+            <!-- Payment methods -->
             <div class="footer-pay-strip" aria-label="Payment methods">
-                <span class="footer-pay-badge" title="Visa"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#1A1F71"/><text x="24" y="11.5" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Arial">VISA</text></svg></span>
-                <span class="footer-pay-badge" title="Mastercard"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><circle cx="18" cy="8" r="6" fill="#EB001B"/><circle cx="30" cy="8" r="6" fill="#F79E1B"/></svg></span>
-                <span class="footer-pay-badge" title="PayPal"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#003087"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6" font-weight="700" font-family="Arial">PayPal</text></svg></span>
-                <span class="footer-pay-badge" title="Stripe"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#635BFF"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="700" font-family="Arial">Stripe</text></svg></span>
-                <span class="footer-pay-badge" title="Apple Pay"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#111"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="5.5" font-weight="600" font-family="Arial"> Pay</text></svg></span>
-                <span class="footer-pay-badge" title="Google Pay"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#fff"/><text x="24" y="11" text-anchor="middle" fill="#3c4043" font-size="5.5" font-weight="700" font-family="Arial">G Pay</text></svg></span>
+                <span class="footer-pay-badge" title="Visa"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#1A1F71"/><text x="24" y="11.5" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Arial,sans-serif">VISA</text></svg></span>
+                <span class="footer-pay-badge" title="Mastercard"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#111"/><circle cx="19" cy="8" r="5.5" fill="#EB001B"/><circle cx="29" cy="8" r="5.5" fill="#F79E1B"/><path d="M24 3.8a5.5 5.5 0 0 1 0 8.4 5.5 5.5 0 0 1 0-8.4z" fill="#FF5F00"/></svg></span>
+                <span class="footer-pay-badge" title="PayPal"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#003087"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6" font-weight="700" font-family="Arial,sans-serif">PayPal</text></svg></span>
+                <span class="footer-pay-badge" title="Stripe"><svg viewBox="0 0 48 16" width="44" height="15" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#635BFF"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="700" font-family="Arial,sans-serif">Stripe</text></svg></span>
+                <span class="footer-pay-badge" title="Apple Pay"><svg viewBox="0 0 52 16" width="48" height="15" aria-hidden="true"><rect width="52" height="16" rx="3" fill="#111"/><text x="26" y="11" text-anchor="middle" fill="#fff" font-size="5.5" font-weight="600" font-family="Arial,sans-serif">Apple Pay</text></svg></span>
+                <span class="footer-pay-badge" title="Google Pay"><svg viewBox="0 0 52 16" width="48" height="15" aria-hidden="true"><rect width="52" height="16" rx="3" fill="#fff" stroke="#e5e7eb"/><text x="26" y="11" text-anchor="middle" fill="#3c4043" font-size="5.5" font-weight="700" font-family="Arial,sans-serif">G Pay</text></svg></span>
+                <span class="footer-pay-badge" title="American Express"><svg viewBox="0 0 56 16" width="52" height="15" aria-hidden="true"><rect width="56" height="16" rx="3" fill="#2E77BC"/><text x="28" y="11" text-anchor="middle" fill="#fff" font-size="5" font-weight="700" font-family="Arial,sans-serif">AMEX</text></svg></span>
             </div>
         </div>
     </div>
 
-    <!-- Bottom bar -->
+    <!-- Copyright bar -->
     <div class="footer-bottom">
         <div class="container-fluid px-3 px-lg-4 max-width-1400">
             <div class="footer-bottom-content">
-                <p class="copyright-text">&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($__siteName); ?>. All Rights Reserved.</p>
+                <p class="copyright-text">&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($__siteName); ?></p>
                 <div class="footer-bottom-links">
                     <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a>
                     <a href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a>
                     <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy">Cookies</a>
                     <a href="<?php echo BASE_URL; ?>">Sitemap</a>
+                </div>
+                <div class="footer-bottom-meta">
+                    <span>v<?php echo defined('ASSET_VERSION') ? htmlspecialchars((string)ASSET_VERSION) : date('Y'); ?></span>
+                    <span class="powered">Powered by VK NETWORK</span>
                 </div>
             </div>
         </div>
