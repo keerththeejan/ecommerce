@@ -206,6 +206,37 @@ class UserController extends Controller {
                         setcookie('remember_token', $token, time() + (86400 * 30), '/'); // 30 days
                     }
                     
+                    // Optional return URL after login (wishlist / deep links) — customers only
+                    $returnUrl = '';
+                    if (!empty($_POST['redirect'])) {
+                        $returnUrl = (string)$_POST['redirect'];
+                    } elseif (!empty($_GET['redirect'])) {
+                        $returnUrl = (string)$_GET['redirect'];
+                    } elseif (!empty($_SESSION['login_redirect'])) {
+                        $returnUrl = (string)$_SESSION['login_redirect'];
+                    }
+                    unset($_SESSION['login_redirect']);
+
+                    $safeReturn = '';
+                    if ($returnUrl !== '' && ($user['role'] ?? '') === 'customer') {
+                        $baseHost = parse_url(BASE_URL, PHP_URL_HOST);
+                        if (strpos($returnUrl, 'http://') === 0 || strpos($returnUrl, 'https://') === 0) {
+                            $refHost = parse_url($returnUrl, PHP_URL_HOST);
+                            if ($baseHost && $refHost && strcasecmp($baseHost, $refHost) === 0) {
+                                $safeReturn = $returnUrl;
+                            }
+                        } elseif (isset($returnUrl[0]) && $returnUrl[0] === '?') {
+                            $safeReturn = rtrim(BASE_URL, '/') . '/' . $returnUrl;
+                        } elseif (strpos($returnUrl, '/') === 0) {
+                            $safeReturn = rtrim(BASE_URL, '/') . $returnUrl;
+                        }
+                    }
+
+                    if ($safeReturn !== '') {
+                        header('Location: ' . $safeReturn);
+                        exit;
+                    }
+
                     // Redirect based on role: admin → admin dashboard, staff → POS, customer → customer dashboard
                     switch($user['role']) {
                         case 'admin':

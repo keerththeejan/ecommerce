@@ -34,11 +34,12 @@
                 <?php if(!empty($products)) : ?>
                     <?php foreach($products as $product) : ?>
                         <div class="col mb-1">
-                            <div class="card h-100 border-0 shadow-sm">
+                            <div class="card h-100 border-0 shadow-sm position-relative">
+                                <?php echo wishlist_heart_button($product['id']); ?>
                                 <?php if(!empty($product['image'])) : ?>
-                                    <img src="<?php echo BASE_URL . $product['image']; ?>" class="card-img-top" alt="<?php echo $product['name']; ?>" style="height: 120px; object-fit: contain;">
+                                    <img <?php echo product_img_attrs($product['image'], $product['name'], 'card-img-top product-image'); ?> style="height: 120px; object-fit: contain;">
                                 <?php else : ?>
-                                    <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" class="card-img-top" alt="<?php echo $product['name']; ?>" style="height: 120px; object-fit: contain;">
+                                    <img <?php echo product_img_attrs(null, $product['name'], 'card-img-top product-image'); ?> style="height: 120px; object-fit: contain;">
                                 <?php endif; ?>
                                 <div class="card-body p-1">
                                     <h6 class="card-title small mb-1"><?php echo truncateText($product['name'], 28); ?></h6>

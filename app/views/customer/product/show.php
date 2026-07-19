@@ -192,15 +192,14 @@
                                 
                             <?php endif; ?>
 
-                            <?php if(isLoggedIn() && $product['stock_quantity'] > 0) : ?>
                             <div class="mt-3">
-                                <a href="<?php echo BASE_URL; ?>?controller=wishlist&action=add&id=<?php echo $product['id']; ?>" 
-                                   class="btn btn-outline-danger w-100" 
-                                   title="Add to Wishlist">
-                                    <i class="far fa-heart me-1"></i> Add to Wishlist
-                                </a>
+                                <button type="button"
+                                        class="btn btn-outline-danger w-100 btn-wishlist-pdp <?php echo is_in_wishlist($product['id']) ? 'active' : ''; ?>"
+                                        data-product-id="<?php echo (int)$product['id']; ?>">
+                                    <i class="<?php echo is_in_wishlist($product['id']) ? 'fas' : 'far'; ?> fa-heart me-1"></i>
+                                    <span class="wishlist-pdp-label"><?php echo is_in_wishlist($product['id']) ? 'In Wishlist' : 'Add to Wishlist'; ?></span>
+                                </button>
                             </div>
-                            <?php endif; ?>
 
                             <div class="mt-4">
                                 <h5>Product Details</h5>

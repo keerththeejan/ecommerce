@@ -43,7 +43,7 @@ if (!defined('BASE_URL')) {
     <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -53,6 +53,8 @@ if (!defined('BASE_URL')) {
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/system.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : '1'; ?>">
     <!-- Custom CSS (cache-busted) -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : '1'; ?>">
+    <!-- Premium admin shell (visual only; loads last) -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin-premium.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
     <style>
         /* Bootstrap 4 -> 5 utility compatibility layer */
         .mr-1 { margin-right: .25rem !important; }
@@ -90,9 +92,9 @@ if (!defined('BASE_URL')) {
         [data-theme="light"],
         [data-theme="light"] body {
             --text-color: #111827;
-            --bg-color: #f8f9fa;
+            --bg-color: #F8FAFC;
             --surface-color: #ffffff;
-            --surface-muted: #f8f9fa;
+            --surface-muted: #F8FAFC;
             --muted-color: #6b7280;
             --border-color: rgba(17, 24, 39, 0.10);
             --icon-color: #374151;
@@ -286,7 +288,7 @@ if (!defined('BASE_URL')) {
         :root {
             --sidebar-width: 280px;
             --sidebar-width-collapsed: 84px;
-            --sidebar-accent: #3b82f6; /* blue */
+            --sidebar-accent: #2563EB; /* primary */
         }
 
         #sidebar {
@@ -681,9 +683,10 @@ if (!defined('BASE_URL')) {
                     <!-- Brand / header -->
                     <div class="admin-sidebar__brand">
                         <a href="<?php echo BASE_URL; ?>?controller=home&action=admin" class="d-flex align-items-center gap-2">
-                            <span class="brand-text-block">
-                                <span style="display:block; font-size:14px;">Admin Dashboard</span>
-                                <span class="brand-subtitle">Control Panel</span>
+                            <span class="admin-brand-mark" aria-hidden="true">S</span>
+                            <span class="brand-text-block admin-brand-text">
+                                <span style="display:block; font-size:14px;">Sivakamy</span>
+                                <span class="brand-subtitle">Admin Console</span>
                             </span>
                         </a>
                         <button type="button" class="btn btn-sm btn-outline-light d-none d-md-inline-flex" id="sidebarCollapseBtn" aria-label="Toggle sidebar" title="Toggle sidebar">
@@ -919,6 +922,21 @@ if (!defined('BASE_URL')) {
                             </div>
                         </div>
                     </div>
+
+                    <div class="admin-sidebar__footer">
+                        <a class="admin-sidebar__user" href="<?php echo BASE_URL; ?>?controller=user&action=profile" aria-label="Open profile">
+                            <span class="admin-sidebar__avatar">
+                                <?php
+                                    $adminDisplayName = (string)($_SESSION['user_name'] ?? 'Admin');
+                                    echo htmlspecialchars(strtoupper(substr($adminDisplayName, 0, 1)));
+                                ?>
+                            </span>
+                            <span class="admin-sidebar__user-meta">
+                                <span class="admin-sidebar__user-name"><?php echo htmlspecialchars($adminDisplayName); ?></span>
+                                <span class="admin-sidebar__user-role">Administrator</span>
+                            </span>
+                        </a>
+                    </div>
                 </div>
             </nav>
 
@@ -965,8 +983,8 @@ if (!defined('BASE_URL')) {
 
             <!-- Main Content -->
             <main class="px-2 px-md-4">
-                <div class="admin-topbar d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center flex-wrap flex-md-nowrap pt-3 pb-2 mb-3 border-bottom">
-                    <div class="d-flex align-items-center mb-2 mb-sm-0">
+                <div class="admin-topbar d-flex flex-column flex-lg-row justify-content-between align-items-stretch align-items-lg-center flex-wrap flex-md-nowrap pt-3 pb-2 mb-3 border-bottom">
+                    <div class="d-flex align-items-center mb-2 mb-lg-0">
                         <button class="btn btn-outline-secondary mr-3 d-md-none" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" id="sidebarToggleBtn">
                             <i class="fas fa-bars"></i>
                         </button>
@@ -975,18 +993,37 @@ if (!defined('BASE_URL')) {
                         </button>
                         <h1 class="h2 mb-0">Admin Dashboard</h1>
                     </div>
-                    <div class="btn-toolbar mb-2 mb-md-0">
+
+                    <form class="admin-topbar-search" action="<?php echo BASE_URL; ?>" method="get" role="search" aria-label="Admin search">
+                        <input type="hidden" name="controller" value="product">
+                        <input type="hidden" name="action" value="adminIndex">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                        <input type="search" name="q" placeholder="Search products…" aria-label="Search products" autocomplete="off">
+                    </form>
+
+                    <div class="btn-toolbar mb-2 mb-md-0 admin-topbar-actions">
+                        <a href="<?php echo BASE_URL; ?>?controller=pos&action=index" class="btn btn-sm btn-success" title="Open POS">
+                            <i class="bi bi-shop-window mr-1"></i><span class="d-none d-xl-inline">POS</span>
+                        </a>
+                        <a href="<?php echo BASE_URL; ?>?controller=order&action=adminIndex" class="admin-icon-btn" title="Orders" aria-label="Orders">
+                            <i class="bi bi-bag-check"></i>
+                        </a>
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=adminIndex" class="admin-icon-btn" title="Products" aria-label="Products">
+                            <i class="bi bi-box-seam"></i>
+                            <span class="admin-badge-dot" aria-hidden="true"></span>
+                        </a>
                         <!-- Dark/Light Mode Toggle -->
-                        <button class="btn btn-sm btn-outline-secondary mr-2" type="button" id="themeToggle">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" id="themeToggle" aria-label="Toggle theme">
                             <i class="fas fa-moon mr-1"></i> <span>Dark Mode</span>
                         </button>
                         
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-user mr-1"></i> <?php echo $_SESSION['user_name']; ?>
+                                <i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Admin'); ?>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=profile">My Profile</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=setting&action=index">Settings</a></li>
                                 <li><div class="dropdown-divider"></div></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=logout">Logout</a></li>
                             </ul>

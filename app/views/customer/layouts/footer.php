@@ -507,7 +507,7 @@ try {
     }
 </style>
 
-<footer class="full-width-section">
+<footer class="full-width-section premium-footer">
     <!-- Footer Top with Wave Effect -->
     <div class="footer-top">
         <!-- Decorative elements -->
@@ -739,10 +739,16 @@ try {
     <!-- Global config for JS -->
     <script>
         window.baseUrl = '<?php echo BASE_URL; ?>';
+        window.isLoggedIn = <?php echo isLoggedIn() ? 'true' : 'false'; ?>;
+        window.wishlistProductIds = <?php echo json_encode(array_values(wishlist_product_ids())); ?>;
+        window.loginUrl = '<?php echo rtrim(BASE_URL, '/'); ?>/?controller=user&action=login';
     </script>
     
     <!-- Custom JS -->
-    <script src="<?php echo BASE_URL; ?>assets/js/main.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/wishlist.js?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/navbar.js?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/home.js?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>"></script>
     
     <!-- Quantity Adjuster Script -->
     <script>
@@ -852,25 +858,16 @@ try {
                 return;
             }
             
-            // Temporarily remove readonly to allow value change
-            const wasReadonly = input.hasAttribute('readonly');
-            if (wasReadonly) {
-                input.removeAttribute('readonly');
-            }
-            
-            // Update value
+            // Update value (editable field — no readonly restore)
             input.value = newValue;
             
             // Trigger events
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
             
-            // Restore readonly
-            if (wasReadonly) {
-                input.setAttribute('readonly', 'readonly');
+            if (window.DEBUG_STOREFRONT) {
+                console.log('Quantity ' + (isIncrease ? 'increased' : 'decreased') + ' to:', newValue);
             }
-            
-            console.log('Quantity ' + (isIncrease ? 'increased' : 'decreased') + ' to:', newValue);
         }, true); // Use capture phase for better event handling
         
     });
@@ -943,22 +940,27 @@ try {
             });
         });
 
-        // Enhanced Image Lazy Loading
-        if ('loading' in HTMLImageElement.prototype) {
-            const images = document.querySelectorAll('img[loading="lazy"]');
-            images.forEach(img => {
+        // Enhanced Image Lazy Loading — always reveal images (no opacity trap)
+        (function revealImages() {
+            function mark(img) {
+                img.classList.add('loaded');
+                img.style.opacity = '';
+            }
+            document.querySelectorAll('img').forEach(function(img) {
                 if (img.complete) {
-                    img.classList.add('loaded');
+                    mark(img);
                 } else {
-                    img.addEventListener('load', function() {
-                        this.classList.add('loaded');
-                    });
+                    img.addEventListener('load', function() { mark(img); });
                     img.addEventListener('error', function() {
-                        this.classList.add('loaded'); // Remove skeleton even on error
+                        if (!img.dataset.fallbackApplied) {
+                            img.dataset.fallbackApplied = '1';
+                            img.src = (window.baseUrl || '/') + 'assets/img/no-image.png';
+                        }
+                        mark(img);
                     });
                 }
             });
-        }
+        })();
 
         // Button Loading State Enhancement
         document.querySelectorAll('form').forEach(form => {
@@ -999,10 +1001,13 @@ try {
             });
         });
 
-        // Keyboard Navigation Enhancement
-        document.querySelectorAll('.btn, .nav-link, .dropdown-item, .card a').forEach(element => {
+        // Keyboard Navigation Enhancement (do not hijack Bootstrap dropdowns/menus)
+        document.querySelectorAll('.btn:not([data-bs-toggle]), .card a').forEach(element => {
             element.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' || e.key === ' ') {
+                    if (this.closest('.dropdown-menu') || this.getAttribute('data-bs-toggle')) {
+                        return;
+                    }
                     if (e.key === ' ') {
                         e.preventDefault();
                     }
@@ -1011,8 +1016,8 @@ try {
             });
         });
 
-        // Add ripple effect to buttons (if not already handled)
-        document.querySelectorAll('.btn').forEach(btn => {
+        // Add ripple effect to buttons (skip toggles / dropdowns)
+        document.querySelectorAll('.btn:not([data-bs-toggle]):not(.theme-toggle):not(.no-ripple)').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 if (!this.classList.contains('no-ripple')) {
                     const ripple = document.createElement('span');
@@ -1035,19 +1040,8 @@ try {
             });
         });
 
-        // Prevent multiple rapid clicks on the SAME element only (per-element throttle)
-        document.querySelectorAll('.btn, form').forEach(element => {
-            element.addEventListener('click', function(e) {
-                const now = Date.now();
-                const lastClick = this._lastClickTime || 0;
-                if (now - lastClick < 300) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-                this._lastClickTime = now;
-            });
-        });
+        // NOTE: Do NOT globally throttle .btn/form clicks — it breaks Bootstrap dropdowns,
+        // add-to-cart, search submit, and theme toggle.
 
         // Enhanced Carousel Controls
         document.querySelectorAll('.carousel').forEach(carousel => {

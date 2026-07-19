@@ -74,6 +74,8 @@ $aliasMap = [
     'countries' => 'Country',
     'categories' => 'Category',
     'products' => 'Product',
+    'product' => 'Product',
+    'shop' => 'Shop',
     'users' => 'User'
 ];
 if (isset($aliasMap[strtolower($controllerParam)])) {

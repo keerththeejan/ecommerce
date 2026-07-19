@@ -93,77 +93,60 @@ $catId = isset($category['id']) ? (int)$category['id'] : 0;
             <?php if(empty($products)): ?>
                 <div class="alert alert-info">No products found in this category.</div>
             <?php else: ?>
-                <style>
-                    .category-page .product-image-container {
-                        width: 100%;
-                        height: 160px;
-                        min-height: 160px;
-                        max-height: 160px;
-                        overflow: hidden;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        background: #f8f9fa;
-                        padding: 0;
-                    }
-                    .category-page .fixed-height-img {
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                        object-position: center;
-                    }
-                    .category-page .product-card { height: 100%; transition: transform 0.2s, box-shadow 0.2s; }
-                    .category-page .product-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
-                    @media (min-width: 768px) { .category-page .product-image-container { height: 180px; min-height: 180px; max-height: 180px; } }
-                    @media (min-width: 992px) { .category-page .product-image-container { height: 200px; min-height: 200px; max-height: 200px; } }
-                </style>
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3 category-page">
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 category-page premium-product-grid">
                     <?php foreach($products as $product): ?>
                         <div class="col">
-                            <div class="product-card card h-100 border shadow-sm">
-                                <div class="product-image-container">
+                            <article class="product-card pc-card h-100">
+                                <div class="product-image-container pc-media position-relative">
+                                    <span class="pc-stock-badge badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?>">
+                                        <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out'; ?>
+                                    </span>
+                                    <?php echo wishlist_heart_button($product['id']); ?>
                                     <?php if(!empty($product['image'])): ?>
-                                        <img src="<?php echo BASE_URL . $product['image']; ?>" class="fixed-height-img" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                        <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                     <?php else: ?>
-                                        <img src="<?php echo BASE_URL; ?>assets/img/no-image.jpg" class="fixed-height-img" alt="No Image">
+                                        <img <?php echo product_img_attrs(null, 'No Image', 'product-image'); ?>>
                                     <?php endif; ?>
                                 </div>
-                                
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title small text-truncate" style="-webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;"><?php echo htmlspecialchars($product['name']); ?></h5>
-                                    <p class="card-text small text-muted flex-grow-1" style="font-size: 0.8rem; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;"><?php echo htmlspecialchars(truncateText($product['description'] ?? '', 100)); ?></p>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center" style="font-size: 0.9rem; min-height: 24px;">
+                                <div class="card-body pc-body">
+                                    <h5 class="card-title pc-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                    <p class="card-text pc-desc"><?php echo htmlspecialchars(truncateText(strip_tags($product['description'] ?? ''), 90)); ?></p>
+                                    <div class="pc-meta price-stock-row">
                                         <?php if(isLoggedIn()): ?>
-                                            <span class="text-danger fw-bold"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
-                                            <span></span> <!-- Empty span for alignment -->
+                                            <span class="pc-price"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
                                         <?php else: ?>
-                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-primary" style="font-size: 0.8rem;">Login to view price</a>
-                                            <span></span> <!-- Empty span for alignment -->
+                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="pc-price text-muted small text-decoration-none">Login for price</a>
                                         <?php endif; ?>
+                                        <span class="pc-stock stock-label"><?php echo $product['stock_quantity'] > 0 ? ('Stock: ' . (int)$product['stock_quantity']) : 'Unavailable'; ?></span>
                                     </div>
-                                </div>
-                                
-                                <div class="card-footer d-flex justify-content-between p-2" style="background-color: #f8f9fa;">
-                                    <a href="<?php echo BASE_URL; ?>?controller=product&action=show&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary py-1" style="font-size: 0.7rem; padding-left: 0.5rem; padding-right: 0.5rem;">
-                                        <i class="fas fa-eye me-1"></i>View
-                                    </a>
-                                    
-                                    <?php if($product['stock_quantity'] > 0): ?>
-                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mb-0">
+                                    <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
+                                        <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="btn btn-sm btn-success py-1" style="font-size: 0.7rem; padding-left: 0.5rem; padding-right: 0.5rem;">
-                                                <i class="fas fa-cart-plus me-1"></i>Add
-                                            </button>
+                                            <div class="actions pc-actions">
+                                                <div class="quantity-group">
+                                                    <button type="button" class="btn quantity-decrease" aria-label="Decrease">-</button>
+                                                    <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="<?php echo (int)$product['stock_quantity']; ?>" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
+                                                    <button type="button" class="btn quantity-increase" aria-label="Increase">+</button>
+                                                </div>
+                                                <button type="submit" class="btn-add-to-cart">
+                                                    <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
+                                                    <span>Add to Cart</span>
+                                                </button>
+                                            </div>
                                         </form>
+                                    <?php elseif($product['stock_quantity'] > 0): ?>
+                                        <div class="actions pc-actions">
+                                            <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary">Login</a>
+                                        </div>
                                     <?php else: ?>
-                                        <button class="btn btn-sm btn-outline-secondary py-1" style="font-size: 0.7rem;" disabled>
-                                            <i class="fas fa-times-circle me-1"></i>Out of Stock
-                                        </button>
+                                        <div class="actions pc-actions">
+                                            <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                            <button class="btn btn-sm btn-outline-secondary" disabled>Out of Stock</button>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
-                            </div>
+                            </article>
                         </div>
                     <?php endforeach; ?>
                 </div>

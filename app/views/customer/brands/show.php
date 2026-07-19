@@ -45,16 +45,13 @@ if (empty($brand)) {
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
                     <?php foreach ($products['data'] as $product): ?>
                         <div class="col">
-                            <div class="card h-100">
+                            <div class="card h-100 position-relative">
+                                <?php echo wishlist_heart_button($product['id']); ?>
                                 <?php 
-                                $productImage = !empty($product['image']) 
-                                    ? BASE_URL . 'public/uploads/products/' . $product['image'] 
-                                    : BASE_URL . 'public/images/default-product.png';
+                                $productImage = product_image_url($product['image'] ?? null);
                                 ?>
                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>">
-                                    <img src="<?php echo $productImage; ?>" 
-                                         class="card-img-top" 
-                                         alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                    <img <?php echo product_img_attrs($product['image'] ?? null, $product['name'], 'card-img-top product-image'); ?>
                                          style="height: 200px; object-fit: contain; background: #f8f9fa;">
                                 </a>
                                 <div class="card-body">

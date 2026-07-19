@@ -157,7 +157,7 @@ $settingModel = new Setting();
                                                 <!-- Image -->
                                                 <td>
                                                     <?php if(!empty($item['image'])): ?>
-                                                        <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="cart-item-img">
+                                                        <img <?php echo product_img_attrs($item['image'] ?? null, $item['name'] ?? 'Product', 'cart-item-img product-image'); ?>>
                                                     <?php else: ?>
                                                         <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="cart-item-img">
                                                     <?php endif; ?>
@@ -220,7 +220,7 @@ $settingModel = new Setting();
                                         <div class="row g-2">
                                             <div class="col-4 d-flex align-items-center">
                                                 <?php if(!empty($item['image'])): ?>
-                                                    <img src="<?php echo BASE_URL . $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="rounded cart-item-img">
+                                                    <img <?php echo product_img_attrs($item['image'] ?? null, $item['name'] ?? 'Product', 'rounded cart-item-img product-image'); ?>>
                                                 <?php else: ?>
                                                     <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" alt="<?php echo $item['name']; ?>" class="rounded cart-item-img">
                                                 <?php endif; ?>

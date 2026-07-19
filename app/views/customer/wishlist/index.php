@@ -1,228 +1,166 @@
 <?php require_once APP_PATH . 'views/customer/layouts/header.php'; ?>
 
-<!-- Wishlist Section -->
-<section class="wishlist-section py-5">
+<?php
+$wishlistItems = isset($wishlistItems) && is_array($wishlistItems) ? $wishlistItems : [];
+$wishlistTotal = isset($wishlistTotal) ? (int)$wishlistTotal : count($wishlistItems);
+$wishlistPage = isset($wishlistPage) ? (int)$wishlistPage : 1;
+$wishlistLastPage = isset($wishlistLastPage) ? (int)$wishlistLastPage : 1;
+$wishlistQuery = isset($wishlistQuery) ? (string)$wishlistQuery : '';
+$wishlistSort = isset($wishlistSort) ? (string)$wishlistSort : 'newest';
+$baseWishlistUrl = rtrim(BASE_URL, '/') . '/?controller=wishlist';
+?>
+
+<section class="wishlist-page py-4 py-lg-5">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0">My Wishlist</h1>
-            <a href="<?php echo BASE_URL; ?>?controller=home" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i> Continue Shopping
-            </a>
-        </div>
-        
-        <?php 
-        // Display flash messages if any
-        if (isset($_SESSION['flash_messages'])) {
-            foreach ($_SESSION['flash_messages'] as $message) {
-                echo '<div class="alert alert-' . $message['type'] . ' alert-dismissible fade show" role="alert">';
-                echo htmlspecialchars($message['message']);
-                echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-                echo '</div>';
-            }
-            // Clear the flash messages
-            unset($_SESSION['flash_messages']);
-        }
-        ?>
-        
-        <div class="card shadow-sm">
-            <div class="card-body p-0">
-                <?php if (!empty($wishlistItems)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 100px;">Image</th>
-                                    <th>Product</th>
-                                    <th class="text-center">Price</th>
-                                    <th class="text-center">Stock Status</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($wishlistItems as $item): ?>
-                                    <tr>
-                                        <td>
-                                            <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $item['id']; ?>">
-                                                <?php if (!empty($item['image'])): ?>
-                                                    <img src="<?php echo BASE_URL . 'public/uploads/products/' . basename($item['image']); ?>" 
-                                                         alt="<?php echo htmlspecialchars($item['name']); ?>" 
-                                                         class="img-fluid" 
-                                                         style="max-width: 80px; height: auto;">
-                                                <?php else: ?>
-                                                    <div class="bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                                        <i class="fas fa-image text-muted"></i>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <h6 class="mb-1">
-                                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $item['id']; ?>" class="text-dark">
-                                                    <?php echo htmlspecialchars($item['name']); ?>
-                                                </a>
-                                            </h6>
-                                            <p class="text-muted small mb-0">SKU: <?php echo !empty($item['sku']) ? htmlspecialchars($item['sku']) : 'N/A'; ?></p>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="fw-bold">CHF <?php echo number_format($item['price'], 2); ?></span>
-                                        </td>
-                                        <td class="text-center">
-                                            <?php if ($item['stock_quantity'] > 0): ?>
-                                                <span class="badge bg-success">In Stock</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-secondary">Out of Stock</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-2">
-                                                <?php if ($item['stock_quantity'] > 0): ?>
-                                                    <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="d-inline">
-                                                        <input type="hidden" name="product_id" value="<?php echo $item['id']; ?>">
-                                                        <input type="hidden" name="quantity" value="1">
-                                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Add to Cart">
-                                                            <i class="fas fa-shopping-cart"></i>
-                                                        </button>
-                                                    </form>
-                                                <?php endif; ?>
-                                                <a href="<?php echo BASE_URL; ?>?controller=wishlist&action=remove&id=<?php echo $item['id']; ?>" 
-                                                   class="btn btn-sm btn-outline-danger" 
-                                                   title="Remove from Wishlist"
-                                                   onclick="return confirm('Are you sure you want to remove this item from your wishlist?')">
-                                                    <i class="far fa-trash-alt"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="text-center py-5">
-                        <div class="mb-4">
-                            <i class="far fa-heart text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
-                        </div>
-                        <h4 class="mb-3">Your wishlist is empty</h4>
-                        <p class="text-muted mb-4">You haven't added any products to your wishlist yet.</p>
-                        <a href="<?php echo BASE_URL; ?>?controller=shop" class="btn btn-primary">
-                            <i class="fas fa-shopping-bag me-2"></i> Start Shopping
-                        </a>
-                    </div>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h1 class="h3 mb-1">My Wishlist</h1>
+                <p class="text-muted mb-0 small" id="wishlistItemCountLabel">
+                    <span id="wishlistItemCount"><?php echo (int)$wishlistTotal; ?></span>
+                    item<?php echo $wishlistTotal === 1 ? '' : 's'; ?> saved
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <?php if ($wishlistTotal > 0): ?>
+                    <button type="button" class="btn btn-outline-danger" id="wishlistClearBtn">
+                        <i class="fas fa-trash me-1"></i>Clear All
+                    </button>
                 <?php endif; ?>
+                <a href="<?php echo rtrim(BASE_URL, '/') . '/?controller=shop'; ?>" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </a>
             </div>
         </div>
+
+        <?php flash('login_required'); ?>
+        <?php flash('wishlist_success'); ?>
+        <?php flash('wishlist_removed'); ?>
+        <?php flash('wishlist_error'); ?>
+
+        <form method="GET" action="<?php echo htmlspecialchars($baseWishlistUrl, ENT_QUOTES, 'UTF-8'); ?>" class="wishlist-toolbar card border-0 shadow-sm mb-4">
+            <input type="hidden" name="controller" value="wishlist">
+            <input type="hidden" name="action" value="index">
+            <div class="card-body d-flex flex-wrap gap-2 align-items-center">
+                <div class="flex-grow-1" style="min-width: 200px;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent"><i class="fas fa-search text-muted"></i></span>
+                        <input type="search" name="q" class="form-control border-start-0" placeholder="Search wishlist..."
+                               value="<?php echo htmlspecialchars($wishlistQuery, ENT_QUOTES, 'UTF-8'); ?>">
+                    </div>
+                </div>
+                <select name="sort" class="form-select" style="max-width: 220px;" onchange="this.form.submit()">
+                    <option value="newest" <?php echo $wishlistSort === 'newest' ? 'selected' : ''; ?>>Newest first</option>
+                    <option value="oldest" <?php echo $wishlistSort === 'oldest' ? 'selected' : ''; ?>>Oldest first</option>
+                    <option value="name_asc" <?php echo $wishlistSort === 'name_asc' ? 'selected' : ''; ?>>Name (A–Z)</option>
+                    <option value="name_desc" <?php echo $wishlistSort === 'name_desc' ? 'selected' : ''; ?>>Name (Z–A)</option>
+                    <option value="price_asc" <?php echo $wishlistSort === 'price_asc' ? 'selected' : ''; ?>>Price (Low–High)</option>
+                    <option value="price_desc" <?php echo $wishlistSort === 'price_desc' ? 'selected' : ''; ?>>Price (High–Low)</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+        </form>
+
+        <?php if (empty($wishlistItems)): ?>
+            <div class="wishlist-empty text-center py-5 px-3" id="wishlistEmptyState">
+                <div class="wishlist-empty-icon mb-3">
+                    <i class="far fa-heart"></i>
+                </div>
+                <h2 class="h4 mb-2">Your wishlist is empty</h2>
+                <p class="text-muted mb-4">Tap the heart on any product to save it here for later.</p>
+                <a href="<?php echo rtrim(BASE_URL, '/') . '/?controller=shop'; ?>" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+                </a>
+            </div>
+        <?php else: ?>
+            <div class="wishlist-grid" id="wishlistGrid">
+                <?php foreach ($wishlistItems as $item):
+                    $item = is_object($item) ? (array)$item : $item;
+                    $pid = (int)($item['product_id'] ?? $item['id'] ?? 0);
+                    if ($pid <= 0) {
+                        continue;
+                    }
+                    $name = (string)($item['name'] ?? 'Product');
+                    $stock = (float)($item['stock_quantity'] ?? 0);
+                    $price = !empty($item['price2'])
+                        ? (float)$item['price2']
+                        : (!empty($item['sale_price']) ? (float)$item['sale_price'] : (float)($item['price'] ?? 0));
+                    $inStock = $stock > 0 && (($item['status'] ?? 'active') === 'active');
+                    $addedDate = !empty($item['added_date']) ? date('M j, Y', strtotime($item['added_date'])) : '';
+                ?>
+                    <article class="wishlist-card" data-wishlist-item="<?php echo $pid; ?>" data-product-id="<?php echo $pid; ?>">
+                        <div class="wishlist-card-media">
+                            <a href="<?php echo rtrim(BASE_URL, '/') . '/?controller=product&action=show&param=' . $pid; ?>">
+                                <img <?php echo product_img_attrs($item['image'] ?? null, $name, 'wishlist-card-img product-image'); ?>>
+                            </a>
+                            <button type="button"
+                                    class="btn-wishlist wishlist-heart active wishlist-card-remove"
+                                    data-product-id="<?php echo $pid; ?>"
+                                    data-wishlist-remove="1"
+                                    aria-label="Remove from wishlist"
+                                    title="Remove">
+                                <i class="fas fa-heart" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="wishlist-card-body">
+                            <h3 class="wishlist-card-title">
+                                <a href="<?php echo rtrim(BASE_URL, '/') . '/?controller=product&action=show&param=' . $pid; ?>">
+                                    <?php echo htmlspecialchars($name); ?>
+                                </a>
+                            </h3>
+                            <div class="wishlist-card-meta">
+                                <span class="wishlist-card-price"><?php echo formatCurrency($price); ?></span>
+                                <span class="badge <?php echo $inStock ? 'bg-success' : 'bg-secondary'; ?>">
+                                    <?php echo $inStock ? ('In Stock · ' . (int)$stock) : 'Out of Stock'; ?>
+                                </span>
+                            </div>
+                            <?php if ($addedDate !== ''): ?>
+                                <div class="wishlist-card-date text-muted small">
+                                    <i class="far fa-clock me-1"></i>Added <?php echo htmlspecialchars($addedDate); ?>
+                                </div>
+                            <?php endif; ?>
+                            <div class="wishlist-card-actions">
+                                <?php if ($inStock): ?>
+                                    <button type="button"
+                                            class="btn btn-success w-100 btn-sm wishlist-move-cart-btn flex-grow-1"
+                                            data-product-id="<?php echo $pid; ?>">
+                                        <i class="fas fa-cart-plus me-1"></i>Move to Cart
+                                    </button>
+                                <?php else: ?>
+                                    <button type="button" class="btn btn-secondary w-100 btn-sm" disabled>Unavailable</button>
+                                <?php endif; ?>
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm wishlist-remove-btn"
+                                        data-product-id="<?php echo $pid; ?>"
+                                        aria-label="Remove">
+                                    <i class="far fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if ($wishlistLastPage > 1): ?>
+                <nav class="mt-4" aria-label="Wishlist pagination">
+                    <ul class="pagination justify-content-center flex-wrap">
+                        <?php
+                        $qs = http_build_query(array_filter([
+                            'controller' => 'wishlist',
+                            'q' => $wishlistQuery !== '' ? $wishlistQuery : null,
+                            'sort' => $wishlistSort !== 'newest' ? $wishlistSort : null
+                        ]));
+                        for ($i = 1; $i <= $wishlistLastPage; $i++):
+                            $href = rtrim(BASE_URL, '/') . '/?' . $qs . '&page=' . $i;
+                        ?>
+                            <li class="page-item <?php echo $i === $wishlistPage ? 'active' : ''; ?>">
+                                <a class="page-link" href="<?php echo htmlspecialchars($href, ENT_QUOTES, 'UTF-8'); ?>"><?php echo $i; ?></a>
+                            </li>
+                        <?php endfor; ?>
+                    </ul>
+                </nav>
+            <?php endif; ?>
+        <?php endif; ?>
     </div>
 </section>
-
-<style>
-.wishlist-section {
-    background-color: #f8f9fa;
-    min-height: 60vh;
-}
-
-.table th {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-}
-
-.table td {
-    vertical-align: middle;
-}
-
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    border-radius: 0.2rem;
-}
-
-.badge {
-    font-weight: 500;
-    padding: 0.35em 0.65em;
-    font-size: 0.75em;
-}
-
-/* Responsive styles */
-@media (max-width: 767.98px) {
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .table thead {
-        display: none;
-    }
-    
-    .table, .table tbody, .table tr, .table td {
-        display: block;
-        width: 100%;
-    }
-    
-    .table tr {
-        margin-bottom: 1rem;
-        border: 1px solid #dee2e6;
-        border-radius: 0.25rem;
-        position: relative;
-        padding-top: 2.5rem;
-    }
-    
-    .table td {
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
-        border-bottom: 1px solid #dee2e6;
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-    }
-    
-    .table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 1rem;
-        width: 45%;
-        text-align: left;
-        font-weight: bold;
-    }
-    
-    .table td:last-child {
-        border-bottom: 0;
-    }
-    
-    /* Reset specific cells */
-    .table td.text-center {
-        text-align: right;
-        padding-left: 50%;
-    }
-    
-    .table td[data-label]::before {
-        content: attr(data-label);
-    }
-    
-    /* Special handling for the first cell (image) */
-    .table td:first-child {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 80px;
-        padding: 0.5rem;
-        text-align: center;
-    }
-    
-    .table td:first-child::before {
-        display: none;
-    }
-    
-    .table td:nth-child(2) {
-        padding-top: 1rem;
-        padding-left: calc(80px + 1rem);
-    }
-    
-    .table td:nth-child(2)::before {
-        display: none;
-    }
-}
-</style>
 
 <?php require_once APP_PATH . 'views/customer/layouts/footer.php'; ?>

@@ -49,11 +49,12 @@
                 <div class="row row-cols-1 row-cols-md-4 g-4">
                     <?php foreach($products as $product) : ?>
                         <div class="col">
-                            <div class="card h-100 border-0 shadow-sm">
+                            <div class="card h-100 border-0 shadow-sm position-relative">
+                                <?php echo wishlist_heart_button($product['id']); ?>
                                 <?php if(!empty($product['image'])) : ?>
-                                    <img src="<?php echo BASE_URL . $product['image']; ?>" class="card-img-top" alt="<?php echo $product['name']; ?>">
+                                    <img <?php echo product_img_attrs($product['image'], $product['name'], 'card-img-top product-image'); ?>>
                                 <?php else : ?>
-                                    <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" class="card-img-top" alt="<?php echo $product['name']; ?>">
+                                    <img <?php echo product_img_attrs(null, $product['name'], 'card-img-top product-image'); ?>>
                                 <?php endif; ?>
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo $product['name']; ?></h5>

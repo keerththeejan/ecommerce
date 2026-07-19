@@ -115,7 +115,7 @@
 
     .siva-media {
         position: relative;
-        aspect-ratio: 1 / 1;
+        /* Height controlled by product-cards.css for .product-card .siva-media */
         background: rgba(15,23,42,0.03);
         display: flex;
         align-items: center;
@@ -220,46 +220,15 @@
         color: var(--siva-muted);
     }
 
+    /* Action row layout owned by product-cards.css */
     .siva-actions {
         display: flex;
-        gap: 8px;
+        gap: 10px;
         align-items: center;
-    }
-
-    .siva-actions .quantity-group {
-        min-width: 112px;
-        height: 44px;
-    }
-
-    .siva-actions .btn-add-to-cart {
-        min-height: 44px;
-        border-radius: 12px;
-        font-weight: 700;
-    }
-
-    /* Mobile fix: prevent Add button from being cut + keep spacing clean */
-    @media (max-width: 767.98px) {
-        .siva-card,
-        .siva-mcard {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .siva-actions {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 10px;
-        }
-
-        .siva-actions .quantity-group {
-            width: 100%;
-            min-width: 0;
-            justify-content: center;
-        }
-
-        .siva-actions .btn-add-to-cart {
-            width: 100%;
-        }
+        width: 100%;
+        min-width: 0;
+        flex-wrap: nowrap;
+        margin-top: auto;
     }
 
     /* Brands card */
@@ -286,7 +255,7 @@
 <section id="categories" class="featured-categories py-3 py-md-4" style="background: <?php echo !empty($homeCategoriesBgColor) ? htmlspecialchars($homeCategoriesBgColor) : '#fff'; ?>;" data-theme-aware>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3 mb-md-3">
-            <h2 id="categories-heading" class="section-title mb-0">Category</h2>
+            <h2 id="categories-heading" class="section-title mb-0">Popular Categories</h2>
             <a href="<?php echo BASE_URL; ?>?controller=category&action=index" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex">
                 View All <i class="fas fa-chevron-right ms-1"></i>
             </a>
@@ -394,47 +363,43 @@
                 <div class="siva-snap" aria-label="Trending products carousel">
                     <?php foreach($trendingProducts as $product) { ?>
                         <div class="siva-snap-item">
-                            <div class="siva-card d-flex flex-column">
-                                <div class="siva-media">
+                            <div class="siva-card product-card pc-card d-flex flex-column">
+                                <div class="siva-media pc-media">
                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="stretched-link" aria-label="View <?php echo htmlspecialchars($product['name']); ?>"></a>
                                     <span class="siva-badge <?php echo ((float)($product['stock_quantity'] ?? 0) > 0) ? 'siva-badge--in' : 'siva-badge--out'; ?>">
                                         <?php echo ((float)($product['stock_quantity'] ?? 0) > 0) ? 'In Stock' : 'Out'; ?>
                                     </span>
-                                    <?php if(isLoggedIn() && (float)($product['stock_quantity'] ?? 0) > 0) { ?>
-                                        <button type="button" class="siva-wishlist btn-wishlist" data-product-id="<?php echo $product['id']; ?>" aria-label="Add to wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                    <?php } ?>
+                                    <?php echo wishlist_heart_button($product['id'], 'siva-wishlist'); ?>
                                     <?php if(!empty($product['image'])) { ?>
-                                        <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" loading="lazy">
+                                        <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                     <?php } else { ?>
                                         <div class="d-flex align-items-center justify-content-center w-100 h-100">
-                                            <i class="fas fa-box-open fa-2x text-muted"></i>
+                                            <img src="<?php echo product_image_url(null); ?>" alt="No image" class="product-image" loading="lazy">
                                         </div>
                                     <?php } ?>
                                 </div>
-                                <div class="siva-card-body">
-                                    <h3 class="siva-name"><?php echo htmlspecialchars($product['name']); ?></h3>
-                                    <div class="siva-price">
+                                <div class="siva-card-body pc-body">
+                                    <h3 class="siva-name pc-title"><?php echo htmlspecialchars($product['name']); ?></h3>
+                                    <div class="siva-price pc-meta">
                                         <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
+                                            <strong class="pc-price"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
                                         <?php } else { ?>
-                                            <strong class="text-muted">Login to see price</strong>
+                                            <strong class="pc-price text-muted">Login for price</strong>
                                         <?php } ?>
-                                        <small><?php echo 'Stock: ' . (int)($product['stock_quantity'] ?? 0); ?></small>
+                                        <small class="pc-stock"><?php echo 'Stock: ' . (int)($product['stock_quantity'] ?? 0); ?></small>
                                     </div>
                                     <?php if((float)($product['stock_quantity'] ?? 0) > 0 && isLoggedIn()) { ?>
                                         <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="siva-actions">
+                                            <div class="actions siva-actions pc-actions">
                                                 <div class="quantity-group">
                                                     <button type="button" class="btn quantity-decrease" aria-label="Decrease quantity">-</button>
-                                                    <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="<?php echo (int)($product['stock_quantity'] ?? 1); ?>" aria-label="Quantity" readonly>
+                                                    <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="<?php echo (int)($product['stock_quantity'] ?? 1); ?>" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
                                                     <button type="button" class="btn quantity-increase" aria-label="Increase quantity">+</button>
                                                 </div>
                                                 <button type="submit" class="btn-add-to-cart" aria-label="Add to cart">
-                                                    <i class="fas fa-cart-plus"></i>
-                                                    <span>Add</span>
+                                                    <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
+                                                    <span>Add to Cart</span>
                                                 </button>
                                             </div>
                                         </form>
@@ -450,37 +415,29 @@
         </div>
 
         <!-- Desktop/tablet grid -->
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-4 d-none d-md-flex">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-lg-4 d-none d-md-flex premium-product-grid">
             <?php if(!empty($trendingProducts)) { ?>
                 <?php foreach($trendingProducts as $product) { ?>
                     <div class="col">
-                        <div class="siva-card product-card transition-all d-flex flex-column">
-                            <!-- Image Section -->
-                            <div class="siva-media product-media">
-                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none">
+                        <div class="siva-card product-card pc-card d-flex flex-column">
+                            <div class="siva-media product-media pc-media">
+                                <span class="siva-badge pc-stock-badge <?php echo $product['stock_quantity'] > 0 ? 'siva-badge--in' : 'siva-badge--out'; ?>">
+                                    <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
+                                </span>
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none w-100 h-100 d-flex">
                                     <div class="product-image-box">
                                         <?php if(!empty($product['image'])) { ?>
-                                            <img src="<?php echo BASE_URL . $product['image']; ?>" 
-                                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                                 loading="lazy"
-                                                 class="product-image">
+                                            <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                         <?php } else { ?>
                                             <div class="no-image-box d-flex align-items-center justify-content-center">
-                                                <i class="fas fa-box-open fa-2x text-muted"></i>
+                                                <img src="<?php echo product_image_url(null); ?>" alt="No image" class="product-image" loading="lazy">
                                             </div>
                                         <?php } ?>
                                     </div>
                                 </a>
-
-                                <?php if(isLoggedIn() && $product['stock_quantity'] > 0) { ?>
-                                    <button class="siva-wishlist btn-wishlist"
-                                            data-product-id="<?php echo $product['id']; ?>">
-                                        <i class="far fa-heart text-muted"></i>
-                                    </button>
-                                <?php } ?>
-                                
+                                <?php echo wishlist_heart_button($product['id'], 'siva-wishlist'); ?>
                                 <?php if(isset($product['total_sold']) && $product['total_sold'] > 0) { ?>
-                                    <div class="trending-sold-badge position-absolute top-0 start-0 m-2">
+                                    <div class="trending-sold-badge position-absolute" style="top:42px;left:10px;z-index:2;">
                                         <span class="badge trending-badge-sold">
                                             <i class="fas fa-fire me-1"></i><?php echo (int)$product['total_sold']; ?> Sold
                                         </span>
@@ -488,49 +445,43 @@
                                 <?php } ?>
                             </div>
 
-                            <!-- Content -->
-                            <div class="card-body siva-card-body flex-grow-1 d-flex flex-column justify-content-between">
-                                <!-- Stock badge -->
-                                <div class="mb-1">
-                                    <span class="siva-badge <?php echo $product['stock_quantity'] > 0 ? 'siva-badge--in' : 'siva-badge--out'; ?>" style="position: static; display: inline-block;">
-                                        <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
-                                    </span>
-                                </div>
+                            <div class="card-body siva-card-body pc-body flex-grow-1 d-flex flex-column">
                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
-                                    <h3 class="siva-name" title="<?php echo htmlspecialchars($product['name']); ?>"><?php echo htmlspecialchars($product['name']); ?></h3>
-                                    <p class="product-desc small text-muted mb-1 d-none d-md-block"><?php echo isset($product['description']) ? truncateText($product['description'], 50) : ''; ?></p>
-                                    <div class="siva-price">
-                                        <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
-                                        <?php } else { ?>
-                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
-                                        <?php } ?>
-                                        <small><?php echo 'Stock: ' . (int)$product['stock_quantity']; ?></small>
-                                    </div>
+                                    <h3 class="siva-name pc-title" title="<?php echo htmlspecialchars($product['name']); ?>"><?php echo htmlspecialchars($product['name']); ?></h3>
                                 </a>
+                                <p class="product-desc pc-desc small text-muted"><?php echo isset($product['description']) ? htmlspecialchars(truncateText(strip_tags($product['description']), 70)) : '&nbsp;'; ?></p>
+                                <div class="siva-price pc-meta">
+                                    <?php if(isLoggedIn()) { ?>
+                                        <strong class="pc-price"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
+                                    <?php } else { ?>
+                                        <strong class="pc-price"><a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-muted small text-decoration-none">Login for price</a></strong>
+                                    <?php } ?>
+                                    <small class="pc-stock stock-label"><?php echo 'Stock: ' . (int)$product['stock_quantity']; ?></small>
+                                </div>
 
-                                <!-- Add to Cart -->
                                 <?php if($product['stock_quantity'] > 0) { ?>
                                     <?php if(isLoggedIn()) { ?>
                                         <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mt-auto add-to-cart-form">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="product-actions-row siva-actions">
+                                            <div class="actions product-actions-row siva-actions pc-actions">
                                                 <div class="quantity-group">
-                                                    <button type="button" class="btn quantity-decrease">-</button>
-                                                    <input type="number" name="quantity" class="quantity-input" 
-                                                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
-                                                           aria-label="Quantity" readonly>
-                                                    <button type="button" class="btn quantity-increase">+</button>
+                                                    <button type="button" class="btn quantity-decrease" aria-label="Decrease">-</button>
+                                                    <input type="number" name="quantity" class="quantity-input"
+                                                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>"
+                                                           inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
+                                                    <button type="button" class="btn quantity-increase" aria-label="Increase">+</button>
                                                 </div>
                                                 <button type="submit" class="btn-add-to-cart">
-                                                    <i class="fas fa-cart-plus"></i>
+                                                    <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
                                                     <span>Add to Cart</span>
                                                 </button>
                                             </div>
                                         </form>
+                                    <?php } else { ?>
+                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-secondary mt-auto w-100" style="height:var(--pc-action-h);">Login to purchase</a>
                                     <?php } ?>
                                 <?php } else { ?>
-                                    <div class="alert alert-danger py-1 mb-0 text-center">Out of Stock</div>
+                                    <div class="alert alert-secondary py-2 mb-0 text-center mt-auto">Out of Stock</div>
                                 <?php } ?>
                             </div>
                         </div>
@@ -565,47 +516,43 @@
                 <div class="siva-snap" aria-label="Featured products carousel">
                     <?php foreach($featuredProducts as $product) { ?>
                         <div class="siva-snap-item">
-                            <div class="siva-card d-flex flex-column">
-                                <div class="siva-media">
+                            <div class="siva-card product-card pc-card d-flex flex-column">
+                                <div class="siva-media pc-media">
                                     <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="stretched-link" aria-label="View <?php echo htmlspecialchars($product['name']); ?>"></a>
                                     <span class="siva-badge <?php echo ((float)($product['stock_quantity'] ?? 0) > 0) ? 'siva-badge--in' : 'siva-badge--out'; ?>">
                                         <?php echo ((float)($product['stock_quantity'] ?? 0) > 0) ? 'In Stock' : 'Out'; ?>
                                     </span>
-                                    <?php if(isLoggedIn() && (float)($product['stock_quantity'] ?? 0) > 0) { ?>
-                                        <button type="button" class="siva-wishlist btn-wishlist" data-product-id="<?php echo $product['id']; ?>" aria-label="Add to wishlist">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                    <?php } ?>
+                                    <?php echo wishlist_heart_button($product['id'], 'siva-wishlist'); ?>
                                     <?php if(!empty($product['image'])) { ?>
-                                        <img src="<?php echo BASE_URL . $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" loading="lazy">
+                                        <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                     <?php } else { ?>
                                         <div class="d-flex align-items-center justify-content-center w-100 h-100">
-                                            <i class="fas fa-box-open fa-2x text-muted"></i>
+                                            <img src="<?php echo product_image_url(null); ?>" alt="No image" class="product-image" loading="lazy">
                                         </div>
                                     <?php } ?>
                                 </div>
-                                <div class="siva-card-body">
-                                    <h3 class="siva-name"><?php echo htmlspecialchars($product['name']); ?></h3>
-                                    <div class="siva-price">
+                                <div class="siva-card-body pc-body">
+                                    <h3 class="siva-name pc-title"><?php echo htmlspecialchars($product['name']); ?></h3>
+                                    <div class="siva-price pc-meta">
                                         <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
+                                            <strong class="pc-price"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
                                         <?php } else { ?>
-                                            <strong class="text-muted">Login to see price</strong>
+                                            <strong class="pc-price text-muted">Login for price</strong>
                                         <?php } ?>
-                                        <small><?php echo 'Stock: ' . (int)($product['stock_quantity'] ?? 0); ?></small>
+                                        <small class="pc-stock"><?php echo 'Stock: ' . (int)($product['stock_quantity'] ?? 0); ?></small>
                                     </div>
                                     <?php if((float)($product['stock_quantity'] ?? 0) > 0 && isLoggedIn()) { ?>
                                         <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="siva-actions">
+                                            <div class="actions siva-actions pc-actions">
                                                 <div class="quantity-group">
                                                     <button type="button" class="btn quantity-decrease" aria-label="Decrease quantity">-</button>
-                                                    <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="<?php echo (int)($product['stock_quantity'] ?? 1); ?>" aria-label="Quantity" readonly>
+                                                    <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="<?php echo (int)($product['stock_quantity'] ?? 1); ?>" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
                                                     <button type="button" class="btn quantity-increase" aria-label="Increase quantity">+</button>
                                                 </div>
                                                 <button type="submit" class="btn-add-to-cart" aria-label="Add to cart">
-                                                    <i class="fas fa-cart-plus"></i>
-                                                    <span>Add</span>
+                                                    <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
+                                                    <span>Add to Cart</span>
                                                 </button>
                                             </div>
                                         </form>
@@ -627,79 +574,66 @@
         </div>
 
         <!-- Desktop/tablet grid -->
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-4 d-none d-md-flex">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-lg-4 d-none d-md-flex premium-product-grid">
             <?php if(!empty($featuredProducts)) { ?>
                 <?php foreach($featuredProducts as $product) { ?>
                     <div class="col">
-                        <div class="siva-card product-card transition-all d-flex flex-column">
-                            <!-- 🖼️ Image Section - Responsive Box and Auto Image Resize -->
-                            <div class="siva-media product-media">
-                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none">
+                        <div class="siva-card product-card pc-card d-flex flex-column">
+                            <div class="siva-media product-media pc-media">
+                                <span class="siva-badge pc-stock-badge <?php echo $product['stock_quantity'] > 0 ? 'siva-badge--in' : 'siva-badge--out'; ?>">
+                                    <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
+                                </span>
+                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none w-100 h-100 d-flex">
                                     <div class="product-image-box">
                                         <?php if(!empty($product['image'])) { ?>
-                                            <img src="<?php echo BASE_URL . $product['image']; ?>" 
-                                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                                 loading="lazy"
-                                                 class="product-image">
+                                            <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                         <?php } else { ?>
                                             <div class="no-image-box d-flex align-items-center justify-content-center">
-                                                <i class="fas fa-box-open fa-2x text-muted"></i>
+                                                <img src="<?php echo product_image_url(null); ?>" alt="No image" class="product-image" loading="lazy">
                                             </div>
                                         <?php } ?>
                                     </div>
                                 </a>
-
-                                <?php if(isLoggedIn() && $product['stock_quantity'] > 0) { ?>
-                                    <button class="siva-wishlist btn-wishlist"
-                                            data-product-id="<?php echo $product['id']; ?>">
-                                        <i class="far fa-heart text-muted"></i>
-                                    </button>
-                                <?php } ?>
+                                <?php echo wishlist_heart_button($product['id'], 'siva-wishlist'); ?>
                             </div>
 
-                            <!-- Content -->
-                            <div class="card-body siva-card-body flex-grow-1 d-flex flex-column justify-content-between">
-                                <!-- Stock badge moved above product name -->
-                                <div class="mb-1">
-                                    <span class="siva-badge <?php echo $product['stock_quantity'] > 0 ? 'siva-badge--in' : 'siva-badge--out'; ?>" style="position: static; display: inline-block;">
-                                        <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
-                                    </span>
-                                </div>
+                            <div class="card-body siva-card-body pc-body flex-grow-1 d-flex flex-column">
                                 <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="text-decoration-none text-dark">
-                                    <h3 class="siva-name"><?php echo htmlspecialchars($product['name']); ?></h3>
-                                    <p class="product-desc small text-muted mb-1 d-none d-md-block"><?php echo isset($product['description']) ? truncateText($product['description'], 50) : ''; ?></p>
-                                    <div class="siva-price">
-                                        <?php if(isLoggedIn()) { ?>
-                                            <strong><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
-                                        <?php } else { ?>
-                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login"></a>
-                                        <?php } ?>
-                                        <small><?php echo 'Stock: ' . (int)$product['stock_quantity']; ?></small>
-                                    </div>
+                                    <h3 class="siva-name pc-title"><?php echo htmlspecialchars($product['name']); ?></h3>
                                 </a>
+                                <p class="product-desc pc-desc small text-muted"><?php echo isset($product['description']) ? htmlspecialchars(truncateText(strip_tags($product['description']), 70)) : '&nbsp;'; ?></p>
+                                <div class="siva-price pc-meta">
+                                    <?php if(isLoggedIn()) { ?>
+                                        <strong class="pc-price"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></strong>
+                                    <?php } else { ?>
+                                        <strong class="pc-price"><a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-muted small text-decoration-none">Login for price</a></strong>
+                                    <?php } ?>
+                                    <small class="pc-stock stock-label"><?php echo 'Stock: ' . (int)$product['stock_quantity']; ?></small>
+                                </div>
 
-                                <!-- Add to Cart -->
                                 <?php if($product['stock_quantity'] > 0) { ?>
                                     <?php if(isLoggedIn()) { ?>
                                         <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="mt-auto add-to-cart-form">
                                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                            <div class="product-actions-row siva-actions">
+                                            <div class="actions product-actions-row siva-actions pc-actions">
                                                 <div class="quantity-group">
-                                                    <button type="button" class="btn quantity-decrease">-</button>
-                                                    <input type="number" name="quantity" class="quantity-input" 
-                                                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
-                                                           aria-label="Quantity" readonly>
-                                                    <button type="button" class="btn quantity-increase">+</button>
+                                                    <button type="button" class="btn quantity-decrease" aria-label="Decrease">-</button>
+                                                    <input type="number" name="quantity" class="quantity-input"
+                                                           value="1" min="1" max="<?php echo $product['stock_quantity']; ?>"
+                                                           inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
+                                                    <button type="button" class="btn quantity-increase" aria-label="Increase">+</button>
                                                 </div>
                                                 <button type="submit" class="btn-add-to-cart">
-                                                    <i class="fas fa-cart-plus"></i>
+                                                    <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
                                                     <span>Add to Cart</span>
                                                 </button>
                                             </div>
                                         </form>
+                                    <?php } else { ?>
+                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-outline-secondary mt-auto w-100" style="height:var(--pc-action-h);">Login to purchase</a>
                                     <?php } ?>
                                 <?php } else { ?>
-                                    <div class="alert alert-danger py-1 mb-0 text-center">Out of Stock</div>
+                                    <div class="alert alert-secondary py-2 mb-0 text-center mt-auto">Out of Stock</div>
                                 <?php } ?>
                             </div>
                         </div>
@@ -811,154 +745,8 @@
     transition: all 0.3s ease;
 }
 
-/* Product actions row (matches All Products page) */
-.product-actions-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.625rem;
-}
-
-/* Center the quantity and add-to-cart row and tighten the gap */
-.add-to-cart-form .d-flex {
-    justify-content: center;
-    gap: 0.25rem !important; /* override gap-2 */
-}
-
-/* Slightly reduce default cart-quantity width */
+/* Product action layout owned by product-cards.css — keep page styles from fighting cards */
 .cart-quantity { max-width: 88px; }
-
-/* Quantity group styling (matches All Products page) */
-.quantity-group {
-    display: flex;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #ffffff;
-    min-width: 100px;
-}
-
-.quantity-group .btn {
-    background: #ffffff;
-    border: none;
-    border-right: 1px solid #dee2e6;
-    color: #495057;
-    padding: 0.375rem 0.625rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    min-width: 32px;
-}
-
-.quantity-group .btn:first-child {
-    border-right: 1px solid #dee2e6;
-}
-
-.quantity-group .btn:last-child {
-    border-left: 1px solid #dee2e6;
-    border-right: none;
-}
-
-.quantity-group .btn:hover {
-    background: #f8f9fa;
-    color: #212529;
-}
-
-.quantity-group input {
-    border: none;
-    border-left: 1px solid #dee2e6;
-    border-right: 1px solid #dee2e6;
-    width: 40px;
-    text-align: center;
-    padding: 0.375rem 0.25rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    background: #ffffff;
-}
-
-/* Add to cart button styling */
-.btn-add-to-cart {
-    flex: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 8px;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.875rem;
-    padding: 0.5rem 0.875rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
-
-/* Mobile only: prevent overflow, keep desktop unchanged */
-@media (max-width: 767.98px) {
-    .product-card .card-body,
-    .trending-products .product-card .card-body,
-    .featured-products .product-card .card-body {
-        min-width: 0;
-        overflow: hidden;
-        padding: 0.5rem 0.75rem !important;
-    }
-    .product-actions-row {
-        flex-wrap: wrap;
-        gap: 0.35rem;
-        max-width: 100%;
-        min-width: 0;
-    }
-    .product-actions-row .quantity-group {
-        min-width: 78px;
-        flex-shrink: 0;
-    }
-    .product-actions-row .quantity-group input {
-        width: 28px;
-        padding: 0.25rem 0.1rem;
-        font-size: 0.8rem;
-    }
-    .product-actions-row .quantity-group .btn {
-        min-width: 28px;
-        padding: 0.25rem 0.35rem;
-        font-size: 0.8rem;
-    }
-    .product-actions-row .btn-add-to-cart {
-        flex: 1 1 auto;
-        min-width: 0;
-        font-size: 0.75rem;
-        padding: 0.4rem 0.5rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .product-actions-row .btn-add-to-cart span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-    }
-}
-@media (max-width: 479.98px) {
-    .product-actions-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .product-actions-row .quantity-group {
-        width: 100%;
-        min-width: 0;
-        justify-content: center;
-    }
-    .product-actions-row .btn-add-to-cart {
-        width: 100%;
-        min-width: 0;
-    }
-}
-
-.btn-add-to-cart:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    color: #ffffff;
-}
 
 /* Banner Styles */
 .main-banner .carousel-item img {
@@ -1305,255 +1093,9 @@ html[data-theme="dark"] .category-card .card-body {
     }
 }
 
-/* Ensure anchor scroll aligns nicely with header for categories heading */
+/* Product card layout owned by product-cards.css — do not redeclare heights here */
 #categories-heading { scroll-margin-top: 140px; }
-/* Offset for banner anchor so banner top is visible under fixed header */
 #banner { scroll-margin-top: 100px; }
-
-/* Product Card - Mobile-first responsive styles */
-.product-card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.product-media {
-    padding: 12px 0;
-    flex: 0 0 auto;
-}
-.product-image-box {
-    width: 100%;
-    height: 160px;
-    min-height: 160px;
-    max-height: 160px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    background: #f8f9fa;
-    margin-bottom: 10px;
-}
-.product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    transition: transform 0.25s ease;
-}
-.product-image:hover { transform: scale(1.04); }
-.no-image-box {
-    width: 100%;
-    height: 100%;
-    background-color: rgba(240,240,240,0.9);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Dark theme for product cards */
-html[data-theme="dark"] .product-card {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    color: var(--theme-text) !important;
-}
-
-html[data-theme="dark"] .product-card:hover {
-    background: rgba(255, 255, 255, 0.12) !important;
-    border-color: var(--theme-primary) !important;
-}
-
-html[data-theme="dark"] .product-card .card-body {
-    background: transparent !important;
-    color: var(--theme-text) !important;
-}
-
-html[data-theme="dark"] .product-title,
-html[data-theme="dark"] .product-card .card-title {
-    color: var(--theme-text) !important;
-}
-
-html[data-theme="dark"] .product-desc {
-    color: var(--theme-text) !important;
-    opacity: 0.8;
-}
-
-html[data-theme="dark"] .product-image-box {
-    background: rgba(255, 255, 255, 0.05) !important;
-}
-
-html[data-theme="dark"] .no-image-box {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    color: var(--theme-text) !important;
-}
-.product-title {
-    font-size: 0.8rem;
-    text-align: left;
-    margin-bottom: 0.25rem;
-    min-height: 2.4rem;
-    max-height: 2.8rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.4;
-    word-wrap: break-word;
-    word-break: break-word;
-}
-.product-desc {
-    font-size: 0.7rem;
-    margin-bottom: 0.5rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-.card-body {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    padding: 0.75rem !important;
-}
-.add-to-cart-form {
-    margin-top: auto;
-    padding-top: 0.5rem;
-}
-
-/* Category Media & Layout - Consolidated */
-.category-media {
-    padding: 0;
-    flex: 0 0 auto;
-    position: relative;
-    z-index: 2;
-}
-
-@media (max-width: 575.98px) {
-    .product-image-box { height: 140px; min-height: 140px; max-height: 140px; }
-}
-@media (min-width: 576px) {
-    .product-image-box { height: 180px; min-height: 180px; max-height: 180px; }
-    .category-image-box { height: 140px; padding: 25px 20px; }
-}
-@media (min-width: 768px) {
-    .product-image-box { height: 200px; min-height: 200px; max-height: 200px; }
-    .category-image-box { height: 160px; padding: 30px 25px; }
-    .product-title { font-size: 0.9rem; }
-    .category-title { font-size: 1rem; padding: 16px 12px; }
-    .product-desc { font-size: 0.8rem; }
-    .add-to-cart-form .btn { 
-        height: 26px; 
-        font-size: 0.75rem; 
-        padding: 0.15rem 0.5rem;
-    }
-    .add-to-cart-form .btn i { 
-        font-size: 0.7em; 
-        margin-right: 2px;
-    }
-    /* Qty controls on >=768px - same height to align borders */
-    .cart-quantity .form-control { height: 26px; }
-    .cart-quantity .btn { height: 26px; min-width: 20px; }
-}
-
-/* Cart Quantity Controls */
-.cart-quantity {
-    max-width: 120px;
-}
-.cart-quantity .form-control {
-    font-size: 0.7rem;
-    padding: 0.08rem;
-    text-align: center;
-    height: 26px;
-}
-.cart-quantity .btn {
-    padding: 0.08rem 0.3rem;
-    font-size: 0.7rem;
-    height: 26px;
-}
-.add-to-cart-form .btn i {
-    font-size: 0.8em;
-}
-
-/* Make Add to Cart button narrower and prevent full-width expansion */
-.add-to-cart-btn {
-    flex: 0 0 auto;
-    width: auto !important; /* override w-100 */
-    min-width: 72px; /* further compact width */
-    white-space: nowrap;
-}
-@media (min-width: 768px) {
-    .add-to-cart-btn {
-        min-width: 84px; /* compact on md+ */
-    }
-}
-
-/* Align quantity controls neatly and ensure consistent sizing */
-.cart-quantity {
-    display: inline-flex;
-    align-items: stretch;
-    border-radius: .375rem;
-}
-.cart-quantity .form-control { height: 26px; line-height: normal; }
-.cart-quantity .btn { height: 26px; line-height: normal; }
-.cart-quantity .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    padding: 0 .25rem;
-}
-.cart-quantity .form-control {
-    max-width: 48px;
-    padding: 0 .25rem;
-}
-/* Unify border look to avoid visual misalignment */
-.cart-quantity .btn,
-.cart-quantity .form-control {
-    border-width: 1px;
-    border-color: #ced4da;
-}
-.cart-quantity .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.cart-quantity .form-control { border-radius: 0; }
-.cart-quantity .btn:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-
-/* Remove inner borders so the group looks like a single outline */
-.cart-quantity .qty-minus { border-right-width: 0 !important; }
-.cart-quantity .quantity-input { border-left-width: 0 !important; border-right-width: 0 !important; }
-.cart-quantity .qty-plus { border-left-width: 0 !important; }
-
-/* Consistent focus without extra glow causing misalignment */
-.cart-quantity .btn:focus,
-.cart-quantity .form-control:focus {
-    box-shadow: none;
-    outline: none;
-    border-color: #ced4da;
-}
-
-/* Ensure buttons are properly sized on mobile */
-@media (max-width: 767px) {
-    .add-to-cart-form .btn {
-        padding: 0.15rem 0.35rem;
-        font-size: 0.7rem;
-        height: 24px;
-    }
-    .add-to-cart-form .btn i {
-        font-size: 0.7em;
-        margin-right: 2px;
-    }
-    .cart-quantity {
-        width: 72px !important; /* narrower on mobile */
-    }
-    .cart-quantity .form-control {
-        font-size: 0.7rem;
-        padding: 0.08rem;
-        height: 26px;
-    }
-    .cart-quantity .btn {
-        padding: 0.08rem 0.25rem;
-        font-size: 0.7rem;
-        height: 26px; /* match input height for clean borders */
-        min-width: 20px; /* decreased width */
-    }
-}
 
 .categories-slider {
     position: relative;
@@ -1665,31 +1207,7 @@ html[data-theme="dark"] .no-image-box {
 }
 
 
-/* Product Card Styles - Modern Vegist Theme */
-.product-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid #f0f0f0;
-}
-
-.product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
-    border-color: #e0e0e0;
-}
-
-.product-image-box {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    border-radius: 12px;
-    padding: 15px;
-}
-
-.product-title {
-    color: #2d3436;
-    font-weight: 600;
-    font-size: 0.95rem;
-}
+/* Product card chrome owned by product-cards.css */
 
 /* Trending Products Enhanced Styling */
 .trending-products {
@@ -2515,105 +2033,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Quantity controls are handled globally in footer.php
     // This prevents duplicate handlers
-    
-    // Wishlist functionality
-    const wishlistButtons = document.querySelectorAll('.btn-wishlist');
-    wishlistButtons.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const productId = this.getAttribute('data-product-id');
-            const icon = this.querySelector('i');
-            
-            if (!productId) {
-                console.warn('Wishlist: Product ID not found');
-                return;
-            }
-            
-            // Toggle active state visually
-            this.classList.toggle('active');
-            if (icon) {
-                if (this.classList.contains('active')) {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas');
-                    icon.style.color = '#dc3545';
-                } else {
-                    icon.classList.remove('fas');
-                    icon.classList.add('far');
-                    icon.style.color = '';
-                }
-            }
-            
-            // Send AJAX request
-            const url = '<?php echo BASE_URL; ?>?controller=wishlist&action=add&id=' + productId;
-            
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    const toast = document.createElement('div');
-                    toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-                    toast.innerHTML = `
-                        <div class="d-flex">
-                            <div class="toast-body">
-                                <i class="fas fa-check-circle me-2"></i> ${data.message || 'Added to wishlist'}
-                            </div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                    `;
-                    document.body.appendChild(toast);
-                    const toastInstance = new bootstrap.Toast(toast);
-                    toastInstance.show();
-                    toast.addEventListener('hidden.bs.toast', function() {
-                        toast.remove();
-                    });
-                } else {
-                    // Revert visual state
-                    button.classList.toggle('active');
-                    if (icon) {
-                        if (button.classList.contains('active')) {
-                            icon.classList.remove('far');
-                            icon.classList.add('fas');
-                        } else {
-                            icon.classList.remove('fas');
-                            icon.classList.add('far');
-                        }
-                    }
-                    alert(data.message || 'Failed to add to wishlist');
-                }
-            })
-            .catch(error => {
-                console.error('Wishlist error:', error);
-                // Revert visual state
-                button.classList.toggle('active');
-                if (icon) {
-                    if (button.classList.contains('active')) {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                    }
-                }
-                alert('An error occurred. Please try again.');
-            });
-        });
-    });
+    // Wishlist toggle is handled globally in main.js
     
     // Product card hover effects
     const productCards = document.querySelectorAll('.product-card');

@@ -25,7 +25,7 @@ class AdminController extends Controller {
             redirect('user/login');
         }
 
-        // Set page title
+        // Standardized page title (defined on base Controller)
         $this->setPageTitle('Dashboard');
 
         // Enable output caching for 5 minutes (300 seconds)
@@ -95,7 +95,7 @@ class AdminController extends Controller {
             $content = APP_PATH . 'views/admin/dashboard-modern-content.php';
             $this->view('admin/layouts/dashboard-modern', [
                 'content' => $content,
-                'pageTitle' => 'Dashboard',
+                'pageTitle' => $this->getPageTitle(),
                 'recentOrders' => is_array($recentOrders) ? $recentOrders : [],
                 'lowStockProducts' => is_array($lowStockProducts) ? $lowStockProducts : [],
                 'lowStockCategories' => is_array($lowStockCategories) ? $lowStockCategories : [],
@@ -106,6 +106,7 @@ class AdminController extends Controller {
         } else {
             // Use legacy layout
             $this->view('admin/dashboard', [
+                'pageTitle' => $this->getPageTitle(),
                 'recentOrders' => is_array($recentOrders) ? $recentOrders : [],
                 'lowStockProducts' => is_array($lowStockProducts) ? $lowStockProducts : [],
                 'lowStockCategories' => is_array($lowStockCategories) ? $lowStockCategories : [],

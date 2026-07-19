@@ -9,7 +9,10 @@ $(document).ready(function() {
         return;
     }
     
-    console.log('✅ main.js loaded - Add to cart handlers will be attached');
+    // Debug logs only when explicitly enabled
+    if (window.DEBUG_STOREFRONT) {
+        console.log('main.js loaded - Add to cart handlers attached');
+    }
     
     // Navbar dropdown search - filter options as user types
     document.querySelectorAll('.nav-dropdown-search').forEach(function(input) {
@@ -60,16 +63,46 @@ $(document).ready(function() {
         $('#msg-flash').fadeOut('slow');
     }, 5000);
 
-    // Product quantity increment/decrement
+    // Product quantity increment/decrement (legacy .quantity-control)
     $('.quantity-control').on('click', function() {
         const input = $(this).siblings('.quantity-input');
-        const currentValue = parseInt(input.val());
-        const maxValue = parseInt(input.attr('max'));
-        
-        if ($(this).hasClass('quantity-increment') && (currentValue < maxValue)) {
-            input.val(currentValue + 1);
-        } else if ($(this).hasClass('quantity-decrement') && currentValue > 1) {
-            input.val(currentValue - 1);
+        const currentValue = parseInt(input.val(), 10) || 1;
+        const maxValue = parseInt(input.attr('max'), 10) || 9999;
+        const minValue = parseInt(input.attr('min'), 10) || 1;
+
+        if ($(this).hasClass('quantity-increment') && currentValue < maxValue) {
+            input.val(currentValue + 1).trigger('change');
+        } else if ($(this).hasClass('quantity-decrement') && currentValue > minValue) {
+            input.val(currentValue - 1).trigger('change');
+        }
+    });
+
+    // Editable quantity validation for product cards (and shared .quantity-group)
+    function clampProductQuantity(input) {
+        if (!input) return;
+        const min = parseInt(input.getAttribute('min'), 10) || 1;
+        const max = parseInt(input.getAttribute('max'), 10) || 9999;
+        let raw = String(input.value || '').replace(/[^\d]/g, '');
+        let value = parseInt(raw, 10);
+        if (isNaN(value) || value < min) value = min;
+        if (value > max) value = max;
+        input.value = value;
+        return value;
+    }
+
+    $(document).on('input', '.product-card .quantity-input, .siva-card .quantity-input, .quantity-group .quantity-input', function() {
+        // Allow empty while typing; strip non-digits
+        this.value = String(this.value || '').replace(/[^\d]/g, '');
+    });
+
+    $(document).on('change blur', '.product-card .quantity-input, .siva-card .quantity-input, .quantity-group .quantity-input', function() {
+        clampProductQuantity(this);
+    });
+
+    $(document).on('keydown', '.product-card .quantity-input, .siva-card .quantity-input, .quantity-group .quantity-input', function(e) {
+        // Block letters / symbols except control keys, arrows, tab, enter
+        if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
+            e.preventDefault();
         }
     });
 
@@ -145,42 +178,37 @@ $(document).ready(function() {
             url = window.baseUrl + '?controller=cart&action=add';
         }
         
-        // Ensure quantity input is included even if readonly
-        const quantityInput = $form.find('.quantity-input, input[name="quantity"]');
+        // Read quantity from editable (or legacy) input
+        const quantityInput = $form.find('.quantity-input, input[name="quantity"]').first();
         let quantity = 1;
-        
         if (quantityInput.length) {
-            if (quantityInput.attr('readonly')) {
-                // Temporarily remove readonly for serialization
-                quantityInput.removeAttr('readonly');
-            }
-            quantity = quantityInput.val() || 1;
+            quantity = parseInt(quantityInput.val(), 10) || 1;
+            const min = parseInt(quantityInput.attr('min'), 10) || 1;
+            const max = parseInt(quantityInput.attr('max'), 10) || 9999;
+            if (quantity < min) quantity = min;
+            if (quantity > max) quantity = max;
+            quantityInput.val(quantity);
         }
-        
+
         const formData = $form.serialize();
-        
-        // Restore readonly if it was there
-        if (quantityInput.length && quantityInput.attr('readonly') === undefined) {
-            quantityInput.attr('readonly', 'readonly');
-        }
-        
+
         // Find submit button
         const $submitBtn = $form.find('.add-to-cart-btn, .btn-add-to-cart, button[type="submit"]');
         
         // Debug logging
-        console.log('Add to cart form submitted:', {
-            url: url,
-            formData: formData,
-            productId: productId,
-            quantity: quantity,
-            formClass: $form.attr('class'),
-            buttonClass: $submitBtn.attr('class'),
-            formExists: $form.length > 0,
-            buttonExists: $submitBtn.length > 0
-        });
+        if (window.DEBUG_STOREFRONT) {
+            console.log('Add to cart form submitted:', {
+                url: url,
+                formData: formData,
+                productId: productId,
+                quantity: quantity
+            });
+        }
         
         // Disable button to prevent double submission
         const originalBtnHtml = $submitBtn.html();
+        $submitBtn.data('siva-original-html', originalBtnHtml);
+        $submitBtn.data('siva-keep-state', false);
         $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Adding...');
 
         $.ajax({
@@ -192,11 +220,9 @@ $(document).ready(function() {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function(response, textStatus, jqXHR) {
-                console.log('Add to cart AJAX success:', {
-                    response: response,
-                    status: textStatus,
-                    statusCode: jqXHR.status
-                });
+                if (window.DEBUG_STOREFRONT) {
+                    console.log('Add to cart AJAX success:', response);
+                }
                 
                 // Handle redirect if needed (e.g., login required)
                 if (response.redirect) {
@@ -228,6 +254,24 @@ $(document).ready(function() {
                     const toastInstance = new bootstrap.Toast(toastEl, { delay: 3000 });
                     toastInstance.show();
                     toastEl.addEventListener('hidden.bs.toast', function() { $(this).remove(); });
+
+                    // Button feedback: Added state
+                    if ($submitBtn && $submitBtn.length) {
+                        $submitBtn.addClass('is-added');
+                        $submitBtn.attr('aria-pressed', 'true');
+                        $submitBtn.html('<i class="fas fa-check"></i><span>Added</span>');
+                        $submitBtn.data('siva-keep-state', true);
+
+                        window.setTimeout(function() {
+                            const original = $submitBtn.data('siva-original-html');
+                            $submitBtn.removeClass('is-added');
+                            $submitBtn.removeAttr('aria-pressed');
+                            if (typeof original !== 'undefined') {
+                                $submitBtn.html(original);
+                            }
+                            $submitBtn.data('siva-keep-state', false);
+                        }, 1400);
+                    }
                 } else {
                     alert(response.message || 'Failed to add product to cart.');
                 }
@@ -267,7 +311,10 @@ $(document).ready(function() {
             },
             complete: function() {
                 // Re-enable button after request completes
-                $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                $submitBtn.prop('disabled', false);
+                if (!$submitBtn.data('siva-keep-state')) {
+                    $submitBtn.html($submitBtn.data('siva-original-html') || originalBtnHtml);
+                }
             }
         });
         
@@ -476,4 +523,6 @@ $(document).ready(function() {
 
     // Call the function to update cart count
     updateCartCount();
+
+    // Wishlist handled by assets/js/wishlist.js
 });

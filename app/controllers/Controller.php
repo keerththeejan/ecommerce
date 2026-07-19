@@ -8,6 +8,12 @@ class Controller {
      * @var object Database connection
      */
     protected $db;
+
+    /**
+     * Current page title for views/layouts
+     * @var string
+     */
+    protected $pageTitle = '';
     
     /**
      * Constructor - initialize database connection
@@ -22,6 +28,26 @@ class Controller {
             $this->db = new Database();
             $GLOBALS['db'] = $this->db; // Store in global scope for other instances
         }
+    }
+
+    /**
+     * Set the page title used by layouts and views
+     *
+     * @param string $title
+     * @return $this
+     */
+    public function setPageTitle($title) {
+        $this->pageTitle = trim((string)$title);
+        return $this;
+    }
+
+    /**
+     * Get the current page title
+     *
+     * @return string
+     */
+    public function getPageTitle() {
+        return $this->pageTitle;
     }
     
     /**
@@ -48,6 +74,15 @@ class Controller {
     public function view($view, $data = []) {
         // Check for view file
         if(file_exists(APP_PATH . 'views/' . $view . '.php')) {
+            // Inject standardized page title when not explicitly passed
+            if (!isset($data['pageTitle']) && $this->pageTitle !== '') {
+                $data['pageTitle'] = $this->pageTitle;
+            }
+            // Support legacy $page_title views without duplicating logic
+            if (!isset($data['page_title']) && isset($data['pageTitle'])) {
+                $data['page_title'] = $data['pageTitle'];
+            }
+
             // Extract data to make variables available in the view
             extract($data);
             

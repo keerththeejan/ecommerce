@@ -153,82 +153,7 @@
     font-weight: 400;
 }
 
-.product-actions-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.625rem;
-}
-
-.quantity-group {
-    display: flex;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #ffffff;
-    min-width: 100px;
-}
-
-.quantity-group .btn {
-    background: #ffffff;
-    border: none;
-    border-right: 1px solid #dee2e6;
-    color: #495057;
-    padding: 0.375rem 0.625rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    min-width: 32px;
-}
-
-.quantity-group .btn:first-child {
-    border-right: 1px solid #dee2e6;
-}
-
-.quantity-group .btn:last-child {
-    border-left: 1px solid #dee2e6;
-    border-right: none;
-}
-
-.quantity-group .btn:hover {
-    background: #f8f9fa;
-    color: #212529;
-}
-
-.quantity-group input {
-    border: none;
-    border-left: 1px solid #dee2e6;
-    border-right: 1px solid #dee2e6;
-    width: 40px;
-    text-align: center;
-    padding: 0.375rem 0.25rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    background: #ffffff;
-}
-
-.btn-add-to-cart {
-    flex: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 8px;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.875rem;
-    padding: 0.5rem 0.875rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
-
-.btn-add-to-cart:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    color: #ffffff;
-}
+/* Action row / qty / Add to Cart layout owned by product-cards.css */
 
 /* Responsive Design */
 @media (min-width: 576px) {
@@ -292,49 +217,6 @@
         font-size: 0.7rem;
     }
     
-    .product-actions-row {
-        flex-wrap: wrap;
-        gap: 0.35rem;
-        max-width: 100%;
-        min-width: 0;
-    }
-    
-    .product-actions-row .quantity-group {
-        min-width: 78px;
-        flex-shrink: 0;
-    }
-    
-    .product-actions-row .quantity-group input {
-        width: 28px;
-        padding: 0.25rem 0.1rem;
-        font-size: 0.8rem;
-    }
-    
-    .product-actions-row .quantity-group .btn {
-        min-width: 28px;
-        padding: 0.25rem 0.35rem;
-        font-size: 0.8rem;
-    }
-    
-    .btn-add-to-cart {
-        flex: 1 1 auto;
-        min-width: 0;
-        font-size: 0.75rem;
-        padding: 0.4rem 0.5rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .btn-add-to-cart span {
-        display: inline;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .btn-add-to-cart i {
-        flex-shrink: 0;
-    }
-    
     .filter-section {
         padding: 1rem;
     }
@@ -348,22 +230,6 @@
     
     .product-image-container {
         height: 180px;
-    }
-    
-    .product-actions-row {
-        flex-direction: column;
-    }
-    
-    .quantity-group {
-        width: 100%;
-    }
-    
-    .btn-add-to-cart {
-        width: 100%;
-    }
-    
-    .btn-add-to-cart span {
-        display: inline;
     }
 }
 
@@ -422,40 +288,23 @@
     <!-- Products Grid -->
     <div class="products-grid">
                 <?php foreach($products as $product): ?>
-                    <div class="product-card card">
+                    <div class="product-card card pc-card">
                         <!-- Product Image with Wishlist Icon -->
-                        <div class="product-image-container position-relative">
+                        <div class="product-image-container position-relative pc-media">
                             <a href="<?php echo BASE_URL; ?>?controller=product&action=show&id=<?php echo $product['id']; ?>" class="text-decoration-none w-100 h-100 d-flex align-items-center justify-content-center">
                                 <?php if(!empty($product['image'])) : ?>
-                                    <?php 
-                                        $imagePath = strpos($product['image'], 'http') === 0 ? $product['image'] : BASE_URL . ltrim($product['image'], '/');
-                                        if(strpos($product['image'], 'uploads/') === false && strpos($product['image'], '/') !== 0) {
-                                            $imagePath = BASE_URL . 'uploads/' . ltrim($product['image'], '/');
-                                        }
-                                    ?>
-                                    <img src="<?php echo $imagePath; ?>" 
-                                         alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                         loading="lazy"
-                                         onerror="this.onerror=null; this.src='<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg';">
+                                    <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                 <?php else : ?>
-                                    <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" 
-                                         alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                         loading="lazy">
+                                    <img <?php echo product_img_attrs(null, $product['name'], 'product-image'); ?>>
                                 <?php endif; ?>
                             </a>
                             
-                            <?php if(isLoggedIn() && $product['stock_quantity'] > 0) : ?>
-                                <a href="<?php echo BASE_URL; ?>?controller=wishlist&action=add&id=<?php echo $product['id']; ?>" 
-                                   class="btn-wishlist"
-                                   title="Add to Wishlist">
-                                    <i class="far fa-heart"></i>
-                                </a>
-                            <?php endif; ?>
+                            <?php echo wishlist_heart_button($product['id']); ?>
                             
                         </div>
                         
                         <!-- Product Content -->
-                        <div class="card-body d-flex flex-column" style="padding: 0.875rem 1rem 1rem;">
+                        <div class="card-body pc-body d-flex flex-column">
                             <!-- Stock Badge -->
                             <?php if(isLoggedIn()): ?>
                                 <?php if($product['stock_quantity'] <= 0): ?>
@@ -496,16 +345,16 @@
                                 <?php if($product['stock_quantity'] > 0): ?>
                                     <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                        <div class="product-actions-row">
+                                        <div class="actions product-actions-row pc-actions">
                                             <div class="quantity-group">
                                                 <button type="button" class="btn quantity-decrease">-</button>
                                                 <input type="number" name="quantity" class="quantity-input" 
                                                        value="1" min="1" max="<?php echo $product['stock_quantity']; ?>" 
-                                                       aria-label="Quantity" readonly>
+                                                       inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
                                                 <button type="button" class="btn quantity-increase">+</button>
                                             </div>
                                             <button type="submit" class="btn-add-to-cart">
-                                                <i class="fas fa-cart-plus"></i>
+                                                <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
                                                 <span>Add to Cart</span>
                                             </button>
                                         </div>

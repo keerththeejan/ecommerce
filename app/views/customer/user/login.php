@@ -22,6 +22,17 @@
                         <?php endif; ?>
                         
                         <form action="<?php echo BASE_URL; ?>?controller=user&action=login" method="POST">
+                            <?php
+                            $loginRedirect = '';
+                            if (!empty($_GET['redirect'])) {
+                                $loginRedirect = (string)$_GET['redirect'];
+                            } elseif (!empty($_SESSION['login_redirect'])) {
+                                $loginRedirect = (string)$_SESSION['login_redirect'];
+                            }
+                            if ($loginRedirect !== ''):
+                            ?>
+                            <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($loginRedirect, ENT_QUOTES, 'UTF-8'); ?>">
+                            <?php endif; ?>
                             <div class="form-floating mb-4">
                                 <input type="text" class="form-control custom-input" id="username" name="username" placeholder="Username or Email" required>
                                 <label for="username"><i class="fas fa-user me-2"></i>Username or Email</label>

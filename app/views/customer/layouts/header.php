@@ -3,9 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Sivakamy</title>
+    <title><?php echo isset($pageTitle) && $pageTitle !== '' ? htmlspecialchars($pageTitle) : 'Sivakamy'; ?></title>
+    <?php if (!empty($pageDescription)): ?>
+    <meta name="description" content="<?php echo htmlspecialchars($pageDescription); ?>">
+    <?php endif; ?>
+    <?php if (!empty($ogType) || !empty($ogImage) || !empty($ogUrl) || !empty($pageTitle)): ?>
+    <meta property="og:type" content="<?php echo htmlspecialchars($ogType ?? 'website'); ?>">
+    <meta property="og:title" content="<?php echo htmlspecialchars($pageTitle ?? 'Sivakamy'); ?>">
+    <?php if (!empty($pageDescription)): ?>
+    <meta property="og:description" content="<?php echo htmlspecialchars($pageDescription); ?>">
+    <?php endif; ?>
+    <?php if (!empty($ogImage)): ?>
+    <meta property="og:image" content="<?php echo htmlspecialchars($ogImage); ?>">
+    <?php endif; ?>
+    <?php if (!empty($ogUrl)): ?>
+    <meta property="og:url" content="<?php echo htmlspecialchars($ogUrl); ?>">
+    <?php endif; ?>
+    <meta name="twitter:card" content="<?php echo htmlspecialchars($twitterCard ?? 'summary_large_image'); ?>">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($pageTitle ?? 'Sivakamy'); ?>">
+    <?php if (!empty($pageDescription)): ?>
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($pageDescription); ?>">
+    <?php endif; ?>
+    <?php if (!empty($ogImage)): ?>
+    <meta name="twitter:image" content="<?php echo htmlspecialchars($ogImage); ?>">
+    <?php endif; ?>
+    <?php endif; ?>
+    <?php if (!empty($productSchema) && is_array($productSchema)): ?>
+    <script type="application/ld+json"><?php echo json_encode($productSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+    <?php endif; ?>
+    <!-- Google Font: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS - Latest Stable -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Animate.css -->
@@ -13,7 +46,13 @@
     <!-- System UI foundation (shared) -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/system.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
+    <!-- Premium Theme -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/responsive.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
+    <!-- Product cards last so action-row layout wins over theme/mobile -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/product-cards.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
 
     <script>
         (function() {
@@ -75,16 +114,23 @@
             --theme-secondary: <?php echo htmlspecialchars($themeSecondaryColor); ?>;
             --theme-bg: <?php echo htmlspecialchars($themeBackgroundColor); ?>;
             --theme-text: <?php echo htmlspecialchars($themeTextColor); ?>;
+            --header-bg: <?php echo htmlspecialchars($headerBgColor); ?>;
+            --header-logo-size: <?php echo (int)$headerLogoSize; ?>px;
+            --header-logo-size-mobile: <?php echo (int)$headerLogoSizeMobile; ?>px;
+            --menu-font-size: <?php echo htmlspecialchars($menuFontSize); ?>;
+            --storefront-search-max: 700px;
+            --storefront-header-offset-mobile: 168px;
+            --storefront-header-offset-desktop: 128px;
 
-            /* Sivakamy – modern commerce tokens (used by product cards + actions) */
-            --siva-primary: #6d28d9; /* purple */
-            --siva-accent: #06b6d4;  /* teal/cyan */
+            /* Premium commerce tokens */
+            --siva-primary: #2563EB;
+            --siva-accent: #10B981;
             --siva-bg: var(--theme-bg);
             --siva-card: #ffffff;
             --siva-text: var(--theme-text);
             --siva-muted: rgba(15, 23, 42, 0.65);
             --siva-border: rgba(15, 23, 42, 0.10);
-            --siva-radius: 12px;
+            --siva-radius: 18px;
             --siva-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
             --siva-shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.08);
         }
@@ -128,26 +174,29 @@
             background-color: var(--siva-card) !important;
         }
 
-        /* Add-to-cart button: default purple, hover elevation, Added teal state */
+        /* Add-to-cart button colors (sizing/layout owned by product-cards.css) */
         .btn-add-to-cart {
             background: linear-gradient(135deg, var(--siva-primary) 0%, #7c3aed 100%) !important;
             border: none !important;
             color: #ffffff !important;
             border-radius: 12px !important;
-            min-height: 44px;
             font-weight: 700;
-            transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+            transition: box-shadow 160ms ease, background-color 160ms ease, filter 160ms ease;
         }
 
         @media (hover: hover) {
             .btn-add-to-cart:hover {
-                transform: translateY(-2px);
+                filter: brightness(1.05);
                 box-shadow: 0 10px 22px rgba(109, 40, 217, 0.25);
+            }
+
+            .product-card .btn-add-to-cart:hover {
+                transform: none;
             }
         }
 
         .btn-add-to-cart:active {
-            transform: translateY(0);
+            filter: brightness(0.98);
         }
 
         .btn-add-to-cart.is-added,
@@ -402,42 +451,356 @@
             border: none !important;
         }
 
-        /* Mobile Navigation Styles */
-        @media (max-width: 767.98px) {
-            /* Add padding to body to account for fixed navigation bars */
+        .storefront-desktop-nav .navbar-nav .nav-link,
+        .storefront-desktop-nav .navbar-nav .dropdown-toggle {
+            font-size: var(--menu-font-size) !important;
+        }
+
+        /* Critical storefront header layout (beats Bootstrap navbar flex defaults) */
+        nav.storefront-desktop-nav.navbar {
+            display: block !important;
+            padding: 0 !important;
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            width: 100%;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Amazon/Shopify style: Row1 Logo+Nav+Actions | Row2 Search */
+        nav.storefront-desktop-nav.navbar > .container,
+        nav.storefront-desktop-nav.navbar > .container-fluid,
+        nav.storefront-desktop-nav .storefront-header-shell {
+            display: grid !important;
+            grid-template-columns: auto minmax(0, 1fr) auto !important;
+            grid-template-areas:
+                "brand nav actions"
+                "search search search" !important;
+            align-items: center !important;
+            column-gap: 20px !important;
+            row-gap: 0.45rem !important;
+            width: 100%;
+            max-width: 1400px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-top: 0.55rem;
+            padding-bottom: 0.55rem;
+        }
+
+        nav.storefront-desktop-nav .storefront-header-primary {
+            display: contents !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-brand {
+            grid-area: brand !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            flex: 0 0 auto !important;
+            width: auto !important;
+            max-width: 200px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            white-space: nowrap !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-header-secondary,
+        nav.storefront-desktop-nav #navbarSupportedContent.storefront-header-secondary {
+            grid-area: nav !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-header-actions {
+            grid-area: actions !important;
+            width: auto !important;
+            justify-content: flex-end !important;
+            padding: 0 !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-header-search {
+            grid-area: search !important;
+            width: min(700px, 100%) !important;
+            max-width: min(700px, 100%) !important;
+            margin: 0.15rem auto 0 !important;
+            justify-self: center !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-search-shell {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            width: 100% !important;
+            min-height: 50px;
+            border: 1.5px solid rgba(37, 99, 235, 0.18);
+            border-radius: 50px;
+            background: #f1f5f9;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+        }
+
+        nav.storefront-desktop-nav .storefront-search-icon {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 44px !important;
+            width: 44px !important;
+            color: rgba(15, 23, 42, 0.45);
+        }
+
+        nav.storefront-desktop-nav .storefront-search-input {
+            flex: 1 1 auto !important;
+            width: auto !important;
+            max-width: none !important;
+            height: 50px !important;
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0.5rem 0.25rem 0.5rem 0 !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-search-submit {
+            flex: 0 0 auto !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            min-width: 54px;
+            height: 50px !important;
+            border: 0 !important;
+            border-radius: 0 50px 50px 0 !important;
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+            color: #fff !important;
+            padding: 0 1.15rem !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-header-secondary,
+        nav.storefront-desktop-nav #navbarSupportedContent.storefront-header-secondary {
+            display: flex !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            min-height: 0;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            overflow: visible !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-main-nav {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.05rem 0.1rem !important;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-main-nav .dropdown-menu {
+            z-index: 1085 !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-main-nav .nav-link {
+            display: inline-flex !important;
+            align-items: center !important;
+            white-space: nowrap !important;
+            padding: 0.35rem 0.45rem !important;
+            margin: 0 !important;
+            border-radius: 999px;
+            font-size: 0.8125rem !important;
+            transform: none !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-header-actions {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 0.25rem !important;
+            flex: 0 0 auto !important;
+            margin: 0 !important;
+            z-index: 2 !important;
+            position: relative !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-action-label {
+            display: none !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-action-link {
+            padding: 0.35rem 0.55rem !important;
+            min-width: 40px;
+            justify-content: center;
+        }
+
+        nav.storefront-desktop-nav .storefront-main-nav .nav-link:hover,
+        nav.storefront-desktop-nav .storefront-main-nav .nav-link:focus {
+            transform: none !important;
+            background: rgba(15, 23, 42, 0.06);
+        }
+
+        nav.storefront-desktop-nav .storefront-nav-pill--new {
+            background: rgba(40, 167, 69, 0.12) !important;
+            color: #198754 !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-nav-pill--sale {
+            background: rgba(172, 104, 26, 0.14) !important;
+            color: #a87428 !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-nav-pill--offers {
+            background: rgba(220, 53, 69, 0.1) !important;
+            color: #dc3545 !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-action-link {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.35rem;
+            min-height: 40px;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            text-decoration: none !important;
+            white-space: nowrap;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: inherit !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-action-link--primary {
+            background: rgba(13, 110, 253, 0.08);
+            color: var(--theme-primary, #0d6efd) !important;
+        }
+
+        nav.storefront-desktop-nav .storefront-logo--desktop {
+            max-height: var(--header-logo-size, 80px);
+            width: auto;
+        }
+
+        @media (min-width: 768px) and (max-width: 1399.98px) {
+            nav.storefront-desktop-nav .storefront-action-link {
+                padding: 0.35rem 0.5rem !important;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            nav.storefront-desktop-nav.navbar > .container,
+            nav.storefront-desktop-nav.navbar > .container-fluid,
+            nav.storefront-desktop-nav .storefront-header-shell {
+                grid-template-columns: auto 1fr auto !important;
+                grid-template-areas:
+                    "brand nav actions"
+                    "search search search" !important;
+                column-gap: 12px !important;
+            }
+            nav.storefront-desktop-nav .storefront-header-search {
+                width: min(640px, 100%) !important;
+                max-width: 100% !important;
+            }
+            nav.storefront-desktop-nav .storefront-main-nav .nav-link {
+                padding: 0.35rem 0.45rem !important;
+                font-size: 0.8rem !important;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            nav.storefront-desktop-nav .storefront-header-search {
+                width: min(700px, 100%) !important;
+            }
+            nav.storefront-desktop-nav .storefront-main-nav .nav-link {
+                padding: 0.35rem 0.5rem !important;
+                font-size: 0.82rem !important;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: var(--storefront-header-offset-desktop);
+        }
+
+        body.mobile-nav-fixed {
+            padding-top: var(--storefront-header-offset-mobile) !important;
+            overflow-x: hidden;
+        }
+
+        @media (min-width: 768px) {
             body.mobile-nav-fixed {
-                padding-top: 60px !important;
+                padding-top: var(--storefront-header-offset-desktop) !important;
+            }
+        }
+
+        main.storefront-main {
+            margin-top: 0;
+            padding-top: 0.75rem !important;
+        }
+
+        @media (max-width: 767.98px) {
+            body.mobile-nav-fixed {
                 padding-bottom: 70px !important;
                 min-height: 100vh;
             }
-            
-            /* Fixed bottom navigation */
+
             .mobile-bottom-nav {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
                 z-index: 1050;
-                background: #fff;
+                background: var(--header-bg, #fff);
                 box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
                 padding: 8px 0;
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
             }
-            
-            /* Fixed top bar */
+
             .mobile-top-bar {
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
                 z-index: 1060;
-                background: rgba(255, 255, 255, 0.98);
+                background: var(--header-bg, rgba(255, 255, 255, 0.98));
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
             }
-            
-            /* Adjust main content for mobile */
+
+            .storefront-mobile-search .storefront-search-shell {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                width: 100% !important;
+                min-height: 44px;
+                border: 1.5px solid rgba(15, 23, 42, 0.14);
+                border-radius: 999px;
+                background: #f4f6f8;
+                overflow: hidden;
+            }
+
+            .storefront-mobile-search .storefront-search-input {
+                flex: 1 1 auto !important;
+                border: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                height: 44px !important;
+            }
+
+            .storefront-mobile-search .storefront-search-submit {
+                flex: 0 0 auto !important;
+                height: 44px !important;
+                min-width: 44px;
+                border: 0 !important;
+                background: var(--theme-primary, #0d6efd) !important;
+                color: #fff !important;
+            }
+
             .main-content {
                 margin-top: 20px;
                 margin-bottom: 20px;
@@ -445,89 +808,110 @@
         }
     </style>
     
-    <!-- Mobile Top Bar -->
-    <div class="d-md-none border-bottom mobile-top-bar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
-        <!-- Top Bar -->
-        <div class="<?php echo $headerContainerClass; ?> py-3 storefront-topbar-inner">
-            <div class="storefront-topbar-row">
+    <!-- Mobile Top Bar — 3-row premium header -->
+    <div class="d-md-none border-bottom mobile-top-bar storefront-mobile-header" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
+        <div class="<?php echo $headerContainerClass; ?> storefront-topbar-inner mobile-header-inner">
+            <!-- Row 1: Logo | Wishlist | Cart | Menu -->
+            <div class="storefront-topbar-row mobile-header-row mobile-header-row--top">
                 <a href="<?php echo BASE_URL; ?>" class="text-decoration-none storefront-topbar-brand">
                     <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
                         <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" 
                              alt="<?php echo htmlspecialchars($siteName); ?>" 
-                             style="max-height: <?php echo $headerLogoSizeMobile; ?>px;">
+                             class="storefront-logo storefront-logo--mobile">
                     <?php else: ?>
-                        <span class="h5 mb-0 fw-bold text-dark"><?php echo htmlspecialchars($siteName); ?></span>
+                        <span class="h5 mb-0 fw-bold text-dark storefront-brand-text"><?php echo htmlspecialchars($siteName); ?></span>
                     <?php endif; ?>
                 </a>
                 <div class="storefront-topbar-actions">
-                    <div class="d-flex align-items-center">
-                        <a href="<?php echo BASE_URL; ?>?controller=cart" class="text-dark me-3 position-relative">
-                            <i class="fas fa-shopping-cart fs-5"></i>
-                            <?php if(isLoggedIn()): ?>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
-                                <?php 
-                                    $cartModel = new Cart();
-                                    echo $cartModel->getCartCount($_SESSION['user_id']);
-                                ?>
-                            </span>
-                            <?php endif; ?>
-                        </a>
-                        
-                        <?php if(!isLoggedIn()): ?>
-                        <div class="d-flex align-items-center">
-                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-success me-2 d-none d-sm-inline-flex align-items-center">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
-                            </a>
-                            <a href="<?php echo BASE_URL; ?>?controller=user&action=register" class="btn btn-sm btn-primary d-none d-sm-inline-flex align-items-center">
-                                <i class="fas fa-user-plus me-1"></i>Register
-                            </a>
-                            <div class="dropdown d-sm-none">
-                                <button class="btn p-0 border-0" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user-circle fs-4"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=login"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=register"><i class="fas fa-user-plus me-2"></i>Register</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                    <a href="<?php echo BASE_URL; ?>?controller=wishlist" class="storefront-icon-btn text-dark position-relative" aria-label="Wishlist">
+                        <i class="fas fa-heart"></i>
+                        <?php if (isLoggedIn()): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger wishlist-count storefront-badge">
+                            <?php echo (int)wishlist_count(); ?>
+                        </span>
                         <?php endif; ?>
-
-                        <button class="btn p-0 border-0 ms-2 theme-toggle-btn theme-toggle" type="button" aria-label="Toggle dark mode">
-                            <i class="fas fa-moon"></i>
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>?controller=cart" class="storefront-icon-btn text-dark position-relative" aria-label="Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <?php if(isLoggedIn()): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count storefront-badge">
+                            <?php 
+                                $cartModel = new Cart();
+                                echo $cartModel->getCartCount($_SESSION['user_id']);
+                            ?>
+                        </span>
+                        <?php endif; ?>
+                    </a>
+                    <?php if(!isLoggedIn()): ?>
+                    <div class="dropdown">
+                        <button class="btn storefront-icon-btn p-0 border-0" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account">
+                            <i class="fas fa-user-circle"></i>
                         </button>
-                        
-                        <button class="btn p-0 border-0 bg-transparent ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavbar" aria-expanded="false" aria-controls="mobileNavbar">
-                            <i class="fas fa-bars fs-4"></i>
-                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=login"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=register"><i class="fas fa-user-plus me-2"></i>Register</a></li>
+                        </ul>
                     </div>
+                    <?php endif; ?>
+                    <button class="btn p-0 border-0 theme-toggle-btn theme-toggle" type="button" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn storefront-icon-btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNavbar" aria-expanded="false" aria-controls="mobileNavbar" aria-label="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
             
-            <!-- Search Bar -->
-            <form action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" class="storefront-mobile-search">
-                <div class="input-group">
-                    <input type="text" 
-                           class="form-control bg-light border-0 ps-3" 
+            <!-- Row 2: Search + Voice + Filter -->
+            <form action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" class="storefront-mobile-search storefront-header-search mobile-header-row mobile-header-row--search" role="search">
+                <input type="hidden" name="controller" value="product">
+                <input type="hidden" name="action" value="search">
+                <div class="storefront-search-shell input-group">
+                    <span class="storefront-search-icon" aria-hidden="true"><i class="fas fa-search"></i></span>
+                    <input type="search" 
+                           class="form-control storefront-search-input" 
                            name="keyword" 
-                           placeholder="Search products..."
-                           style="height: 36px; border-radius: 18px; font-size: 0.9rem;">
-                    <button class="btn btn-dark position-absolute end-0 h-100 rounded-end" type="submit" style="width: 40px;">
+                           placeholder="Search products, brands..."
+                           autocomplete="off"
+                           aria-label="Search products">
+                    <button class="storefront-search-voice" type="button" aria-label="Voice search" title="Voice search">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="storefront-search-filter" aria-label="Filter products" title="Filter">
+                        <i class="fas fa-sliders-h"></i>
+                    </a>
+                    <button class="btn storefront-search-submit" type="submit" aria-label="Search">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
             </form>
+
+            <!-- Row 3: Horizontal scroll chips -->
+            <nav class="mobile-chip-nav mobile-header-row" aria-label="Quick navigation">
+                <div class="mobile-chip-track">
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=product&action=index"><?php echo htmlspecialchars($menuAllProducts); ?></a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=category">Categories</a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=brand&action=index"><?php echo htmlspecialchars($menuAllBrands); ?></a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=product&action=sale">Offers</a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=product&action=index"><?php echo htmlspecialchars($menuNew); ?></a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>#featured-products">Featured</a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=product&action=sale"><?php echo htmlspecialchars($menuSale); ?></a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>#trending-products">Best Sellers</a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=country&action=index"><?php echo htmlspecialchars($menuCountryOrigin); ?></a>
+                    <a class="mobile-chip" href="<?php echo BASE_URL; ?>?controller=contact">Contact</a>
+                </div>
+            </nav>
         </div>
         
-        <!-- Mobile Navigation -->
+        <!-- Mobile Navigation (collapse drawer) -->
         <div class="collapse storefront-mobile-menu" id="mobileNavbar" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
             <div class="<?php echo $headerContainerClass; ?> py-2">
                 <ul class="navbar-nav">
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=product&action=index">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-box me-2 text-primary" style="width: 24px; text-align: center;"></i>
-                                <span>All Products</span>
+                                <i class="fas fa-box me-2 text-primary storefront-menu-icon"></i>
+                                <span><?php echo htmlspecialchars($menuAllProducts); ?></span>
                             </div>
                             <i class="fas fa-chevron-right text-muted small"></i>
                         </a>
@@ -535,7 +919,7 @@
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=about&action=index">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-info-circle me-2 text-secondary" style="width: 24px; text-align: center;"></i>
+                                <i class="fas fa-info-circle me-2 text-secondary storefront-menu-icon"></i>
                                 <span>About Our Store</span>
                             </div>
                             <i class="fas fa-chevron-right text-muted small"></i>
@@ -545,7 +929,7 @@
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" data-bs-toggle="collapse" href="#categoriesCollapse" role="button" aria-expanded="false" aria-controls="categoriesCollapse">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-list me-2 text-info" style="width: 24px; text-align: center;"></i>
+                                <i class="fas fa-list me-2 text-info storefront-menu-icon"></i>
                                 <span>Categories</span>
                             </div>
                             <i class="fas fa-chevron-right text-muted small"></i>
@@ -569,9 +953,8 @@
                                         <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['id']; ?>">
                                             <img src="<?php echo $categoryImage; ?>" 
                                                  alt="<?php echo htmlspecialchars($category['name']); ?>" 
-                                                 class="me-2" 
-                                                 style="width: 20px; height: 20px; object-fit: cover; border-radius: 2px; border: 1px solid #dee2e6;">
-                                            <span style="font-size: 0.9rem;"><?php echo htmlspecialchars($category['name']); ?></span>
+                                                 class="me-2 storefront-dropdown-thumb">
+                                            <span><?php echo htmlspecialchars($category['name']); ?></span>
                                         </a>
                                     </li>
                                 <?php 
@@ -582,17 +965,59 @@
                         </div>
                     </li>
                     <li class="nav-item border-bottom">
-                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="#">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=country&action=index">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-flag me-2 text-info" style="width: 24px; text-align: center;"></i>
-                                <span>Country of Origin</span>
+                                <i class="fas fa-flag me-2 text-info storefront-menu-icon"></i>
+                                <span><?php echo htmlspecialchars($menuCountryOrigin); ?></span>
                             </div>
                             <i class="fas fa-chevron-right text-muted small"></i>
                         </a>
                     </li>
                     <li class="nav-item border-bottom">
                         <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=brand&action=index">
-                            <span><i class="fas fa-tags me-2 text-warning"></i> All Brands</span>
+                            <span><i class="fas fa-tags me-2 text-warning"></i> <?php echo htmlspecialchars($menuAllBrands); ?></span>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=product&action=index">
+                            <span><i class="fas fa-certificate me-2 text-success"></i> <?php echo htmlspecialchars($menuNew); ?></span>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=product&action=sale">
+                            <span><i class="fas fa-tags me-2 text-danger"></i> <?php echo htmlspecialchars($menuSale); ?></span>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=product&action=sale">
+                            <span><i class="fas fa-gift me-2 text-warning"></i> Offers</span>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>#featured-products">
+                            <span><i class="fas fa-star me-2 text-primary"></i> Featured</span>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>#trending-products">
+                            <span><i class="fas fa-fire me-2 text-danger"></i> Best Sellers</span>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=product&action=sale">
+                            <span><i class="fas fa-bolt me-2 text-warning"></i> Flash Deals</span>
+                            <i class="fas fa-chevron-right text-muted small"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link d-flex align-items-center justify-content-between py-3" href="<?php echo BASE_URL; ?>?controller=contact">
+                            <span><i class="fas fa-envelope me-2 text-info"></i> Contact</span>
                             <i class="fas fa-chevron-right text-muted small"></i>
                         </a>
                     </li>
@@ -611,33 +1036,39 @@
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=user&action=profile">
-                                    <i class="fas fa-tachometer-alt me-3 text-primary" style="width: 24px; text-align: center;"></i>
+                                    <i class="fas fa-tachometer-alt me-3 text-primary storefront-menu-icon"></i>
                                     <span>Dashboard</span>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=order">
-                                    <i class="fas fa-shopping-bag me-3 text-primary" style="width: 24px; text-align: center;"></i>
+                                    <i class="fas fa-shopping-bag me-3 text-primary storefront-menu-icon"></i>
                                     <span>My Orders</span>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=invoice">
-                                    <i class="fas fa-file-invoice me-3 text-primary" style="width: 24px; text-align: center;"></i>
+                                    <i class="fas fa-file-invoice me-3 text-primary storefront-menu-icon"></i>
                                     <span>Invoices</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=wishlist">
+                                    <i class="fas fa-heart me-3 text-primary storefront-menu-icon"></i>
+                                    <span>Wishlist</span>
                                 </a>
                             </li>
                             <?php if(isAdmin() || isStaff()): ?>
                                 <li class="nav-item">
                                     <a class="nav-link d-flex align-items-center py-2" href="<?php echo isAdmin() ? BASE_URL.'?controller=home&action=admin' : BASE_URL.'?controller=pos' ?>">
-                                        <i class="fas <?php echo isAdmin() ? 'fa-tachometer-alt' : 'fa-cash-register'; ?> me-3 text-primary" style="width: 24px; text-align: center;"></i>
+                                        <i class="fas <?php echo isAdmin() ? 'fa-tachometer-alt' : 'fa-cash-register'; ?> me-3 text-primary storefront-menu-icon"></i>
                                         <span><?php echo isAdmin() ? 'Admin Dashboard' : 'POS System'; ?></span>
                                     </a>
                                 </li>
                             <?php endif; ?>
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center py-2 text-danger" href="<?php echo BASE_URL; ?>?controller=user&action=logout">
-                                    <i class="fas fa-sign-out-alt me-3" style="width: 24px; text-align: center;"></i>
+                                    <i class="fas fa-sign-out-alt me-3 storefront-menu-icon"></i>
                                     <span>Logout</span>
                                 </a>
                             </li>
@@ -646,13 +1077,13 @@
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=user&action=login">
-                                    <i class="fas fa-sign-in-alt me-3 text-primary" style="width: 24px; text-align: center;"></i>
+                                    <i class="fas fa-sign-in-alt me-3 text-primary storefront-menu-icon"></i>
                                     <span>Login</span>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center py-2" href="<?php echo BASE_URL; ?>?controller=user&action=register">
-                                <i class="fas fa-user-plus me-3 text-primary" style="width: 24px; text-align: center;"></i>
+                                <i class="fas fa-user-plus me-3 text-primary storefront-menu-icon"></i>
                                 <span>Register</span>
                             </a>
                         </li>
@@ -664,191 +1095,177 @@
     </div>
     
     <!-- Mobile Bottom Navigation -->
-    <div class="d-md-none mobile-bottom-nav">
-        <style>
-            .mobile-bottom-nav a {
-                color: #666;
-                text-decoration: none;
-                padding: 5px 0;
-                transition: all 0.2s ease;
-            }
-            .mobile-bottom-nav a.active,
-            .mobile-bottom-nav a:active {
-                color: #0d6efd;
-                transform: translateY(-2px);
-            }
-            .mobile-bottom-nav i {
-                margin-bottom: 3px;
-                font-size: 1.2rem;
-            }
-            .mobile-bottom-nav .badge {
-                font-size: 9px;
-                padding: 2px 5px;
-                top: -5px;
-                right: -5px;
-            }
-        </style>
-        <div class="container">
-            <div class="d-flex justify-content-around align-items-center">
-                <a href="<?php echo BASE_URL; ?>" class="text-center text-decoration-none text-dark">
-                    <i class="fas fa-home fs-5 d-block"></i>
-                    <span class="small d-block">Home</span>
-                </a>
-                <a href="<?php echo BASE_URL; ?>?controller=category" class="text-center text-decoration-none text-dark">
-                    <i class="fas fa-th-large fs-5 d-block"></i>
-                    <span class="small d-block">Categories</span>
-                </a>
-                <a href="<?php echo BASE_URL; ?>?controller=cart" class="text-center text-decoration-none text-dark position-relative">
-                    <i class="fas fa-shopping-cart fs-5 d-block"></i>
-                    <span class="small d-block">Cart</span>
-                    <?php if(isLoggedIn()): ?>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
-                        <?php 
-                            $cartModel = new Cart();
-                            echo $cartModel->getCartCount($_SESSION['user_id']);
-                        ?>
-                    </span>
-                    <?php endif; ?>
-                </a>
-                <?php if(isLoggedIn()): ?>
-                    <a href="<?php echo BASE_URL; ?>?controller=user&action=dashboard" class="text-center text-decoration-none text-dark">
-                        <i class="fas fa-user fs-5 d-block"></i>
-                        <span class="small d-block">Account</span>
-                    </a>
-                <?php else: ?>
-                    <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="text-center text-decoration-none text-dark">
-                        <i class="fas fa-sign-in-alt fs-5 d-block"></i>
-                        <span class="small d-block">Login</span>
-                    </a>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <!-- Desktop Navigation -->
-    <style>
-        /* Add padding to body to account for fixed navbar */
-        body.mobile-nav-fixed {
-            padding-top: var(--storefront-header-offset-mobile) !important;
-            overflow-x: hidden;
-        }
-
-        @media (min-width: 768px) {
-            body.mobile-nav-fixed {
-                padding-top: var(--storefront-header-offset-desktop) !important;
-            }
-        }
-        
-        /* Make navbar fixed at the top */
-        .navbar {
-            position: fixed !important;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1030;
-            width: 100%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        
-        /* Ensure dropdowns appear above other content */
-        .dropdown-menu {
-            z-index: 1050 !important;
-        }
-        
-        /* Add smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Adjust main content margin to prevent content from being hidden behind navbar */
-        main.storefront-main {
-            margin-top: 24px;
-        }
-        
-        /* Menu font size from admin settings */
-        .navbar .navbar-nav .nav-link,
-        .navbar .navbar-nav .dropdown-toggle { font-size: <?php echo htmlspecialchars($menuFontSize); ?> !important; }
-        .navbar .navbar-nav .btn { font-size: <?php echo htmlspecialchars($menuFontSize); ?> !important; }
-
-        /* Desktop navbar: responsive when visible (md and up) */
-        @media (min-width: 768px) {
-            .navbar .navbar-collapse {
-                flex-wrap: wrap;
-                max-width: 100%;
-            }
-            .navbar .navbar-nav.me-auto {
-                flex-wrap: wrap;
-                gap: 0.25rem;
-            }
-            .navbar .navbar-nav .nav-item .nav-link {
-                white-space: nowrap;
-            }
-        }
-        @media (min-width: 768px) and (max-width: 991.98px) {
-            .navbar .container,
-            .navbar .container-fluid {
-                flex-wrap: wrap;
-            }
-            .navbar .navbar-collapse {
-                width: 100%;
-                overflow-x: hidden;
-            }
-            .navbar .d-lg-flex form {
-                width: 100%;
-                max-width: 100%;
-            }
-            .navbar .d-lg-flex form .form-control {
-                min-width: 0;
-                flex: 1;
-            }
-        }
-        @media (min-width: 992px) and (max-width: 1199.98px) {
-            .navbar .navbar-brand {
-                margin-right: 0.5rem;
-            }
-            .navbar .navbar-nav .nav-link {
-                padding: 0.5rem 0.6rem !important;
-                font-size: 0.9rem;
-            }
-            .navbar .navbar-nav .nav-item .btn {
-                padding: 0.35rem 0.65rem !important;
-                font-size: 0.85rem;
-            }
-            .navbar .d-lg-flex form.desktop-nav-search {
-                max-width: 220px;
-                min-width: 0;
-            }
-            .navbar .d-lg-flex form .form-control {
-                min-width: 0;
-                width: 100%;
-            }
-            .navbar .d-lg-flex form .btn {
-                padding: 0.35rem 0.5rem;
-                font-size: 0.85rem;
-            }
-        }
-    </style>
-    <nav class="navbar navbar-expand-lg navbar-light border-bottom d-none d-md-block storefront-desktop-nav" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
-        <div class="<?php echo $headerContainerClass; ?>">
-            <a class="navbar-brand fw-bold" href="<?php echo BASE_URL; ?>">
-                <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
-                    <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" style="max-height: <?php echo $headerLogoSize; ?>px;">
-                <?php else: ?>
-                    <?php echo htmlspecialchars($siteName); ?>
+    <nav class="d-md-none mobile-bottom-nav" aria-label="Mobile bottom navigation">
+        <div class="mobile-bottom-nav-inner">
+            <a href="<?php echo BASE_URL; ?>" class="mobile-bottom-link">
+                <i class="fas fa-home" aria-hidden="true"></i>
+                <span>Home</span>
+            </a>
+            <a href="<?php echo BASE_URL; ?>?controller=category" class="mobile-bottom-link">
+                <i class="fas fa-th-large" aria-hidden="true"></i>
+                <span>Categories</span>
+            </a>
+            <a href="<?php echo BASE_URL; ?>?controller=wishlist" class="mobile-bottom-link position-relative">
+                <i class="fas fa-heart" aria-hidden="true"></i>
+                <span>Wishlist</span>
+                <?php if (isLoggedIn()): ?>
+                <span class="badge rounded-pill bg-danger wishlist-count mobile-bottom-badge">
+                    <?php echo (int)wishlist_count(); ?>
+                </span>
                 <?php endif; ?>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                 
+            <a href="<?php echo BASE_URL; ?>?controller=cart" class="mobile-bottom-link position-relative">
+                <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                <span>Cart</span>
+                <?php if(isLoggedIn()): ?>
+                <span class="badge rounded-pill bg-danger cart-count mobile-bottom-badge">
+                    <?php 
+                        $cartModel = new Cart();
+                        echo $cartModel->getCartCount($_SESSION['user_id']);
+                    ?>
+                </span>
+                <?php endif; ?>
+            </a>
+            <?php if(isLoggedIn()): ?>
+                <a href="<?php echo BASE_URL; ?>?controller=user&action=dashboard" class="mobile-bottom-link">
+                    <i class="fas fa-user" aria-hidden="true"></i>
+                    <span>Profile</span>
+                </a>
+            <?php else: ?>
+                <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="mobile-bottom-link">
+                    <i class="fas fa-user" aria-hidden="true"></i>
+                    <span>Profile</span>
+                </a>
+            <?php endif; ?>
+        </div>
+    </nav>
+
+    <!-- Desktop Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom d-none d-md-block storefront-desktop-nav storefront-header" style="background: <?php echo htmlspecialchars($headerBgColor); ?>;">
+        <div class="<?php echo $headerContainerClass; ?> storefront-header-shell">
+            <!-- Row 1: Logo | Nav | Actions — Row 2: Search (via CSS grid) -->
+            <div class="storefront-header-primary">
+                <a class="navbar-brand fw-bold storefront-brand mb-0" href="<?php echo BASE_URL; ?>">
+                    <?php if(!empty($siteLogo) && file_exists(UPLOAD_PATH . $siteLogo)): ?>
+                        <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($siteLogo); ?>" alt="<?php echo htmlspecialchars($siteName); ?>" class="storefront-logo storefront-logo--desktop">
+                    <?php else: ?>
+                        <?php echo htmlspecialchars($siteName); ?>
+                    <?php endif; ?>
+                </a>
+
+                <form class="desktop-nav-search storefront-header-search" action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" role="search">
+                    <input type="hidden" name="controller" value="product">
+                    <input type="hidden" name="action" value="search">
+                    <div class="storefront-search-shell">
+                        <span class="storefront-search-icon" aria-hidden="true"><i class="fas fa-search"></i></span>
+                        <select class="storefront-search-category" aria-label="Search in category" data-base-url="<?php echo rtrim(BASE_URL, '/'); ?>">
+                            <option value="">All</option>
+                            <?php
+                            try {
+                                $__searchCatModel = new Category();
+                                $__searchCats = $__searchCatModel->getActiveCategories();
+                                if (!empty($__searchCats)) {
+                                    foreach ($__searchCats as $__sc) {
+                                        echo '<option value="' . (int)$__sc['id'] . '">' . htmlspecialchars($__sc['name']) . '</option>';
+                                    }
+                                }
+                            } catch (Exception $e) {}
+                            ?>
+                        </select>
+                        <input class="form-control storefront-search-input" type="search" name="keyword" placeholder="Search for products, brands and more..." aria-label="Search" autocomplete="off">
+                        <button class="storefront-search-voice" type="button" aria-label="Voice search" title="Voice search">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="btn storefront-search-submit" type="submit" aria-label="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="storefront-header-actions">
+                    <button class="btn p-0 border-0 theme-toggle-btn theme-toggle" type="button" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <?php if(isLoggedIn()) : ?>
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle storefront-action-link d-flex align-items-center gap-1" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i>
+                                <span class="storefront-action-label"><?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li class="dropdown-header fw-bold">My Account</li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=profile"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order"><i class="fas fa-shopping-bag me-2"></i>My Orders</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=invoice"><i class="fas fa-file-invoice me-2"></i>Invoices</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order&action=templates"><i class="fas fa-clipboard-list me-2"></i>Order Templates</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order&action=speed"><i class="fas fa-bolt me-2"></i>Speed Order</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=address"><i class="fas fa-address-book me-2"></i>Addresses</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=settings"><i class="fas fa-user-cog me-2"></i>Personal Settings</a></li>
+                                <?php if(isAdmin()) : ?>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=home&action=admin"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</a></li>
+                                <?php elseif(isStaff()) : ?>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=pos"><i class="fas fa-cash-register me-2"></i>POS System</a></li>
+                                <?php endif; ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="<?php echo BASE_URL; ?>?controller=user&action=logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    <?php else : ?>
+                        <a class="storefront-action-link" href="<?php echo BASE_URL; ?>?controller=user&action=login">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="storefront-action-label">Login</span>
+                        </a>
+                        <a class="storefront-action-link storefront-action-link--primary" href="<?php echo BASE_URL; ?>?controller=user&action=register">
+                            <i class="fas fa-user-plus"></i>
+                            <span class="storefront-action-label">Register</span>
+                        </a>
+                    <?php endif; ?>
+
+                    <a class="storefront-action-link position-relative" href="<?php echo BASE_URL; ?>?controller=wishlist" aria-label="Wishlist">
+                        <i class="fas fa-heart"></i>
+                        <span class="storefront-action-label">Wishlist</span>
+                        <?php if (isLoggedIn()) : ?>
+                            <span class="badge bg-danger wishlist-count storefront-badge">
+                                <?php echo (int)wishlist_count(); ?>
+                            </span>
+                        <?php endif; ?>
+                    </a>
+
+                    <a class="storefront-action-link storefront-action-link--notify position-relative" href="<?php echo BASE_URL; ?>?controller=order" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="storefront-action-label">Alerts</span>
+                    </a>
+
+                    <a class="storefront-action-link storefront-cart-link position-relative" href="<?php echo BASE_URL; ?>?controller=cart" aria-label="Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="storefront-action-label">Cart</span>
+                        <?php if(isLoggedIn()) : ?>
+                            <span class="badge bg-danger cart-count storefront-badge">
+                                <?php 
+                                    $cartModel = new Cart();
+                                    echo $cartModel->getCartCount($_SESSION['user_id']);
+                                ?>
+                            </span>
+                        <?php endif; ?>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Row 2: Horizontal Navigation -->
+            <div class="collapse navbar-collapse show storefront-header-secondary" id="navbarSupportedContent">
+                <ul class="navbar-nav storefront-main-nav mb-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>?controller=product&action=index"><?php echo htmlspecialchars($menuAllProducts); ?></a>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <?php echo htmlspecialchars($menuAllProducts); ?>
+                            Categories
                         </a>
-                        <ul class="dropdown-menu nav-dropdown-searchable" aria-labelledby="categoryDropdown">
+                        <ul class="dropdown-menu nav-dropdown-searchable storefront-mega-menu" aria-labelledby="categoryDropdown">
                             <li class="px-2 py-1 border-bottom">
                                 <input type="text" class="form-control form-control-sm nav-dropdown-search" placeholder="Search categories..." autocomplete="off">
                             </li>
@@ -871,8 +1288,7 @@
                                     <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=category&action=show&param=<?php echo $category['id']; ?>" data-search-text="<?php echo htmlspecialchars(strtolower($category['name'])); ?>">
                                         <img src="<?php echo $categoryImage; ?>" 
                                              alt="<?php echo htmlspecialchars($category['name']); ?>" 
-                                             class="me-2" 
-                                             style="width: 24px; height: 24px; object-fit: cover; border-radius: 2px; border: 1px solid #dee2e6;">
+                                             class="me-2 storefront-dropdown-thumb storefront-dropdown-thumb--lg">
                                         <?php echo htmlspecialchars($category['name']); ?>
                                     </a>
                                 </li>
@@ -882,17 +1298,54 @@
                             ?>
                         </ul>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="brandDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <?php echo htmlspecialchars($menuAllBrands); ?>
+                        </a>
+                        <ul class="dropdown-menu nav-dropdown-searchable storefront-mega-menu" aria-labelledby="brandDropdown">
+                            <li class="px-2 py-1 border-bottom">
+                                <input type="text" class="form-control form-control-sm nav-dropdown-search" placeholder="Search brands..." autocomplete="off">
+                            </li>
+                            <li><a class="dropdown-item nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=index" data-search-text="all brands">All Brands</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <?php 
+                            // Get active brands
+                            $brandModel = new Brand();
+                            $brands = $brandModel->getActiveBrands();
+                            
+                            if(!empty($brands)) :
+                                foreach($brands as $brand) :
+                                    $brandImage = !empty($brand['logo']) ? 
+                                        $brand['logo'] : 
+                                        BASE_URL . 'assets/img/no-image.png';
+                            ?>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['id']; ?>" data-search-text="<?php echo htmlspecialchars(strtolower($brand['name'])); ?>">
+                                        <img src="<?php echo $brandImage; ?>" 
+                                             alt="<?php echo htmlspecialchars($brand['name']); ?>" 
+                                             class="me-2 storefront-dropdown-thumb storefront-dropdown-thumb--lg">
+                                        <?php echo htmlspecialchars($brand['name']); ?>
+                                    </a>
+                                </li>
+                            <?php 
+                                endforeach;
+                            endif; 
+                            ?>
+                        </ul>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="countryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <?php echo htmlspecialchars($menuCountryOrigin); ?>
                         </a>
-                        <ul class="dropdown-menu nav-dropdown-searchable" aria-labelledby="countryDropdown">
+                        <ul class="dropdown-menu nav-dropdown-searchable storefront-mega-menu" aria-labelledby="countryDropdown">
                             <li class="px-2 py-1 border-bottom">
                                 <input type="text" class="form-control form-control-sm nav-dropdown-search" placeholder="Search countries..." autocomplete="off">
                             </li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=index" data-search-text="all countries">
-                                    <div class="me-2" style="width: 24px; height: 18px; display: flex; align-items: center; justify-content: center;">
+                                    <div class="me-2 storefront-flag-fallback">
                                         <i class="fas fa-globe-americas"></i>
                                     </div>
                                     All Countries
@@ -917,8 +1370,7 @@
                                     <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=country&action=show&id=<?php echo (int)$countryItem['id']; ?>" data-search-text="<?php echo htmlspecialchars(strtolower($countryItem['name'])); ?>">
                                         <img src="<?php echo $flagImage; ?>" 
                                              alt="<?php echo htmlspecialchars($countryItem['name']); ?>" 
-                                             class="me-2" 
-                                             style="width: 24px; height: 18px; object-fit: cover; border: 1px solid #dee2e6; border-radius: 2px;">
+                                             class="me-2 storefront-flag-thumb">
                                         <?php echo htmlspecialchars($countryItem['name']); ?>
                                     </a>
                                 </li>
@@ -928,118 +1380,29 @@
                             ?>
                         </ul>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="brandDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <?php echo htmlspecialchars($menuAllBrands); ?>
-                        </a>
-                        <ul class="dropdown-menu nav-dropdown-searchable" aria-labelledby="brandDropdown">
-                            <li class="px-2 py-1 border-bottom">
-                                <input type="text" class="form-control form-control-sm nav-dropdown-search" placeholder="Search brands..." autocomplete="off">
-                            </li>
-                            <li><a class="dropdown-item nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=index" data-search-text="all brands">All Brands</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <?php 
-                            // Get active brands
-                            $brandModel = new Brand();
-                            $brands = $brandModel->getActiveBrands();
-                            
-                            if(!empty($brands)) :
-                                foreach($brands as $brand) :
-                                    $brandImage = !empty($brand['logo']) ? 
-                                        $brand['logo'] : 
-                                        BASE_URL . 'assets/img/no-image.png';
-                            ?>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center nav-dropdown-item" href="<?php echo BASE_URL; ?>?controller=brand&action=show&param=<?php echo $brand['id']; ?>" data-search-text="<?php echo htmlspecialchars(strtolower($brand['name'])); ?>">
-                                        <img src="<?php echo $brandImage; ?>" 
-                                             alt="<?php echo htmlspecialchars($brand['name']); ?>" 
-                                             class="me-2" 
-                                             style="width: 24px; height: 24px; object-fit: cover; border-radius: 2px; border: 1px solid #dee2e6;">
-                                        <?php echo htmlspecialchars($brand['name']); ?>
-                                    </a>
-                                </li>
-                            <?php 
-                                endforeach;
-                            endif; 
-                            ?>
-                        </ul>
+
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="nav-link storefront-nav-pill storefront-nav-pill--new"><?php echo htmlspecialchars($menuNew); ?></a>
                     </li>
-                   
-                    <li class="nav-item ms-2">
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=index" class="btn btn-success px-3 fw-medium" style="background-color: #28a745; border-color: #28a745;"><?php echo htmlspecialchars($menuNew); ?></a>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=sale" class="nav-link storefront-nav-pill storefront-nav-pill--sale"><?php echo htmlspecialchars($menuSale); ?></a>
                     </li>
-                    <li class="nav-item ms-2">
-                        <a href="<?php echo BASE_URL; ?>?controller=product&action=sale" class="btn btn-success px-3 fw-medium" style="background-color:rgb(172, 104, 26); border-color:rgb(167, 116, 40);"><?php echo htmlspecialchars($menuSale); ?></a>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=sale" class="nav-link storefront-nav-pill storefront-nav-pill--offers">Offers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>#featured-products" class="nav-link">Featured</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>#trending-products" class="nav-link">Best Sellers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>?controller=product&action=sale" class="nav-link storefront-nav-pill storefront-nav-pill--flash">Flash Deals</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo BASE_URL; ?>?controller=contact" class="nav-link">Contact</a>
                     </li>
                 </ul>
-                <div class="d-lg-flex flex-column flex-lg-row align-items-start align-items-lg-center mt-3 mt-lg-0">
-                    <!-- Desktop Search -->
-                    <form class="d-none d-md-flex flex-grow-1 flex-lg-grow-0 mb-3 mb-lg-0 me-lg-2 desktop-nav-search storefront-header-search" action="<?php echo BASE_URL; ?>?controller=product&action=search" method="GET" style="min-width: 0; max-width: 280px;">
-                        <input type="hidden" name="controller" value="product">
-                        <input type="hidden" name="action" value="search">
-                        <input class="form-control me-2" type="search" name="keyword" placeholder="Search" aria-label="Search" style="min-width: 0;">
-                        <button class="btn btn-outline-dark flex-shrink-0" type="submit">Search</button>
-                    </form>
-                    <ul class="navbar-nav ms-lg-2">
-                        <li class="nav-item d-flex align-items-center me-2">
-                            <button class="btn p-0 border-0 theme-toggle-btn theme-toggle" type="button" aria-label="Toggle dark mode">
-                                <i class="fas fa-moon"></i>
-                            </button>
-                        </li>
-                        <?php if(isLoggedIn()) : ?>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user-circle d-lg-none me-2"></i>
-                                    <span><?php echo $_SESSION['user_name']; ?></span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li class="dropdown-header fw-bold">My Account</li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=profile"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order"><i class="fas fa-shopping-bag me-2"></i>My Orders</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=invoice"><i class="fas fa-file-invoice me-2"></i>Invoices</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order&action=templates"><i class="fas fa-clipboard-list me-2"></i>Order Templates</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=order&action=speed"><i class="fas fa-bolt me-2"></i>Speed Order</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=address"><i class="fas fa-address-book me-2"></i>Addresses</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=user&action=settings"><i class="fas fa-user-cog me-2"></i>Personal Settings</a></li>
-                                    <?php if(isAdmin()) : ?>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=home&action=admin"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</a></li>
-                                    <?php elseif(isStaff()) : ?>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>?controller=pos"><i class="fas fa-cash-register me-2"></i>POS System</a></li>
-                                    <?php endif; ?>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="<?php echo BASE_URL; ?>?controller=user&action=logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                                </ul>
-                            </li>
-                        <?php else : ?>
-                            <li class="nav-item d-flex align-items-center">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>?controller=user&action=login">
-                                    <i class="fas fa-sign-in-alt d-lg-none me-1"></i>Login
-                                </a>
-                            </li>
-                            <li class="nav-item d-flex align-items-center">
-                                <a class="nav-link" href="<?php echo BASE_URL; ?>?controller=user&action=register">
-                                    <i class="fas fa-user-plus d-lg-none me-1"></i>Register
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center" href="<?php echo BASE_URL; ?>?controller=cart">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span class="d-lg-none ms-2 me-1">Cart</span>
-                                <?php if(isLoggedIn()) : ?>
-                                    <span class="badge bg-danger cart-count">
-                                        <?php 
-                                            $cartModel = new Cart();
-                                            echo $cartModel->getCartCount($_SESSION['user_id']);
-                                        ?>
-                                    </span>
-                                <?php endif; ?>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
             </div>
         </div>
     </nav>
@@ -1091,7 +1454,7 @@
     </script>
 
     <!-- Flash Messages -->
-    <div class="container mt-3">
+    <div class="container storefront-flash-wrap">
         <?php flash('register_success'); ?>
         <?php flash('login_success'); ?>
         <?php flash('user_error'); ?>
@@ -1163,7 +1526,10 @@
             var toggles = document.querySelectorAll('.theme-toggle');
             if (toggles && toggles.length) {
                 toggles.forEach(function(toggle) {
-                    toggle.addEventListener('click', function() {
+                    if (toggle.dataset.themeBound === '1') return;
+                    toggle.dataset.themeBound = '1';
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
                         var current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
                         setMode(current === 'dark' ? 'light' : 'dark');
                     });

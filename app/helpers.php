@@ -253,6 +253,115 @@ function truncateText($text, $length = 100) {
 }
 
 /**
+ * Build a public asset URL from a relative path.
+ *
+ * @param string $path Relative path (e.g. assets/img/no-image.png)
+ * @return string
+ */
+function asset($path) {
+    $base = defined('BASE_URL') ? rtrim(BASE_URL, '/') : '';
+    return $base . '/' . ltrim((string)$path, '/');
+}
+
+/**
+ * Resolve a product/media image to a public URL with filesystem fallback.
+ * Accepts DB values like "uploads/products/file.jpg", bare filenames, or full URLs.
+ * Does not change stored DB values — only the URL used for display.
+ *
+ * @param string|null $image
+ * @param string $type products|categories|brands|banners|flags
+ * @return string Absolute URL
+ */
+function product_image_url($image = null, $type = 'products') {
+    $placeholderCandidates = [
+        'assets/img/no-image.png',
+        'assets/img/no-image.jpg',
+        'assets/img/no-image.svg',
+        'public/assets/img/no-image.png',
+        'public/assets/img/no-image.jpg',
+        'public/assets/img/no-image.svg',
+    ];
+    $placeholder = asset('assets/img/no-image.png');
+    foreach ($placeholderCandidates as $p) {
+        $disk = rtrim(ROOT_PATH, '/\\') . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $p);
+        if (is_file($disk)) {
+            $placeholder = asset(preg_replace('#^public/#', '', str_replace('\\', '/', $p)));
+            break;
+        }
+    }
+
+    $image = is_string($image) ? trim($image) : '';
+    if ($image === '' || strcasecmp($image, 'null') === 0) {
+        return $placeholder;
+    }
+
+    // Absolute / protocol-relative URLs
+    if (preg_match('#^(https?:)?//#i', $image) || strpos($image, 'data:') === 0) {
+        return $image;
+    }
+
+    // Strip dangerous absolute Windows/local paths — keep basename only
+    if (preg_match('#^[a-zA-Z]:[\\\\/]#', $image) || strpos($image, 'file:') === 0) {
+        $image = basename(str_replace('\\', '/', $image));
+    }
+
+    $image = str_replace('\\', '/', $image);
+    $image = ltrim($image, '/');
+
+    // Normalize accidental public/ prefix
+    if (strpos($image, 'public/') === 0) {
+        $image = substr($image, 7);
+    }
+
+    $type = preg_replace('/[^a-z0-9_-]/i', '', (string)$type) ?: 'products';
+
+    // If only a filename was stored, place under uploads/{type}/
+    if (strpos($image, '/') === false) {
+        $image = 'uploads/' . $type . '/' . $image;
+    } elseif (strpos($image, 'uploads/') !== 0 && strpos($image, 'assets/') !== 0) {
+        // e.g. products/foo.jpg → uploads/products/foo.jpg
+        $image = 'uploads/' . ltrim($image, '/');
+    }
+
+    $root = rtrim(ROOT_PATH, '/\\') . DIRECTORY_SEPARATOR;
+    $diskRelatives = [
+        $image,
+        'public/' . $image,
+        'public/uploads/' . $type . '/' . basename($image),
+        'uploads/' . $type . '/' . basename($image),
+    ];
+
+    foreach ($diskRelatives as $rel) {
+        $full = $root . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $rel);
+        if (is_file($full)) {
+            $urlPath = preg_replace('#^public/#', '', str_replace('\\', '/', $rel));
+            return asset($urlPath);
+        }
+    }
+
+    // File missing — still return a constructed URL so onerror can swap to placeholder
+    return asset($image);
+}
+
+/**
+ * HTML <img> attributes helper for product cards (src + safe fallback).
+ *
+ * @param string|null $image
+ * @param string $alt
+ * @param string $class
+ * @return string HTML attributes (not a full tag)
+ */
+function product_img_attrs($image = null, $alt = '', $class = 'product-image') {
+    $src = product_image_url($image);
+    $fallback = product_image_url(null);
+    $alt = htmlspecialchars((string)$alt, ENT_QUOTES, 'UTF-8');
+    $class = htmlspecialchars((string)$class, ENT_QUOTES, 'UTF-8');
+    $srcEsc = htmlspecialchars($src, ENT_QUOTES, 'UTF-8');
+    $fbEsc = htmlspecialchars($fallback, ENT_QUOTES, 'UTF-8');
+    return 'src="' . $srcEsc . '" alt="' . $alt . '" class="' . $class . '" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'' . $fbEsc . '\';this.classList.add(\'loaded\');"';
+}
+
+/**
  * Upload an image file
  * 
  * @param array $file The $_FILES array element for the file
@@ -362,3 +471,90 @@ function getPaginationLinks($currentPage, $totalPages, $url) {
     
     return $links;
 }
+
+/**
+ * Cached wishlist product IDs for the logged-in user (per request)
+ *
+ * @return int[]
+ */
+function wishlist_product_ids() {
+    static $ids = null;
+    if ($ids !== null) {
+        return $ids;
+    }
+    $ids = [];
+    if (!isLoggedIn() || empty($_SESSION['user_id'])) {
+        return $ids;
+    }
+    try {
+        if (!class_exists('Wishlist', false)) {
+            $modelFile = APP_PATH . 'models/Wishlist.php';
+            if (file_exists($modelFile)) {
+                require_once $modelFile;
+            }
+        }
+        if (class_exists('Wishlist')) {
+            $wishlist = new Wishlist();
+            $ids = $wishlist->getProductIds((int)$_SESSION['user_id']);
+        }
+    } catch (Exception $e) {
+        $ids = [];
+    }
+    return $ids;
+}
+
+/**
+ * Whether a product is in the current user's wishlist
+ */
+function is_in_wishlist($productId) {
+    return in_array((int)$productId, wishlist_product_ids(), true);
+}
+
+/**
+ * Live wishlist count for header badge
+ */
+function wishlist_count() {
+    if (!isLoggedIn() || empty($_SESSION['user_id'])) {
+        return 0;
+    }
+    try {
+        if (!class_exists('Wishlist', false)) {
+            $modelFile = APP_PATH . 'models/Wishlist.php';
+            if (file_exists($modelFile)) {
+                require_once $modelFile;
+            }
+        }
+        if (class_exists('Wishlist')) {
+            $wishlist = new Wishlist();
+            return (int)$wishlist->getWishlistCount((int)$_SESSION['user_id']);
+        }
+    } catch (Exception $e) {
+        return 0;
+    }
+    return 0;
+}
+
+/**
+ * Render a product-card heart button (♡ / ❤️)
+ *
+ * @param int $productId
+ * @param string $extraClass
+ * @return string
+ */
+function wishlist_heart_button($productId, $extraClass = '') {
+    $productId = (int)$productId;
+    $active = is_in_wishlist($productId);
+    $classes = trim('btn-wishlist wishlist-heart' . ($active ? ' active' : '') . ($extraClass !== '' ? ' ' . $extraClass : ''));
+    $iconClass = $active ? 'fas fa-heart' : 'far fa-heart';
+    $pressed = $active ? 'true' : 'false';
+    $label = $active ? 'Remove from wishlist' : 'Add to wishlist';
+
+    return '<button type="button" class="' . htmlspecialchars($classes, ENT_QUOTES, 'UTF-8') . '"'
+        . ' data-product-id="' . $productId . '"'
+        . ' aria-label="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '"'
+        . ' aria-pressed="' . $pressed . '"'
+        . ' title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+        . '<i class="' . $iconClass . '" aria-hidden="true"></i>'
+        . '</button>';
+}
+

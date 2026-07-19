@@ -58,197 +58,64 @@
             <?php if(empty($products['data'])): ?>
                 <div class="alert alert-info">No products found.</div>
             <?php else: ?>
-                <style>
-                    .products-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                        gap: clamp(12px, 2vw, 24px);
-                        padding: 0;
-                    }
-                    @media (max-width: 768px) {
-                        .products-grid {
-                            grid-template-columns: repeat(2, minmax(0, 1fr));
-                            gap: 12px;
-                        }
-                        .product-card {
-                            margin-bottom: 0;
-                        }
-                        .button-group .btn {
-                            padding: 0.25rem 0.5rem;
-                            font-size: 0.65rem !important;
-                        }
-                        .button-group .btn i {
-                            margin-right: 0;
-                        }
-                        .card-title {
-                            font-size: 0.85rem;
-                            margin-bottom: 0.5rem;
-                        }
-                        .price-container {
-                            font-size: 0.9rem;
-                        }
-                        .badge {
-                            font-size: 0.6rem;
-                            padding: 0.25em 0.4em;
-                        }
-                    }
-                    
-                    @media (max-width: 480px) {
-                        .products-grid {
-                            grid-template-columns: repeat(2, minmax(0, 1fr));
-                            gap: 10px;
-                        }
-                    }
-                    .product-card {
-                        display: flex;
-                        flex-direction: column;
-                        height: 100%;
-                        border: 1px solid #e9ecef;
-                        border-radius: 0.5rem;
-                        overflow: hidden;
-                        transition: transform 0.2s, box-shadow 0.2s;
-                    }
-                    .product-card:hover {
-                        transform: translateY(-5px);
-                        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-                    }
-                    .product-image-container {
-                        width: 100%;
-                        height: 160px;
-                        overflow: hidden;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        background: #f8f9fa;
-                        padding: 10px;
-                    }
-                    .product-image {
-                        max-width: 100%;
-                        max-height: 100%;
-                        object-fit: contain;
-                    }
-                    .card-body {
-                        display: flex;
-                        flex-direction: column;
-                        flex-grow: 1;
-                        padding: 0.75rem;
-                    }
-                    .card-title {
-                        font-size: 0.9rem;
-                        margin-bottom: 0.4rem;
-                        line-height: 1.3;
-                        height: 2.2em;
-                        overflow: hidden;
-                        display: -webkit-box;
-                        -webkit-line-clamp: 2;
-                        -webkit-box-orient: vertical;
-                    }
-                    .card-text {
-                        flex-grow: 1;
-                        margin-bottom: 0.5rem;
-                        color: #6c757d;
-                        font-size: 0.8rem;
-                        line-height: 1.3;
-                        overflow: hidden;
-                        display: -webkit-box;
-                        -webkit-line-clamp: 2;
-                        -webkit-box-orient: vertical;
-                    }
-                    @media (max-width: 767.98px) {
-                        .products-grid {
-                            grid-template-columns: repeat(2, 1fr);
-                            gap: 12px;
-                            padding: 0;
-                        }
-                        .product-image-container {
-                            height: 160px;
-                        }
-                    }
-                    @media (max-width: 480px) {
-                        .products-grid {
-                            grid-template-columns: repeat(2, 1fr);
-                            gap: 10px;
-                            padding: 0;
-                        }
-                        .product-image-container {
-                            height: 140px;
-                            padding: 10px;
-                        }
-                        .card-body {
-                            padding: 0.75rem;
-                        }
-                        .card-title {
-                            font-size: 0.9rem;
-                            height: 2.6em;
-                        }
-                    }
-                </style>
-                
-                <div class="products-grid">
+                <div class="products-grid pc-grid">
                     <?php foreach($products['data'] as $product): ?>
-                        <div class="product-card">
-                            <div class="product-image-container">
+                        <article class="product-card pc-card">
+                            <div class="product-image-container pc-media position-relative">
+                                <span class="pc-stock-badge badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?>">
+                                    <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out'; ?>
+                                </span>
+                                <?php echo wishlist_heart_button($product['id']); ?>
                                 <?php if(!empty($product['image'])): ?>
-                                    <img src="<?php echo BASE_URL . $product['image']; ?>" class="product-image" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                    <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                 <?php else: ?>
-                                    <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" class="product-image" alt="No Image">
+                                    <img <?php echo product_img_attrs(null, 'No Image', 'product-image'); ?>>
                                 <?php endif; ?>
                             </div>
-                                
-                            <div class="card-body">
-                                <h5 class="card-title mb-1" style="min-height: auto; line-height: 1.2;"><?php echo htmlspecialchars($product['name']); ?></h5>
-                                <?php if(!empty($product['description'])): ?>
-                                    <p class="card-text mb-1"><?php echo nl2br(htmlspecialchars(truncateText($product['description'], 100))); ?></p>
-                                <?php endif; ?>
-                                
-                                <div class="mt-1">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
+
+                            <div class="card-body pc-body">
+                                <h5 class="card-title pc-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                <p class="card-text pc-desc"><?php echo !empty($product['description']) ? htmlspecialchars(truncateText(strip_tags($product['description']), 90)) : '&nbsp;'; ?></p>
+
+                                <div class="pc-meta price-stock-row">
+                                    <div class="price-container pc-price">
                                         <?php if(isLoggedIn()): ?>
-                                            <div class="price-container">
-                                                <span class="fw-bold text-danger"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
-                                            </div>
+                                            <?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?>
                                         <?php else: ?>
-                                            <div class="price-container">
-                                                <span class="text-muted small">Login to see price</span>
-                                            </div>
-                                        <?php endif; ?>
-                                        
-                                        <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?>" style="font-size: 0.65em; padding: 0.2em 0.4em;">
-                                            <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out'; ?>
-                                        </span>
-                                    </div>
-                                    
-                                    <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
-                                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.7rem;">
-                                            <span class="text-muted">Stock: <?php echo $product['stock_quantity']; ?></span>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <div class="button-group d-flex gap-1">
-                                        <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary flex-grow-1 px-1 px-sm-2" style="font-size: 0.7rem;">
-                                            <i class="fas fa-eye d-none d-sm-inline"></i> <span>View</span>
-                                        </a>
-                                        <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
-                                            <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="flex-grow-1">
-                                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                                <input type="hidden" name="quantity" value="1">
-                                                <button type="submit" class="btn btn-sm btn-success w-100 px-1 px-sm-2" style="font-size: 0.7rem;">
-                                                    <i class="fas fa-cart-plus d-none d-sm-inline"></i> <span>Add</span>
-                                                </button>
-                                            </form>
-                                        <?php elseif($product['stock_quantity'] > 0 && !isLoggedIn()): ?>
-                                            <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary flex-grow-1 px-1 px-sm-2" style="font-size: 0.7rem;">
-                                                <i class="fas fa-sign-in-alt d-none d-sm-inline"></i> <span>Login to purchase</span>
-                                            </a>
-                                        <?php else: ?>
-                                            <button class="btn btn-sm btn-secondary flex-grow-1 px-1 px-sm-2" style="font-size: 0.7rem;" disabled>
-                                                <i class="fas fa-times-circle d-none d-sm-inline"></i> <span>Stock Out</span>
-                                            </button>
+                                            <span class="text-muted small">Login for price</span>
                                         <?php endif; ?>
                                     </div>
+                                    <span class="pc-stock stock-label"><?php echo $product['stock_quantity'] > 0 ? ('Stock: ' . (int)$product['stock_quantity']) : 'Unavailable'; ?></span>
                                 </div>
+
+                                <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
+                                    <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <div class="actions pc-actions">
+                                            <div class="quantity-group">
+                                                <button type="button" class="btn quantity-decrease" aria-label="Decrease">-</button>
+                                                <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="<?php echo (int)$product['stock_quantity']; ?>" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
+                                                <button type="button" class="btn quantity-increase" aria-label="Increase">+</button>
+                                            </div>
+                                            <button type="submit" class="btn-add-to-cart">
+                                                <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
+                                                <span>Add to Cart</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                <?php elseif($product['stock_quantity'] > 0 && !isLoggedIn()): ?>
+                                    <div class="actions pc-actions">
+                                        <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                        <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary">Login</a>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="actions pc-actions">
+                                        <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                        <button class="btn btn-sm btn-secondary" disabled>Stock Out</button>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                        </div>
+                        </article>
                     <?php endforeach; ?>
                 </div>
                 
@@ -265,66 +132,64 @@
                 <?php if(!empty($specificProducts)): ?>
                     <div class="mt-5 pt-4 border-top">
                         <h3 class="mb-4">Featured Products</h3>
-                        <div class="products-grid">
+                        <div class="products-grid pc-grid">
                             <?php foreach($specificProducts as $product): ?>
-                                <div class="product-card">
-                                    <div class="product-image-container">
+                                <article class="product-card pc-card">
+                                    <div class="product-image-container pc-media position-relative">
+                                        <span class="pc-stock-badge badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?>">
+                                            <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out'; ?>
+                                        </span>
+                                        <?php echo wishlist_heart_button($product['id']); ?>
                                         <?php if(!empty($product['image'])): ?>
-                                            <img src="<?php echo BASE_URL . $product['image']; ?>" class="product-image" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                            <img <?php echo product_img_attrs($product['image'], $product['name'], 'product-image'); ?>>
                                         <?php else: ?>
-                                            <img src="<?php echo BASE_URL; ?>assets/images/product-placeholder.jpg" class="product-image" alt="No Image">
+                                            <img <?php echo product_img_attrs(null, 'No Image', 'product-image'); ?>>
                                         <?php endif; ?>
                                     </div>
-                                    
-                                    <div class="card-body">
-                                        <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
-                                        <?php if(!empty($product['description'])): ?>
-                                            <p class="card-text"><?php echo nl2br(htmlspecialchars(truncateText($product['description'], 100))); ?></p>
-                                        <?php endif; ?>
-                                        
-                                        <div class="mt-auto">
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                    <div class="card-body pc-body">
+                                        <h5 class="card-title pc-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                        <p class="card-text pc-desc"><?php echo !empty($product['description']) ? htmlspecialchars(truncateText(strip_tags($product['description']), 90)) : '&nbsp;'; ?></p>
+
+                                        <div class="pc-meta price-stock-row">
+                                            <div class="price-container pc-price">
                                                 <?php if(isLoggedIn()): ?>
-                                                    <div class="price-container">
-                                                        <span class="fw-bold text-danger"><?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?></span>
-                                                    </div>
+                                                    <?php echo formatCurrency(!empty($product['price2']) ? $product['price2'] : (!empty($product['sale_price']) ? $product['sale_price'] : $product['price'])); ?>
                                                 <?php else: ?>
-                                                    <div class="price-container">
-                                                        <span class="text-muted small">Login to see price</span>
-                                                    </div>
-                                                <?php endif; ?>
-                                                
-                                                <span class="badge bg-<?php echo $product['stock_quantity'] > 0 ? 'success' : 'secondary'; ?> ms-auto">
-                                                    <?php echo $product['stock_quantity'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
-                                                </span>
-                                            </div>
-                                            
-                                            <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
-                                                <div class="text-end mb-3">
-                                                    <small class="text-muted d-block">Stock: <?php echo $product['stock_quantity']; ?> units</small>
-                                                    <small class="text-muted d-block">
-                                                        Value: <?php echo formatCurrency($product['stock_quantity'] * ($product['sale_price'] ?? $product['price'])); ?>
-                                                    </small>
-                                                </div>
-                                            <?php endif; ?>
-                                            
-                                            <div class="d-flex gap-2">
-                                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary flex-grow-1">View Details</a>
-                                                <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
-                                                    <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="flex-grow-1">
-                                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                                        <input type="hidden" name="quantity" value="1">
-                                                        <button type="submit" class="btn btn-sm btn-success w-100">Add to Cart</button>
-                                                    </form>
-                                                <?php elseif($product['stock_quantity'] > 0 && !isLoggedIn()): ?>
-                                                    <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary flex-grow-1">Login to purchase</a>
-                                                <?php else: ?>
-                                                    <button class="btn btn-sm btn-secondary flex-grow-1" disabled>Out of Stock</button>
+                                                    <span class="text-muted small">Login for price</span>
                                                 <?php endif; ?>
                                             </div>
+                                            <span class="pc-stock stock-label"><?php echo $product['stock_quantity'] > 0 ? ('Stock: ' . (int)$product['stock_quantity']) : 'Unavailable'; ?></span>
                                         </div>
+
+                                        <?php if($product['stock_quantity'] > 0 && isLoggedIn()): ?>
+                                            <form action="<?php echo BASE_URL; ?>?controller=cart&action=add" method="POST" class="add-to-cart-form">
+                                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                                <div class="actions pc-actions">
+                                                    <div class="quantity-group">
+                                                        <button type="button" class="btn quantity-decrease" aria-label="Decrease">-</button>
+                                                        <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="<?php echo (int)$product['stock_quantity']; ?>" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity">
+                                                        <button type="button" class="btn quantity-increase" aria-label="Increase">+</button>
+                                                    </div>
+                                                    <button type="submit" class="btn-add-to-cart">
+                                                        <i class="bi bi-cart-plus-fill" aria-hidden="true"></i>
+                                                        <span>Add to Cart</span>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        <?php elseif($product['stock_quantity'] > 0 && !isLoggedIn()): ?>
+                                            <div class="actions pc-actions">
+                                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                                <a href="<?php echo BASE_URL; ?>?controller=user&action=login" class="btn btn-sm btn-outline-secondary">Login</a>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="actions pc-actions">
+                                                <a href="<?php echo BASE_URL; ?>?controller=product&action=show&param=<?php echo $product['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                                <button class="btn btn-sm btn-secondary" disabled>Out of Stock</button>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                </div>
+                                </article>
                             <?php endforeach; ?>
                         </div>
                     </div>
