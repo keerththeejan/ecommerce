@@ -1,29 +1,159 @@
 <?php
-// Expect: $title, $suppliers, $products
+/**
+ * Purchase Entry (purchase2) — Enterprise ERP UI (visual layer only)
+ * Preserves: #purchaseForm, field names/IDs, #product-rows, payment IDs,
+ * quickAdd modal, and all existing JS functions (loadProducts, submitForm, etc.).
+ */
 $formData = $_SESSION['form_data'] ?? [];
 unset($_SESSION['form_data']);
 
 $supplierId = $formData['supplier_id'] ?? '';
-// If coming from purchase3, allow supplier to be preselected
 if ($supplierId === '' && isset($_GET['prefill_supplier_id'])) {
   $supplierId = (string)(int)$_GET['prefill_supplier_id'];
 }
-// Optional product prefill (when coming from purchase3/banner action)
 $prefillProductId = isset($_GET['prefill_product_id']) ? (int)$_GET['prefill_product_id'] : 0;
-// One-time submit token to prevent duplicate purchases
 if (session_status() === PHP_SESSION_NONE) { @session_start(); }
 try { $submitToken = bin2hex(random_bytes(16)); } catch (Exception $e) { $submitToken = bin2hex(openssl_random_pseudo_bytes(16)); }
 $_SESSION['purchase_submit_token'] = $submitToken;
-?>
 
-<div class="container-fluid">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0"><?php echo htmlspecialchars($title ?? 'Add new purchase'); ?></h1>
-    <a href="<?php echo BASE_URL; ?>?controller=purchase&action=index" class="btn btn-secondary">Back</a>
+$suppliers = $suppliers ?? [];
+$currencySym = defined('CURRENCY_SYMBOL') ? CURRENCY_SYMBOL : 'CHF';
+
+$supplierJson = [];
+foreach ($suppliers as $s) {
+    $supplierJson[] = [
+        'id' => (int)($s['id'] ?? 0),
+        'name' => (string)($s['name'] ?? ''),
+        'email' => (string)($s['email'] ?? ''),
+        'phone' => (string)($s['phone'] ?? ''),
+        'address' => (string)($s['address'] ?? ''),
+    ];
+}
+$selectedSupplierName = '';
+foreach ($suppliers as $s) {
+    if ((string)($s['id'] ?? '') === (string)$supplierId) {
+        $selectedSupplierName = (string)($s['name'] ?? '');
+        break;
+    }
+}
+?>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/purchase2.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
+
+<div class="container-fluid purchase2-page py-2 py-md-3" id="purchase2Page">
+  <div class="p2-toast-host" id="p2ToastHost" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="p2-header">
+    <div>
+      <nav class="p2-breadcrumb" aria-label="Breadcrumb">
+        <a href="<?php echo BASE_URL; ?>?controller=home&action=admin">Dashboard</a>
+        <span class="sep">›</span>
+        <a href="<?php echo BASE_URL; ?>?controller=purchase&action=index">Purchases</a>
+        <span class="sep">›</span>
+        <span aria-current="page">Purchase Entry</span>
+      </nav>
+      <h1 class="p2-title">Purchase Entry</h1>
+      <p class="p2-subtitle"><?php echo htmlspecialchars($title ?? 'Purchase Invoice'); ?> — supplier, products, document, and payment.</p>
+    </div>
+    <div class="p2-actions">
+      <a href="<?php echo BASE_URL; ?>?controller=purchase&action=index" class="btn btn-outline-secondary p2-btn" title="Back">
+        <i class="bi bi-arrow-left"></i><span>Back</span>
+      </a>
+      <button type="button" class="btn btn-outline-secondary p2-btn" id="p2SaveDraftBtn" title="Save Draft (UI)">
+        <i class="bi bi-file-earmark"></i><span class="d-none d-lg-inline">Save Draft</span>
+      </button>
+      <button type="button" class="btn btn-outline-secondary p2-btn" data-bs-toggle="modal" data-bs-target="#p2PreviewModal" title="Preview">
+        <i class="bi bi-eye"></i><span class="d-none d-lg-inline">Preview</span>
+      </button>
+      <button type="button" class="btn btn-outline-secondary p2-btn" onclick="window.print()" title="Print Preview">
+        <i class="bi bi-printer"></i><span class="d-none d-xl-inline">Print Preview</span>
+      </button>
+      <a href="<?php echo BASE_URL; ?>?controller=purchase&action=purchase2" class="btn btn-outline-primary p2-btn" title="Save and New">
+        <i class="bi bi-plus-lg"></i><span class="d-none d-lg-inline">Save &amp; New</span>
+      </a>
+      <button type="submit" form="purchaseForm" class="btn p2-btn p2-btn-primary" id="p2CompleteTop">
+        <i class="bi bi-check2-circle"></i><span>Complete Purchase</span>
+      </button>
+    </div>
   </div>
 
   <?php flash('error'); ?>
   <?php flash('success'); ?>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s1">
+        <div class="icon"><i class="bi bi-building"></i></div>
+        <div>
+          <div class="label">Supplier</div>
+          <div class="value" id="p2KpiSupplier"><?php echo $selectedSupplierName !== '' ? htmlspecialchars($selectedSupplierName) : '—'; ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s2">
+        <div class="icon"><i class="bi bi-box-seam"></i></div>
+        <div>
+          <div class="label">Products</div>
+          <div class="value" id="p2KpiProducts">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s3">
+        <div class="icon"><i class="bi bi-stack"></i></div>
+        <div>
+          <div class="label">Quantity</div>
+          <div class="value" id="p2KpiQty">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s4">
+        <div class="icon"><i class="bi bi-currency-exchange"></i></div>
+        <div>
+          <div class="label">Purchase Value</div>
+          <div class="value" id="p2KpiValue"><?php echo htmlspecialchars($currencySym); ?>0.00</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s5">
+        <div class="icon"><i class="bi bi-truck"></i></div>
+        <div>
+          <div class="label">Expected Delivery</div>
+          <div class="value" id="p2KpiDelivery"><?php echo date('d M Y', strtotime('+3 days')); ?></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s6">
+        <div class="icon"><i class="bi bi-credit-card"></i></div>
+        <div>
+          <div class="label">Payment Status</div>
+          <div class="value" id="p2KpiPayStatus">Unpaid</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s7">
+        <div class="icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+          <div class="label">Outstanding</div>
+          <div class="value" id="p2KpiDue"><?php echo htmlspecialchars($currencySym); ?>0.00</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+      <div class="p2-stat s8">
+        <div class="icon"><i class="bi bi-receipt"></i></div>
+        <div>
+          <div class="label">Purchase Number</div>
+          <div class="value" id="p2KpiPo">PO-<?php echo date('Ymd'); ?>-NEW</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <form id="purchaseForm" enctype="multipart/form-data" method="POST" action="<?php echo BASE_URL; ?>?controller=purchase&action=store" onsubmit="submitForm(event)">
     <input type="hidden" name="submit_token" value="<?php echo htmlspecialchars($submitToken); ?>">
@@ -31,15 +161,20 @@ $_SESSION['purchase_submit_token'] = $submitToken;
       <input type="hidden" name="prefill_product_id" id="prefill_product_id" value="<?php echo (int)$prefillProductId; ?>">
       <input type="hidden" name="is_return" id="is_return" value="1">
     <?php endif; ?>
-    <div class="row">
-      <!-- Left column -->
-      <div class="col-12">
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
+
+    <div class="row g-3">
+      <div class="col-12 col-xl-9">
+
+        <section class="p2-card">
+          <div class="p2-card-header">
+            <h2><i class="bi bi-receipt text-primary"></i> Purchase Details</h2>
+            <span class="p2-badge p2-badge-soft">Required</span>
+          </div>
+          <div class="p2-card-body">
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Supplier <span class="text-danger">*</span> <i class="fas fa-info-circle" title="Select supplier for this purchase"></i></label>
-                <select class="form-select" id="supplier_id" name="supplier_id" required>
+                <label class="form-label" for="supplier_id">Supplier <span class="text-danger">*</span> <i class="fas fa-info-circle" title="Select supplier for this purchase"></i></label>
+                <select class="form-select" id="supplier_id" name="supplier_id" required aria-label="Supplier">
                   <option value="">Please Select</option>
                   <?php foreach ($suppliers as $s): ?>
                     <option value="<?php echo $s['id']; ?>" <?php echo ($supplierId == $s['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($s['name']); ?></option>
@@ -47,16 +182,16 @@ $_SESSION['purchase_submit_token'] = $submitToken;
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Reference No <i class="fas fa-info-circle" title="Auto generated"></i></label>
+                <label class="form-label" for="reference_no">Reference No <i class="fas fa-info-circle" title="Auto generated"></i></label>
                 <input type="text" class="form-control" id="reference_no" value="" placeholder="Auto" disabled>
               </div>
 
               <div class="col-md-6">
-                <label class="form-label">Purchase Date <span class="text-danger">*</span></label>
+                <label class="form-label" for="purchase_date">Purchase Date <span class="text-danger">*</span></label>
                 <input type="date" class="form-control" id="purchase_date" name="purchase_date" value="<?php echo date('Y-m-d'); ?>" required>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Status <span class="text-danger">*</span></label>
+                <label class="form-label" for="status">Status <span class="text-danger">*</span></label>
                 <select class="form-select" id="status" name="status" required>
                   <option value="pending">Please Select</option>
                   <option value="received">Received</option>
@@ -66,59 +201,106 @@ $_SESSION['purchase_submit_token'] = $submitToken;
               </div>
 
               <div class="col-md-6">
-                <label class="form-label">Business Location <i class="fas fa-info-circle" title="Optional"></i></label>
-                <input type="text" class="form-control" name="business_location" placeholder="Location (optional)">
+                <label class="form-label" for="business_location">Business Location <i class="fas fa-info-circle" title="Optional"></i></label>
+                <input type="text" class="form-control" id="business_location" name="business_location" placeholder="Location (optional)">
               </div>
               <div class="col-md-6 d-flex align-items-end">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" value="1" id="update_stock" name="update_stock" checked>
-                  <label class="form-check-label" for="update_stock">
-                    Update stock?
-                  </label>
+                  <label class="form-check-label" for="update_stock">Update stock?</label>
                 </div>
               </div>
 
-              <div class="col-12">
-                <label class="form-label">Notes</label>
-                <textarea class="form-control" name="notes" rows="4" placeholder="Purchase description..."></textarea>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2ExpectedDate">Expected Delivery</label>
+                <input type="date" class="form-control" id="p2ExpectedDate" value="<?php echo date('Y-m-d', strtotime('+3 days')); ?>">
+                <div class="form-text"><span class="p2-ui-only">UI only</span></div>
               </div>
-              
-       
-          <label class="card-header">Purchase document</label>
-          <div class="card-body">
-            <input type="file" class="form-control" name="document" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-            <small class="text-muted d-block mt-2">Max file size: 5MB</small>
-          </div>
-       
-              
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2Warehouse">Warehouse</label>
+                <select class="form-select" id="p2Warehouse">
+                  <option value="main" selected>Main Warehouse</option>
+                  <option value="secondary">Secondary</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2Branch">Branch</label>
+                <input type="text" class="form-control" id="p2Branch" placeholder="Head Office">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2PayStatus">Payment Status</label>
+                <select class="form-select" id="p2PayStatus">
+                  <option value="unpaid">Unpaid</option>
+                  <option value="partial">Partial</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2Currency">Currency</label>
+                <input type="text" class="form-control" id="p2Currency" value="<?php echo htmlspecialchars($currencySym); ?>" readonly>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2Fx">Exchange Rate</label>
+                <input type="number" class="form-control" id="p2Fx" value="1" step="0.0001" min="0">
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2Priority">Priority</label>
+                <select class="form-select" id="p2Priority">
+                  <option value="normal">Normal</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="p2Template">Template</label>
+                <select class="form-select" id="p2Template">
+                  <option value="">None</option>
+                  <option value="standard">Standard PO</option>
+                  <option value="recurring">Recurring</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label" for="notes">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Purchase description..."></textarea>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Products section (moved inside left column for proper alignment) -->
+        <section class="p2-card">
+          <div class="p2-card-header">
+            <h2><i class="bi bi-paperclip text-primary"></i> Purchase Document</h2>
+            <span class="p2-badge p2-badge-soft">Max 5MB</span>
+          </div>
+          <div class="p2-card-body">
+            <div class="p2-attach-zone mb-3" aria-hidden="true">
+              <i class="bi bi-cloud-arrow-up"></i>
+              Supplier invoice · Quotation · PO · Delivery note · Warranty
+            </div>
+            <input type="file" class="form-control" name="document" id="document" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" aria-label="Purchase document">
+            <small class="text-muted d-block mt-2">Max file size: 5MB</small>
+          </div>
+        </section>
 
-        <div class="card shadow-sm">
-          <div class="card-header"><strong>Products</strong></div>
-          <div class="card-body">
+        <section class="p2-card">
+          <div class="p2-card-header">
+            <h2><i class="bi bi-grid-3x3-gap text-primary"></i> Product Entry</h2>
+            <span class="p2-badge p2-badge-ok">Live search · Barcode</span>
+          </div>
+          <div class="p2-card-body">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-              <button type="button" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-import me-1"></i> Import Products</button>
-              <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input id="product-search" type="text" class="form-control" placeholder="Enter Product name / SKU / Scan bar code">
+              <button type="button" class="btn btn-outline-primary btn-sm p2-btn"><i class="fas fa-file-import me-1"></i> Import Products</button>
+              <div class="p2-search-wrap flex-grow-1" style="max-width:520px; position:relative">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-search"></i></span>
+                  <input id="product-search" type="text" class="form-control" placeholder="Enter Product name / SKU / Scan bar code" aria-label="Product search" autocomplete="off">
+                </div>
+                <div id="product-suggestions" class="list-group" style="display:none; max-height: 240px; overflow:auto; width: 100%"></div>
               </div>
-              <div id="product-suggestions" class="list-group" style="display:none; max-height: 240px; overflow:auto; width: 100%"></div>
               <a href="#" id="btn-quick-add" class="ms-auto small text-primary"><i class="fas fa-plus me-1"></i>Add new product</a>
             </div>
 
-            <div class="table-responsive">
-              <style>
-                /* Narrow price columns without changing font size */
-                .price-col { padding-left: .25rem !important; padding-right: .25rem !important; white-space: nowrap; }
-                .price-col.text-end { text-align: right !important; }
-                /* Narrow quantity column without changing font size */
-                .qty-col { padding-left: .25rem !important; padding-right: .25rem !important; }
-                .qty-col input { max-width: 72px; }
-              </style>
+            <div class="table-responsive p2-table-wrap">
               <table class="table table-bordered align-middle purchase-items-table responsive-table">
                 <thead class="table-success">
                   <tr>
@@ -144,49 +326,57 @@ $_SESSION['purchase_submit_token'] = $submitToken;
               </table>
             </div>
 
-            <hr>
-            <div class="row">
-              <div class="col-6"></div>
-              <div class="col-6">
-                <div class="d-flex justify-content-end small">
-                  <div class="me-4"><strong>Total Items:</strong> <span id="total-items">0.00</span></div>
-                  <div><strong>Net Total Amount:</strong> <span id="net-total"><?php echo CURRENCY_SYMBOL; ?>0.00</span></div>
-                </div>
-              </div>
+            <div class="p2-totals mt-3">
+              <div><strong>Total Items:</strong> <span id="total-items">0.00</span></div>
+              <div><strong>Net Total Amount:</strong> <span id="net-total"><?php echo CURRENCY_SYMBOL; ?>0.00</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="p2-card">
+          <div class="p2-card-header">
+            <h2><i class="bi bi-wallet2 text-primary"></i> Add Payment</h2>
+            <span class="p2-badge p2-badge-soft">Settlement</span>
+          </div>
+          <div class="p2-card-body">
+            <div class="row g-2 mb-3 p2-pay-methods" aria-label="Payment method shortcuts">
+              <div class="col-4 col-md-2"><button type="button" class="btn btn-outline-secondary w-100" data-p2-pay="cash">Cash</button></div>
+              <div class="col-4 col-md-2"><button type="button" class="btn btn-outline-secondary w-100" data-p2-pay="card">Card</button></div>
+              <div class="col-4 col-md-2"><button type="button" class="btn btn-outline-secondary w-100" data-p2-pay="bank">Bank</button></div>
+              <div class="col-4 col-md-2"><button type="button" class="btn btn-outline-secondary w-100" data-p2-pay="cheque">Cheque</button></div>
+              <div class="col-4 col-md-2"><button type="button" class="btn btn-outline-secondary w-100" data-p2-pay="credit">Credit</button></div>
+              <div class="col-4 col-md-2"><button type="button" class="btn btn-outline-secondary w-100" data-p2-pay="online">Online</button></div>
             </div>
 
-           
-          </div>
-        </div>
-
-        <!-- Add payment (moved inside left column for proper alignment) -->
-        <div class="card shadow-sm mt-4">
-          <div class="card-header"><strong>Add payment</strong></div>
-          <div class="card-body">
             <div class="row g-3 align-items-end">
               <div class="col-md-3">
                 <label class="form-label">Advance Balance:</label>
                 <div class="form-control-plaintext">0</div>
               </div>
               <div class="col-md-3">
-                <label class="form-label">Amount*</label>
+                <label class="form-label" for="pay-amount">Amount*</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="fas fa-money-bill"></i></span>
                   <input id="pay-amount" type="number" step="0.01" min="0" class="form-control" name="payment[amount]" value="0.00">
                 </div>
               </div>
               <div class="col-md-3">
-                <label class="form-label">Paid on*</label>
+                <label class="form-label" for="paid-on">Paid on*</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="far fa-calendar"></i></span>
                   <input id="paid-on" type="text" class="form-control bg-light" name="payment[paid_on]" readonly>
                 </div>
               </div>
+              <div class="col-md-3">
+                <label class="form-label" for="p2TxnNo">Transaction No.</label>
+                <input type="text" class="form-control" id="p2TxnNo" placeholder="Optional">
+                <div class="form-text"><span class="p2-ui-only">UI only</span></div>
+              </div>
             </div>
 
             <div class="row g-3 mt-2">
               <div class="col-md-3">
-                <label class="form-label">Payment Method*</label>
+                <label class="form-label" for="payment-method">Payment Method*</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="fas fa-money-bill"></i></span>
                   <select id="payment-method" class="form-select" name="payment[method]">
@@ -198,32 +388,157 @@ $_SESSION['purchase_submit_token'] = $submitToken;
                 </div>
               </div>
               <div class="col-md-9">
-                <label class="form-label">Payment note</label>
-                <textarea class="form-control" name="payment[note]" rows="3"></textarea>
+                <label class="form-label" for="payment_note">Payment note</label>
+                <textarea class="form-control" id="payment_note" name="payment[note]" rows="3"></textarea>
               </div>
             </div>
 
             <hr>
-            <div class="d-flex justify-content-between">
-              <div></div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="text-muted small">Balance updates live with line totals.</div>
               <div class="text-end">Payment due: <strong id="payment-due">0.00</strong></div>
             </div>
 
-            <div class="text-center mt-3">
-              <button id="saveBtn" type="submit" class="btn btn-primary px-5">Save</button>
+            <div class="text-center mt-3 d-none d-md-block">
+              <button id="saveBtn" type="submit" class="btn p2-btn p2-btn-primary px-5">Save</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="p2-card">
+          <div class="p2-card-header">
+            <h2><i class="bi bi-bar-chart-line text-primary"></i> Purchase Analytics</h2>
+            <span class="p2-badge p2-badge-soft">Chart.js · illustrative</span>
+          </div>
+          <div class="p2-card-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <h3 class="h6 text-muted mb-2">Purchase Trend</h3>
+                <div class="p2-chart-box"><canvas id="p2TrendChart" aria-label="Purchase trend"></canvas></div>
+              </div>
+              <div class="col-12 col-md-6">
+                <h3 class="h6 text-muted mb-2">Cost Analysis</h3>
+                <div class="p2-chart-box"><canvas id="p2CostChart" aria-label="Cost analysis"></canvas></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="col-12 col-xl-3">
+        <div class="accordion d-xl-none mb-3" id="p2SideAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#p2AccSummary">Purchase Summary</button>
+            </h2>
+            <div id="p2AccSummary" class="accordion-collapse collapse show" data-bs-parent="#p2SideAccordion">
+              <div class="accordion-body" id="p2SummaryMobile"></div>
             </div>
           </div>
         </div>
 
+        <aside class="d-none d-xl-block" aria-label="Purchase sidebar">
+          <section class="p2-card">
+            <div class="p2-card-header"><h3><i class="bi bi-calculator text-primary"></i> Purchase Summary</h3></div>
+            <div class="p2-card-body" id="p2SummaryPanel">
+              <div class="p2-summary-row"><span class="muted">Items</span><span id="p2SumItems">0</span></div>
+              <div class="p2-summary-row"><span class="muted">Quantity</span><span id="p2SumQty">0.00</span></div>
+              <div class="p2-summary-row"><span class="muted">Subtotal</span><span id="p2SumSub"><?php echo htmlspecialchars($currencySym); ?>0.00</span></div>
+              <div class="p2-summary-row"><span class="muted">Discount</span><span><?php echo htmlspecialchars($currencySym); ?>0.00</span></div>
+              <div class="p2-summary-row"><span class="muted">Tax</span><span><?php echo htmlspecialchars($currencySym); ?>0.00</span></div>
+              <div class="p2-summary-row"><span class="muted">Shipping</span><span><?php echo htmlspecialchars($currencySym); ?>0.00</span></div>
+              <div class="p2-summary-row"><span>Grand Total</span><span id="p2SumGrand"><?php echo htmlspecialchars($currencySym); ?>0.00</span></div>
+              <div class="p2-summary-row"><span class="muted">Paid</span><span id="p2SumPaid"><?php echo htmlspecialchars($currencySym); ?>0.00</span></div>
+              <div class="p2-summary-row"><span>Balance Due</span><span id="p2SumDue"><?php echo htmlspecialchars($currencySym); ?>0.00</span></div>
+            </div>
+          </section>
+
+          <section class="p2-card">
+            <div class="p2-card-header"><h3><i class="bi bi-building text-primary"></i> Supplier</h3></div>
+            <div class="p2-card-body">
+              <div class="d-flex gap-2 align-items-start">
+                <div class="p2-supplier-avatar" id="p2SupAvatar" aria-hidden="true">S</div>
+                <div class="flex-grow-1">
+                  <strong id="p2SupName"><?php echo $selectedSupplierName !== '' ? htmlspecialchars($selectedSupplierName) : 'Not selected'; ?></strong>
+                  <div class="p2-meta-grid mt-2">
+                    <div><div class="k">Code</div><div class="v" id="p2SupCode">—</div></div>
+                    <div><div class="k">Rating</div><div class="v">★★★★☆</div></div>
+                    <div><div class="k">Phone</div><div class="v" id="p2SupPhone">—</div></div>
+                    <div><div class="k">Email</div><div class="v" id="p2SupEmail">—</div></div>
+                  </div>
+                  <div class="small text-muted mt-2" id="p2SupAddress">—</div>
+                  <div class="d-flex flex-wrap gap-1 mt-2">
+                    <a class="btn btn-sm btn-outline-secondary" id="p2SupCall" href="#" title="Call"><i class="bi bi-telephone"></i></a>
+                    <a class="btn btn-sm btn-outline-secondary" id="p2SupMail" href="#" title="Email"><i class="bi bi-envelope"></i></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="p2-card">
+            <div class="p2-card-header"><h3><i class="bi bi-warehouse text-primary"></i> Warehouse</h3></div>
+            <div class="p2-card-body">
+              <div class="p2-summary-row"><span class="muted">Location</span><span>Main</span></div>
+              <div class="p2-summary-row"><span class="muted">Update Stock</span><span id="p2WhStock">Yes</span></div>
+            </div>
+          </section>
+
+          <section class="p2-card">
+            <div class="p2-card-header"><h3><i class="bi bi-sticky text-primary"></i> Quick Notes</h3></div>
+            <div class="p2-card-body">
+              <textarea class="form-control" id="p2QuickNotes" rows="3" placeholder="Internal notes (UI only)"></textarea>
+            </div>
+          </section>
+        </aside>
       </div>
     </div>
   </form>
+
+  <div class="p2-actionbar" role="region" aria-label="Purchase actions">
+    <div class="p2-actionbar-inner">
+      <div class="d-flex flex-wrap gap-2">
+        <a href="<?php echo BASE_URL; ?>?controller=purchase&action=index" class="btn btn-outline-secondary p2-btn">Cancel</a>
+        <button type="reset" form="purchaseForm" class="btn btn-outline-secondary p2-btn">Reset</button>
+        <button type="button" class="btn btn-outline-secondary p2-btn" onclick="window.print()">Print</button>
+        <button type="button" class="btn btn-outline-secondary p2-btn" data-bs-toggle="modal" data-bs-target="#p2PreviewModal">Preview</button>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-secondary p2-btn" id="p2DraftBar">Save Draft</button>
+        <a href="<?php echo BASE_URL; ?>?controller=purchase&action=purchase2" class="btn btn-outline-primary p2-btn">Save &amp; New</a>
+        <button type="submit" form="purchaseForm" class="btn p2-btn p2-btn-primary" id="p2SaveBar">
+          <i class="bi bi-check2-circle"></i> Save Purchase
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="p2PreviewModal" tabindex="-1" aria-labelledby="p2PreviewLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius:20px">
+      <div class="modal-header">
+        <h5 class="modal-title" id="p2PreviewLabel">Purchase Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1"><strong>Supplier:</strong> <span id="p2PrevSupplier">—</span></p>
+        <p class="mb-1"><strong>Date:</strong> <span id="p2PrevDate"><?php echo date('Y-m-d'); ?></span></p>
+        <p class="mb-1"><strong>Items:</strong> <span id="p2PrevItems">0</span></p>
+        <p class="mb-0"><strong>Net Total:</strong> <span id="p2PrevTotal"><?php echo htmlspecialchars($currencySym); ?>0.00</span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" form="purchaseForm" class="btn btn-primary">Confirm &amp; Save</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Quick Add Product Modal -->
 <div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-content" style="border-radius:20px">
       <div class="modal-header">
         <h5 class="modal-title">Add New Product</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -263,8 +578,11 @@ $_SESSION['purchase_submit_token'] = $submitToken;
       </div>
     </div>
   </div>
-  </div>
+</div>
 
+<script>
+window.P2_SUPPLIERS = <?php echo json_encode($supplierJson, JSON_UNESCAPED_UNICODE); ?>;
+</script>
 <script>
 const CURRENCY_SYMBOL = '<?php echo CURRENCY_SYMBOL; ?>';
 const BASE_URL = '<?php echo BASE_URL; ?>';
@@ -656,4 +974,184 @@ function applyTableFilter(productId){
   renumberRows();
   updateTotals();
 }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  function p2Toast(msg, type) {
+    type = type || 'info';
+    var host = document.getElementById('p2ToastHost');
+    if (!host) return;
+    var el = document.createElement('div');
+    el.className = 'toast align-items-center text-bg-' + (type === 'error' ? 'danger' : type) + ' border-0 show';
+    el.setAttribute('role', 'alert');
+    el.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+    host.appendChild(el);
+    setTimeout(function(){ el.remove(); }, 3200);
+  }
+
+  function syncSupplierUi() {
+    var sel = document.getElementById('supplier_id');
+    if (!sel) return;
+    var id = sel.value;
+    var opt = sel.options[sel.selectedIndex];
+    var name = opt && opt.value ? opt.text : 'Not selected';
+    var kpi = document.getElementById('p2KpiSupplier');
+    if (kpi) kpi.textContent = opt && opt.value ? name : '—';
+    var sn = document.getElementById('p2SupName');
+    if (sn) sn.textContent = name;
+    var avatar = document.getElementById('p2SupAvatar');
+    if (avatar) avatar.textContent = (name && name !== 'Not selected' && name !== 'Please Select') ? name.charAt(0).toUpperCase() : 'S';
+    var list = window.P2_SUPPLIERS || [];
+    var found = list.find(function(s){ return String(s.id) === String(id); });
+    var code = document.getElementById('p2SupCode');
+    var phone = document.getElementById('p2SupPhone');
+    var email = document.getElementById('p2SupEmail');
+    var addr = document.getElementById('p2SupAddress');
+    var call = document.getElementById('p2SupCall');
+    var mail = document.getElementById('p2SupMail');
+    if (found) {
+      if (code) code.textContent = 'SUP-' + found.id;
+      if (phone) phone.textContent = found.phone || '—';
+      if (email) email.textContent = found.email || '—';
+      if (addr) addr.textContent = found.address || '—';
+      if (call) call.href = found.phone ? ('tel:' + found.phone) : '#';
+      if (mail) mail.href = found.email ? ('mailto:' + found.email) : '#';
+    } else {
+      if (code) code.textContent = '—';
+      if (phone) phone.textContent = '—';
+      if (email) email.textContent = '—';
+      if (addr) addr.textContent = '—';
+    }
+  }
+
+  function syncKpisFromDom() {
+    var rows = document.querySelectorAll('#product-rows tr[data-product-id]');
+    var visible = 0;
+    rows.forEach(function(tr){ if (tr.style.display !== 'none') visible++; });
+    var qtyEl = document.getElementById('total-items');
+    var netEl = document.getElementById('net-total');
+    var dueEl = document.getElementById('payment-due');
+    var payAmt = document.getElementById('pay-amount');
+    var ref = document.getElementById('reference_no');
+    if (document.getElementById('p2KpiProducts')) document.getElementById('p2KpiProducts').textContent = String(visible);
+    if (document.getElementById('p2KpiQty') && qtyEl) document.getElementById('p2KpiQty').textContent = qtyEl.textContent;
+    if (document.getElementById('p2KpiValue') && netEl) document.getElementById('p2KpiValue').textContent = netEl.textContent;
+    if (document.getElementById('p2SumItems')) document.getElementById('p2SumItems').textContent = String(visible);
+    if (document.getElementById('p2SumQty') && qtyEl) document.getElementById('p2SumQty').textContent = qtyEl.textContent;
+    if (document.getElementById('p2SumSub') && netEl) document.getElementById('p2SumSub').textContent = netEl.textContent;
+    if (document.getElementById('p2SumGrand') && netEl) document.getElementById('p2SumGrand').textContent = netEl.textContent;
+    if (document.getElementById('p2SumPaid') && payAmt) {
+      var sym = (typeof CURRENCY_SYMBOL !== 'undefined') ? CURRENCY_SYMBOL : '';
+      document.getElementById('p2SumPaid').textContent = sym + (parseFloat(payAmt.value||0).toFixed(2));
+    }
+    if (document.getElementById('p2SumDue') && dueEl) {
+      var sym2 = (typeof CURRENCY_SYMBOL !== 'undefined') ? CURRENCY_SYMBOL : '';
+      document.getElementById('p2SumDue').textContent = sym2 + (dueEl.textContent || '0.00');
+      if (document.getElementById('p2KpiDue')) document.getElementById('p2KpiDue').textContent = sym2 + (dueEl.textContent || '0.00');
+    }
+    if (document.getElementById('p2KpiPo') && ref && ref.value) document.getElementById('p2KpiPo').textContent = ref.value;
+    var amt = parseFloat(payAmt && payAmt.value || 0);
+    var due = parseFloat((dueEl && dueEl.textContent) || 0);
+    var statusLabel = 'Unpaid';
+    if (amt > 0 && due <= 0) statusLabel = 'Paid';
+    else if (amt > 0) statusLabel = 'Partial';
+    if (document.getElementById('p2KpiPayStatus')) document.getElementById('p2KpiPayStatus').textContent = statusLabel;
+    var prevS = document.getElementById('p2PrevSupplier');
+    var prevI = document.getElementById('p2PrevItems');
+    var prevT = document.getElementById('p2PrevTotal');
+    var prevD = document.getElementById('p2PrevDate');
+    if (prevS) prevS.textContent = (document.getElementById('p2KpiSupplier') || {}).textContent || '—';
+    if (prevI) prevI.textContent = String(visible);
+    if (prevT && netEl) prevT.textContent = netEl.textContent;
+    if (prevD) {
+      var pd = document.getElementById('purchase_date');
+      if (pd) prevD.textContent = pd.value;
+    }
+    var panel = document.getElementById('p2SummaryPanel');
+    var mobile = document.getElementById('p2SummaryMobile');
+    if (panel && mobile) mobile.innerHTML = panel.innerHTML;
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if (typeof updateTotals === 'function') {
+      var _ut = updateTotals;
+      updateTotals = function(){ _ut(); syncKpisFromDom(); };
+    }
+    if (typeof updatePaymentDue === 'function') {
+      var _upd = updatePaymentDue;
+      updatePaymentDue = function(){ _upd(); syncKpisFromDom(); };
+    }
+    var supplierSel = document.getElementById('supplier_id');
+    if (supplierSel) supplierSel.addEventListener('change', syncSupplierUi);
+    syncSupplierUi();
+    syncKpisFromDom();
+
+    var draftTop = document.getElementById('p2SaveDraftBtn');
+    if (draftTop) draftTop.addEventListener('click', function(){
+      p2Toast('Draft saved locally (UI only). Use Save to post purchase.', 'warning');
+    });
+    var draftBar = document.getElementById('p2DraftBar');
+    if (draftBar) draftBar.addEventListener('click', function(){
+      p2Toast('Draft saved locally (UI only). Use Save to post purchase.', 'warning');
+    });
+
+    document.querySelectorAll('[data-p2-pay]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var v = btn.getAttribute('data-p2-pay');
+        var pm = document.getElementById('payment-method');
+        if (!pm) return;
+        var map = { cash:'cash', card:'card', bank:'bank', cheque:'cheque', credit:'cash', online:'bank' };
+        if (map[v] && pm.querySelector('option[value="'+map[v]+'"]')) {
+          pm.value = map[v];
+          p2Toast('Payment method set to ' + pm.options[pm.selectedIndex].text, 'info');
+        } else {
+          p2Toast('Method "' + v + '" is UI-only; select from dropdown.', 'warning');
+        }
+      });
+    });
+
+    var exp = document.getElementById('p2ExpectedDate');
+    if (exp) exp.addEventListener('change', function(){
+      var kpi = document.getElementById('p2KpiDelivery');
+      if (!kpi || !exp.value) return;
+      var d = new Date(exp.value + 'T00:00:00');
+      kpi.textContent = d.toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' });
+    });
+
+    var stockCb = document.getElementById('update_stock');
+    if (stockCb) stockCb.addEventListener('change', function(){
+      var el = document.getElementById('p2WhStock');
+      if (el) el.textContent = stockCb.checked ? 'Yes' : 'No';
+    });
+
+    var payAmount = document.getElementById('pay-amount');
+    if (payAmount) payAmount.addEventListener('input', syncKpisFromDom);
+
+    var qa = document.getElementById('btn-quick-add');
+    if (qa && window.bootstrap) {
+      qa.addEventListener('click', function(e){
+        e.preventDefault();
+        var modalEl = document.getElementById('quickAddModal');
+        if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      });
+    }
+
+    if (window.Chart) {
+      var t = document.getElementById('p2TrendChart');
+      if (t) new Chart(t, {
+        type: 'line',
+        data: { labels: ['Jan','Feb','Mar','Apr','May','Jun'], datasets: [{ label: 'Purchases', data: [12,18,9,22,15,20], borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.12)', fill:true, tension:0.35 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } }
+      });
+      var c = document.getElementById('p2CostChart');
+      if (c) new Chart(c, {
+        type: 'doughnut',
+        data: { labels: ['Products','Tax','Shipping'], datasets: [{ data: [70,20,10], backgroundColor:['#2563eb','#059669','#d97706'] }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+      });
+    }
+  });
+})();
 </script>

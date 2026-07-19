@@ -41,543 +41,146 @@ try {
 }
 ?>
 
-<!-- Footer -->
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/footer.css?v=<?php echo defined('ASSET_VERSION') ? ASSET_VERSION : time(); ?>">
 <style>
-    /* Footer Styles */
-    html, body {
-        height: 100%;
-        margin: 0;
-        scroll-behavior: smooth;
+    /* Admin-configurable footer tokens (preserve settings system) */
+    footer.premium-footer {
+        --ft-accent: <?php echo htmlspecialchars($__footerAccentColor); ?>;
+        --ft-heading: <?php echo htmlspecialchars($__footerHeadingColor); ?>;
+        --ft-text: <?php echo htmlspecialchars($__footerTextColor); ?>;
     }
-    
-    body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
+    footer.premium-footer,
+    footer.premium-footer * {
+        font-family: <?php echo ($__footerFontFamily === 'inherit' || $__footerFontFamily === '') ? "'Poppins', system-ui, sans-serif" : htmlspecialchars($__footerFontFamily); ?> !important;
     }
-    
-    main {
-        flex: 1 0 auto;
-    }
-    
-    /* Modern Footer */
-    footer {
-        background: linear-gradient(135deg, #222831 0%, #393E46 100%);
-        color: #fff;
-        padding: 0;
-        position: relative;
-        z-index: 10;
-        border: 0 !important;
-        outline: 0 !important;
-        box-shadow: none !important;
-        overflow: hidden;
-    }
-    
-    /* Footer Top Section with Wave */
-    .footer-top {
-        position: relative;
-        padding: 100px 0 70px;
-        background: linear-gradient(135deg, #222831 0%, #393E46 100%);
-        overflow: hidden;
-    }
-    
-    .footer-top::before {
-        content: '';
-        position: absolute;
-        top: -70px;
-        left: 0;
-        right: 0;
-        height: 70px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23222831' fill-opacity='1' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
-        background-size: cover;
-        background-repeat: no-repeat;
-    }
-    
-    /* Decorative elements */
-    .footer-top::after {
-        content: '';
-        position: absolute;
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background: rgba(0, 173, 181, 0.05);
-        top: -150px;
-        right: -100px;
-        z-index: 0;
-    }
-    
-    .footer-decoration {
-        position: absolute;
-        z-index: 0;
-    }
-    
-    .footer-decoration.circle-1 {
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: rgba(0, 173, 181, 0.03);
-        bottom: -100px;
-        left: 10%;
-    }
-    
-    .footer-decoration.circle-2 {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.02);
-        top: 20%;
-        right: 20%;
-    }
-    
-    /* Store Info */
-    .footer-widget {
-        margin-bottom: 30px;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .footer-widget h4 {
-        color: #fff;
-        margin-bottom: 25px;
-        font-size: 1.5rem;
-        font-weight: 600;
-        position: relative;
-        padding-bottom: 15px;
-        display: inline-block;
-    }
-    
-    .footer-widget h4::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, #00ADB5 0%, rgba(0, 173, 181, 0.2) 100%);
-        border-radius: 3px;
-    }
-    
-    .footer-widget h4::before {
-        content: '';
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background: #00ADB5;
-        border-radius: 50%;
-        left: -15px;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-    
-    .footer-widget p {
-        margin-bottom: 0.5rem;
-        color: #EEEEEE;
-        font-size: 0.9rem; /* slightly more compact */
-        line-height: 1.55;
-    }
-    
-    .contact-info {
-        padding-left: 0;
-        list-style: none;
-        margin-bottom: 0;
-    }
-    
-    .contact-info li {
-        position: relative;
-        padding-left: 30px;
-        margin-bottom: 8px; /* tighter */
-        color: #EEEEEE;
-    }
-    
-    .contact-info i {
-        position: absolute;
-        left: 0;
-        top: 4px;
-        color: #00ADB5;
-    }
-    
-    /* Footer Links */
-    .footer-links {
-        padding-left: 0;
-        list-style: none;
-    }
-    
-    .footer-links li {
-        margin-bottom: 8px; /* tighter like screenshot */
-    }
-    
-    .footer-links a {
-        color: #EEEEEE;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        position: relative;
-        padding-left: 16px; /* room for hyphen */
-        display: block;
-    }
-    
-    .footer-links a:before {
-        content: '\2013'; /* en dash like in screenshot */
-        position: absolute;
-        left: 0;
-        top: 0;
-        color: #9fdbe0; /* softer teal */
-        transition: transform 0.3s ease;
-        line-height: 1.2;
-    }
-    
-    .footer-links a:hover {
-        color: #00ADB5;
-        transform: translateX(5px);
-    }
-    
-    .footer-links a:hover:before {
-        transform: translateX(3px);
-    }
-    
-    /* Social Icons */
-    .social-links {
-        margin-top: 25px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    
-    .social-links a {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08);
-        transition: all 0.3s ease;
-        font-size: 1.1rem;
-        color: #EEEEEE;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .social-links a::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #00ADB5;
-        transform: translateY(100%);
-        transition: all 0.3s ease;
-        z-index: -1;
-    }
-    
-    .social-links a:hover {
-        color: #fff;
-        transform: translateY(-5px);
-    }
-    
-    .social-links a:hover::before {
-        transform: translateY(0);
-    }
-    
-    /* Newsletter Form */
-    .newsletter-form {
-        position: relative;
-        margin-top: 25px;
-        max-width: 100%;
-    }
-    
-    .newsletter-form input {
-        height: 55px;
-        border-radius: 50px;
-        padding-left: 25px;
-        padding-right: 65px;
-        border: none;
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        width: 100%;
-        font-size: 0.95rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-    }
-    
-    .newsletter-form input:focus {
-        background: rgba(255, 255, 255, 0.12);
-        outline: none;
-        box-shadow: 0 5px 20px rgba(0, 173, 181, 0.2);
-    }
-    
-    .newsletter-form input::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
-    
-    .newsletter-form button {
-        position: absolute;
-        right: 5px;
-        top: 5px;
-        height: 45px;
-        width: 45px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #00ADB5 0%, #00858c 100%);
-        border: none;
-        color: #fff;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    }
-    
-    .newsletter-form button:hover {
-        background: linear-gradient(135deg, #00c2cc 0%, #00ADB5 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 7px 15px rgba(0, 0, 0, 0.25);
-    }
-    
-    /* Copyright Section */
-    .footer-bottom {
-        background: #1A1D24;
-        padding: 25px 0;
-        position: relative;
-        overflow: hidden;
-        border: 0 !important;
-        outline: 0 !important;
-        box-shadow: none !important;
-    }
-    
-    .footer-bottom-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .copyright-text {
-        font-size: 0.9rem;
-        color: #EEEEEE;
-        margin-bottom: 0;
-    }
-    
-    .footer-bottom-links {
-        display: flex;
-        gap: 20px;
-    }
-    
-    .footer-bottom-links a {
-        color: #EEEEEE;
-        font-size: 0.9rem;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    
-    .footer-bottom-links a:hover {
-        color: #00ADB5;
-    }
-    
-    .footer-bottom::before {
-        content: '';
-        position: absolute;
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: rgba(0, 173, 181, 0.03);
-        bottom: -100px;
-        left: 10%;
-    }
-    
-    .footer-bottom::after {
-        content: '';
-        position: absolute;
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.02);
-        top: -75px;
-        right: 10%;
-    }
-    
-    @media (max-width: 767px) {
-        .footer-bottom-content {
-            justify-content: center;
-            text-align: center;
-        }
-    }
-    
-    /* Mobile spacing optimizations */
-    @media (max-width: 576px) {
-        .footer-top { padding: 36px 0 28px; }
-        .footer-bottom { padding: 16px 0; }
-        .footer-widget h4 { margin-bottom: 14px; }
-        .footer-widget p { line-height: 1.45; margin-bottom: 0.5rem; }
-        .footer-links li { margin-bottom: 8px; }
-        .contact-info li { margin-bottom: 8px; }
-        .social-links { margin-top: 16px; gap: 10px; }
-        .newsletter-form { margin-top: 16px; }
-        .newsletter-form input { height: 48px; }
-        .newsletter-form button { height: 40px; width: 40px; top: 4px; right: 4px; }
-
-        /* Mobile: no horizontal scroll — stack widgets vertically */
-        .footer-row {
-            display: flex;
-            flex-wrap: wrap !important;
-            overflow-x: hidden;
-            gap: 12px;
-            margin-right: 0;
-            padding-bottom: 0;
-        }
-        .footer-row > [class*="col-"] {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-    }
-
-    /* Small tablets (≥577px and ≤991px): show two columns per row */
-    @media (min-width: 577px) and (max-width: 991px) {
-        .footer-row { display: flex; flex-wrap: wrap; gap: 16px; }
-        .footer-row > [class*="col-"] { flex: 0 0 calc(50% - 8px); max-width: calc(50% - 8px); }
-    }
-</style>
-
-<!-- Footer Typography Overrides from Settings -->
-<style>
-    footer, 
-    footer * {
-        font-family: <?php echo htmlspecialchars($__footerFontFamily); ?> !important;
-    }
-    footer .footer-widget p,
-    footer .footer-links a,
-    footer .contact-info li,
-    footer .footer-bottom-links a {
-        color: <?php echo htmlspecialchars($__footerTextColor); ?> !important;
+    footer.premium-footer .footer-widget p,
+    footer.premium-footer .about-content,
+    footer.premium-footer .footer-links a,
+    footer.premium-footer .contact-info li {
         font-size: <?php echo htmlspecialchars($__footerFontSize); ?> !important;
     }
-
-    footer .copyright-text {
+    footer.premium-footer .copyright-text {
         color: <?php echo htmlspecialchars($__footerBottomTextColor); ?> !important;
-        font-size: <?php echo htmlspecialchars($__footerFontSize); ?> !important;
     }
-
-    footer .footer-widget h4::after {
-        background: linear-gradient(90deg, <?php echo htmlspecialchars($__footerAccentColor); ?> 0%, rgba(0, 173, 181, 0.2) 100%) !important;
-    }
-
-    footer .footer-widget h4 {
-        color: <?php echo htmlspecialchars($__footerHeadingColor); ?> !important;
-    }
-
-    footer .footer-bottom-links a {
+    footer.premium-footer .footer-bottom-links a {
         color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;
     }
-
-    footer .footer-bottom-links a:hover {
+    footer.premium-footer .footer-bottom-links a:hover {
         color: <?php echo htmlspecialchars($__footerBottomLinkHoverColor); ?> !important;
     }
-
-    footer .footer-widget h4::before,
-    footer .contact-info i,
-    footer .footer-links a:hover {
-        color: <?php echo htmlspecialchars($__footerAccentColor); ?> !important;
-    }
-
-    footer .footer-widget h4::before {
-        background: <?php echo htmlspecialchars($__footerAccentColor); ?> !important;
-    }
 </style>
 
-<!-- Ensure full-width helper is available globally (used by footer) -->
-<style>
-    .full-width-section {
-        width: 100%;
-        position: relative;
-        left: auto;
-        right: auto;
-        margin-left: 0;
-        margin-right: 0;
-        overflow: hidden;
-        background-color: transparent;
+<?php
+$__siteLogo = '';
+$__siteName = defined('SITE_NAME') ? SITE_NAME : 'Sivakamy';
+try {
+    if (!isset($__settingModel)) {
+        require_once APP_PATH . 'models/Setting.php';
+        $__settingModel = new Setting();
     }
+    $__siteLogo = $__settingModel->getSetting('site_logo');
+    $__sn = $__settingModel->getSetting('site_name');
+    if (!empty($__sn)) $__siteName = $__sn;
+} catch (Exception $e) {
+    // keep defaults
+}
+?>
 
-    /* Center inner content and control max width */
-    .max-width-1400 { max-width: 1680px; margin-left: auto; margin-right: auto; }
+<footer class="full-width-section premium-footer" role="contentinfo">
+    <div class="footer-main">
+        <div class="container-fluid px-3 px-lg-4 max-width-1400">
 
-    /* Ensure symmetric inner padding within footer */
-    footer .container-fluid { padding-left: 1.5rem; padding-right: 1.5rem; }
-    @media (min-width: 1200px) {
-        footer .container-fluid { padding-left: 3rem; padding-right: 3rem; }
-    }
-</style>
-
-<footer class="full-width-section premium-footer">
-    <!-- Footer Top with Wave Effect -->
-    <div class="footer-top">
-        <!-- Decorative elements -->
-        <div class="footer-decoration circle-1"></div>
-        <div class="footer-decoration circle-2"></div>
-        
-        <div class="container-fluid px-4 px-xl-5 max-width-1400">
-            <div class="row gx-2 gx-md-4 gy-4 footer-row">
-                <!-- About Store Widget -->
-                <div class="col-lg-3 col-md-6">
+            <!-- Row 1: Brand + link columns -->
+            <div class="row g-4 footer-row">
+                <!-- Brand -->
+                <div class="col-12 col-md-6 col-xl">
                     <div class="footer-widget">
                         <?php
-                        // Get the latest About Store entry
-                        $aboutTitle = 'About Our Store';
-                        $aboutContent = 'Your one-stop shop for quality products. We offer the best deals and fast delivery to your doorstep with a satisfaction guarantee on all purchases.';
-                        
-                        // Check if global DB connection exists
+                        $aboutContent = 'Your one-stop shop for quality products with fast delivery and trusted service.';
                         if (isset($GLOBALS['db'])) {
                             try {
-                                // Include the model
                                 require_once APP_PATH . 'models/AboutStore.php';
-                                
-                                // Create model instance with global DB connection
                                 $aboutStore = new AboutStore($GLOBALS['db']);
                                 $aboutEntries = $aboutStore->getAll();
-                                
-                                if (!empty($aboutEntries[0])) {
-                                    $aboutTitle = htmlspecialchars($aboutEntries[0]['title']);
+                                if (!empty($aboutEntries[0]['content'])) {
                                     $aboutContent = $aboutEntries[0]['content'];
                                 }
                             } catch (Exception $e) {
-                                // Log error but don't break the page
                                 error_log('Error loading about store content: ' . $e->getMessage());
                             }
                         }
                         ?>
-                        <h4><a href="<?php echo BASE_URL; ?>?controller=about&action=index" style="color: inherit; text-decoration: none;"><?php echo htmlspecialchars($__footerHeadingAbout); ?></a></h4>
-                        <div class="about-content">
-                            <?php 
-                            // Display first 150 characters of content with proper HTML formatting
-                            $shortContent = strip_tags($aboutContent);
-                            $shortContent = strlen($shortContent) > 150 ? substr($shortContent, 0, 150) . '...' : $shortContent;
-                            echo $shortContent; 
+                        <a class="footer-brand-logo" href="<?php echo BASE_URL; ?>" aria-label="<?php echo htmlspecialchars($__siteName); ?>">
+                            <?php if (!empty($__siteLogo)): ?>
+                                <img src="<?php echo BASE_URL . 'uploads/' . htmlspecialchars($__siteLogo); ?>" alt="<?php echo htmlspecialchars($__siteName); ?>" loading="lazy" width="140" height="40">
+                            <?php else: ?>
+                                <span class="brand-text"><?php echo htmlspecialchars($__siteName); ?></span>
+                            <?php endif; ?>
+                        </a>
+                        <p class="about-content">
+                            <?php
+                            $short = strip_tags($aboutContent);
+                            echo htmlspecialchars(strlen($short) > 110 ? substr($short, 0, 110) . '…' : $short);
                             ?>
+                        </p>
+                        <div class="footer-trust" aria-label="Trust badges">
+                            <span title="SSL Secure"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+                            <span title="100% Genuine"><i class="bi bi-award" aria-hidden="true"></i></span>
+                            <span title="Fast Delivery"><i class="bi bi-truck" aria-hidden="true"></i></span>
+                            <span title="Easy Returns"><i class="bi bi-arrow-repeat" aria-hidden="true"></i></span>
                         </div>
-                      
-                        <div class="social-links">
-                            <a href="#"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fab fa-instagram"></i></a>
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <div class="social-links" aria-label="Social media">
+                            <a href="#" aria-label="Facebook"><i class="bi bi-facebook" aria-hidden="true"></i></a>
+                            <a href="#" aria-label="Instagram"><i class="bi bi-instagram" aria-hidden="true"></i></a>
+                            <a href="#" aria-label="YouTube"><i class="bi bi-youtube" aria-hidden="true"></i></a>
+                            <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin" aria-hidden="true"></i></a>
+                            <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp" aria-hidden="true"></i></a>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Quick Links Widget -->
-                <div class="col-lg-3 col-md-6 col-6">
+
+                <!-- Customer Service -->
+                <div class="col-6 col-md-3 col-xl">
                     <div class="footer-widget">
-                        <h4><?php echo htmlspecialchars($__footerHeadingQuickLinks); ?></h4>
+                        <h4>Customer Service</h4>
                         <ul class="footer-links">
-                            <li><a href="<?php echo BASE_URL; ?>#banner">Home Banner</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>#featured-products">Featured Products</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>#brands">Brands</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=faq">Help Center</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=order&action=history">Track Order</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=faq">Returns</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=faq"><?php echo htmlspecialchars($__footerBottomLinkFaq); ?></a></li>
                         </ul>
                     </div>
                 </div>
-                
-                <!-- Contact Info Widget -->
-                <div class="col-lg-3 col-md-6 col-6">
+
+                <!-- Company -->
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="footer-widget">
+                        <h4>Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="<?php echo BASE_URL; ?>?controller=about&action=index">About</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=contact">Careers</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Shop -->
+                <div class="col-6 col-md-6 col-xl">
+                    <div class="footer-widget">
+                        <h4>Shop</h4>
+                        <ul class="footer-links">
+                            <li><a href="<?php echo BASE_URL; ?>#categories-heading">Categories</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#brands">Brands</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=index">Offers</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>#featured-products">Best Sellers</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>?controller=product&action=index">Flash Deals</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Contact -->
+                <div class="col-6 col-md-6 col-xl">
                     <div class="footer-widget">
                         <h4><?php echo htmlspecialchars($__footerHeadingContactInfo); ?></h4>
                         <?php
@@ -592,77 +195,89 @@ try {
                         ?>
                         <ul class="contact-info">
                             <li>
-                                <i class="fas fa-map-marker-alt"></i>
-                                <?php echo $ci && !empty($ci['address']) ? nl2br(htmlspecialchars($ci['address'])) : 'Address not set'; ?>
-                            </li>
-                            <li>
-                                <i class="fas fa-phone"></i>
+                                <i class="bi bi-telephone-fill" aria-hidden="true"></i>
                                 <?php if ($ci && !empty($ci['phone'])): ?>
-                                    <a href="tel:<?php echo htmlspecialchars($ci['phone']); ?>" class="text-decoration-none text-light"><?php echo htmlspecialchars($ci['phone']); ?></a>
+                                    <a href="tel:<?php echo htmlspecialchars($ci['phone']); ?>"><?php echo htmlspecialchars($ci['phone']); ?></a>
                                 <?php else: ?>
-                                    <span class="text-muted">Phone not set</span>
+                                    <span>—</span>
                                 <?php endif; ?>
                             </li>
                             <li>
-                                <i class="fas fa-envelope"></i>
+                                <i class="bi bi-envelope-fill" aria-hidden="true"></i>
                                 <?php if ($ci && !empty($ci['email'])): ?>
-                                    <a href="mailto:<?php echo htmlspecialchars($ci['email']); ?>" class="text-decoration-none text-light"><?php echo htmlspecialchars($ci['email']); ?></a>
+                                    <a href="mailto:<?php echo htmlspecialchars($ci['email']); ?>"><?php echo htmlspecialchars($ci['email']); ?></a>
                                 <?php else: ?>
-                                    <span class="text-muted">Email not set</span>
+                                    <span>—</span>
                                 <?php endif; ?>
                             </li>
                             <li>
-                                <i class="fas fa-clock"></i>
-                                <?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon - Fri: 9:00 AM - 8:00 PM'; ?><br>
-                                <?php echo $ci && !empty($ci['hours_weekends']) ? htmlspecialchars($ci['hours_weekends']) : 'Sat - Sun: 10:00 AM - 6:00 PM'; ?>
+                                <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                                <span><?php echo $ci && !empty($ci['address']) ? nl2br(htmlspecialchars($ci['address'])) : '—'; ?></span>
+                            </li>
+                            <li>
+                                <i class="bi bi-clock-fill" aria-hidden="true"></i>
+                                <span>
+                                    <?php echo $ci && !empty($ci['hours_weekdays']) ? htmlspecialchars($ci['hours_weekdays']) : 'Mon – Fri: 9:00 – 18:00'; ?>
+                                </span>
                             </li>
                         </ul>
                     </div>
                 </div>
-                
-                <!-- Newsletter Widget -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="footer-widget">
-                        <?php
-                        // Newsletter widget settings with defaults
-                        $newsletterTitle = 'Newsletter';
-                        $newsletterDesc = 'Subscribe to our newsletter to get exclusive updates about our latest products, special offers, and seasonal discounts.';
+            </div>
 
-                        // Try load from settings if available
-                        try {
-                            require_once APP_PATH . 'models/Setting.php';
-                            $settingModel = new Setting();
-                            $titleVal = $settingModel->getSetting('newsletter_title', $newsletterTitle);
-                            $descVal  = $settingModel->getSetting('newsletter_description', $newsletterDesc);
-                            if (!empty($titleVal)) { $newsletterTitle = $titleVal; }
-                            if (!empty($descVal))  { $newsletterDesc  = $descVal; }
-                        } catch (Exception $e) {
-                            // Ignore and keep defaults
-                            error_log('Footer newsletter settings load failed: ' . $e->getMessage());
-                        }
-                        ?>
+            <!-- Newsletter full width -->
+            <div class="footer-newsletter-bar">
+                <?php
+                $newsletterDesc = 'Subscribe for exclusive offers and new arrivals.';
+                try {
+                    require_once APP_PATH . 'models/Setting.php';
+                    $settingModel = new Setting();
+                    $descVal = $settingModel->getSetting('newsletter_description', $newsletterDesc);
+                    if (!empty($descVal)) { $newsletterDesc = $descVal; }
+                } catch (Exception $e) {
+                    error_log('Footer newsletter settings load failed: ' . $e->getMessage());
+                }
+                ?>
+                <div class="footer-newsletter-inner">
+                    <div class="footer-newsletter-copy">
                         <h4><?php echo htmlspecialchars($__footerHeadingNewsletter); ?></h4>
                         <p><?php echo htmlspecialchars($newsletterDesc); ?></p>
-                        <form class="newsletter-form" method="post" action="<?php echo BASE_URL; ?>?controller=newsletter&action=subscribe">
-                            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
-                            <input type="email" name="email" placeholder="Your Email Address" required>
-                            <button type="submit" aria-label="Subscribe"><i class="fas fa-paper-plane"></i></button>
-                        </form>
                     </div>
+                    <form class="newsletter-form" id="newsletter-form" method="post" action="<?php echo BASE_URL; ?>?controller=newsletter&action=subscribe">
+                        <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+                        <input type="email" name="email" id="newsletter-email" placeholder="Your email address" required autocomplete="email" aria-label="Email address for newsletter">
+                        <button type="submit" aria-label="Subscribe to newsletter">
+                            <i class="bi bi-send-fill btn-icon" aria-hidden="true"></i>
+                            <span class="btn-spinner spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="btn-label">Subscribe</span>
+                        </button>
+                    </form>
+                    <div id="newsletter-result" aria-live="polite"></div>
                 </div>
+            </div>
+
+            <!-- Payment logos -->
+            <div class="footer-pay-strip" aria-label="Payment methods">
+                <span class="footer-pay-badge" title="Visa"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#1A1F71"/><text x="24" y="11.5" text-anchor="middle" fill="#fff" font-size="7" font-weight="700" font-family="Arial">VISA</text></svg></span>
+                <span class="footer-pay-badge" title="Mastercard"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><circle cx="18" cy="8" r="6" fill="#EB001B"/><circle cx="30" cy="8" r="6" fill="#F79E1B"/></svg></span>
+                <span class="footer-pay-badge" title="PayPal"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#003087"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6" font-weight="700" font-family="Arial">PayPal</text></svg></span>
+                <span class="footer-pay-badge" title="Stripe"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#635BFF"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="6.5" font-weight="700" font-family="Arial">Stripe</text></svg></span>
+                <span class="footer-pay-badge" title="Apple Pay"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#111"/><text x="24" y="11" text-anchor="middle" fill="#fff" font-size="5.5" font-weight="600" font-family="Arial"> Pay</text></svg></span>
+                <span class="footer-pay-badge" title="Google Pay"><svg viewBox="0 0 48 16" width="42" height="14" aria-hidden="true"><rect width="48" height="16" rx="3" fill="#fff"/><text x="24" y="11" text-anchor="middle" fill="#3c4043" font-size="5.5" font-weight="700" font-family="Arial">G Pay</text></svg></span>
             </div>
         </div>
     </div>
-    
-    <!-- Footer Bottom / Copyright -->
+
+    <!-- Bottom bar -->
     <div class="footer-bottom">
-        <div class="container-fluid px-4 px-xl-5 max-width-1400">
+        <div class="container-fluid px-3 px-lg-4 max-width-1400">
             <div class="footer-bottom-content">
-                <p class="copyright-text" style="color: <?php echo htmlspecialchars($__footerBottomTextColor); ?> !important;">&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($__footerBottomText); ?></p>
+                <p class="copyright-text">&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($__siteName); ?>. All Rights Reserved.</p>
                 <div class="footer-bottom-links">
-                    <a style="color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;" href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a>
-                    <a style="color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;" href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a>
-                    <a style="color: <?php echo htmlspecialchars($__footerBottomLinkColor); ?> !important;" href="<?php echo BASE_URL; ?>?controller=page&action=faq"><?php echo htmlspecialchars($__footerBottomLinkFaq); ?></a>
+                    <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy"><?php echo htmlspecialchars($__footerBottomLinkPrivacy); ?></a>
+                    <a href="<?php echo BASE_URL; ?>?controller=page&action=terms"><?php echo htmlspecialchars($__footerBottomLinkTerms); ?></a>
+                    <a href="<?php echo BASE_URL; ?>?controller=page&action=privacy">Cookies</a>
+                    <a href="<?php echo BASE_URL; ?>">Sitemap</a>
                 </div>
             </div>
         </div>
@@ -670,16 +285,11 @@ try {
 </footer>
 
 <style>
-    footer.full-width-section {
-        margin-bottom: -2px;
-    }
-
-    footer .footer-bottom {
-        margin-bottom: -2px;
-    }
+    footer.full-width-section { margin-bottom: -2px; }
+    footer .footer-bottom { margin-bottom: -2px; }
 </style>
 
-    <!-- Policy Modal -->
+<!-- Policy Modal -->
     <style>
       /* Content normalization */
       .policy-content { white-space: pre-wrap; font-size: 0.95rem; line-height: 1.65; }
@@ -753,6 +363,18 @@ try {
     <!-- Quantity Adjuster Script -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Newsletter loading spinner (UI only â€” does not alter subscribe AJAX in main.js)
+        if (window.jQuery) {
+            jQuery(document).on('submit', '#newsletter-form', function () {
+                jQuery(this).addClass('is-loading');
+            });
+            jQuery(document).ajaxComplete(function (_e, _xhr, settings) {
+                if (settings && settings.url && String(settings.url).indexOf('newsletter') !== -1) {
+                    jQuery('#newsletter-form').removeClass('is-loading');
+                }
+            });
+        }
+
         // Intercept footer policy links and open in modal
         const footerLinks = document.querySelectorAll('.footer-bottom-links a[href*="?controller=page&action="]');
         const policyModalEl = document.getElementById('policyModal');
@@ -858,7 +480,7 @@ try {
                 return;
             }
             
-            // Update value (editable field — no readonly restore)
+            // Update value (editable field Ã¢â‚¬â€ no readonly restore)
             input.value = newValue;
             
             // Trigger events
@@ -940,7 +562,7 @@ try {
             });
         });
 
-        // Enhanced Image Lazy Loading — always reveal images (no opacity trap)
+        // Enhanced Image Lazy Loading Ã¢â‚¬â€ always reveal images (no opacity trap)
         (function revealImages() {
             function mark(img) {
                 img.classList.add('loaded');
@@ -1040,7 +662,7 @@ try {
             });
         });
 
-        // NOTE: Do NOT globally throttle .btn/form clicks — it breaks Bootstrap dropdowns,
+        // NOTE: Do NOT globally throttle .btn/form clicks Ã¢â‚¬â€ it breaks Bootstrap dropdowns,
         // add-to-cart, search submit, and theme toggle.
 
         // Enhanced Carousel Controls
@@ -1055,7 +677,7 @@ try {
         });
 
         // Console message for developers
-        console.log('%c🚀 Enhanced UX Loaded', 'color: #667eea; font-size: 16px; font-weight: bold;');
+        console.log('%cÃ°Å¸Å¡â‚¬ Enhanced UX Loaded', 'color: #667eea; font-size: 16px; font-weight: bold;');
         console.log('%cSmooth scrolling, animations, and interactive elements are now active.', 'color: #636e72; font-size: 12px;');
     })();
     </script>

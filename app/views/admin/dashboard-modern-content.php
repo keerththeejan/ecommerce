@@ -83,7 +83,7 @@ try {
                 <button class="btn btn-modern primary" onclick="window.location.href='<?php echo BASE_URL; ?>?controller=pos&action=index'">
                     <i class="fas fa-cash-register me-2"></i>Start POS
                 </button>
-                <button class="btn btn-modern" onclick="window.location.href='<?php echo BASE_URL; ?>?controller=product&action=add'">
+                <button class="btn btn-modern" onclick="window.location.href='<?php echo BASE_URL; ?>?controller=product&action=create'">
                     <i class="fas fa-plus me-2"></i>Add Product
                 </button>
             </div>

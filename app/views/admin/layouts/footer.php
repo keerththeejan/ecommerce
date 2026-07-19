@@ -17,6 +17,16 @@
           if (!el.hasAttribute('data-bs-dismiss')) el.setAttribute('data-bs-dismiss', el.getAttribute('data-dismiss'));
         });
 
+        // Ensure Bootstrap dropdowns/tooltips initialize
+        if (window.bootstrap) {
+          document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function (el) {
+            bootstrap.Dropdown.getOrCreateInstance(el);
+          });
+          document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            bootstrap.Tooltip.getOrCreateInstance(el);
+          });
+        }
+
         // Minimal jQuery bridge for legacy modal/tooltip/alert calls
         if (window.jQuery && window.bootstrap) {
           var $ = window.jQuery;

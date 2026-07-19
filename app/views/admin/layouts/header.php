@@ -432,6 +432,8 @@ if (!defined('BASE_URL')) {
 
         .admin-submenu.show {
             opacity: 1;
+            /* Fallback so menus remain usable even if JS maxHeight fails */
+            max-height: 80vh;
         }
 
         .admin-submenu .admin-nav-link {
@@ -941,7 +943,10 @@ if (!defined('BASE_URL')) {
             </nav>
 
             <script>
-                                document.getElementById('clearCookiesBtn').addEventListener('click', function(e) {
+                                (function () {
+                                    var clearBtn = document.getElementById('clearCookiesBtn');
+                                    if (!clearBtn) return;
+                                    clearBtn.addEventListener('click', function(e) {
                                     e.preventDefault();
                                     if (confirm('Are you sure you want to clear all cookies? This will log out all users.')) {
                                         fetch('<?php echo BASE_URL; ?>?controller=home&action=clearCookies', {
@@ -959,13 +964,14 @@ if (!defined('BASE_URL')) {
                                                     const alertDiv = document.createElement('div');
                                                     alertDiv.className = 'alert alert-success alert-dismissible fade show';
                                                     alertDiv.role = 'alert';
-                                                    alertDiv.innerHTML = data.message + ' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+                                                    alertDiv.innerHTML = data.message + ' <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
 
                                                     var mainContent = document.querySelector('main');
                                                     if (mainContent) {
                                                         mainContent.insertBefore(alertDiv, mainContent.firstChild);
                                                         setTimeout(function() {
-                                                            $(alertDiv).alert('close');
+                                                            if (window.jQuery) { $(alertDiv).alert('close'); }
+                                                            else if (window.bootstrap) { bootstrap.Alert.getOrCreateInstance(alertDiv).close(); }
                                                         }, 5000);
                                                     }
                                                 }
@@ -976,6 +982,7 @@ if (!defined('BASE_URL')) {
                                             });
                                     }
                                 });
+                                })();
             </script>
 
             <!-- Backdrop for mobile -->
@@ -985,7 +992,7 @@ if (!defined('BASE_URL')) {
             <main class="px-2 px-md-4">
                 <div class="admin-topbar d-flex flex-column flex-lg-row justify-content-between align-items-stretch align-items-lg-center flex-wrap flex-md-nowrap pt-3 pb-2 mb-3 border-bottom">
                     <div class="d-flex align-items-center mb-2 mb-lg-0">
-                        <button class="btn btn-outline-secondary mr-3 d-md-none" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" id="sidebarToggleBtn">
+                        <button class="btn btn-outline-secondary mr-3 d-md-none" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" id="sidebarToggleBtn">
                             <i class="fas fa-bars"></i>
                         </button>
                         <button class="btn btn-outline-secondary mr-2 d-none d-md-inline-flex" type="button" aria-label="Collapse sidebar" id="sidebarCollapseBtnTop">
@@ -1018,7 +1025,7 @@ if (!defined('BASE_URL')) {
                         </button>
                         
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Admin'); ?>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -1122,7 +1129,11 @@ if (!defined('BASE_URL')) {
 
                             trigger.addEventListener('click', function(e) {
                                 e.preventDefault();
+                                // When rail is collapsed, expand first then open this submenu
                                 if (body.classList.contains('sidebar-collapsed') && !isMobile()) {
+                                    applyCollapsedState(false);
+                                    closeOtherSubmenus(trigger);
+                                    setSubmenuState(trigger, true);
                                     return;
                                 }
                                 var isOpen = trigger.getAttribute('aria-expanded') === 'true';
@@ -1266,69 +1277,37 @@ if (!defined('BASE_URL')) {
                     };
                 </script>
                 <script>
-                    // Theme Toggle Functionality
+                    // Theme Toggle Functionality (non-destructive — CSS variables only)
                     document.addEventListener('DOMContentLoaded', function() {
                         const themeToggle = document.getElementById('themeToggle');
+                        if (!themeToggle) return;
                         const icon = themeToggle.querySelector('i');
                         const text = themeToggle.querySelector('span');
                         
-                        // Check for saved user preference, if any
                         let currentTheme = localStorage.getItem('theme') || 'light';
                         
-                        // Apply the saved theme
                         function applyTheme(theme) {
                             if (theme === 'dark') {
                                 document.documentElement.setAttribute('data-theme', 'dark');
-                                document.body.style.color = '#f8f9fa';
-                                document.body.style.backgroundColor = '#212529';
-                                
-                                // Update all text colors
-                                document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, td, th, label, input, select, textarea').forEach(el => {
-                                    const style = getComputedStyle(el);
-                                    if (style.color === 'rgb(33, 37, 41)' || 
-                                        style.color === 'rgb(0, 0, 0)' ||
-                                        style.color === 'rgb(108, 117, 125)') {
-                                        el.style.color = '#f8f9fa';
-                                    }
-                                });
-                                
-                                icon.classList.remove('fa-moon');
-                                icon.classList.add('fa-sun');
-                                text.textContent = 'Light Mode';
-                            } else {
-                                document.documentElement.removeAttribute('data-theme');
-                                document.body.style.color = '#212529';
-                                document.body.style.backgroundColor = '#ffffff';
-                                
-                                // Force black text in light mode
-                                document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, td, th, label, input, select, textarea, .text-body, .text-dark, .table, .table th, .table td, .card, .card-header, .card-body').forEach(el => {
-                                    el.style.color = '#212529';
-                                    if (el.classList.contains('text-muted')) {
-                                        el.style.color = '#6c757d';
-                                    }
-                                });
-                                
-                                icon.classList.remove('fa-sun');
-                                icon.classList.add('fa-moon');
-                                text.textContent = 'Dark Mode';
-                            }
-                            // Force update of all text colors
-                            document.querySelectorAll('body, body *').forEach(el => {
-                                if (theme === 'dark') {
-                                    if (getComputedStyle(el).color === 'rgb(33, 37, 41)') {
-                                        el.style.color = '#f8f9fa';
-                                    }
-                                    if (getComputedStyle(el).backgroundColor === 'rgb(255, 255, 255)') {
-                                        el.style.backgroundColor = '#2c3034';
-                                    }
+                                document.body.setAttribute('data-theme', 'dark');
+                                if (icon) {
+                                    icon.classList.remove('fa-moon');
+                                    icon.classList.add('fa-sun');
                                 }
-                            });
+                                if (text) text.textContent = 'Light Mode';
+                            } else {
+                                document.documentElement.setAttribute('data-theme', 'light');
+                                document.body.setAttribute('data-theme', 'light');
+                                if (icon) {
+                                    icon.classList.remove('fa-sun');
+                                    icon.classList.add('fa-moon');
+                                }
+                                if (text) text.textContent = 'Dark Mode';
+                            }
                         }
                         
-                        // Apply the current theme
                         applyTheme(currentTheme);
                         
-                        // Toggle between light and dark theme
                         themeToggle.addEventListener('click', function() {
                             currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
                             localStorage.setItem('theme', currentTheme);
@@ -1341,7 +1320,7 @@ if (!defined('BASE_URL')) {
                         const KEY = 'admin_sidebar_scrollTop_v1';
                         document.addEventListener('DOMContentLoaded', function () {
                             try {
-                                const scroller = document.querySelector('#sidebar .position-sticky');
+                                const scroller = document.getElementById('adminSidebarScroll') || document.querySelector('#sidebar .position-sticky');
                                 if (!scroller) return;
                                 const saved = parseInt(localStorage.getItem(KEY) || '0', 10);
                                 if (!isNaN(saved)) {
@@ -1354,12 +1333,15 @@ if (!defined('BASE_URL')) {
                                 }, { passive: true });
 
                                 // Save right before navigating away (e.g., link click causes full page load)
-                                document.querySelector('#sidebar').addEventListener('click', function(e) {
-                                    const link = e.target.closest('a.nav-link, a.dropdown-item');
-                                    if (link && link.getAttribute('href')) {
-                                        localStorage.setItem(KEY, String(scroller.scrollTop));
-                                    }
-                                });
+                                var sidebarEl = document.querySelector('#sidebar');
+                                if (sidebarEl) {
+                                    sidebarEl.addEventListener('click', function(e) {
+                                        const link = e.target.closest('a.admin-nav-link, a.nav-link, a.dropdown-item');
+                                        if (link && link.getAttribute('href')) {
+                                            localStorage.setItem(KEY, String(scroller.scrollTop));
+                                        }
+                                    });
+                                }
 
                                 window.addEventListener('beforeunload', function() {
                                     localStorage.setItem(KEY, String(scroller.scrollTop));

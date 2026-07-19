@@ -116,7 +116,7 @@ function isSectionExpanded($section) {
                     </a>
                 </div>
                 <div class="menu-item-2026">
-                    <a href="<?php echo BASE_URL; ?>?controller=category&action=index" 
+                    <a href="<?php echo BASE_URL; ?>?controller=category&action=adminIndex" 
                        class="menu-link-2026 <?php echo isMenuActive('category') ? 'active' : ''; ?>"
                        data-tooltip="Categories">
                         <div class="menu-icon-2026">
@@ -126,7 +126,7 @@ function isSectionExpanded($section) {
                     </a>
                 </div>
                 <div class="menu-item-2026">
-                    <a href="<?php echo BASE_URL; ?>?controller=brand&action=index" 
+                    <a href="<?php echo BASE_URL; ?>?controller=brand&action=adminIndex" 
                        class="menu-link-2026 <?php echo isMenuActive('brand') ? 'active' : ''; ?>"
                        data-tooltip="Brands">
                         <div class="menu-icon-2026">
@@ -412,6 +412,9 @@ function isSectionExpanded($section) {
 
 <!-- JavaScript for Sidebar Functionality -->
 <script>
+window.BASE_URL = window.BASE_URL || <?php echo json_encode(BASE_URL); ?>;
+window.baseUrl = window.baseUrl || window.BASE_URL;
+
 // Modern Sidebar 2026 JavaScript
 class ModernSidebar2026 {
     constructor() {
@@ -422,6 +425,7 @@ class ModernSidebar2026 {
     }
     
     init() {
+        if (!this.sidebar) return;
         // Load saved state
         this.loadState();
         
@@ -441,6 +445,13 @@ class ModernSidebar2026 {
     }
     
     toggle() {
+        if (!this.sidebar) return;
+        if (window.innerWidth <= 768) {
+            this.sidebar.classList.toggle('mobile-open');
+            var layout = document.getElementById('adminLayout');
+            if (layout) layout.classList.toggle('mobile-open');
+            return;
+        }
         this.isCollapsed = !this.isCollapsed;
         this.sidebar.classList.toggle('collapsed');
         this.saveState();
@@ -495,19 +506,8 @@ class ModernSidebar2026 {
     }
     
     async loadDashboardCounts() {
-        try {
-            const response = await fetch(`${BASE_URL}?controller=admin&action=getStats`);
-            const stats = await response.json();
-            
-            // Update badges
-            this.updateBadge('productCountBadge', stats.products || 0);
-            this.updateBadge('orderCountBadge', stats.orders || 0);
-            this.updateBadge('lowStockBadge', stats.lowStock || 0);
-            this.updateBadge('bannerCountBadge', stats.banners || 0, true);
-            
-        } catch (error) {
-            console.error('Error loading dashboard counts:', error);
-        }
+        // Badge counts are decorative; no getStats API exists — keep UI non-blocking.
+        return;
     }
     
     updateBadge(elementId, count, highlight = false) {
